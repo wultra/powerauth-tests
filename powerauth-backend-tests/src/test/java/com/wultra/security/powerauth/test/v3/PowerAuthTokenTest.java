@@ -136,7 +136,7 @@ public class PowerAuthTokenTest {
 
         Map<String, String> configNS = new HashMap<>();
         configNS.put("activationId", config.getActivationIdV3());
-        ObjectResponse<GetAuthMethodsResponse> responseNS = nextStepClient.enableAuthMethodForUser("test", AuthMethod.POWERAUTH_TOKEN, configNS);
+        ObjectResponse<GetAuthMethodsResponse> responseNS = nextStepClient.enableAuthMethodForUser("test_v3", AuthMethod.POWERAUTH_TOKEN, configNS);
         assertEquals("OK", responseNS.getStatus());
 
         VerifyTokenStepModel modelVerify = new VerifyTokenStepModel();

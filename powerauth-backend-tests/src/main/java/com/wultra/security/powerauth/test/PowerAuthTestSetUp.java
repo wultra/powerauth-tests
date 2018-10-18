@@ -94,7 +94,7 @@ public class PowerAuthTestSetUp {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test");
+        initRequest.setUserId("test_v3");
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
@@ -126,7 +126,7 @@ public class PowerAuthTestSetUp {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test");
+        initRequest.setUserId("test_v2");
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation

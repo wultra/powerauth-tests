@@ -318,14 +318,14 @@ public class PowerAuthSignatureTest {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test");
+        initRequest.setUserId("test_v2");
         initRequest.setMaxFailureCount(3L);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
         PrepareActivationStepModel modelPrepare = new PrepareActivationStepModel();
         modelPrepare.setActivationCode(initResponse.getActivationCode());
-        modelPrepare.setActivationName("test");
+        modelPrepare.setActivationName("test v2");
         modelPrepare.setApplicationKey(config.getApplicationKey());
         modelPrepare.setApplicationSecret(config.getApplicationSecret());
         modelPrepare.setMasterPublicKey(config.getMasterPublicKey());
@@ -392,7 +392,7 @@ public class PowerAuthSignatureTest {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test");
+        initRequest.setUserId("test_v2");
         // High limit to test lookahead
         initRequest.setMaxFailureCount(100L);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
@@ -400,7 +400,7 @@ public class PowerAuthSignatureTest {
         // Prepare activation
         PrepareActivationStepModel modelPrepare = new PrepareActivationStepModel();
         modelPrepare.setActivationCode(initResponse.getActivationCode());
-        modelPrepare.setActivationName("test");
+        modelPrepare.setActivationName("test v2");
         modelPrepare.setApplicationKey(config.getApplicationKey());
         modelPrepare.setApplicationSecret(config.getApplicationSecret());
         modelPrepare.setMasterPublicKey(config.getMasterPublicKey());
