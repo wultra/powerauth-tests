@@ -36,6 +36,8 @@ import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationStatus
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.json.simple.JSONObject;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +48,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 import javax.crypto.SecretKey;
 import javax.xml.datatype.DatatypeFactory;
 import java.io.File;
+import java.io.IOException;
 import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -61,6 +65,8 @@ public class PowerAuthActivationTest {
 
     private PowerAuthServiceClient powerAuthClient;
     private PowerAuthTestConfiguration config;
+    private PrepareActivationStepModel model;
+    private File tempStatusFile;
 
     private static final PowerAuthClientActivation activation = new PowerAuthClientActivation();
 
@@ -74,26 +80,14 @@ public class PowerAuthActivationTest {
         this.config = config;
     }
 
-    @Test
-    public void activationPrepareTest() throws Exception {
+    @Before
+    public void setUp() throws IOException {
         // Create temp status file
-        File tempStatusFile = File.createTempFile("pa_status", ".json");
-        tempStatusFile.deleteOnExit();
+        tempStatusFile = File.createTempFile("pa_status_v3", ".json");
 
-        // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
-        initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test");
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
-
-        // Verify activation status
-        GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
-        assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
-
-        // Prepare activation
-        PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationCode(initResponse.getActivationCode());
-        model.setActivationName("test");
+        // Model shared among tests
+        model = new PrepareActivationStepModel();
+        model.setActivationName("test v3");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -103,7 +97,27 @@ public class PowerAuthActivationTest {
         model.setResultStatusObject(new JSONObject());
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion("3.0");
+    }
 
+    @After
+    public void tearDown() {
+        assertTrue(tempStatusFile.delete());
+    }
+
+    @Test
+    public void activationPrepareTest() throws Exception {
+        // Init activation
+        InitActivationRequest initRequest = new InitActivationRequest();
+        initRequest.setApplicationId(config.getApplicationId());
+        initRequest.setUserId("test_v3");
+        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+
+        // Verify activation status
+        GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
+
+        // Prepare activation
+        model.setActivationCode(initResponse.getActivationCode());
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
         assertTrue(stepLoggerPrepare.getResult().isSuccess());
@@ -171,10 +185,6 @@ public class PowerAuthActivationTest {
 
     @Test
     public void activationPrepareUnsupportedApplicationTest() throws Exception {
-        // Create temp status file
-        File tempStatusFile = File.createTempFile("pa_status", ".json");
-        tempStatusFile.deleteOnExit();
-
         // Unsupport application version
         powerAuthClient.unsupportApplicationVersion(config.getApplicationVersionId());
 
@@ -185,7 +195,7 @@ public class PowerAuthActivationTest {
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test");
+        initRequest.setUserId("test_v3");
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
@@ -193,20 +203,7 @@ public class PowerAuthActivationTest {
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
         // PrepareActivation should fail
-        PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(initResponse.getActivationCode());
-        model.setActivationName("test");
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(new JSONObject());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
-
-        // Verify that PrepareActivation fails
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
         assertFalse(stepLoggerPrepare.getResult().isSuccess());
@@ -230,14 +227,10 @@ public class PowerAuthActivationTest {
 
     @Test
     public void activationPrepareExpirationTest() throws Exception {
-        // Create temp status file
-        File tempStatusFile = File.createTempFile("pa_status", ".json");
-        tempStatusFile.deleteOnExit();
-
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test");
+        initRequest.setUserId("test_v3");
         // Expire activation with 1 second in the past
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
         gregorianCalendar.setTimeInMillis(System.currentTimeMillis() - 1000);
@@ -245,18 +238,7 @@ public class PowerAuthActivationTest {
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
-        PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(initResponse.getActivationCode());
-        model.setActivationName("test");
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(new JSONObject());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
 
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
@@ -274,24 +256,8 @@ public class PowerAuthActivationTest {
 
     @Test
     public void activationPrepareWithoutInitTest() throws Exception {
-        // Create temp status file
-        File tempStatusFile = File.createTempFile("pa_status", ".json");
-        tempStatusFile.deleteOnExit();
-
-        // Prepare activation
-        PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationCode("AAAAA-BBBBB-CCCCC-DDDDD");
-        model.setActivationName("test");
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(new JSONObject());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
-
+        // Prepare non-existent activation
+        model.setActivationCode("AAAAA-BBBBB-CCCCC-EEEEE");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
         assertFalse(stepLoggerPrepare.getResult().isSuccess());
@@ -303,19 +269,14 @@ public class PowerAuthActivationTest {
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
-
     }
 
     @Test
     public void activationPrepareBadMasterPublicKeyTest() throws Exception {
-        // Create temp status file
-        File tempStatusFile = File.createTempFile("pa_status", ".json");
-        tempStatusFile.deleteOnExit();
-
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test");
+        initRequest.setUserId("test_v3");
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
@@ -323,21 +284,11 @@ public class PowerAuthActivationTest {
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
         KeyPair keyPair = new KeyGenerator().generateKeyPair();
+        PublicKey originalKey = model.getMasterPublicKey();
 
         // Prepare activation
-        PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(initResponse.getActivationCode());
-        model.setActivationName("test");
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(keyPair.getPublic());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(new JSONObject());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
-
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
         assertFalse(stepLoggerPrepare.getResult().isSuccess());
@@ -349,37 +300,25 @@ public class PowerAuthActivationTest {
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+
+        // Revert master public key change
+        model.setMasterPublicKey(originalKey);
     }
 
     @Test
     public void activationStatusTest() throws Exception {
-        // Create temp status file
-        File tempStatusFile = File.createTempFile("pa_status", ".json");
-        tempStatusFile.deleteOnExit();
-
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test");
+        initRequest.setUserId("test_v3");
         initRequest.setMaxFailureCount(10L);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
-        PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(initResponse.getActivationCode());
-        model.setActivationName("test status");
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(tempStatusFile.getAbsolutePath());
         model.setResultStatusObject(resultStatusObject);
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
-
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
         assertTrue(stepLoggerPrepare.getResult().isSuccess());
@@ -479,14 +418,10 @@ public class PowerAuthActivationTest {
 
     @Test
     public void activationInvalidApplicationKeyTest() throws Exception {
-        // Create temp status file
-        File tempStatusFile = File.createTempFile("pa_status", ".json");
-        tempStatusFile.deleteOnExit();
-
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test");
+        initRequest.setUserId("test_v3");
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
@@ -494,18 +429,8 @@ public class PowerAuthActivationTest {
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
         // PrepareActivation should fail
-        PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(initResponse.getActivationCode());
-        model.setActivationName("test");
         model.setApplicationKey("invalid");
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(new JSONObject());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
 
         // Verify that PrepareActivation fails
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
@@ -524,14 +449,10 @@ public class PowerAuthActivationTest {
 
     @Test
     public void activationInvalidApplicationSecretTest() throws Exception {
-        // Create temp status file
-        File tempStatusFile = File.createTempFile("pa_status", ".json");
-        tempStatusFile.deleteOnExit();
-
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test");
+        initRequest.setUserId("test_v3");
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
@@ -539,62 +460,8 @@ public class PowerAuthActivationTest {
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
         // PrepareActivation should fail
-        PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(initResponse.getActivationCode());
-        model.setActivationName("test");
-        model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret("invalid");
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(new JSONObject());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
-
-        // Verify that PrepareActivation fails
-        ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
-        new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertFalse(stepLoggerPrepare.getResult().isSuccess());
-        // Verify BAD_REQUEST status code
-        assertEquals(400, stepLoggerPrepare.getResponse().getStatusCode());
-
-        // Verify error response
-        ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().getResponseObject().toString(), ErrorResponse.class);
-        assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
-    }
-
-    @Test
-    public void activationInvalidCodeTest() throws Exception {
-        // Create temp status file
-        File tempStatusFile = File.createTempFile("pa_status", ".json");
-        tempStatusFile.deleteOnExit();
-
-        InitActivationRequest initRequest = new InitActivationRequest();
-        initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test");
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
-
-        // Verify activation status
-        GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
-        assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
-
-        // PrepareActivation should fail
-        PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationCode("AAAAA-BBBBB-CCCCC-DDDDD");
-        model.setActivationName("test");
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(new JSONObject());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
 
         // Verify that PrepareActivation fails
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
