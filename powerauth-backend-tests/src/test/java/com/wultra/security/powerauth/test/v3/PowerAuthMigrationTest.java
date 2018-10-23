@@ -471,9 +471,6 @@ public class PowerAuthMigrationTest {
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_MIGRATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_MIGRATION_FAILED", errorResponse.getResponseObject().getMessage());
-
-        // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
     }
 
     @Test
