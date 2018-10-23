@@ -1016,6 +1016,9 @@ public class PowerAuthMigrationTest {
         String ctrData4 = (String) model.getResultStatusObject().get("ctrData");
         assertEquals(3, counter4);
         assertArrayEquals(new HashBasedCounter().next(BaseEncoding.base64().decode(ctrData3)), BaseEncoding.base64().decode(ctrData4));
+
+        // Remove activation
+        powerAuthClient.removeActivation(initResponse.getActivationId());
     }
 
     @Test
@@ -1093,6 +1096,9 @@ public class PowerAuthMigrationTest {
 
         // Make sure only 1 distinct ctr_data is present
         assertEquals(1, allCtrData.size());
+
+        // Remove activation
+        powerAuthClient.removeActivation(initResponse.getActivationId());
     }
 
 }
