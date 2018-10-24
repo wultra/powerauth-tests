@@ -142,7 +142,7 @@ public class PowerAuthMigrationTest {
         // Verify activation status and version
         GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
-        assertEquals(2, statusResponseActive.getProtocolVersion());
+        assertEquals(2, statusResponseActive.getVersion());
 
         // Get transport key
         String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");
@@ -238,7 +238,7 @@ public class PowerAuthMigrationTest {
         // Verify activation status and version
         GetActivationStatusResponse statusResponseMigrated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, statusResponseMigrated.getActivationStatus());
-        assertEquals(3, statusResponseMigrated.getProtocolVersion());
+        assertEquals(3, statusResponseMigrated.getVersion());
 
         // Verify activation status blob
         cStatusBlob = BaseEncoding.base64().decode(statusResponseMigrated.getEncryptedStatusBlob());
@@ -380,7 +380,7 @@ public class PowerAuthMigrationTest {
         // Verify activation status and version
         GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
-        assertEquals(3, statusResponseActive.getProtocolVersion());
+        assertEquals(3, statusResponseActive.getVersion());
 
         // Prepare start migration model
         StartMigrationStepModel model1 = new StartMigrationStepModel();
@@ -565,7 +565,7 @@ public class PowerAuthMigrationTest {
         // Verify activation status and version
         GetActivationStatusResponse statusResponseMigrated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, statusResponseMigrated.getActivationStatus());
-        assertEquals(3, statusResponseMigrated.getProtocolVersion());
+        assertEquals(3, statusResponseMigrated.getVersion());
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId());
