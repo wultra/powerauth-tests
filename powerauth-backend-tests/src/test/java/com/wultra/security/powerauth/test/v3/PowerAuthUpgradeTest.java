@@ -28,12 +28,12 @@ import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
-import io.getlime.security.powerauth.lib.cmd.steps.model.CommitMigrationStepModel;
+import io.getlime.security.powerauth.lib.cmd.steps.model.CommitUpgradeStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import io.getlime.security.powerauth.lib.cmd.steps.model.StartMigrationStepModel;
+import io.getlime.security.powerauth.lib.cmd.steps.model.StartUpgradeStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
-import io.getlime.security.powerauth.lib.cmd.steps.v3.CommitMigrationStep;
-import io.getlime.security.powerauth.lib.cmd.steps.v3.StartMigrationStep;
+import io.getlime.security.powerauth.lib.cmd.steps.v3.CommitUpgradeStep;
+import io.getlime.security.powerauth.lib.cmd.steps.v3.StartUpgradeStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.json.simple.JSONObject;
@@ -59,7 +59,7 @@ import static org.junit.Assert.*;
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthMigrationTest {
+public class PowerAuthUpgradeTest {
 
     private PowerAuthServiceClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -97,7 +97,7 @@ public class PowerAuthMigrationTest {
     }
 
     @Test
-    public void migrationValidTest() throws Exception {
+    public void upgradeValidTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -113,7 +113,7 @@ public class PowerAuthMigrationTest {
 
         // Prepare activation model
         PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationName("migration test");
+        model.setActivationName("upgrade test");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -191,8 +191,8 @@ public class PowerAuthMigrationTest {
         assertEquals(1, counter1);
         assertNull(ctrData1);
 
-        // Prepare start migration model
-        StartMigrationStepModel model1 = new StartMigrationStepModel();
+        // Prepare start upgrade model
+        StartUpgradeStepModel model1 = new StartUpgradeStepModel();
         model1.setApplicationKey(config.getApplicationKey());
         model1.setApplicationSecret(config.getApplicationSecret());
         model1.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -201,9 +201,9 @@ public class PowerAuthMigrationTest {
         model1.setUriString(config.getPowerAuthIntegrationUrl());
         model1.setVersion("3.0");
 
-        // Start migration of activation to version 3.0
+        // Start upgrade of activation to version 3.0
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
-        new StartMigrationStep().execute(stepLogger1, model1.toMap());
+        new StartUpgradeStep().execute(stepLogger1, model1.toMap());
         assertTrue(stepLogger1.getResult().isSuccess());
         assertEquals(200, stepLogger1.getResponse().getStatusCode());
 
@@ -213,8 +213,8 @@ public class PowerAuthMigrationTest {
         assertEquals(1, counter2);
         assertNotNull(ctrData2);
 
-        // Prepare commit migration model
-        CommitMigrationStepModel model2 = new CommitMigrationStepModel();
+        // Prepare commit upgrade model
+        CommitUpgradeStepModel model2 = new CommitUpgradeStepModel();
         model2.setApplicationKey(config.getApplicationKey());
         model2.setApplicationSecret(config.getApplicationSecret());
         model2.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -223,9 +223,9 @@ public class PowerAuthMigrationTest {
         model2.setUriString(config.getPowerAuthIntegrationUrl());
         model2.setVersion("3.0");
 
-        // Commit migration of activation to version 3.0
+        // Commit upgrade of activation to version 3.0
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
-        new CommitMigrationStep().execute(stepLogger2, model2.toMap());
+        new CommitUpgradeStep().execute(stepLogger2, model2.toMap());
         assertTrue(stepLogger2.getResult().isSuccess());
         assertEquals(200, stepLogger2.getResponse().getStatusCode());
 
@@ -268,7 +268,7 @@ public class PowerAuthMigrationTest {
     }
 
     @Test
-    public void migrationUnsupportedApplicationVersionTest() throws Exception {
+    public void upgradeUnsupportedApplicationVersionTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -280,7 +280,7 @@ public class PowerAuthMigrationTest {
 
         // Prepare activation model
         PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationName("migration test");
+        model.setActivationName("upgrade test");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -305,8 +305,8 @@ public class PowerAuthMigrationTest {
         // Unsupport application version
         powerAuthClient.unsupportApplicationVersion(config.getApplicationVersionId());
 
-        // Prepare start migration model
-        StartMigrationStepModel model1 = new StartMigrationStepModel();
+        // Prepare start upgrade model
+        StartUpgradeStepModel model1 = new StartUpgradeStepModel();
         model1.setApplicationKey(config.getApplicationKey());
         model1.setApplicationSecret(config.getApplicationSecret());
         model1.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -317,15 +317,15 @@ public class PowerAuthMigrationTest {
 
         // Verify that it is not possible to migrate the activation
         ObjectStepLogger stepLoggerMig = new ObjectStepLogger(System.out);
-        new StartMigrationStep().execute(stepLoggerMig, model1.toMap());
+        new StartUpgradeStep().execute(stepLoggerMig, model1.toMap());
         assertFalse(stepLoggerMig.getResult().isSuccess());
         assertEquals(400, stepLoggerMig.getResponse().getStatusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         ErrorResponse errorResponse = objectMapper.readValue(stepLoggerMig.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_MIGRATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_MIGRATION_FAILED", errorResponse.getResponseObject().getMessage());
+        assertEquals("ERR_UPGRADE", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
 
         // Support application version
         powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
@@ -335,7 +335,7 @@ public class PowerAuthMigrationTest {
     }
 
     @Test
-    public void migrationInvalidActivationVersionTest() throws Exception {
+    public void upgradeInvalidActivationVersionTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -351,7 +351,7 @@ public class PowerAuthMigrationTest {
 
         // Prepare activation model
         PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationName("migration test");
+        model.setActivationName("upgrade test");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -382,8 +382,8 @@ public class PowerAuthMigrationTest {
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
         assertEquals(3, statusResponseActive.getVersion());
 
-        // Prepare start migration model
-        StartMigrationStepModel model1 = new StartMigrationStepModel();
+        // Prepare start upgrade model
+        StartUpgradeStepModel model1 = new StartUpgradeStepModel();
         model1.setApplicationKey(config.getApplicationKey());
         model1.setApplicationSecret(config.getApplicationSecret());
         model1.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -394,22 +394,22 @@ public class PowerAuthMigrationTest {
 
         // Verify that it is not possible to migrate the activation
         ObjectStepLogger stepLoggerMig = new ObjectStepLogger(System.out);
-        new StartMigrationStep().execute(stepLoggerMig, model1.toMap());
+        new StartUpgradeStep().execute(stepLoggerMig, model1.toMap());
         assertFalse(stepLoggerMig.getResult().isSuccess());
         assertEquals(400, stepLoggerMig.getResponse().getStatusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         ErrorResponse errorResponse = objectMapper.readValue(stepLoggerMig.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_MIGRATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_MIGRATION_FAILED", errorResponse.getResponseObject().getMessage());
+        assertEquals("ERR_UPGRADE", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId());
     }
 
     @Test
-    public void migrationActivationRemovedTest() throws Exception {
+    public void upgradeActivationRemovedTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -425,7 +425,7 @@ public class PowerAuthMigrationTest {
 
         // Prepare activation model
         PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationName("migration test");
+        model.setActivationName("upgrade test");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -443,8 +443,8 @@ public class PowerAuthMigrationTest {
         assertTrue(stepLoggerPrepare.getResult().isSuccess());
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
-        // Prepare start migration model
-        StartMigrationStepModel model1 = new StartMigrationStepModel();
+        // Prepare start upgrade model
+        StartUpgradeStepModel model1 = new StartUpgradeStepModel();
         model1.setApplicationKey(config.getApplicationKey());
         model1.setApplicationSecret(config.getApplicationSecret());
         model1.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -462,19 +462,19 @@ public class PowerAuthMigrationTest {
 
         // Verify that it is not possible to migrate the activation (it is removed)
         ObjectStepLogger stepLoggerMig = new ObjectStepLogger(System.out);
-        new StartMigrationStep().execute(stepLoggerMig, model1.toMap());
+        new StartUpgradeStep().execute(stepLoggerMig, model1.toMap());
         assertFalse(stepLoggerMig.getResult().isSuccess());
         assertEquals(400, stepLoggerMig.getResponse().getStatusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         ErrorResponse errorResponse = objectMapper.readValue(stepLoggerMig.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_MIGRATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_MIGRATION_FAILED", errorResponse.getResponseObject().getMessage());
+        assertEquals("ERR_UPGRADE", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
     }
 
     @Test
-    public void migrationActivationBlockedTest() throws Exception {
+    public void upgradeActivationBlockedTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -490,7 +490,7 @@ public class PowerAuthMigrationTest {
 
         // Prepare activation model
         PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationName("migration test");
+        model.setActivationName("upgrade test");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -508,8 +508,8 @@ public class PowerAuthMigrationTest {
         assertTrue(stepLoggerPrepare.getResult().isSuccess());
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
-        // Prepare start migration model
-        StartMigrationStepModel model1 = new StartMigrationStepModel();
+        // Prepare start upgrade model
+        StartUpgradeStepModel model1 = new StartUpgradeStepModel();
         model1.setApplicationKey(config.getApplicationKey());
         model1.setApplicationSecret(config.getApplicationSecret());
         model1.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -527,27 +527,27 @@ public class PowerAuthMigrationTest {
 
         // Verify that it is not possible to migrate the activation (it is blocked)
         ObjectStepLogger stepLoggerMig = new ObjectStepLogger(System.out);
-        new StartMigrationStep().execute(stepLoggerMig, model1.toMap());
+        new StartUpgradeStep().execute(stepLoggerMig, model1.toMap());
         assertFalse(stepLoggerMig.getResult().isSuccess());
         assertEquals(400, stepLoggerMig.getResponse().getStatusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         ErrorResponse errorResponse = objectMapper.readValue(stepLoggerMig.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_MIGRATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_MIGRATION_FAILED", errorResponse.getResponseObject().getMessage());
+        assertEquals("ERR_UPGRADE", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
 
         // Unlock activation
         powerAuthClient.unblockActivation(initResponse.getActivationId());
 
-        // Start migration of activation to version 3.0
+        // Start upgrade of activation to version 3.0
         ObjectStepLogger stepLogger3 = new ObjectStepLogger(System.out);
-        new StartMigrationStep().execute(stepLogger3, model1.toMap());
+        new StartUpgradeStep().execute(stepLogger3, model1.toMap());
         assertTrue(stepLogger3.getResult().isSuccess());
         assertEquals(200, stepLogger3.getResponse().getStatusCode());
 
-        // Prepare commit migration model
-        CommitMigrationStepModel model2 = new CommitMigrationStepModel();
+        // Prepare commit upgrade model
+        CommitUpgradeStepModel model2 = new CommitUpgradeStepModel();
         model2.setApplicationKey(config.getApplicationKey());
         model2.setApplicationSecret(config.getApplicationSecret());
         model2.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -556,9 +556,9 @@ public class PowerAuthMigrationTest {
         model2.setUriString(config.getPowerAuthIntegrationUrl());
         model2.setVersion("3.0");
 
-        // Commit migration of activation to version 3.0
+        // Commit upgrade of activation to version 3.0
         ObjectStepLogger stepLogger4 = new ObjectStepLogger(System.out);
-        new CommitMigrationStep().execute(stepLogger4, model2.toMap());
+        new CommitUpgradeStep().execute(stepLogger4, model2.toMap());
         assertTrue(stepLogger4.getResult().isSuccess());
         assertEquals(200, stepLogger4.getResponse().getStatusCode());
 
@@ -572,7 +572,7 @@ public class PowerAuthMigrationTest {
     }
 
     @Test
-    public void migrationActivationNotCommittedTest() throws Exception {
+    public void upgradeActivationNotCommittedTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -588,7 +588,7 @@ public class PowerAuthMigrationTest {
 
         // Prepare activation model
         PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationName("migration test");
+        model.setActivationName("upgrade test");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -606,8 +606,8 @@ public class PowerAuthMigrationTest {
         assertTrue(stepLoggerPrepare.getResult().isSuccess());
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
-        // Prepare start migration model
-        StartMigrationStepModel model1 = new StartMigrationStepModel();
+        // Prepare start upgrade model
+        StartUpgradeStepModel model1 = new StartUpgradeStepModel();
         model1.setApplicationKey(config.getApplicationKey());
         model1.setApplicationSecret(config.getApplicationSecret());
         model1.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -618,22 +618,22 @@ public class PowerAuthMigrationTest {
 
         // Verify that it is not possible to migrate the activation (it is not committed yet)
         ObjectStepLogger stepLoggerMig = new ObjectStepLogger(System.out);
-        new StartMigrationStep().execute(stepLoggerMig, model1.toMap());
+        new StartUpgradeStep().execute(stepLoggerMig, model1.toMap());
         assertFalse(stepLoggerMig.getResult().isSuccess());
         assertEquals(400, stepLoggerMig.getResponse().getStatusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         ErrorResponse errorResponse = objectMapper.readValue(stepLoggerMig.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_MIGRATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_MIGRATION_FAILED", errorResponse.getResponseObject().getMessage());
+        assertEquals("ERR_UPGRADE", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId());
     }
 
     @Test
-    public void migrationDoubleCommitFailTest() throws Exception {
+    public void upgradeDoubleCommitFailTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -649,7 +649,7 @@ public class PowerAuthMigrationTest {
 
         // Prepare activation model
         PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationName("migration test");
+        model.setActivationName("upgrade test");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -686,8 +686,8 @@ public class PowerAuthMigrationTest {
         modelSig.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/signature/validate");
         modelSig.setVersion("2.1");
 
-        // Prepare start migration model
-        StartMigrationStepModel model1 = new StartMigrationStepModel();
+        // Prepare start upgrade model
+        StartUpgradeStepModel model1 = new StartUpgradeStepModel();
         model1.setApplicationKey(config.getApplicationKey());
         model1.setApplicationSecret(config.getApplicationSecret());
         model1.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -696,14 +696,14 @@ public class PowerAuthMigrationTest {
         model1.setUriString(config.getPowerAuthIntegrationUrl());
         model1.setVersion("3.0");
 
-        // Start migration of activation to version 3.0
+        // Start upgrade of activation to version 3.0
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
-        new StartMigrationStep().execute(stepLogger1, model1.toMap());
+        new StartUpgradeStep().execute(stepLogger1, model1.toMap());
         assertTrue(stepLogger1.getResult().isSuccess());
         assertEquals(200, stepLogger1.getResponse().getStatusCode());
 
-        // Prepare commit migration model
-        CommitMigrationStepModel model2 = new CommitMigrationStepModel();
+        // Prepare commit upgrade model
+        CommitUpgradeStepModel model2 = new CommitUpgradeStepModel();
         model2.setApplicationKey(config.getApplicationKey());
         model2.setApplicationSecret(config.getApplicationSecret());
         model2.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -712,30 +712,30 @@ public class PowerAuthMigrationTest {
         model2.setUriString(config.getPowerAuthIntegrationUrl());
         model2.setVersion("3.0");
 
-        // Commit migration of activation to version 3.0 (first time - success)
+        // Commit upgrade of activation to version 3.0 (first time - success)
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
-        new CommitMigrationStep().execute(stepLogger2, model2.toMap());
+        new CommitUpgradeStep().execute(stepLogger2, model2.toMap());
         assertTrue(stepLogger2.getResult().isSuccess());
         assertEquals(200, stepLogger2.getResponse().getStatusCode());
 
-        // Commit migration of activation to version 3.0 (second time - fail, migration to version 3.0 is already committed)
+        // Commit upgrade of activation to version 3.0 (second time - fail, upgrade to version 3.0 is already committed)
         ObjectStepLogger stepLogger3 = new ObjectStepLogger(System.out);
-        new CommitMigrationStep().execute(stepLogger3, model2.toMap());
+        new CommitUpgradeStep().execute(stepLogger3, model2.toMap());
         assertFalse(stepLogger3.getResult().isSuccess());
         assertEquals(400, stepLogger3.getResponse().getStatusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         ErrorResponse errorResponse = objectMapper.readValue(stepLogger3.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_MIGRATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_MIGRATION_FAILED", errorResponse.getResponseObject().getMessage());
+        assertEquals("ERR_UPGRADE", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId());
     }
 
     @Test
-    public void migrationInvalidCommitSignatureTest() throws Exception {
+    public void upgradeInvalidCommitSignatureTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -747,7 +747,7 @@ public class PowerAuthMigrationTest {
 
         // Prepare activation model
         PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationName("migration test");
+        model.setActivationName("upgrade test");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -769,8 +769,8 @@ public class PowerAuthMigrationTest {
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
-        // Prepare start migration model
-        StartMigrationStepModel model1 = new StartMigrationStepModel();
+        // Prepare start upgrade model
+        StartUpgradeStepModel model1 = new StartUpgradeStepModel();
         model1.setApplicationKey(config.getApplicationKey());
         model1.setApplicationSecret(config.getApplicationSecret());
         model1.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -779,14 +779,14 @@ public class PowerAuthMigrationTest {
         model1.setUriString(config.getPowerAuthIntegrationUrl());
         model1.setVersion("3.0");
 
-        // Start migration of activation to version 3.0
+        // Start upgrade of activation to version 3.0
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
-        new StartMigrationStep().execute(stepLogger1, model1.toMap());
+        new StartUpgradeStep().execute(stepLogger1, model1.toMap());
         assertTrue(stepLogger1.getResult().isSuccess());
         assertEquals(200, stepLogger1.getResponse().getStatusCode());
 
-        // Prepare commit migration model
-        CommitMigrationStepModel model2 = new CommitMigrationStepModel();
+        // Prepare commit upgrade model
+        CommitUpgradeStepModel model2 = new CommitUpgradeStepModel();
         model2.setApplicationKey(config.getApplicationKey());
         model2.setApplicationSecret(config.getApplicationSecret());
         model2.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -800,9 +800,9 @@ public class PowerAuthMigrationTest {
         // Set biometry key as possession key
         model.getResultStatusObject().put("signaturePossessionKey", model.getResultStatusObject().get("signatureBiometryKey"));
 
-        // Commit migration of activation to version 3.0 should fail
+        // Commit upgrade of activation to version 3.0 should fail
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
-        new CommitMigrationStep().execute(stepLogger2, model2.toMap());
+        new CommitUpgradeStep().execute(stepLogger2, model2.toMap());
         assertFalse(stepLogger2.getResult().isSuccess());
         assertEquals(401, stepLogger2.getResponse().getStatusCode());
 
@@ -810,7 +810,7 @@ public class PowerAuthMigrationTest {
         ErrorResponse errorResponse = objectMapper.readValue(stepLogger2.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("POWERAUTH_AUTH_FAIL", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_SIGNATURE_INVALID", errorResponse.getResponseObject().getMessage());
+        assertEquals("POWER_AUTH_SIGNATURE_INVALID_VALUE", errorResponse.getResponseObject().getMessage());
 
         // Revert possession key change
         model.getResultStatusObject().put("signaturePossessionKey", signaturePossessionKeyOrig);
@@ -820,7 +820,7 @@ public class PowerAuthMigrationTest {
     }
 
     @Test
-    public void migrationStartSameCtrDataTest() throws Exception {
+    public void upgradeStartSameCtrDataTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -832,7 +832,7 @@ public class PowerAuthMigrationTest {
 
         // Prepare activation model
         PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationName("migration test");
+        model.setActivationName("upgrade test");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -854,8 +854,8 @@ public class PowerAuthMigrationTest {
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
-        // Prepare start migration model
-        StartMigrationStepModel model1 = new StartMigrationStepModel();
+        // Prepare start upgrade model
+        StartUpgradeStepModel model1 = new StartUpgradeStepModel();
         model1.setApplicationKey(config.getApplicationKey());
         model1.setApplicationSecret(config.getApplicationSecret());
         model1.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -864,18 +864,18 @@ public class PowerAuthMigrationTest {
         model1.setUriString(config.getPowerAuthIntegrationUrl());
         model1.setVersion("3.0");
 
-        // Start migration of activation to version 3.0
+        // Start upgrade of activation to version 3.0
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
-        new StartMigrationStep().execute(stepLogger1, model1.toMap());
+        new StartUpgradeStep().execute(stepLogger1, model1.toMap());
         assertTrue(stepLogger1.getResult().isSuccess());
         assertEquals(200, stepLogger1.getResponse().getStatusCode());
 
         // Extract ctr_data
         byte[] ctrData = CounterUtil.getCtrData(model1, stepLogger1);
 
-        // Start migration of activation to version 3.0 again
+        // Start upgrade of activation to version 3.0 again
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
-        new StartMigrationStep().execute(stepLogger2, model1.toMap());
+        new StartUpgradeStep().execute(stepLogger2, model1.toMap());
         assertTrue(stepLogger2.getResult().isSuccess());
         assertEquals(200, stepLogger2.getResponse().getStatusCode());
 
@@ -890,7 +890,7 @@ public class PowerAuthMigrationTest {
     }
 
     @Test
-    public void migrationSignatureVerificationDuringMigrationTest() throws Exception {
+    public void upgradeSignatureVerificationDuringUpgradeTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -902,7 +902,7 @@ public class PowerAuthMigrationTest {
 
         // Prepare activation model
         PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationName("migration test");
+        model.setActivationName("upgrade test");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -930,8 +930,8 @@ public class PowerAuthMigrationTest {
         assertEquals(0, counter0);
         assertNull(ctrData0);
 
-        // Prepare start migration model
-        StartMigrationStepModel model1 = new StartMigrationStepModel();
+        // Prepare start upgrade model
+        StartUpgradeStepModel model1 = new StartUpgradeStepModel();
         model1.setApplicationKey(config.getApplicationKey());
         model1.setApplicationSecret(config.getApplicationSecret());
         model1.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -940,9 +940,9 @@ public class PowerAuthMigrationTest {
         model1.setUriString(config.getPowerAuthIntegrationUrl());
         model1.setVersion("3.0");
 
-        // Start migration of activation to version 3.0
+        // Start upgrade of activation to version 3.0
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
-        new StartMigrationStep().execute(stepLogger1, model1.toMap());
+        new StartUpgradeStep().execute(stepLogger1, model1.toMap());
         assertTrue(stepLogger1.getResult().isSuccess());
         assertEquals(200, stepLogger1.getResponse().getStatusCode());
 
@@ -967,7 +967,7 @@ public class PowerAuthMigrationTest {
         modelSig.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/signature/validate");
         modelSig.setVersion("2.1");
 
-        // Verify version signature - version 2.1 signatures should still work during migration
+        // Verify version signature - version 2.1 signatures should still work during upgrade
         ObjectStepLogger stepLoggerSig1 = new ObjectStepLogger(System.out);
         new VerifySignatureStep().execute(stepLoggerSig1, modelSig.toMap());
         assertTrue(stepLoggerSig1.getResult().isSuccess());
@@ -979,8 +979,8 @@ public class PowerAuthMigrationTest {
         assertEquals(1, counter2);
         assertEquals(ctrData1, ctrData2);
 
-        // Prepare commit migration model
-        CommitMigrationStepModel model2 = new CommitMigrationStepModel();
+        // Prepare commit upgrade model
+        CommitUpgradeStepModel model2 = new CommitUpgradeStepModel();
         model2.setApplicationKey(config.getApplicationKey());
         model2.setApplicationSecret(config.getApplicationSecret());
         model2.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -989,9 +989,9 @@ public class PowerAuthMigrationTest {
         model2.setUriString(config.getPowerAuthIntegrationUrl());
         model2.setVersion("3.0");
 
-        // Commit migration of activation to version 3.0
+        // Commit upgrade of activation to version 3.0
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
-        new CommitMigrationStep().execute(stepLogger2, model2.toMap());
+        new CommitUpgradeStep().execute(stepLogger2, model2.toMap());
         assertTrue(stepLogger2.getResult().isSuccess());
         assertEquals(200, stepLogger2.getResponse().getStatusCode());
 
@@ -1019,7 +1019,7 @@ public class PowerAuthMigrationTest {
     }
 
     @Test
-    public void migrationConcurrencyTest() throws Exception {
+    public void upgradeConcurrencyTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -1031,7 +1031,7 @@ public class PowerAuthMigrationTest {
 
         // Prepare activation model
         PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationName("migration test");
+        model.setActivationName("upgrade test");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -1053,8 +1053,8 @@ public class PowerAuthMigrationTest {
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
-        // Prepare start migration model
-        StartMigrationStepModel model1 = new StartMigrationStepModel();
+        // Prepare start upgrade model
+        StartUpgradeStepModel model1 = new StartUpgradeStepModel();
         model1.setApplicationKey(config.getApplicationKey());
         model1.setApplicationSecret(config.getApplicationSecret());
         model1.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -1063,12 +1063,12 @@ public class PowerAuthMigrationTest {
         model1.setUriString(config.getPowerAuthIntegrationUrl());
         model1.setVersion("3.0");
 
-        // Prepare Runnable for migration of activation to version 3.0
+        // Prepare Runnable for upgrade of activation to version 3.0
         Set<String> allCtrData = Collections.synchronizedSet(new HashSet<>());
-        Runnable startMigrationRunnable = () -> {
+        Runnable startUpgradeRunnable = () -> {
             try {
                 ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
-                new StartMigrationStep().execute(stepLogger1, model1.toMap());
+                new StartUpgradeStep().execute(stepLogger1, model1.toMap());
                 assertTrue(stepLogger1.getResult().isSuccess());
                 assertEquals(200, stepLogger1.getResponse().getStatusCode());
                 byte[] ctrData = CounterUtil.getCtrData(model1, stepLogger1);
@@ -1078,15 +1078,15 @@ public class PowerAuthMigrationTest {
             }
         };
 
-        // Start 10 migration threads
+        // Start 10 upgrade threads
         List<Thread> threads = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            Thread t = new Thread(startMigrationRunnable);
+            Thread t = new Thread(startUpgradeRunnable);
             threads.add(t);
             t.start();
         }
 
-        // Wait for 10 migration threads to complete
+        // Wait for 10 upgrade threads to complete
         for (int i = 0; i < 10; i++) {
             threads.get(i).join();
         }
