@@ -84,6 +84,8 @@ public class PowerAuthTestSetUp {
             assertNotEquals(0, versionResponse.getApplicationVersionId());
             assertEquals(config.getApplicationVersion(), versionResponse.getApplicationVersionName());
             config.setApplicationVersionId(versionResponse.getApplicationVersionId());
+            config.setApplicationKey(versionResponse.getApplicationKey());
+            config.setApplicationSecret(versionResponse.getApplicationSecret());
         } else {
             // Make sure application version is supported
             powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
@@ -94,7 +96,7 @@ public class PowerAuthTestSetUp {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test_v3");
+        initRequest.setUserId(config.getUserV3());
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
@@ -126,7 +128,7 @@ public class PowerAuthTestSetUp {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test_v2");
+        initRequest.setUserId(config.getUserV2());
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation

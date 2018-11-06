@@ -109,7 +109,7 @@ public class PowerAuthActivationTest {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test_v3");
+        initRequest.setUserId(config.getUserV3());
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
@@ -190,12 +190,16 @@ public class PowerAuthActivationTest {
 
         // Verify that application version is unsupported
         GetApplicationDetailResponse detailResponse = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        assertFalse(detailResponse.getVersions().get(0).isSupported());
+        for (GetApplicationDetailResponse.Versions version: detailResponse.getVersions()) {
+            if (version.getApplicationVersionName().equals(config.getApplicationVersion())) {
+                assertFalse(version.isSupported());
+            }
+        }
 
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test_v3");
+        initRequest.setUserId(config.getUserV3());
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
@@ -222,7 +226,11 @@ public class PowerAuthActivationTest {
 
         // Verify that application version is supported
         GetApplicationDetailResponse detailResponse2 = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        assertTrue(detailResponse2.getVersions().get(0).isSupported());
+        for (GetApplicationDetailResponse.Versions version: detailResponse2.getVersions()) {
+            if (version.getApplicationVersionName().equals(config.getApplicationVersion())) {
+                assertTrue(version.isSupported());
+            }
+        }
     }
 
     @Test
@@ -230,7 +238,7 @@ public class PowerAuthActivationTest {
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test_v3");
+        initRequest.setUserId(config.getUserV3());
         // Expire activation with 1 second in the past
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
         gregorianCalendar.setTimeInMillis(System.currentTimeMillis() - 1000);
@@ -276,7 +284,7 @@ public class PowerAuthActivationTest {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test_v3");
+        initRequest.setUserId(config.getUserV3());
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
@@ -312,7 +320,7 @@ public class PowerAuthActivationTest {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test_v3");
+        initRequest.setUserId(config.getUserV3());
         initRequest.setMaxFailureCount(10L);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
@@ -421,7 +429,7 @@ public class PowerAuthActivationTest {
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test_v3");
+        initRequest.setUserId(config.getUserV3());
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
@@ -452,7 +460,7 @@ public class PowerAuthActivationTest {
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test_v3");
+        initRequest.setUserId(config.getUserV3());
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status

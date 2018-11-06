@@ -318,7 +318,7 @@ public class PowerAuthSignatureTest {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test_v3");
+        initRequest.setUserId(config.getUserV3());
         initRequest.setMaxFailureCount(3L);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
@@ -392,7 +392,7 @@ public class PowerAuthSignatureTest {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test_v3");
+        initRequest.setUserId(config.getUserV3());
         // High limit to test lookahead
         initRequest.setMaxFailureCount(100L);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);

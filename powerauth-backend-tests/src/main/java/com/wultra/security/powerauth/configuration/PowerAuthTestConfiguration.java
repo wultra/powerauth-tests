@@ -43,6 +43,7 @@ import javax.annotation.PreDestroy;
 import java.io.File;
 import java.security.PublicKey;
 import java.security.Security;
+import java.util.UUID;
 
 /**
  * Configuration for the PowerAuth test.
@@ -76,10 +77,8 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.test.masterPublicKey}")
     private String masterPublicKey;
 
-    @Value("${powerauth.test.applicationKey}")
+    private String applicationVersionForTests;
     private String applicationKey;
-
-    @Value("${powerauth.test.applicationSecret}")
     private String applicationSecret;
 
     private Long applicationId;
@@ -96,11 +95,13 @@ public class PowerAuthTestConfiguration {
     private File statusFileV3;
     private JSONObject resultStatusObjectV3 = new JSONObject();
     private String activationIdV3;
+    private String userV2;
 
     // Version 2.1 temporary storage
     private File statusFileV2;
     private JSONObject resultStatusObjectV2 = new JSONObject();
     private String activationIdV2;
+    private String userV3;
 
     private String password = "1234";
 
@@ -193,6 +194,15 @@ public class PowerAuthTestConfiguration {
         // Create status file for version 2.1
         statusFileV2 = File.createTempFile("pa_status_v2", ".json");
 
+        // Create random user for version 3.0
+        userV3 = UUID.randomUUID().toString();
+
+        // Create random user for version 2.1
+        userV2 = UUID.randomUUID().toString();
+
+        // Random application name
+        applicationVersionForTests = applicationVersion + "_" + System.currentTimeMillis();
+
         setUp.execute();
     }
 
@@ -214,7 +224,7 @@ public class PowerAuthTestConfiguration {
     }
 
     public String getApplicationVersion() {
-        return applicationVersion;
+        return applicationVersionForTests;
     }
 
     public Long getApplicationId() {
@@ -289,4 +299,19 @@ public class PowerAuthTestConfiguration {
         return objectMapper;
     }
 
+    public String getUserV2() {
+        return userV2;
+    }
+
+    public String getUserV3() {
+        return userV3;
+    }
+
+    public void setApplicationKey(String applicationKey) {
+        this.applicationKey = applicationKey;
+    }
+
+    public void setApplicationSecret(String applicationSecret) {
+        this.applicationSecret = applicationSecret;
+    }
 }

@@ -133,7 +133,7 @@ public class PowerAuthTokenTest {
 
         Map<String, String> configNS = new HashMap<>();
         configNS.put("activationId", config.getActivationIdV2());
-        ObjectResponse<GetAuthMethodsResponse> responseNS = nextStepClient.enableAuthMethodForUser("test_v2", AuthMethod.POWERAUTH_TOKEN, configNS);
+        ObjectResponse<GetAuthMethodsResponse> responseNS = nextStepClient.enableAuthMethodForUser(config.getUserV2(), AuthMethod.POWERAUTH_TOKEN, configNS);
         assertEquals("OK", responseNS.getStatus());
 
         VerifyTokenStepModel modelVerify = new VerifyTokenStepModel();
@@ -217,7 +217,7 @@ public class PowerAuthTokenTest {
 
         Map<String, String> configNS = new HashMap<>();
         configNS.put("activationId", config.getActivationIdV2());
-        ObjectResponse<GetAuthMethodsResponse> responseNS = nextStepClient.enableAuthMethodForUser("test_v2", AuthMethod.POWERAUTH_TOKEN, configNS);
+        ObjectResponse<GetAuthMethodsResponse> responseNS = nextStepClient.enableAuthMethodForUser(config.getUserV2(), AuthMethod.POWERAUTH_TOKEN, configNS);
         assertEquals("OK", responseNS.getStatus());
 
         powerAuthClient.removeToken(tokenId, config.getActivationIdV2());

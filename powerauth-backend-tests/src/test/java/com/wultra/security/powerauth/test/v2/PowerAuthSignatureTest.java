@@ -121,6 +121,7 @@ public class PowerAuthSignatureTest {
 
     @Test
     public void signatureValidTest() throws Exception {
+        System.out.println(config.getStatusFileV2().getAbsolutePath());
         new VerifySignatureStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
@@ -318,7 +319,7 @@ public class PowerAuthSignatureTest {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test_v2");
+        initRequest.setUserId(config.getUserV2());
         initRequest.setMaxFailureCount(3L);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
@@ -392,7 +393,7 @@ public class PowerAuthSignatureTest {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId("test_v2");
+        initRequest.setUserId(config.getUserV2());
         // High limit to test lookahead
         initRequest.setMaxFailureCount(100L);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
