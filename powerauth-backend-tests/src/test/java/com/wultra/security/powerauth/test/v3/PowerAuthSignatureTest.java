@@ -256,7 +256,7 @@ public class PowerAuthSignatureTest {
     @Test
     public void signatureValidGetTest() throws Exception {
         model.setHttpMethod("GET");
-        model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/signature/validate?who=John_Tramonta&when=now");
+        model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate?who=John_Tramonta&when=now");
         new VerifySignatureStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
@@ -269,7 +269,7 @@ public class PowerAuthSignatureTest {
     public void signatureGetInvalidPasswordTest() throws Exception {
         model.setHttpMethod("GET");
         model.setPassword("0000");
-        model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/signature/validate?who=John_Tramonta&when=now");
+        model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate?who=John_Tramonta&when=now");
         new VerifySignatureStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().isSuccess());
         assertEquals(401, stepLogger.getResponse().getStatusCode());

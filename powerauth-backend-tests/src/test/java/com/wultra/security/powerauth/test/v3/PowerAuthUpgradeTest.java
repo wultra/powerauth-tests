@@ -252,6 +252,7 @@ public class PowerAuthUpgradeTest {
 
         // Verify version 3.0 signature
         modelSig.setVersion("3.0");
+        modelSig.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
         ObjectStepLogger stepLoggerSig2 = new ObjectStepLogger(System.out);
         new VerifySignatureStep().execute(stepLoggerSig2, modelSig.toMap());
         assertTrue(stepLoggerSig2.getResult().isSuccess());
@@ -1003,6 +1004,7 @@ public class PowerAuthUpgradeTest {
 
         // Verify version 3.0 signature
         modelSig.setVersion("3.0");
+        modelSig.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
         ObjectStepLogger stepLoggerSig2 = new ObjectStepLogger(System.out);
         new VerifySignatureStep().execute(stepLoggerSig2, modelSig.toMap());
         assertTrue(stepLoggerSig2.getResult().isSuccess());
