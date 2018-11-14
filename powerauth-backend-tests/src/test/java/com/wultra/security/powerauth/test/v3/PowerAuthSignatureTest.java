@@ -266,6 +266,18 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
+    public void signatureValidGetNoParamTest() throws Exception {
+        model.setHttpMethod("GET");
+        model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
+        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        Response responseOK = (Response) stepLogger.getResponse().getResponseObject();
+        assertEquals("OK", responseOK.getStatus());
+    }
+
+    @Test
     public void signatureGetInvalidPasswordTest() throws Exception {
         model.setHttpMethod("GET");
         model.setPassword("0000");

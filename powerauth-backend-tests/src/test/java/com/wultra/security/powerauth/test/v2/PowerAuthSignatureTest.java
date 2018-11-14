@@ -121,7 +121,6 @@ public class PowerAuthSignatureTest {
 
     @Test
     public void signatureValidTest() throws Exception {
-        System.out.println(config.getStatusFileV2().getAbsolutePath());
         new VerifySignatureStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
@@ -258,6 +257,18 @@ public class PowerAuthSignatureTest {
     public void signatureValidGetTest() throws Exception {
         model.setHttpMethod("GET");
         model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/signature/validate?who=John_Tramonta&when=tomorrow");
+        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        Response responseOK = (Response) stepLogger.getResponse().getResponseObject();
+        assertEquals("OK", responseOK.getStatus());
+    }
+
+    @Test
+    public void signatureValidGetNoParamTest() throws Exception {
+        model.setHttpMethod("GET");
+        model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/signature/validate");
         new VerifySignatureStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
