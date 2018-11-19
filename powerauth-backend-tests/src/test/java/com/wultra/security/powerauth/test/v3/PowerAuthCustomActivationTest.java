@@ -143,7 +143,6 @@ public class PowerAuthCustomActivationTest {
     public void customActivationValid2Test() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_2_NOCOMMIT_NOPROCESS");
-        identityAttributes.put("username", "static_username");
 
         Map<String, Object> customAttributes = new HashMap<>();
         customAttributes.put("key", "value");
