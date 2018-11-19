@@ -86,6 +86,11 @@
             <artifactId>powerauth-java-client-spring</artifactId>
             <version>0.21.0</version>
         </dependency>
+        <dependency>
+            <groupId>io.getlime.security</groupId>
+            <artifactId>powerauth-restful-security-spring</artifactId>
+            <version>0.21.0</version>
+        </dependency>
 
         <!-- Spring dependencies -->
         <dependency>
