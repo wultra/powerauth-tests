@@ -21,18 +21,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.powerauth.soap.v3.*;
+import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
+import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
+import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
-import org.json.simple.JSONObject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -43,6 +43,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.ws.soap.client.SoapFaultClientException;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PublicKey;
@@ -61,6 +62,7 @@ public class PowerAuthCustomActivationTest {
     private PowerAuthServiceClient powerAuthClient;
     private PowerAuthTestConfiguration config;
     private CreateActivationStepModel model;
+    private static File dataFile;
     private File tempStatusFile;
     private ObjectStepLogger stepLogger;
 
@@ -77,6 +79,19 @@ public class PowerAuthCustomActivationTest {
         this.powerAuthClient = powerAuthClient;
     }
 
+    @BeforeClass
+    public static void setUpBeforeClass() throws IOException {
+        dataFile = File.createTempFile("data", ".json");
+        FileWriter fw = new FileWriter(dataFile);
+        fw.write("All your base are belong to us!");
+        fw.close();
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() {
+        assertTrue(dataFile.delete());
+    }
+
     @Before
     public void setUp() throws IOException {
         // Create temp status file
@@ -91,7 +106,7 @@ public class PowerAuthCustomActivationTest {
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(new JSONObject());
+        model.setResultStatusObject(config.getResultStatusObjectV3());
         model.setUriString("http://localhost:" + port + "/pa/v3/activation/create");
         model.setVersion("3.0");
 
@@ -120,12 +135,14 @@ public class PowerAuthCustomActivationTest {
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
+        String activationId = null;
         boolean layer2ResponseOk = false;
         boolean layer1ResponseOk = false;
         // Verify decrypted responses
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Layer 2 Response")) {
                 ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+                activationId = layer2Response.getActivationId();
                 assertNotNull(layer2Response.getActivationId());
                 assertNotNull(layer2Response.getCtrData());
                 assertNotNull(layer2Response.getServerPublicKey());
@@ -146,6 +163,8 @@ public class PowerAuthCustomActivationTest {
 
         assertTrue(layer1ResponseOk);
         assertTrue(layer2ResponseOk);
+
+        powerAuthClient.removeActivation(activationId);
     }
 
     @Test
@@ -163,12 +182,14 @@ public class PowerAuthCustomActivationTest {
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
+        String activationId = null;
         boolean layer2ResponseOk = false;
         boolean layer1ResponseOk = false;
         // Verify decrypted responses
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Layer 2 Response")) {
                 ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+                activationId = layer2Response.getActivationId();
                 assertNotNull(layer2Response.getActivationId());
                 assertNotNull(layer2Response.getCtrData());
                 assertNotNull(layer2Response.getServerPublicKey());
@@ -189,6 +210,8 @@ public class PowerAuthCustomActivationTest {
 
         assertTrue(layer1ResponseOk);
         assertTrue(layer2ResponseOk);
+
+        powerAuthClient.removeActivation(activationId);
     }
 
     @Test
@@ -207,12 +230,14 @@ public class PowerAuthCustomActivationTest {
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
+        String activationId = null;
         boolean layer2ResponseOk = false;
         boolean layer1ResponseOk = false;
         // Verify decrypted responses
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Layer 2 Response")) {
                 ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+                activationId = layer2Response.getActivationId();
                 assertNotNull(layer2Response.getActivationId());
                 assertNotNull(layer2Response.getCtrData());
                 assertNotNull(layer2Response.getServerPublicKey());
@@ -233,6 +258,8 @@ public class PowerAuthCustomActivationTest {
 
         assertTrue(layer1ResponseOk);
         assertTrue(layer2ResponseOk);
+
+        powerAuthClient.removeActivation(activationId);
     }
 
     @Test
@@ -463,8 +490,87 @@ public class PowerAuthCustomActivationTest {
             fail("Double commit should not be allowed");
         } catch (SoapFaultClientException ex) {
             assertEquals("Incorrect activation state.", ex.getMessage());
+            powerAuthClient.removeActivation(activationId);
         }
-
     }
 
+    @Test
+    public void customActivationSignatureMaxFailedTest() throws Exception {
+        Map<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("test_id", "TEST_10_SIGNATURES_MAX_FAILED");
+        identityAttributes.put("username", "john");
+
+        model.setIdentityAttributes(identityAttributes);
+
+        new CreateActivationStep().execute(stepLogger, model.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        String activationId = null;
+        boolean layer2ResponseOk = false;
+        boolean layer1ResponseOk = false;
+        // Verify decrypted responses
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Layer 2 Response")) {
+                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+                activationId = layer2Response.getActivationId();
+                assertNotNull(activationId);
+                System.out.println("ctr data: "+layer2Response.getCtrData());
+                layer2ResponseOk = true;
+                continue;
+            }
+            if (item.getName().equals("Decrypted Layer 1 Response")) {
+                layer1ResponseOk = true;
+            }
+        }
+
+        assertTrue(layer1ResponseOk);
+        assertTrue(layer2ResponseOk);
+
+        VerifySignatureStepModel signatureModel = new VerifySignatureStepModel();
+        signatureModel.setApplicationKey(config.getApplicationKey());
+        signatureModel.setApplicationSecret(config.getApplicationSecret());
+        signatureModel.setDataFileName(dataFile.getAbsolutePath());
+        signatureModel.setHeaders(new HashMap<>());
+        signatureModel.setHttpMethod("POST");
+        signatureModel.setPassword(config.getPassword());
+        signatureModel.setResourceId("/pa/signature/validate");
+        signatureModel.setResultStatusObject(config.getResultStatusObjectV3());
+        signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
+        signatureModel.setStatusFileName(tempStatusFile.getAbsolutePath());
+        signatureModel.setUriString("http://localhost:" + port + "/pa/v3/signature/validate");
+        signatureModel.setVersion("3.0");
+
+        signatureModel.setPassword("1111");
+
+        // Fail four signatures (default value for maximum failed count is 5)
+        for (int i = 0; i < 4; i++) {
+            ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
+            new VerifySignatureStep().execute(stepLoggerSignature, signatureModel.toMap());
+            assertFalse(stepLoggerSignature.getResult().isSuccess());
+            assertEquals(401, stepLoggerSignature.getResponse().getStatusCode());
+        }
+
+        // Last signature before max failed attempts should be successful
+        signatureModel.setPassword(config.getPassword());
+        ObjectStepLogger stepLogger2 = new ObjectStepLogger();
+        new VerifySignatureStep().execute(stepLogger2, signatureModel.toMap());
+        assertTrue(stepLogger2.getResult().isSuccess());
+        assertEquals(200, stepLogger2.getResponse().getStatusCode());
+
+        // Fail five signatures (default value for maximum failed count is 5)
+        signatureModel.setPassword("1111");
+        for (int i = 0; i < 5; i++) {
+            ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
+            new VerifySignatureStep().execute(stepLoggerSignature, signatureModel.toMap());
+            assertFalse(stepLoggerSignature.getResult().isSuccess());
+            assertEquals(401, stepLoggerSignature.getResponse().getStatusCode());
+        }
+
+        // Activation should be blocked
+        GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatus(activationId);
+        assertEquals(ActivationStatus.BLOCKED, statusResponseBlocked.getActivationStatus());
+
+        powerAuthClient.removeActivation(activationId);
+    }
 }
