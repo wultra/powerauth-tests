@@ -23,6 +23,7 @@ import io.getlime.security.powerauth.rest.api.base.provider.PowerAuthCustomActiv
 import io.getlime.security.powerauth.rest.api.model.entity.ActivationType;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -38,39 +39,50 @@ public class CustomActivationProvider implements PowerAuthCustomActivationProvid
     @Override
     public String lookupUserIdForAttributes(Map<String, String> identityAttributes) {
         testId = identityAttributes.get("test_id");
+        Map<String, String> userNameToUserIdMap = new HashMap<>();
+        userNameToUserIdMap.put("john", "12345678");
+
         switch (testId) {
-            case "TEST_1_COMMIT_PROCESS":
+            case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
                 return identityAttributes.get("username");
-            case "TEST_2_NOCOMMIT_NOPROCESS":
+            case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
                 return "static_username";
+            case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS":
+                return userNameToUserIdMap.get(identityAttributes.get("username"));
             default:
-                throw new IllegalStateException("Invalid state");
+                // Default action for negative tests
+                return identityAttributes.get("username");
         }
     }
 
     @Override
     public void processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, ActivationType activationType) {
         switch (testId) {
-            case "TEST_1_COMMIT_PROCESS":
+            case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
                 customAttributes.remove("key");
                 customAttributes.put("key_new", "value_new");
                 break;
-            case "TEST_2_NOCOMMIT_NOPROCESS":
+            case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
+                break;
+            case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS":
                 break;
             default:
-                throw new IllegalStateException("Invalid state");
+                // Default action for negative tests - do nothing
         }
     }
 
     @Override
     public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes) {
         switch (testId) {
-            case "TEST_1_COMMIT_PROCESS":
+            case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
                 return true;
-            case "TEST_2_NOCOMMIT_NOPROCESS":
+            case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
                 return false;
+            case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS":
+                return true;
             default:
-                throw new IllegalStateException("Invalid state");
+                // Default action for negative tests
+                return true;
         }
     }
 }

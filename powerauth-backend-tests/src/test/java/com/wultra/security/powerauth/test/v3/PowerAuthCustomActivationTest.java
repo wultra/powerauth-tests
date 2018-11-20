@@ -17,7 +17,9 @@
  */
 package com.wultra.security.powerauth.test.v3;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.powerauth.soap.v3.ActivationStatus;
 import io.getlime.powerauth.soap.v3.GetActivationStatusResponse;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -46,6 +48,7 @@ import java.util.Map;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringRunner.class)
@@ -98,7 +101,7 @@ public class PowerAuthCustomActivationTest {
     @Test
     public void customActivationValidTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
-        identityAttributes.put("test_id", "TEST_1_COMMIT_PROCESS");
+        identityAttributes.put("test_id", "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS");
         identityAttributes.put("username", "john");
 
         Map<String, Object> customAttributes = new HashMap<>();
@@ -124,6 +127,7 @@ public class PowerAuthCustomActivationTest {
                 // Verify activation status - activation was automatically committed
                 GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(layer2Response.getActivationId());
                 assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
+                assertEquals("john", statusResponseActive.getUserId());
                 layer2ResponseOk = true;
                 continue;
             }
@@ -142,7 +146,7 @@ public class PowerAuthCustomActivationTest {
     @Test
     public void customActivationValid2Test() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
-        identityAttributes.put("test_id", "TEST_2_NOCOMMIT_NOPROCESS");
+        identityAttributes.put("test_id", "TEST_2_STATIC_NOCOMMIT_NOPROCESS");
 
         Map<String, Object> customAttributes = new HashMap<>();
         customAttributes.put("key", "value");
@@ -167,6 +171,7 @@ public class PowerAuthCustomActivationTest {
                 // Verify activation status - activation was not automatically committed
                 GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(layer2Response.getActivationId());
                 assertEquals(ActivationStatus.OTP_USED, statusResponseActive.getActivationStatus());
+                assertEquals("static_username", statusResponseActive.getUserId());
                 layer2ResponseOk = true;
                 continue;
             }
@@ -180,6 +185,125 @@ public class PowerAuthCustomActivationTest {
 
         assertTrue(layer1ResponseOk);
         assertTrue(layer2ResponseOk);
+    }
+
+    @Test
+    public void customActivationValid3Test() throws Exception {
+        Map<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("test_id", "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS");
+
+        Map<String, Object> customAttributes = new HashMap<>();
+        identityAttributes.put("username", "john");
+        customAttributes.put("key", "value");
+
+        model.setIdentityAttributes(identityAttributes);
+        model.setCustomAttributes(customAttributes);
+
+        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        new CreateActivationStep().execute(stepLogger, model.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        boolean layer2ResponseOk = false;
+        boolean layer1ResponseOk = false;
+        // Verify decrypted responses
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Layer 2 Response")) {
+                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+                assertNotNull(layer2Response.getActivationId());
+                assertNotNull(layer2Response.getCtrData());
+                assertNotNull(layer2Response.getServerPublicKey());
+                // Verify activation status - activation was automatically committed
+                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(layer2Response.getActivationId());
+                assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
+                assertEquals("12345678", statusResponseActive.getUserId());
+                layer2ResponseOk = true;
+                continue;
+            }
+            if (item.getName().equals("Decrypted Layer 1 Response")) {
+                ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.getObject();
+                // Verify custom attributes, there should be no change
+                assertEquals("value", layer1Response.getCustomAttributes().get("key"));
+                layer1ResponseOk = true;
+            }
+        }
+
+        assertTrue(layer1ResponseOk);
+        assertTrue(layer2ResponseOk);
+    }
+
+    @Test
+    public void customActivationMissingUsernameTest() throws Exception {
+        Map<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("test_id", "TEST_4_MISSING_USERNAME");
+
+        Map<String, Object> customAttributes = new HashMap<>();
+        customAttributes.put("key", "value");
+
+        model.setIdentityAttributes(identityAttributes);
+        model.setCustomAttributes(customAttributes);
+
+        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        new CreateActivationStep().execute(stepLogger, model.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
+
+        // Verify error response
+        ObjectMapper objectMapper = config.getObjectMapper();
+        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        assertEquals("ERROR", errorResponse.getStatus());
+        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+    }
+
+    @Test
+    public void customActivationEmptyUsernameTest() throws Exception {
+        Map<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("test_id", "TEST_5_EMPTY_USERNAME");
+        identityAttributes.put("username", "");
+
+        Map<String, Object> customAttributes = new HashMap<>();
+        customAttributes.put("key", "value");
+
+        model.setIdentityAttributes(identityAttributes);
+        model.setCustomAttributes(customAttributes);
+
+        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        new CreateActivationStep().execute(stepLogger, model.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
+
+        // Verify error response
+        ObjectMapper objectMapper = config.getObjectMapper();
+        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        assertEquals("ERROR", errorResponse.getStatus());
+        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+    }
+
+    @Test
+    public void customActivationUsernameTooLongTest() throws Exception {
+        Map<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("test_id", "TEST_6_USERNAME_TOO_LONG");
+        identityAttributes.put("username", "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
+
+        Map<String, Object> customAttributes = new HashMap<>();
+        customAttributes.put("key", "value");
+
+        model.setIdentityAttributes(identityAttributes);
+        model.setCustomAttributes(customAttributes);
+
+        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        new CreateActivationStep().execute(stepLogger, model.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
+
+        // Verify error response
+        ObjectMapper objectMapper = config.getObjectMapper();
+        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        assertEquals("ERROR", errorResponse.getStatus());
+        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
 }
