@@ -20,8 +20,8 @@ package com.wultra.security.powerauth.test.v3;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
-import io.getlime.powerauth.soap.v3.ActivationStatus;
-import io.getlime.powerauth.soap.v3.GetActivationStatusResponse;
+import io.getlime.powerauth.soap.v3.*;
+import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
@@ -40,16 +40,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.ws.soap.client.SoapFaultClientException;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.KeyPair;
+import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -61,6 +62,8 @@ public class PowerAuthCustomActivationTest {
     private PowerAuthTestConfiguration config;
     private CreateActivationStepModel model;
     private File tempStatusFile;
+    private ObjectStepLogger stepLogger;
+
     @LocalServerPort
     private int port;
 
@@ -91,6 +94,9 @@ public class PowerAuthCustomActivationTest {
         model.setResultStatusObject(new JSONObject());
         model.setUriString("http://localhost:" + port + "/pa/v3/activation/create");
         model.setVersion("3.0");
+
+        // Prepare step logger
+        stepLogger = new ObjectStepLogger(System.out);
     }
 
     @After
@@ -110,7 +116,6 @@ public class PowerAuthCustomActivationTest {
         model.setIdentityAttributes(identityAttributes);
         model.setCustomAttributes(customAttributes);
 
-        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new CreateActivationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
@@ -154,7 +159,6 @@ public class PowerAuthCustomActivationTest {
         model.setIdentityAttributes(identityAttributes);
         model.setCustomAttributes(customAttributes);
 
-        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new CreateActivationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
@@ -199,7 +203,6 @@ public class PowerAuthCustomActivationTest {
         model.setIdentityAttributes(identityAttributes);
         model.setCustomAttributes(customAttributes);
 
-        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new CreateActivationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
@@ -243,7 +246,6 @@ public class PowerAuthCustomActivationTest {
         model.setIdentityAttributes(identityAttributes);
         model.setCustomAttributes(customAttributes);
 
-        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new CreateActivationStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().isSuccess());
         assertEquals(400, stepLogger.getResponse().getStatusCode());
@@ -268,7 +270,6 @@ public class PowerAuthCustomActivationTest {
         model.setIdentityAttributes(identityAttributes);
         model.setCustomAttributes(customAttributes);
 
-        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new CreateActivationStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().isSuccess());
         assertEquals(400, stepLogger.getResponse().getStatusCode());
@@ -293,7 +294,6 @@ public class PowerAuthCustomActivationTest {
         model.setIdentityAttributes(identityAttributes);
         model.setCustomAttributes(customAttributes);
 
-        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new CreateActivationStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().isSuccess());
         assertEquals(400, stepLogger.getResponse().getStatusCode());
@@ -304,6 +304,167 @@ public class PowerAuthCustomActivationTest {
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+    }
+
+    @Test
+    public void customActivationBadMasterPublicKeyTest() throws Exception {
+        Map<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("test_id", "TEST_7_BAD_MASTER_PUBLIC_KEY");
+        model.setIdentityAttributes(identityAttributes);
+
+        KeyPair keyPair = new KeyGenerator().generateKeyPair();
+        PublicKey originalKey = model.getMasterPublicKey();
+
+        // Set bad master public key
+        model.setMasterPublicKey(keyPair.getPublic());
+
+        // Create activation
+        new CreateActivationStep().execute(stepLogger, model.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
+
+        // Verify error response
+        ObjectMapper objectMapper = config.getObjectMapper();
+        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        assertEquals("ERROR", errorResponse.getStatus());
+        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+
+        // Revert master public key change
+        model.setMasterPublicKey(originalKey);
+    }
+
+    @Test
+    public void customActivationUnsupportedApplicationTest() throws Exception {
+        Map<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("test_id", "TEST_8_UNSUPPORTED_APP_VERSION");
+        model.setIdentityAttributes(identityAttributes);
+
+        // Unsupport application version
+        powerAuthClient.unsupportApplicationVersion(config.getApplicationVersionId());
+
+        // Verify that application version is unsupported
+        GetApplicationDetailResponse detailResponse = powerAuthClient.getApplicationDetail(config.getApplicationId());
+        for (GetApplicationDetailResponse.Versions version: detailResponse.getVersions()) {
+            if (version.getApplicationVersionName().equals(config.getApplicationVersion())) {
+                assertFalse(version.isSupported());
+            }
+        }
+
+        // Create activation
+        new CreateActivationStep().execute(stepLogger, model.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
+
+        // Verify error response
+        ObjectMapper objectMapper = config.getObjectMapper();
+        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        assertEquals("ERROR", errorResponse.getStatus());
+        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+
+        // Support application version
+        powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
+
+        // Verify that application version is supported
+        GetApplicationDetailResponse detailResponse2 = powerAuthClient.getApplicationDetail(config.getApplicationId());
+        for (GetApplicationDetailResponse.Versions version: detailResponse2.getVersions()) {
+            if (version.getApplicationVersionName().equals(config.getApplicationVersion())) {
+                assertTrue(version.isSupported());
+            }
+        }
+    }
+
+    @Test
+    public void customActivationInvalidApplicationKeyTest() throws Exception {
+        Map<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("test_id", "TEST_8_INVALID_APP_KEY");
+        model.setIdentityAttributes(identityAttributes);
+
+        model.setApplicationKey("invalid");
+
+        // Verify that CreateActivation fails
+        new CreateActivationStep().execute(stepLogger, model.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
+
+        // Verify error response
+        ObjectMapper objectMapper = config.getObjectMapper();
+        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        assertEquals("ERROR", errorResponse.getStatus());
+        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+
+        model.setApplicationKey(config.getApplicationKey());
+    }
+
+    @Test
+    public void customActivationInvalidApplicationSecretTest() throws Exception {
+        Map<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("test_id", "TEST_8_INVALID_APP_SECRET");
+        model.setIdentityAttributes(identityAttributes);
+
+        model.setApplicationSecret("invalid");
+
+        // Verify that CreateActivation fails
+        new CreateActivationStep().execute(stepLogger, model.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
+
+        // Verify error response
+        ObjectMapper objectMapper = config.getObjectMapper();
+        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        assertEquals("ERROR", errorResponse.getStatus());
+        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+
+        model.setApplicationSecret(config.getApplicationSecret());
+    }
+
+    @Test
+    public void customActivationDoubleCommitTest() throws Exception {
+        Map<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("test_id", "TEST_9_DOUBLE_COMMIT");
+        identityAttributes.put("username", "john");
+        model.setIdentityAttributes(identityAttributes);
+
+        new CreateActivationStep().execute(stepLogger, model.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        String activationId = null;
+        boolean layer2ResponseOk = false;
+        boolean layer1ResponseOk = false;
+        // Verify decrypted responses
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Layer 2 Response")) {
+                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+                activationId = layer2Response.getActivationId();
+                assertNotNull(activationId);
+                assertNotNull(layer2Response.getCtrData());
+                assertNotNull(layer2Response.getServerPublicKey());
+                // Verify activation status - activation was automatically committed
+                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(layer2Response.getActivationId());
+                assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
+                layer2ResponseOk = true;
+                continue;
+            }
+            if (item.getName().equals("Decrypted Layer 1 Response")) {
+                layer1ResponseOk = true;
+            }
+        }
+
+        assertTrue(layer1ResponseOk);
+        assertTrue(layer2ResponseOk);
+
+        // Commit activation
+        try {
+            powerAuthClient.commitActivation(activationId);
+            fail("Double commit should not be allowed");
+        } catch (SoapFaultClientException ex) {
+            assertEquals("Incorrect activation state.", ex.getMessage());
+        }
+
     }
 
 }
