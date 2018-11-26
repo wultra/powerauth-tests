@@ -19,7 +19,7 @@
  */
 package com.wultra.security.powerauth.provider;
 
-import io.getlime.security.powerauth.rest.api.base.provider.PowerAuthCustomActivationProvider;
+import io.getlime.security.powerauth.rest.api.base.provider.CustomActivationProvider;
 import io.getlime.security.powerauth.rest.api.model.entity.ActivationType;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +32,7 @@ import java.util.Map;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Component
-public class CustomActivationProvider implements PowerAuthCustomActivationProvider {
+public class CustomActivationProviderForTests implements CustomActivationProvider {
 
     private static String testId;
 
@@ -72,7 +72,7 @@ public class CustomActivationProvider implements PowerAuthCustomActivationProvid
     }
 
     @Override
-    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes) {
+    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId) {
         switch (testId) {
             case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
                 return true;
