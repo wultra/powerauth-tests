@@ -60,6 +60,6 @@ public class PowerAuthConfigurationTest {
         assertNotNull(config.getResultStatusObjectV2());
         assertNotNull(config.getStatusFileV3());
         assertNotNull(config.getResultStatusObjectV3());
-
     }
+
 }

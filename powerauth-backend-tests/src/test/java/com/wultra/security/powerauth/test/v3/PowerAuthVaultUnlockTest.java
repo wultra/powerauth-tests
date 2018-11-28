@@ -114,8 +114,7 @@ public class PowerAuthVaultUnlockTest {
         ObjectMapper objectMapper = config.getObjectMapper();
         ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("POWERAUTH_AUTH_FAIL", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_SIGNATURE_INVALID", errorResponse.getResponseObject().getMessage());
+        checkSignatureError(errorResponse);
     }
 
     @Test
@@ -164,8 +163,7 @@ public class PowerAuthVaultUnlockTest {
         ObjectMapper objectMapper = config.getObjectMapper();
         ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("POWERAUTH_AUTH_FAIL", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_SIGNATURE_INVALID", errorResponse.getResponseObject().getMessage());
+        checkSignatureError(errorResponse);
 
         powerAuthClient.unblockActivation(config.getActivationIdV3());
 
@@ -187,8 +185,7 @@ public class PowerAuthVaultUnlockTest {
         ObjectMapper objectMapper = config.getObjectMapper();
         ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("POWERAUTH_AUTH_FAIL", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_SIGNATURE_INVALID", errorResponse.getResponseObject().getMessage());
+        checkSignatureError(errorResponse);
 
         powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
 
@@ -349,4 +346,9 @@ public class PowerAuthVaultUnlockTest {
         assertFalse(verifyResponse.isSignatureValid());
     }
 
+    private void checkSignatureError(ErrorResponse errorResponse) {
+        // Errors differ when Web Flow is used because of its Exception handler
+        assertTrue("POWERAUTH_AUTH_FAIL".equals(errorResponse.getResponseObject().getCode()) || "ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()));
+        assertTrue("Signature validation failed".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_SIGNATURE_INVALID".equals(errorResponse.getResponseObject().getMessage()));
+    }
 }

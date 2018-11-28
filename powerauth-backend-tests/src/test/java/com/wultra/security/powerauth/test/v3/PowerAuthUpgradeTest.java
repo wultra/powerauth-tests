@@ -810,8 +810,7 @@ public class PowerAuthUpgradeTest {
         ObjectMapper objectMapper = config.getObjectMapper();
         ErrorResponse errorResponse = objectMapper.readValue(stepLogger2.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("POWERAUTH_AUTH_FAIL", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_SIGNATURE_INVALID_VALUE", errorResponse.getResponseObject().getMessage());
+        checkSignatureError(errorResponse);
 
         // Revert possession key change
         model.getResultStatusObject().put("signaturePossessionKey", signaturePossessionKeyOrig);
@@ -1098,6 +1097,12 @@ public class PowerAuthUpgradeTest {
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId());
+    }
+
+    private void checkSignatureError(ErrorResponse errorResponse) {
+        // Errors differ when Web Flow is used because of its Exception handler
+        assertTrue("POWERAUTH_AUTH_FAIL".equals(errorResponse.getResponseObject().getCode()) || "ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()));
+        assertTrue("Signature validation failed".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_SIGNATURE_INVALID_VALUE".equals(errorResponse.getResponseObject().getMessage()));
     }
 
 }
