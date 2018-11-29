@@ -80,15 +80,19 @@ public class PowerAuthHttpTest {
         headers.put("Accept", "application/json");
         headers.put("Content-Type", "application/json");
         headers.put(PowerAuthTokenHttpHeader.HEADER_NAME, tokenHeaderInvalid);
+        String tokenUrl;
+        if (config.getPowerAuthIntegrationUrl().contains("powerauth-webflow")) {
+            // Tests are running against Spring integration on Web Flow
+            tokenUrl = config.getPowerAuthIntegrationUrl() + "/api/auth/token/app/operation/list";
+        } else {
+            // Tests are running against Java EE integration on demo server
+            tokenUrl = config.getPowerAuthIntegrationUrl() + "/token/authorize";
+        }
 
-        HttpResponse response = Unirest.post(config.getPowerAuthIntegrationUrl() + "/api/auth/token/app/operation/list")
+        HttpResponse response = Unirest.post(tokenUrl)
                 .headers(headers)
                 .body(data)
                 .asString();
-        if (response.getStatus() == 404) {
-            // TODO - operation list endpoint is not available for Java EE tests, skip test until endpoint is implemented
-            return;
-        }
         assertEquals(401, response.getStatus());
 
         ObjectMapper objectMapper = config.getObjectMapper();
@@ -123,8 +127,7 @@ public class PowerAuthHttpTest {
     private void checkSignatureError(ErrorResponse errorResponse) {
         // Errors differ when Web Flow is used because of its Exception handler
         assertTrue("POWERAUTH_AUTH_FAIL".equals(errorResponse.getResponseObject().getCode()) || "ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()));
-        System.out.println(errorResponse.getResponseObject().getMessage());
-        assertTrue("Signature validation failed".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_ACTIVATION_ID_EMPTY".equals(errorResponse.getResponseObject().getMessage()));
+        assertTrue("Signature validation failed".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_ACTIVATION_ID_EMPTY".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_TOKEN_ID_EMPTY".equals(errorResponse.getResponseObject().getMessage()));
     }
 
 }

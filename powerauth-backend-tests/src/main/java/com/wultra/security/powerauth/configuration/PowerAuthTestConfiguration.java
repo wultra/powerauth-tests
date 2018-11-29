@@ -56,7 +56,7 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.service.url}")
     private String powerAuthServiceUrl;
 
-    @Value("${powerauth.integration.url}")
+    @Value("${powerauth.integration.service.url}")
     private String powerAuthIntegrationUrl;
 
     @Value("${powerauth.nextstep.service.url}")

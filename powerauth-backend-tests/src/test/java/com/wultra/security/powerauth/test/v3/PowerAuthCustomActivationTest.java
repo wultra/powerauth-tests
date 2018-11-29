@@ -515,7 +515,6 @@ public class PowerAuthCustomActivationTest {
                 ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
                 activationId = layer2Response.getActivationId();
                 assertNotNull(activationId);
-                System.out.println("ctr data: "+layer2Response.getCtrData());
                 layer2ResponseOk = true;
                 continue;
             }

@@ -141,17 +141,13 @@ public class PowerAuthTokenTest {
         modelVerify.setTokenSecret(tokenSecret);
         modelVerify.setHeaders(new HashMap<>());
         modelVerify.setResultStatusObject(config.getResultStatusObjectV2());
-        modelVerify.setUriString(config.getPowerAuthIntegrationUrl() + "/api/auth/token/app/operation/list");
+        modelVerify.setUriString(getTokenUri());
         modelVerify.setDataFileName(dataFile.getAbsolutePath());
         modelVerify.setHttpMethod("POST");
         modelVerify.setVersion("2.1");
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new VerifyTokenStep().execute(stepLogger2, modelVerify.toMap());
-        if (stepLogger2.getResponse().getStatusCode() == 404) {
-            // TODO - operation list endpoint is not available for Java EE tests, skip test until endpoint is implemented
-            return;
-        }
         assertTrue(stepLogger2.getResult().isSuccess());
         assertEquals(200, stepLogger2.getResponse().getStatusCode());
 
@@ -180,17 +176,13 @@ public class PowerAuthTokenTest {
         modelVerify.setTokenSecret("test");
         modelVerify.setHeaders(new HashMap<>());
         modelVerify.setResultStatusObject(config.getResultStatusObjectV2());
-        modelVerify.setUriString(config.getPowerAuthIntegrationUrl() + "/api/auth/token/app/operation/list");
+        modelVerify.setUriString(getTokenUri());
         modelVerify.setDataFileName(dataFile.getAbsolutePath());
         modelVerify.setHttpMethod("POST");
         modelVerify.setVersion("2.1");
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new VerifyTokenStep().execute(stepLogger2, modelVerify.toMap());
-        if (stepLogger2.getResponse().getStatusCode() == 404) {
-            // TODO - operation list endpoint is not available for Java EE tests, skip test until endpoint is implemented
-            return;
-        }
         assertFalse(stepLogger2.getResult().isSuccess());
         assertEquals(401, stepLogger2.getResponse().getStatusCode());
 
@@ -233,17 +225,13 @@ public class PowerAuthTokenTest {
         modelVerify.setTokenSecret(tokenSecret);
         modelVerify.setHeaders(new HashMap<>());
         modelVerify.setResultStatusObject(config.getResultStatusObjectV2());
-        modelVerify.setUriString(config.getPowerAuthIntegrationUrl() + "/api/auth/token/app/operation/list");
+        modelVerify.setUriString(getTokenUri());
         modelVerify.setDataFileName(dataFile.getAbsolutePath());
         modelVerify.setHttpMethod("POST");
         modelVerify.setVersion("2.1");
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new VerifyTokenStep().execute(stepLogger2, modelVerify.toMap());
-        if (stepLogger2.getResponse().getStatusCode() == 404) {
-            // TODO - operation list endpoint is not available for Java EE tests, skip test until endpoint is implemented
-            return;
-        }
         assertFalse(stepLogger2.getResult().isSuccess());
         assertEquals(401, stepLogger2.getResponse().getStatusCode());
 
@@ -315,7 +303,16 @@ public class PowerAuthTokenTest {
     private void checkSignatureError(ErrorResponse errorResponse) {
         // Errors differ when Web Flow is used because of its Exception handler
         assertTrue("POWERAUTH_AUTH_FAIL".equals(errorResponse.getResponseObject().getCode()) || "ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()));
-        assertTrue("Signature validation failed".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_SIGNATURE_INVALID_VALUE".equals(errorResponse.getResponseObject().getMessage()));
+    }
+
+    private String getTokenUri() {
+        if (config.getPowerAuthIntegrationUrl().contains("powerauth-webflow")) {
+            // Tests are running against Spring integration on Web Flow
+            return config.getPowerAuthIntegrationUrl() + "/api/auth/token/app/operation/list";
+        } else {
+            // Tests are running against Java EE integration on demo server
+            return config.getPowerAuthIntegrationUrl() + "/token/authorize";
+        }
     }
 
 }
