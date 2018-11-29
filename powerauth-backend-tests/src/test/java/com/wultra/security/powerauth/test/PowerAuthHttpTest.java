@@ -127,7 +127,6 @@ public class PowerAuthHttpTest {
     private void checkSignatureError(ErrorResponse errorResponse) {
         // Errors differ when Web Flow is used because of its Exception handler
         assertTrue("POWERAUTH_AUTH_FAIL".equals(errorResponse.getResponseObject().getCode()) || "ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()));
-        assertTrue("Signature validation failed".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_ACTIVATION_ID_EMPTY".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_TOKEN_ID_EMPTY".equals(errorResponse.getResponseObject().getMessage()));
     }
 
 }
