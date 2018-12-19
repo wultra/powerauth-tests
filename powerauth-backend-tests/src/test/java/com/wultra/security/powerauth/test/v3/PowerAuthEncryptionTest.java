@@ -136,7 +136,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndencryptTest() throws Exception {
+    public void signAndEncryptTest() throws Exception {
         VerifySignatureStepModel signatureModel = new VerifySignatureStepModel();
         signatureModel.setApplicationKey(config.getApplicationKey());
         signatureModel.setApplicationSecret(config.getApplicationSecret());
