@@ -138,8 +138,8 @@ public class PowerAuthVaultUnlockTest {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_BIOMETRY);
 
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
     }
 
     @Test
@@ -147,8 +147,8 @@ public class PowerAuthVaultUnlockTest {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY);
 
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
     }
 
     @Test
