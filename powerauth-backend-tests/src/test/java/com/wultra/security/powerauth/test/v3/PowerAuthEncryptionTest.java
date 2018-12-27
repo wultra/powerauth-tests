@@ -182,10 +182,13 @@ public class PowerAuthEncryptionTest {
         fw.close();
 
         encryptModel.setDataFileName(emptyDataFile.getAbsolutePath());
+        encryptModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setScope("activation");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        // It is not allowed to encrypt empty data
-        assertFalse(stepLogger.getResult().isSuccess());
+        // It is allowed to encrypt empty data
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
     }
 
     @Test
@@ -237,8 +240,9 @@ public class PowerAuthEncryptionTest {
         signatureModel.setDataFileName(emptyDataFile.getAbsolutePath());
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        // It is not allowed to encrypt empty data
-        assertFalse(stepLogger.getResult().isSuccess());
+        // It is allowed to encrypt and sign empty data
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
     }
 
 }
