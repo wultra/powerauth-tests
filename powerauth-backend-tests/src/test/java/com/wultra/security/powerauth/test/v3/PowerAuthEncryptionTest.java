@@ -18,9 +18,11 @@
 package com.wultra.security.powerauth.test.v3;
 
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
+import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
@@ -43,6 +45,7 @@ import java.util.HashMap;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(SpringRunner.class)
@@ -52,7 +55,8 @@ public class PowerAuthEncryptionTest {
 
     private PowerAuthTestConfiguration config;
     private static File dataFile;
-    private EncryptStepModel model;
+    private EncryptStepModel encryptModel;
+    private VerifySignatureStepModel signatureModel;
     private ObjectStepLogger stepLogger;
 
     @Autowired
@@ -75,24 +79,39 @@ public class PowerAuthEncryptionTest {
 
     @Before
     public void setUp() {
-        model = new EncryptStepModel();
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setDataFileName(dataFile.getAbsolutePath());
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setResultStatusObject(config.getResultStatusObjectV3());
-        model.setVersion("3.0");
+        encryptModel = new EncryptStepModel();
+        encryptModel.setApplicationKey(config.getApplicationKey());
+        encryptModel.setApplicationSecret(config.getApplicationSecret());
+        encryptModel.setDataFileName(dataFile.getAbsolutePath());
+        encryptModel.setMasterPublicKey(config.getMasterPublicKey());
+        encryptModel.setHeaders(new HashMap<>());
+        encryptModel.setResultStatusObject(config.getResultStatusObjectV3());
+        encryptModel.setVersion("3.0");
+
+        signatureModel = new VerifySignatureStepModel();
+        signatureModel.setApplicationKey(config.getApplicationKey());
+        signatureModel.setApplicationSecret(config.getApplicationSecret());
+        signatureModel.setDataFileName(dataFile.getAbsolutePath());
+        signatureModel.setHeaders(new HashMap<>());
+        signatureModel.setHttpMethod("POST");
+        signatureModel.setPassword(config.getPassword());
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setResultStatusObject(config.getResultStatusObjectV3());
+        signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
+        signatureModel.setStatusFileName(config.getStatusFileV3().getAbsolutePath());
+        signatureModel.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
+        signatureModel.setVersion("3.0");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
 
         stepLogger = new ObjectStepLogger(System.out);
     }
 
     @Test
     public void encryptInActivationScopeTest() throws Exception {
-        model.setUriString(config.getCustomServiceUrl() + "/exchange/v3/activation");
-        model.setScope("activation");
+        encryptModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setScope("activation");
 
-        new EncryptStep().execute(stepLogger, model.toMap());
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
@@ -113,10 +132,10 @@ public class PowerAuthEncryptionTest {
 
     @Test
     public void encryptInApplicationScopeTest() throws Exception {
-        model.setUriString(config.getCustomServiceUrl() + "/exchange/v3/application");
-        model.setScope("application");
+        encryptModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/application");
+        encryptModel.setScope("application");
 
-        new EncryptStep().execute(stepLogger, model.toMap());
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
@@ -136,22 +155,41 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptTest() throws Exception {
-        VerifySignatureStepModel signatureModel = new VerifySignatureStepModel();
-        signatureModel.setApplicationKey(config.getApplicationKey());
-        signatureModel.setApplicationSecret(config.getApplicationSecret());
-        signatureModel.setDataFileName(dataFile.getAbsolutePath());
-        signatureModel.setHeaders(new HashMap<>());
-        signatureModel.setHttpMethod("POST");
-        signatureModel.setPassword(config.getPassword());
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setResultStatusObject(config.getResultStatusObjectV3());
-        signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
-        signatureModel.setStatusFileName(config.getStatusFileV3().getAbsolutePath());
-        signatureModel.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
-        signatureModel.setVersion("3.0");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+    public void encryptInInvalidScope1Test() throws Exception {
+        encryptModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setScope("application");
 
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
+    }
+
+    @Test
+    public void encryptInInvalidScope2Test() throws Exception {
+        encryptModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/application");
+        encryptModel.setScope("activation");
+
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
+    }
+
+    @Test
+    public void encryptEmptyDataTest() throws Exception {
+        File emptyDataFile = File.createTempFile("data_empty_signed", ".json");
+        emptyDataFile.deleteOnExit();
+        FileWriter fw = new FileWriter(emptyDataFile);
+        fw.close();
+
+        encryptModel.setDataFileName(emptyDataFile.getAbsolutePath());
+
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+        // It is not allowed to encrypt empty data
+        assertFalse(stepLogger.getResult().isSuccess());
+    }
+
+    @Test
+    public void signAndEncryptTest() throws Exception {
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
@@ -171,6 +209,36 @@ public class PowerAuthEncryptionTest {
         assertTrue(responseSuccessfullyDecrypted);
     }
 
-    // TODO - negative tests
+    @Test
+    public void signAndEncryptWeakSignatureTypeTest() throws Exception {
+        signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(401, stepLogger.getResponse().getStatusCode());
+    }
+
+    @Test
+    public void signAndEncryptInvalidPasswordTest() throws Exception {
+        signatureModel.setPassword("0000");
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(401, stepLogger.getResponse().getStatusCode());
+    }
+
+    @Test
+    public void signAndEncryptEmptyDataTest() throws Exception {
+        File emptyDataFile = File.createTempFile("data_empty_signed", ".json");
+        emptyDataFile.deleteOnExit();
+        FileWriter fw = new FileWriter(emptyDataFile);
+        fw.close();
+
+        signatureModel.setDataFileName(emptyDataFile.getAbsolutePath());
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        // It is not allowed to encrypt empty data
+        assertFalse(stepLogger.getResult().isSuccess());
+    }
 
 }
