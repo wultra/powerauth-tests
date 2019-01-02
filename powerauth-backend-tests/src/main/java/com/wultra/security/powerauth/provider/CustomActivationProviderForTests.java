@@ -40,7 +40,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     public String lookupUserIdForAttributes(Map<String, String> identityAttributes) {
         testId = identityAttributes.get("test_id");
         Map<String, String> userNameToUserIdMap = new HashMap<>();
-        userNameToUserIdMap.put("john", "12345678");
+        userNameToUserIdMap.put("TestUser1", "12345678");
 
         switch (testId) {
             case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":

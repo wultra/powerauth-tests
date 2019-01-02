@@ -17,12 +17,11 @@
  */
 package com.wultra.security.powerauth.test.v3;
 
+import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
-import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
@@ -38,9 +37,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.HashMap;
 
 import static junit.framework.TestCase.assertTrue;
@@ -95,13 +96,11 @@ public class PowerAuthEncryptionTest {
         signatureModel.setHeaders(new HashMap<>());
         signatureModel.setHttpMethod("POST");
         signatureModel.setPassword(config.getPassword());
-        signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setResultStatusObject(config.getResultStatusObjectV3());
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
         signatureModel.setStatusFileName(config.getStatusFileV3().getAbsolutePath());
         signatureModel.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
         signatureModel.setVersion("3.0");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
 
         stepLogger = new ObjectStepLogger(System.out);
     }
@@ -193,6 +192,9 @@ public class PowerAuthEncryptionTest {
 
     @Test
     public void signAndEncryptTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
@@ -214,6 +216,9 @@ public class PowerAuthEncryptionTest {
 
     @Test
     public void signAndEncryptWeakSignatureTypeTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
@@ -223,6 +228,8 @@ public class PowerAuthEncryptionTest {
 
     @Test
     public void signAndEncryptInvalidPasswordTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
         signatureModel.setPassword("0000");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
@@ -232,6 +239,8 @@ public class PowerAuthEncryptionTest {
 
     @Test
     public void signAndEncryptEmptyDataTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
         File emptyDataFile = File.createTempFile("data_empty_signed", ".json");
         emptyDataFile.deleteOnExit();
         FileWriter fw = new FileWriter(emptyDataFile);
@@ -245,4 +254,84 @@ public class PowerAuthEncryptionTest {
         assertEquals(200, stepLogger.getResponse().getStatusCode());
     }
 
+    @Test
+    public void signAndEncryptLargeDataTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+
+        SecureRandom secureRandom = new SecureRandom();
+        File dataFileLarge = File.createTempFile("data_large_v3", ".dat");
+        dataFileLarge.deleteOnExit();
+        FileWriter fw = new FileWriter(dataFileLarge);
+        fw.write("{\"data\": \"");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        for (int i = 0; i < 5000; i++) {
+            baos.write(secureRandom.nextInt());
+        }
+        fw.write(BaseEncoding.base64().encode(baos.toByteArray()));
+        fw.write("\"}");
+        fw.close();
+
+        signatureModel.setDataFileName(dataFileLarge.getAbsolutePath());
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+    }
+
+    @Test
+    public void signAndEncryptStringDataTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+
+        SecureRandom secureRandom = new SecureRandom();
+        File dataFileLarge = File.createTempFile("data_string_v3", ".dat");
+        dataFileLarge.deleteOnExit();
+        FileWriter fw = new FileWriter(dataFileLarge);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        for (int i = 0; i < 5; i++) {
+            baos.write(secureRandom.nextInt());
+        }
+        fw.write("\"" + BaseEncoding.base64().encode(baos.toByteArray()) + "\"");
+        fw.close();
+
+        signatureModel.setDataFileName(dataFileLarge.getAbsolutePath());
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+    }
+
+    @Test
+    public void signAndEncryptRawDataTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed/raw");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed/raw");
+
+        SecureRandom secureRandom = new SecureRandom();
+        File dataFileLarge = File.createTempFile("data_raw_v3", ".dat");
+        dataFileLarge.deleteOnExit();
+        FileWriter fw = new FileWriter(dataFileLarge);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        for (int i = 0; i < 5; i++) {
+            baos.write(secureRandom.nextInt());
+        }
+        fw.write(baos.toString());
+        fw.close();
+
+        signatureModel.setDataFileName(dataFileLarge.getAbsolutePath());
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+    }
+
+    @Test
+    public void signAndEncryptInvalidResourceIdTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/invalid");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(401, stepLogger.getResponse().getStatusCode());
+    }
 }

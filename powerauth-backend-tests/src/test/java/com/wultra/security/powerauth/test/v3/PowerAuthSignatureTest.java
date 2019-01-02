@@ -484,13 +484,14 @@ public class PowerAuthSignatureTest {
     public void signatureLargeDataTest() throws Exception {
         SecureRandom secureRandom = new SecureRandom();
         File dataFileLarge = File.createTempFile("data_large_v3", ".dat");
+        dataFileLarge.deleteOnExit();
         FileWriter fw = new FileWriter(dataFileLarge);
-        for (int i = 0; i < 1000000; i++) {
+        for (int i = 0; i < 10000; i++) {
             fw.write(secureRandom.nextInt());
         }
         fw.close();
 
-        model.setDataFileName(dataFileLarge.getName());
+        model.setDataFileName(dataFileLarge.getAbsolutePath());
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().isSuccess());

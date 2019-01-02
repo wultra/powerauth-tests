@@ -198,10 +198,10 @@ public class PowerAuthTestConfiguration {
         statusFileV2 = File.createTempFile("pa_status_v2", ".json");
 
         // Create random user for version 3.0
-        userV3 = UUID.randomUUID().toString();
+        userV3 = "TestUser_" + UUID.randomUUID().toString();
 
         // Create random user for version 2.1
-        userV2 = UUID.randomUUID().toString();
+        userV2 = "TestUser_" + UUID.randomUUID().toString();
 
         // Random application name
         applicationVersionForTests = applicationVersion + "_" + System.currentTimeMillis();

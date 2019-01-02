@@ -123,7 +123,7 @@ public class PowerAuthCustomActivationTest {
     public void customActivationValidTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS");
-        identityAttributes.put("username", "john");
+        identityAttributes.put("username", "TestUser1");
 
         Map<String, Object> customAttributes = new HashMap<>();
         customAttributes.put("key", "value");
@@ -149,7 +149,7 @@ public class PowerAuthCustomActivationTest {
                 // Verify activation status - activation was automatically committed
                 GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(layer2Response.getActivationId());
                 assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
-                assertEquals("john", statusResponseActive.getUserId());
+                assertEquals("TestUser1", statusResponseActive.getUserId());
                 layer2ResponseOk = true;
                 continue;
             }
@@ -220,7 +220,7 @@ public class PowerAuthCustomActivationTest {
         identityAttributes.put("test_id", "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS");
 
         Map<String, Object> customAttributes = new HashMap<>();
-        identityAttributes.put("username", "john");
+        identityAttributes.put("username", "TestUser1");
         customAttributes.put("key", "value");
 
         model.setIdentityAttributes(identityAttributes);
@@ -452,7 +452,7 @@ public class PowerAuthCustomActivationTest {
     public void customActivationDoubleCommitTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_9_DOUBLE_COMMIT");
-        identityAttributes.put("username", "john");
+        identityAttributes.put("username", "TestUser1");
         model.setIdentityAttributes(identityAttributes);
 
         new CreateActivationStep().execute(stepLogger, model.toMap());
@@ -498,7 +498,7 @@ public class PowerAuthCustomActivationTest {
     public void customActivationSignatureMaxFailedTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_10_SIGNATURES_MAX_FAILED");
-        identityAttributes.put("username", "john");
+        identityAttributes.put("username", "TestUser1");
 
         model.setIdentityAttributes(identityAttributes);
 
