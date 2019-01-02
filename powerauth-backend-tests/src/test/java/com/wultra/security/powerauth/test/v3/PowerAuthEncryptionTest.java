@@ -281,8 +281,8 @@ public class PowerAuthEncryptionTest {
 
     @Test
     public void signAndEncryptStringDataTest() throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setResourceId("/exchange/v3/signed/string");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed/string");
 
         SecureRandom secureRandom = new SecureRandom();
         File dataFileLarge = File.createTempFile("data_string_v3", ".dat");
