@@ -17,15 +17,19 @@
  */
 package com.wultra.security.powerauth.test.v3;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.SignAndEncryptStep;
+import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.junit.AfterClass;
@@ -38,17 +42,14 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.util.HashMap;
 
 import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
@@ -330,19 +331,31 @@ public class PowerAuthEncryptionTest {
         SecureRandom secureRandom = new SecureRandom();
         File dataFileLarge = File.createTempFile("data_string_v3", ".dat");
         dataFileLarge.deleteOnExit();
-        FileWriter fw = new FileWriter(dataFileLarge);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        BufferedWriter out = Files.newBufferedWriter(dataFileLarge.toPath(), StandardCharsets.UTF_8);
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 5; i++) {
-            baos.write(secureRandom.nextInt());
+            sb.append((char)(secureRandom.nextInt()));
         }
-        fw.write("\"" + BaseEncoding.base64().encode(baos.toByteArray()) + "\"");
-        fw.close();
+        String requestData = BaseEncoding.base64().encode(sb.toString().getBytes(StandardCharsets.UTF_8));
+        // JSON Strings need to be enclosed in double quotes
+        out.write("\"" + requestData + "\"");
+        out.close();
 
         signatureModel.setDataFileName(dataFileLarge.getAbsolutePath());
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        boolean responseSuccessfullyDecrypted = false;
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                assertEquals("\"Server successfully decrypted data and verified signature, request data: "+requestData+", user ID: " + config.getUserV3() + "\"", item.getObject());
+                responseSuccessfullyDecrypted = true;
+                break;
+            }
+        }
+        assertTrue(responseSuccessfullyDecrypted);
     }
 
     @Test
@@ -353,19 +366,29 @@ public class PowerAuthEncryptionTest {
         SecureRandom secureRandom = new SecureRandom();
         File dataFileLarge = File.createTempFile("data_raw_v3", ".dat");
         dataFileLarge.deleteOnExit();
-        FileWriter fw = new FileWriter(dataFileLarge);
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        BufferedWriter out = Files.newBufferedWriter(dataFileLarge.toPath(), StandardCharsets.UTF_8);
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < 5; i++) {
-            baos.write(secureRandom.nextInt());
+            sb.append((char)(secureRandom.nextInt()));
         }
-        fw.write(baos.toString());
-        fw.close();
+        out.write(sb.toString());
+        out.close();
 
         signatureModel.setDataFileName(dataFileLarge.getAbsolutePath());
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        boolean responseSuccessfullyDecrypted = false;
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                assertEquals(sb.toString(), item.getObject());
+                responseSuccessfullyDecrypted = true;
+                break;
+            }
+        }
+        assertTrue(responseSuccessfullyDecrypted);
     }
 
     @Test
@@ -412,5 +435,126 @@ public class PowerAuthEncryptionTest {
         }
         assertTrue(responseSuccessfullyDecrypted);
     }
+
+    @Test
+    public void signAndEncryptUnsupportedApplicationTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+
+        powerAuthClient.unsupportApplicationVersion(config.getApplicationVersionId());
+
+        ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
+        new SignAndEncryptStep().execute(stepLogger1, signatureModel.toMap());
+        assertFalse(stepLogger1.getResult().isSuccess());
+        assertEquals(401, stepLogger1.getResponse().getStatusCode());
+
+        ObjectMapper objectMapper = config.getObjectMapper();
+        ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        assertEquals("ERROR", errorResponse.getStatus());
+
+        powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
+
+        ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
+        new SignAndEncryptStep().execute(stepLogger2, signatureModel.toMap());
+        assertTrue(stepLogger2.getResult().isSuccess());
+        assertEquals(200, stepLogger2.getResponse().getStatusCode());
+
+        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger2.getResponse().getResponseObject();
+        assertNotNull(responseOK.getEncryptedData());
+        assertNotNull(responseOK.getMac());
+
+        boolean responseSuccessfullyDecrypted = false;
+        for (StepItem item: stepLogger2.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                assertEquals("{\"data\":\"Server successfully decrypted data and verified signature, request data: hello, user ID: " + config.getUserV3() + "\"}", item.getObject());
+                responseSuccessfullyDecrypted = true;
+                break;
+            }
+        }
+        assertTrue(responseSuccessfullyDecrypted);
+    }
+
+
+    @Test
+    public void signAndEncryptCounterIncrementTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+
+        byte[] ctrData = CounterUtil.getCtrData(signatureModel, stepLogger);
+        HashBasedCounter counter = new HashBasedCounter();
+        for (int i = 1; i <= 10; i++) {
+            ObjectStepLogger stepLoggerLoop = new ObjectStepLogger();
+            new SignAndEncryptStep().execute(stepLoggerLoop, signatureModel.toMap());
+            assertTrue(stepLoggerLoop.getResult().isSuccess());
+            assertEquals(200, stepLoggerLoop.getResponse().getStatusCode());
+
+            // Verify hash based counter
+            ctrData = counter.next(ctrData);
+            assertArrayEquals(ctrData, CounterUtil.getCtrData(signatureModel, stepLoggerLoop));
+        }
+    }
+
+    @Test
+    public void signAndEncryptLookAheadTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+
+        // Move counter by 1-4, next signature should succeed thanks to counter lookahead and it is still in max failure limit
+        for (int i = 1; i < 4; i++) {
+            for (int j=0; j < i; j++) {
+                System.out.println("test");
+                ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+                signatureModel.setPassword("1111");
+                new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+                assertFalse(stepLogger.getResult().isSuccess());
+                assertEquals(401, stepLogger.getResponse().getStatusCode());
+            }
+
+            ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+            signatureModel.setPassword(config.getPassword());
+            new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+            assertTrue(stepLogger.getResult().isSuccess());
+            assertEquals(200, stepLogger.getResponse().getStatusCode());
+        }
+    }
+
+    @Test
+    public void signAndEncryptSingleFactorTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(401, stepLogger.getResponse().getStatusCode());
+
+        ObjectMapper objectMapper = config.getObjectMapper();
+        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        assertEquals("ERROR", errorResponse.getStatus());
+    }
+
+    @Test
+    public void signAndEncryptBiometryTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_BIOMETRY);
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+    }
+
+    @Test
+    public void signAndEncryptThreeFactorTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY);
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+    }
+
+
 
 }
