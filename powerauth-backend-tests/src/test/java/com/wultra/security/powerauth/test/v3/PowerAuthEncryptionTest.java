@@ -328,15 +328,11 @@ public class PowerAuthEncryptionTest {
         signatureModel.setResourceId("/exchange/v3/signed/string");
         signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed/string");
 
-        SecureRandom secureRandom = new SecureRandom();
         File dataFileLarge = File.createTempFile("data_string_v3", ".dat");
         dataFileLarge.deleteOnExit();
         BufferedWriter out = Files.newBufferedWriter(dataFileLarge.toPath(), StandardCharsets.UTF_8);
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 5; i++) {
-            sb.append((char)(secureRandom.nextInt()));
-        }
-        String requestData = BaseEncoding.base64().encode(sb.toString().getBytes(StandardCharsets.UTF_8));
+
+        String requestData = BaseEncoding.base64().encode(generateRandomString().getBytes(StandardCharsets.UTF_8));
         // JSON Strings need to be enclosed in double quotes
         out.write("\"" + requestData + "\"");
         out.close();
@@ -363,15 +359,12 @@ public class PowerAuthEncryptionTest {
         signatureModel.setResourceId("/exchange/v3/signed/raw");
         signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed/raw");
 
-        SecureRandom secureRandom = new SecureRandom();
         File dataFileLarge = File.createTempFile("data_raw_v3", ".dat");
         dataFileLarge.deleteOnExit();
         BufferedWriter out = Files.newBufferedWriter(dataFileLarge.toPath(), StandardCharsets.UTF_8);
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 5; i++) {
-            sb.append((char)(secureRandom.nextInt()));
-        }
-        out.write(sb.toString());
+
+        String requestData = generateRandomString();
+        out.write(requestData);
         out.close();
 
         signatureModel.setDataFileName(dataFileLarge.getAbsolutePath());
@@ -383,7 +376,7 @@ public class PowerAuthEncryptionTest {
         boolean responseSuccessfullyDecrypted = false;
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
-                assertEquals(sb.toString(), item.getObject());
+                assertEquals(requestData, item.getObject());
                 responseSuccessfullyDecrypted = true;
                 break;
             }
@@ -502,7 +495,6 @@ public class PowerAuthEncryptionTest {
         // Move counter by 1-4, next signature should succeed thanks to counter lookahead and it is still in max failure limit
         for (int i = 1; i < 4; i++) {
             for (int j=0; j < i; j++) {
-                System.out.println("test");
                 ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
                 signatureModel.setPassword("1111");
                 new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
@@ -555,6 +547,20 @@ public class PowerAuthEncryptionTest {
         assertEquals(200, stepLogger.getResponse().getStatusCode());
     }
 
+    private String generateRandomString() {
+        SecureRandom secureRandom = new SecureRandom();
+        StringBuilder alphabetBuilder = new StringBuilder();
+        for (int i = 0; i < 10000; i++) {
+            alphabetBuilder.append((char) i);
+        }
+        String alphabet = alphabetBuilder.toString();
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 100; i++) {
+            int randomChar = Math.abs(secureRandom.nextInt()) % alphabet.length();
+            sb.append(alphabet, randomChar, randomChar+1);
+        }
+        return sb.toString();
+    }
 
 
 }
