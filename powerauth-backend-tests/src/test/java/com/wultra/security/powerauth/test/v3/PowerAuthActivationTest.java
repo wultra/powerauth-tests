@@ -32,6 +32,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
+import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
@@ -365,6 +366,7 @@ public class PowerAuthActivationTest {
         assertEquals(0, statusBlob.getFailedAttempts());
         assertEquals(3, statusBlob.getCurrentVersion());
         assertEquals(3, statusBlob.getUpgradeVersion());
+        assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());

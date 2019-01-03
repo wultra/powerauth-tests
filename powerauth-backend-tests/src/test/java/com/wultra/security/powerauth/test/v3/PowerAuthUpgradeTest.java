@@ -157,6 +157,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(0, statusBlob.getFailedAttempts());
         assertEquals(2, statusBlob.getCurrentVersion());
         assertEquals(3, statusBlob.getUpgradeVersion());
+        // Do not verify counter data, it is valid only for v3
 
         // Prepare signature model
         VerifySignatureStepModel modelSig = new VerifySignatureStepModel();
@@ -249,6 +250,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(0, statusBlob.getFailedAttempts());
         assertEquals(3, statusBlob.getCurrentVersion());
         assertEquals(3, statusBlob.getUpgradeVersion());
+        assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerPrepare), statusBlob.getCtrData());
 
         // Verify version 3.0 signature
         modelSig.setVersion("3.0");

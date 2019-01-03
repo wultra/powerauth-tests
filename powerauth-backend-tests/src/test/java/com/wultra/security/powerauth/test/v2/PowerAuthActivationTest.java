@@ -357,6 +357,7 @@ public class PowerAuthActivationTest {
         assertEquals(0, statusBlob.getFailedAttempts());
         assertEquals(2, statusBlob.getCurrentVersion());
         assertEquals(3, statusBlob.getUpgradeVersion());
+        // Do not verify counter data, it is valid only for v3
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());

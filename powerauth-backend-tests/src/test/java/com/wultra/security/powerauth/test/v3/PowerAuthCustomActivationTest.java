@@ -143,11 +143,11 @@ public class PowerAuthCustomActivationTest {
             if (item.getName().equals("Decrypted Layer 2 Response")) {
                 ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
                 activationId = layer2Response.getActivationId();
-                assertNotNull(layer2Response.getActivationId());
+                assertNotNull(activationId);
                 assertNotNull(layer2Response.getCtrData());
                 assertNotNull(layer2Response.getServerPublicKey());
                 // Verify activation status - activation was automatically committed
-                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(layer2Response.getActivationId());
+                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
                 assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
                 assertEquals("TestUser1", statusResponseActive.getUserId());
                 layer2ResponseOk = true;
@@ -190,11 +190,11 @@ public class PowerAuthCustomActivationTest {
             if (item.getName().equals("Decrypted Layer 2 Response")) {
                 ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
                 activationId = layer2Response.getActivationId();
-                assertNotNull(layer2Response.getActivationId());
+                assertNotNull(activationId);
                 assertNotNull(layer2Response.getCtrData());
                 assertNotNull(layer2Response.getServerPublicKey());
                 // Verify activation status - activation was not automatically committed
-                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(layer2Response.getActivationId());
+                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
                 assertEquals(ActivationStatus.OTP_USED, statusResponseActive.getActivationStatus());
                 assertEquals("static_username", statusResponseActive.getUserId());
                 layer2ResponseOk = true;
@@ -238,11 +238,11 @@ public class PowerAuthCustomActivationTest {
             if (item.getName().equals("Decrypted Layer 2 Response")) {
                 ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
                 activationId = layer2Response.getActivationId();
-                assertNotNull(layer2Response.getActivationId());
+                assertNotNull(activationId);
                 assertNotNull(layer2Response.getCtrData());
                 assertNotNull(layer2Response.getServerPublicKey());
                 // Verify activation status - activation was automatically committed
-                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(layer2Response.getActivationId());
+                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
                 assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
                 assertEquals("12345678", statusResponseActive.getUserId());
                 layer2ResponseOk = true;
@@ -471,7 +471,7 @@ public class PowerAuthCustomActivationTest {
                 assertNotNull(layer2Response.getCtrData());
                 assertNotNull(layer2Response.getServerPublicKey());
                 // Verify activation status - activation was automatically committed
-                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(layer2Response.getActivationId());
+                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
                 assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
                 layer2ResponseOk = true;
                 continue;
