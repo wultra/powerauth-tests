@@ -27,6 +27,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepMode
 import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.SignAndEncryptStep;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
+import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -59,10 +60,16 @@ public class PowerAuthEncryptionTest {
     private EncryptStepModel encryptModel;
     private VerifySignatureStepModel signatureModel;
     private ObjectStepLogger stepLogger;
+    private PowerAuthServiceClient powerAuthClient;
 
     @Autowired
     public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {
         this.config = config;
+    }
+
+    @Autowired
+    public void setPowerAuthServiceClient(PowerAuthServiceClient powerAuthClient) {
+        this.powerAuthClient = powerAuthClient;
     }
 
     @BeforeClass
@@ -188,6 +195,42 @@ public class PowerAuthEncryptionTest {
         // It is allowed to encrypt empty data
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
+    }
+
+    @Test
+    public void encryptBlockedActivationTest() throws Exception {
+        encryptModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setScope("activation");
+
+        // Block activation and verify that data exchange fails
+        powerAuthClient.blockActivation(config.getActivationIdV3(), "test");
+
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
+
+        // Unblock activation and verify that data exchange succeeds
+        powerAuthClient.unblockActivation(config.getActivationIdV3());
+
+        ObjectStepLogger stepLoggerSuccess = new ObjectStepLogger(System.out);
+
+        new EncryptStep().execute(stepLoggerSuccess, encryptModel.toMap());
+        assertTrue(stepLoggerSuccess.getResult().isSuccess());
+        assertEquals(200, stepLoggerSuccess.getResponse().getStatusCode());
+
+        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLoggerSuccess.getResponse().getResponseObject();
+        assertNotNull(responseOK.getEncryptedData());
+        assertNotNull(responseOK.getMac());
+
+        boolean responseSuccessfullyDecrypted = false;
+        for (StepItem item: stepLoggerSuccess.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                assertEquals("{\"data\":\"Server successfully decrypted signed data: hello, scope: ACTIVATION_SCOPE\"}", item.getObject());
+                responseSuccessfullyDecrypted = true;
+                break;
+            }
+        }
+        assertTrue(responseSuccessfullyDecrypted);
     }
 
     @Test
@@ -334,4 +377,40 @@ public class PowerAuthEncryptionTest {
         assertFalse(stepLogger.getResult().isSuccess());
         assertEquals(401, stepLogger.getResponse().getStatusCode());
     }
+
+    @Test
+    public void signAndEncryptBlockedActivationTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+
+        // Block activation and verify that data exchange fails
+        powerAuthClient.blockActivation(config.getActivationIdV3(), "test");
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(401, stepLogger.getResponse().getStatusCode());
+
+        // Unblock activation and verify that data exchange succeeds
+        powerAuthClient.unblockActivation(config.getActivationIdV3());
+
+        ObjectStepLogger stepLoggerSuccess = new ObjectStepLogger(System.out);
+        new SignAndEncryptStep().execute(stepLoggerSuccess, signatureModel.toMap());
+        assertTrue(stepLoggerSuccess.getResult().isSuccess());
+        assertEquals(200, stepLoggerSuccess.getResponse().getStatusCode());
+
+        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLoggerSuccess.getResponse().getResponseObject();
+        assertNotNull(responseOK.getEncryptedData());
+        assertNotNull(responseOK.getMac());
+
+        boolean responseSuccessfullyDecrypted = false;
+        for (StepItem item: stepLoggerSuccess.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                assertEquals("{\"data\":\"Server successfully decrypted data and verified signature, request data: hello, user ID: " + config.getUserV3() + "\"}", item.getObject());
+                responseSuccessfullyDecrypted = true;
+                break;
+            }
+        }
+        assertTrue(responseSuccessfullyDecrypted);
+    }
+
 }

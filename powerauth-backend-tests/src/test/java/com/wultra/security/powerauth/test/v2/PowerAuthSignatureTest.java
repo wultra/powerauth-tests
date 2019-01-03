@@ -778,6 +778,27 @@ public class PowerAuthSignatureTest {
         model.getResultStatusObject().put("signatureBiometryKey", biometryKeyOrig);
     }
 
+    @Test
+    public void signatureInvalidResourceIdTest() throws Exception {
+        // Set invalid resource ID
+        model.setResourceId("/pa/signature/invalid");
+
+        // Verify two factor signature
+        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
+
+        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(401, stepLogger.getResponse().getStatusCode());
+
+        ObjectMapper objectMapper = config.getObjectMapper();
+        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        assertEquals("ERROR", errorResponse.getStatus());
+        checkSignatureError(errorResponse);
+
+        // Revert resource ID
+        model.setResourceId("/pa/signature/validate");
+    }
+
     private void checkSignatureError(ErrorResponse errorResponse) {
         // Errors differ when Web Flow is used because of its Exception handler
         assertTrue("POWERAUTH_AUTH_FAIL".equals(errorResponse.getResponseObject().getCode()) || "ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()));
