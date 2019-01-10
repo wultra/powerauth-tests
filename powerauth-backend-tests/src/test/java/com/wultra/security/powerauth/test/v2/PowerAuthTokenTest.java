@@ -131,10 +131,12 @@ public class PowerAuthTokenTest {
         assertNotNull(tokenId);
         assertNotNull(tokenSecret);
 
-        Map<String, String> configNS = new HashMap<>();
-        configNS.put("activationId", config.getActivationIdV2());
-        ObjectResponse<GetAuthMethodsResponse> responseNS = nextStepClient.enableAuthMethodForUser(config.getUserV2(), AuthMethod.POWERAUTH_TOKEN, configNS);
-        assertEquals("OK", responseNS.getStatus());
+        if (isWebFlowRunning()) {
+            Map<String, String> configNS = new HashMap<>();
+            configNS.put("activationId", config.getActivationIdV2());
+            ObjectResponse<GetAuthMethodsResponse> responseNS = nextStepClient.enableAuthMethodForUser(config.getUserV2(), AuthMethod.POWERAUTH_TOKEN, configNS);
+            assertEquals("OK", responseNS.getStatus());
+        }
 
         VerifyTokenStepModel modelVerify = new VerifyTokenStepModel();
         modelVerify.setTokenId(tokenId);
@@ -213,10 +215,12 @@ public class PowerAuthTokenTest {
         assertNotNull(tokenId);
         assertNotNull(tokenSecret);
 
-        Map<String, String> configNS = new HashMap<>();
-        configNS.put("activationId", config.getActivationIdV2());
-        ObjectResponse<GetAuthMethodsResponse> responseNS = nextStepClient.enableAuthMethodForUser(config.getUserV2(), AuthMethod.POWERAUTH_TOKEN, configNS);
-        assertEquals("OK", responseNS.getStatus());
+        if (isWebFlowRunning()) {
+            Map<String, String> configNS = new HashMap<>();
+            configNS.put("activationId", config.getActivationIdV2());
+            ObjectResponse<GetAuthMethodsResponse> responseNS = nextStepClient.enableAuthMethodForUser(config.getUserV2(), AuthMethod.POWERAUTH_TOKEN, configNS);
+            assertEquals("OK", responseNS.getStatus());
+        }
 
         powerAuthClient.removeToken(tokenId, config.getActivationIdV2());
 
@@ -306,13 +310,17 @@ public class PowerAuthTokenTest {
     }
 
     private String getTokenUri() {
-        if (config.getPowerAuthIntegrationUrl().contains("powerauth-webflow")) {
+        if (isWebFlowRunning()) {
             // Tests are running against Spring integration on Web Flow
             return config.getPowerAuthIntegrationUrl() + "/api/auth/token/app/operation/list";
         } else {
             // Tests are running against Java EE integration on demo server
             return config.getPowerAuthIntegrationUrl() + "/token/authorize";
         }
+    }
+
+    private boolean isWebFlowRunning() {
+        return config.getPowerAuthIntegrationUrl().contains("powerauth-webflow");
     }
 
 }

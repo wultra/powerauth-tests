@@ -404,7 +404,6 @@ public class PowerAuthEncryptionTest {
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(401, stepLogger.getResponse().getStatusCode());
 
         // Unblock activation and verify that data exchange succeeds
         powerAuthClient.unblockActivation(config.getActivationIdV3());
@@ -439,7 +438,6 @@ public class PowerAuthEncryptionTest {
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new SignAndEncryptStep().execute(stepLogger1, signatureModel.toMap());
         assertFalse(stepLogger1.getResult().isSuccess());
-        assertEquals(401, stepLogger1.getResponse().getStatusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().getResponseObject().toString(), ErrorResponse.class);
