@@ -56,11 +56,12 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public void processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, ActivationType activationType) {
+    public Map<String, Object> processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, ActivationType activationType) {
+        Map<String, Object> processedCustomAttributes = new HashMap<>(customAttributes);
         switch (testId) {
             case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
-                customAttributes.remove("key");
-                customAttributes.put("key_new", "value_new");
+                processedCustomAttributes.remove("key");
+                processedCustomAttributes.put("key_new", "value_new");
                 break;
             case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
                 break;
@@ -69,6 +70,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
             default:
                 // Default action for negative tests - do nothing
         }
+        return processedCustomAttributes;
     }
 
     @Override
