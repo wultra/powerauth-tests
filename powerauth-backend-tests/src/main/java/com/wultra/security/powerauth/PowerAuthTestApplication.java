@@ -19,6 +19,11 @@ package com.wultra.security.powerauth;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+/**
+ * Spring boot test application.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @SpringBootApplication
 public class PowerAuthTestApplication {
 
