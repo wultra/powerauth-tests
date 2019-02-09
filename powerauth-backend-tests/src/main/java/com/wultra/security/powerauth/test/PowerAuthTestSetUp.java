@@ -32,6 +32,11 @@ import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
+/**
+ * Global test setup.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 public class PowerAuthTestSetUp {
 
     private PowerAuthServiceClient powerAuthClient;

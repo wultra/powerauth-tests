@@ -23,6 +23,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import static junit.framework.TestCase.assertTrue;
 
+/**
+ * Global test teardown.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 public class PowerAuthTestTearDown {
 
     private PowerAuthServiceClient powerAuthClient;
