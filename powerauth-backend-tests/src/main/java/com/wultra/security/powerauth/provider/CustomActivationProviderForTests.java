@@ -87,4 +87,16 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
                 return true;
         }
     }
+
+    @Override
+    public Integer getMaxFailedAttemptCount(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId) {
+        // Set max failed attempt count to 3
+        return 3;
+    }
+
+    @Override
+    public Integer getValidityPeriodDuringActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId) {
+        // Return 10 seconds as validity period
+        return 10000;
+    }
 }
