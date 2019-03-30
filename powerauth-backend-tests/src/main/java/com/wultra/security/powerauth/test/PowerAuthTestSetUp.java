@@ -123,7 +123,7 @@ public class PowerAuthTestSetUp {
         assertTrue(stepLogger.getResult().isSuccess());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         config.setActivationIdV3(initResponse.getActivationId());
@@ -155,7 +155,7 @@ public class PowerAuthTestSetUp {
         assertTrue(stepLogger.getResult().isSuccess());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         config.setActivationIdV2(initResponse.getActivationId());

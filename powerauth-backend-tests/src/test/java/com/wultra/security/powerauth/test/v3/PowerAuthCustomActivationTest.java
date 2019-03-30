@@ -164,7 +164,7 @@ public class PowerAuthCustomActivationTest {
         assertTrue(layer1ResponseOk);
         assertTrue(layer2ResponseOk);
 
-        powerAuthClient.removeActivation(activationId);
+        powerAuthClient.removeActivation(activationId, "test");
     }
 
     @Test
@@ -211,7 +211,7 @@ public class PowerAuthCustomActivationTest {
         assertTrue(layer1ResponseOk);
         assertTrue(layer2ResponseOk);
 
-        powerAuthClient.removeActivation(activationId);
+        powerAuthClient.removeActivation(activationId, "test");
     }
 
     @Test
@@ -259,7 +259,7 @@ public class PowerAuthCustomActivationTest {
         assertTrue(layer1ResponseOk);
         assertTrue(layer2ResponseOk);
 
-        powerAuthClient.removeActivation(activationId);
+        powerAuthClient.removeActivation(activationId, "test");
     }
 
     @Test
@@ -486,11 +486,11 @@ public class PowerAuthCustomActivationTest {
 
         // Commit activation
         try {
-            powerAuthClient.commitActivation(activationId);
+            powerAuthClient.commitActivation(activationId, "test");
             fail("Double commit should not be allowed");
         } catch (SoapFaultClientException ex) {
             assertEquals("Incorrect activation state.", ex.getMessage());
-            powerAuthClient.removeActivation(activationId);
+            powerAuthClient.removeActivation(activationId, "test");
         }
     }
 
@@ -542,8 +542,8 @@ public class PowerAuthCustomActivationTest {
 
         signatureModel.setPassword("1111");
 
-        // Fail four signatures (default value for maximum failed count is 5)
-        for (int i = 0; i < 4; i++) {
+        // Fail 2 signatures (configured value for maximum failed count is 3)
+        for (int i = 0; i < 2; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
             new VerifySignatureStep().execute(stepLoggerSignature, signatureModel.toMap());
             assertFalse(stepLoggerSignature.getResult().isSuccess());
@@ -557,9 +557,9 @@ public class PowerAuthCustomActivationTest {
         assertTrue(stepLogger2.getResult().isSuccess());
         assertEquals(200, stepLogger2.getResponse().getStatusCode());
 
-        // Fail five signatures (default value for maximum failed count is 5)
+        // Fail 3 signatures (configured value for maximum failed count is 3)
         signatureModel.setPassword("1111");
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 3; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
             new VerifySignatureStep().execute(stepLoggerSignature, signatureModel.toMap());
             assertFalse(stepLoggerSignature.getResult().isSuccess());
@@ -570,6 +570,6 @@ public class PowerAuthCustomActivationTest {
         GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatus(activationId);
         assertEquals(ActivationStatus.BLOCKED, statusResponseBlocked.getActivationStatus());
 
-        powerAuthClient.removeActivation(activationId);
+        powerAuthClient.removeActivation(activationId, "test");
     }
 }

@@ -136,7 +136,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(ActivationStatus.OTP_USED, statusResponseOtpUsed.getActivationStatus());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Verify activation status and version
@@ -267,7 +267,7 @@ public class PowerAuthUpgradeTest {
         assertArrayEquals(new HashBasedCounter().next(BaseEncoding.base64().decode(ctrData3)), BaseEncoding.base64().decode(ctrData4));
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
     @Test
@@ -302,7 +302,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Unsupport application version
@@ -334,7 +334,7 @@ public class PowerAuthUpgradeTest {
         powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
     @Test
@@ -377,7 +377,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(ActivationStatus.OTP_USED, statusResponseOtpUsed.getActivationStatus());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Verify activation status and version
@@ -408,7 +408,7 @@ public class PowerAuthUpgradeTest {
         assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
     @Test
@@ -457,11 +457,11 @@ public class PowerAuthUpgradeTest {
         model1.setVersion("3.0");
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
 
         // Verify that it is not possible to migrate the activation (it is removed)
         ObjectStepLogger stepLoggerMig = new ObjectStepLogger(System.out);
@@ -522,11 +522,11 @@ public class PowerAuthUpgradeTest {
         model1.setVersion("3.0");
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Block activation
-        powerAuthClient.blockActivation(initResponse.getActivationId(), "test");
+        powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
 
         // Verify that it is not possible to migrate the activation (it is blocked)
         ObjectStepLogger stepLoggerMig = new ObjectStepLogger(System.out);
@@ -541,7 +541,7 @@ public class PowerAuthUpgradeTest {
         assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
 
         // Unlock activation
-        powerAuthClient.unblockActivation(initResponse.getActivationId());
+        powerAuthClient.unblockActivation(initResponse.getActivationId(), "test");
 
         // Start upgrade of activation to version 3.0
         ObjectStepLogger stepLogger3 = new ObjectStepLogger(System.out);
@@ -571,7 +571,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(3, statusResponseMigrated.getVersion());
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
     @Test
@@ -632,7 +632,7 @@ public class PowerAuthUpgradeTest {
         assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
     @Test
@@ -671,7 +671,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Prepare signature model
@@ -734,7 +734,7 @@ public class PowerAuthUpgradeTest {
         assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
     @Test
@@ -769,7 +769,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Prepare start upgrade model
@@ -818,7 +818,7 @@ public class PowerAuthUpgradeTest {
         model.getResultStatusObject().put("signaturePossessionKey", signaturePossessionKeyOrig);
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
     @Test
@@ -853,7 +853,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Prepare start upgrade model
@@ -888,7 +888,7 @@ public class PowerAuthUpgradeTest {
         assertArrayEquals(ctrData, ctrData2);
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
     @Test
@@ -923,7 +923,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Check counter values
@@ -1018,7 +1018,7 @@ public class PowerAuthUpgradeTest {
         assertArrayEquals(new HashBasedCounter().next(BaseEncoding.base64().decode(ctrData3)), BaseEncoding.base64().decode(ctrData4));
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
     @Test
@@ -1053,7 +1053,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Prepare start upgrade model
@@ -1098,7 +1098,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(1, allCtrData.size());
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
     private void checkSignatureError(ErrorResponse errorResponse) {

@@ -250,7 +250,7 @@ public class PowerAuthTokenTest {
 
     @Test
     public void tokenCreateBlockedActivationTest() throws Exception {
-        powerAuthClient.blockActivation(config.getActivationIdV3(), "test");
+        powerAuthClient.blockActivation(config.getActivationIdV3(), "test", "test");
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new CreateTokenStep().execute(stepLogger1, model.toMap());
@@ -262,7 +262,7 @@ public class PowerAuthTokenTest {
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
 
-        powerAuthClient.unblockActivation(config.getActivationIdV3());
+        powerAuthClient.unblockActivation(config.getActivationIdV3(), "test");
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new CreateTokenStep().execute(stepLogger2, model.toMap());

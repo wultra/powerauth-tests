@@ -153,7 +153,7 @@ public class PowerAuthVaultUnlockTest {
 
     @Test
     public void vaultUnlockBlockedActivationTest() throws Exception {
-        powerAuthClient.blockActivation(config.getActivationIdV3(), "test");
+        powerAuthClient.blockActivation(config.getActivationIdV3(), "test", "test");
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new VaultUnlockStep().execute(stepLogger1, model.toMap());
@@ -165,7 +165,7 @@ public class PowerAuthVaultUnlockTest {
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
 
-        powerAuthClient.unblockActivation(config.getActivationIdV3());
+        powerAuthClient.unblockActivation(config.getActivationIdV3(), "test");
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new VaultUnlockStep().execute(stepLogger2, model.toMap());

@@ -181,7 +181,7 @@ public class PowerAuthSignatureTest {
 
     @Test
     public void signatureBlockedActivationTest() throws Exception {
-        powerAuthClient.blockActivation(config.getActivationIdV2(), "test");
+        powerAuthClient.blockActivation(config.getActivationIdV2(), "test", "test");
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new VerifySignatureStep().execute(stepLogger1, model.toMap());
@@ -193,7 +193,7 @@ public class PowerAuthSignatureTest {
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
 
-        powerAuthClient.unblockActivation(config.getActivationIdV2());
+        powerAuthClient.unblockActivation(config.getActivationIdV2(), "test");
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new VerifySignatureStep().execute(stepLogger2, model.toMap());
@@ -347,7 +347,7 @@ public class PowerAuthSignatureTest {
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -383,7 +383,7 @@ public class PowerAuthSignatureTest {
         assertEquals(ActivationStatus.BLOCKED, statusResponseBlocked.getActivationStatus());
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
     @Test
@@ -422,7 +422,7 @@ public class PowerAuthSignatureTest {
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -461,7 +461,7 @@ public class PowerAuthSignatureTest {
         assertEquals(401, stepLogger3.getResponse().getStatusCode());
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
     @Test

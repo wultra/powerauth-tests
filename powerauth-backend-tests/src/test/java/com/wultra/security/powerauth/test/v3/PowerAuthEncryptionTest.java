@@ -204,14 +204,14 @@ public class PowerAuthEncryptionTest {
         encryptModel.setScope("activation");
 
         // Block activation and verify that data exchange fails
-        powerAuthClient.blockActivation(config.getActivationIdV3(), "test");
+        powerAuthClient.blockActivation(config.getActivationIdV3(), "test", "test");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
         assertFalse(stepLogger.getResult().isSuccess());
         assertEquals(400, stepLogger.getResponse().getStatusCode());
 
         // Unblock activation and verify that data exchange succeeds
-        powerAuthClient.unblockActivation(config.getActivationIdV3());
+        powerAuthClient.unblockActivation(config.getActivationIdV3(), "test");
 
         ObjectStepLogger stepLoggerSuccess = new ObjectStepLogger(System.out);
 
@@ -400,13 +400,13 @@ public class PowerAuthEncryptionTest {
         signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
 
         // Block activation and verify that data exchange fails
-        powerAuthClient.blockActivation(config.getActivationIdV3(), "test");
+        powerAuthClient.blockActivation(config.getActivationIdV3(), "test", "test");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertFalse(stepLogger.getResult().isSuccess());
 
         // Unblock activation and verify that data exchange succeeds
-        powerAuthClient.unblockActivation(config.getActivationIdV3());
+        powerAuthClient.unblockActivation(config.getActivationIdV3(), "test");
 
         ObjectStepLogger stepLoggerSuccess = new ObjectStepLogger(System.out);
         new SignAndEncryptStep().execute(stepLoggerSuccess, signatureModel.toMap());

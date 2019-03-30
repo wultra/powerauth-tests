@@ -145,7 +145,7 @@ public class PowerAuthActivationTest {
         assertEquals(ActivationStatus.OTP_USED, statusResponseOtpUsed.getActivationStatus());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Verify activation status
@@ -153,7 +153,7 @@ public class PowerAuthActivationTest {
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
 
         // Block activation
-        BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test");
+        BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
         assertEquals(initResponse.getActivationId(), blockResponse.getActivationId());
         assertEquals("test", blockResponse.getBlockedReason());
 
@@ -162,7 +162,7 @@ public class PowerAuthActivationTest {
         assertEquals(ActivationStatus.BLOCKED, statusResponseBlocked.getActivationStatus());
 
         // Unblock activation
-        UnblockActivationResponse unblockResponse = powerAuthClient.unblockActivation(initResponse.getActivationId());
+        UnblockActivationResponse unblockResponse = powerAuthClient.unblockActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), unblockResponse.getActivationId());
 
         // Verify activation status
@@ -170,7 +170,7 @@ public class PowerAuthActivationTest {
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive2.getActivationStatus());
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
 
         // Verify activation status
         GetActivationStatusResponse statusResponseRemoved = powerAuthClient.getActivationStatus(initResponse.getActivationId());
@@ -369,7 +369,7 @@ public class PowerAuthActivationTest {
         assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Get status
@@ -388,7 +388,7 @@ public class PowerAuthActivationTest {
         assertEquals(0x3, statusBlob.getActivationStatus());
 
         // Block activation
-        BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test");
+        BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
         assertEquals(initResponse.getActivationId(), blockResponse.getActivationId());
         assertEquals("test", blockResponse.getBlockedReason());
 
@@ -408,7 +408,7 @@ public class PowerAuthActivationTest {
         assertEquals(0x4, statusBlob.getActivationStatus());
 
         // Remove activation
-        powerAuthClient.removeActivation(initResponse.getActivationId());
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
 
         // Get status
         stepLoggerStatus = new ObjectStepLogger(System.out);
