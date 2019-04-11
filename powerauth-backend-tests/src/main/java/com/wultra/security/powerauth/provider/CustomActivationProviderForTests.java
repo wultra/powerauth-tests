@@ -74,7 +74,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId) {
+    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, ActivationType activationType) {
         switch (testId) {
             case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
                 return true;
@@ -89,13 +89,18 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public Integer getMaxFailedAttemptCount(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId) {
+    public void activationWasCommitted(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, ActivationType activationType) {
+        // Ignore
+    }
+
+    @Override
+    public Integer getMaxFailedAttemptCount(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId, ActivationType activationType) {
         // Set max failed attempt count to 3
         return 3;
     }
 
     @Override
-    public Integer getValidityPeriodDuringActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId) {
+    public Integer getValidityPeriodDuringActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId, ActivationType activationType) {
         // Return 10 seconds as validity period
         return 10000;
     }
