@@ -256,7 +256,7 @@ public class PowerAuthRecoveryTest {
         // related local public key (must be set in DB for test app): "BABXgGoj4Lizl3GN0rjrtileEEwekFkpX1ERS9yyYjyuM1Iqdti3ihtATBxk5XGvjetPO1YC+qXciUYjIsETtbI="
         // related server private key (must be set in DB for test app): "V8RVfkFKAZD41HNmP2OU38fk7An2fgiFc2uTNcvlor8="
         String randomUserId = "TestUser_" + UUID.randomUUID().toString();
-        CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L, false);
+        CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L);
 
         // Verify response
         assertNotNull(response);
@@ -450,7 +450,7 @@ public class PowerAuthRecoveryTest {
         String privateKeyLocalBase64 = "ALvtO6YEISVuCKugiltkUKgJaJbHRrdT77+9OhS79Gvm";
         String publicKeyServerBase64 = "BAxsxEH2lXZk50HmErhDDRCCaEva+lupNEBrVFgEd4eLr3+HFHzz7wNFMW/CrkG24gC6f1yUcy9fjxWyW01qUuI=";
         String randomUserId = "TestUser_" + UUID.randomUUID().toString();
-        CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L, false);
+        CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L);
 
         // Derive recovery code and PUKs
         KeyGenerator keyGenerator = new KeyGenerator();

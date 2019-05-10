@@ -52,6 +52,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.security.interfaces.ECPublicKey;
 import java.util.ArrayList;
@@ -530,10 +531,10 @@ public class PowerAuthSignatureTest {
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(), BaseEncoding.base64().decode(ecdsaSignature), serverPublicKey));
+        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), BaseEncoding.base64().decode(ecdsaSignature), serverPublicKey));
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes());
+        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
@@ -550,7 +551,7 @@ public class PowerAuthSignatureTest {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
+        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
 
         VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV2(), signatureBaseString, signature, SignatureType.POSSESSION_KNOWLEDGE);
         assertTrue(signatureResponse.isSignatureValid());
@@ -594,10 +595,10 @@ public class PowerAuthSignatureTest {
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(), BaseEncoding.base64().decode(ecdsaSignature), serverPublicKey));
+        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), BaseEncoding.base64().decode(ecdsaSignature), serverPublicKey));
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes());
+        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
@@ -614,7 +615,7 @@ public class PowerAuthSignatureTest {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
+        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
 
         // Cripple signature
         String digitToReplace = signature.substring(0, 1);
@@ -658,10 +659,10 @@ public class PowerAuthSignatureTest {
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(), BaseEncoding.base64().decode(ecdsaSignature), config.getMasterPublicKey()));
+        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), BaseEncoding.base64().decode(ecdsaSignature), config.getMasterPublicKey()));
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes());
+        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
@@ -678,7 +679,7 @@ public class PowerAuthSignatureTest {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
+        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
 
         VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV2(), signatureBaseString, signature, SignatureType.POSSESSION_KNOWLEDGE);
         assertTrue(signatureResponse.isSignatureValid());
@@ -720,10 +721,10 @@ public class PowerAuthSignatureTest {
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(), BaseEncoding.base64().decode(ecdsaSignature), config.getMasterPublicKey()));
+        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), BaseEncoding.base64().decode(ecdsaSignature), config.getMasterPublicKey()));
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes());
+        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
@@ -740,7 +741,7 @@ public class PowerAuthSignatureTest {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
+        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
 
         // Cripple signature
         String digitToReplace = signature.substring(0, 1);

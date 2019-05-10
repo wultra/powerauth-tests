@@ -38,6 +38,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.util.HashMap;
 import java.util.Map;
@@ -225,7 +226,7 @@ public class PowerAuthVaultUnlockTest {
 
     @Test
     public void vaultUnlockAndECDSASignatureValidTest() throws Exception {
-        byte[] dataBytes = "test_data".getBytes();
+        byte[] dataBytes = "test_data".getBytes(StandardCharsets.UTF_8);
         String data = BaseEncoding.base64().encode(dataBytes);
 
         // Obtain the device private key using vault unlock
@@ -255,7 +256,7 @@ public class PowerAuthVaultUnlockTest {
 
     @Test
     public void vaultUnlockAndECDSASignatureInvalidTest() throws Exception {
-        byte[] dataBytes = "test_data_v2".getBytes();
+        byte[] dataBytes = "test_data_v2".getBytes(StandardCharsets.UTF_8);
         String data = BaseEncoding.base64().encode(dataBytes);
 
         // Obtain the device private key using vault unlock
@@ -277,7 +278,7 @@ public class PowerAuthVaultUnlockTest {
 
         PrivateKey devicePrivateKey = config.getKeyConversion().convertBytesToPrivateKey(BaseEncoding.base64().decode(devicePrivateKeyBase64));
 
-        byte[] signature = signatureUtils.computeECDSASignature("test_data_crippled".getBytes(), devicePrivateKey);
+        byte[] signature = signatureUtils.computeECDSASignature("test_data_crippled".getBytes(StandardCharsets.UTF_8), devicePrivateKey);
 
         VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(config.getActivationIdV2(), data, BaseEncoding.base64().encode(signature));
         assertFalse(verifyResponse.isSignatureValid());
@@ -285,7 +286,7 @@ public class PowerAuthVaultUnlockTest {
 
     @Test
     public void vaultUnlockAndECDSASignatureInvalidActivationTest() throws Exception {
-        byte[] dataBytes = "test_data_v2".getBytes();
+        byte[] dataBytes = "test_data_v2".getBytes(StandardCharsets.UTF_8);
         String data = BaseEncoding.base64().encode(dataBytes);
 
         // Obtain the device private key using vault unlock
@@ -315,7 +316,7 @@ public class PowerAuthVaultUnlockTest {
 
     @Test
     public void vaultUnlockAndECDSASignatureNonExistentActivationTest() throws Exception {
-        byte[] dataBytes = "test_data_v2".getBytes();
+        byte[] dataBytes = "test_data_v2".getBytes(StandardCharsets.UTF_8);
         String data = BaseEncoding.base64().encode(dataBytes);
 
         // Obtain the device private key using vault unlock
