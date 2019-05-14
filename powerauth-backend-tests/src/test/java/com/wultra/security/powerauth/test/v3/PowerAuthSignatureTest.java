@@ -78,6 +78,14 @@ public class PowerAuthSignatureTest {
 
     private SignatureUtils signatureUtils = new SignatureUtils();
 
+    // Data for offline signatures
+    private String operationId = "5ff1b1ed-a3cc-45a3-8ab0-ed60950312b6";
+    private String operationData = "A1*A100CZK*ICZ2730300000001165254011*D20180425";
+    private String title = "Payment";
+    private String message = "Please confirm this payment";
+    private String flags = "B";
+    private String offlineData = operationId + "\n" + title + "\n" + message + "\n" + operationData + "\n" + flags;
+
     @Autowired
     public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {
         this.config = config;
@@ -504,13 +512,8 @@ public class PowerAuthSignatureTest {
 
     @Test
     public void signatureOfflinePersonalizedValidTest() throws Exception {
-        String data = "5ff1b1ed-a3cc-45a3-8ab0-ed60950312b6\n" +
-                "Payment\n" +
-                "Please confirm this payment\n" +
-                "A1*A100CZK*ICZ2730300000001165254011*D20180425\n" +
-                "B";
         CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(
-                config.getActivationIdV3(), data);
+                config.getActivationIdV3(), offlineData);
         String nonce = offlineResponse.getNonce();
         String offlineData = offlineResponse.getOfflineData();
 
@@ -534,8 +537,11 @@ public class PowerAuthSignatureTest {
         // Validate ECDSA signature of data using server public key
         assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), BaseEncoding.base64().decode(ecdsaSignature), serverPublicKey));
 
+        // Prepare data for PowerAuth signature
+        String dataForSignature = operationId + "&" + operationData;
+
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
+        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
@@ -568,13 +574,9 @@ public class PowerAuthSignatureTest {
 
     @Test
     public void signatureOfflinePersonalizedInvalidTest() throws Exception {
-        String data = "5ff1b1ed-a3cc-45a3-8ab0-ed60950312b6\n" +
-                "Payment\n" +
-                "Please confirm this payment\n" +
-                "A1*A100CZK*ICZ2730300000001165254011*D20180425\n" +
-                "B";
+
         CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(
-                config.getActivationIdV3(), data);
+                config.getActivationIdV3(), offlineData);
         String nonce = offlineResponse.getNonce();
         String offlineData = offlineResponse.getOfflineData();
 
@@ -598,8 +600,11 @@ public class PowerAuthSignatureTest {
         // Validate ECDSA signature of data using server public key
         assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), BaseEncoding.base64().decode(ecdsaSignature), serverPublicKey));
 
+        // Prepare data for PowerAuth signature
+        String dataForSignature = operationId + "&" + operationData;
+
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
+        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
@@ -634,13 +639,8 @@ public class PowerAuthSignatureTest {
 
     @Test
     public void signatureOfflineNonPersonalizedValidTest() throws Exception {
-        String data = "5ff1b1ed-a3cc-45a3-8ab0-ed60950312b6\n" +
-                "Payment\n" +
-                "Please confirm this payment\n" +
-                "A1*A100CZK*ICZ2730300000001165254011*D20180425\n" +
-                "B";
         CreateNonPersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(
-                config.getApplicationId(), data);
+                config.getApplicationId(), offlineData);
         String nonce = offlineResponse.getNonce();
         String offlineData = offlineResponse.getOfflineData();
 
@@ -662,8 +662,11 @@ public class PowerAuthSignatureTest {
         // Validate ECDSA signature of data using server public key
         assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), BaseEncoding.base64().decode(ecdsaSignature), config.getMasterPublicKey()));
 
+        // Prepare data for PowerAuth signature
+        String dataForSignature = operationId + "&" + operationData;
+
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
+        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
@@ -696,13 +699,8 @@ public class PowerAuthSignatureTest {
 
     @Test
     public void signatureOfflineNonPersonalizedInvalidTest() throws Exception {
-        String data = "5ff1b1ed-a3cc-45a3-8ab0-ed60950312b6\n" +
-                "Payment\n" +
-                "Please confirm this payment\n" +
-                "A1*A100CZK*ICZ2730300000001165254011*D20180425\n" +
-                "B";
         CreateNonPersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(
-                config.getApplicationId(), data);
+                config.getApplicationId(), offlineData);
         String nonce = offlineResponse.getNonce();
         String offlineData = offlineResponse.getOfflineData();
 
@@ -724,8 +722,11 @@ public class PowerAuthSignatureTest {
         // Validate ECDSA signature of data using server public key
         assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), BaseEncoding.base64().decode(ecdsaSignature), config.getMasterPublicKey()));
 
+        // Prepare data for PowerAuth signature
+        String dataForSignature = operationId + "&" + operationData;
+
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
+        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
