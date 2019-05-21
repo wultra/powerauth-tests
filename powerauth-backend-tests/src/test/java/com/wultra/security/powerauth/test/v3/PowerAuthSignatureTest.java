@@ -560,7 +560,7 @@ public class PowerAuthSignatureTest {
         // Calculate signature of normalized signature base string with 'offline' as application secret
         String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
 
-        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV3(), signatureBaseString, signature, SignatureType.POSSESSION_KNOWLEDGE);
+        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV3(), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
         assertEquals(config.getActivationIdV3(), signatureResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, signatureResponse.getActivationStatus());
@@ -628,7 +628,7 @@ public class PowerAuthSignatureTest {
         String replacedDigit = String.valueOf((Integer.valueOf(digitToReplace) + 1) % 10);
         signature = signature.replace(digitToReplace, replacedDigit);
 
-        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV3(), signatureBaseString, signature, SignatureType.POSSESSION_KNOWLEDGE);
+        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV3(), signatureBaseString, signature, true);
         assertFalse(signatureResponse.isSignatureValid());
         assertEquals(config.getActivationIdV3(), signatureResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, signatureResponse.getActivationStatus());
@@ -685,7 +685,7 @@ public class PowerAuthSignatureTest {
         // Calculate signature of normalized signature base string with 'offline' as application secret
         String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
 
-        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV3(), signatureBaseString, signature, SignatureType.POSSESSION_KNOWLEDGE);
+        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV3(), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
         assertEquals(config.getActivationIdV3(), signatureResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, signatureResponse.getActivationStatus());
@@ -750,7 +750,7 @@ public class PowerAuthSignatureTest {
         String replacedDigit = String.valueOf((Integer.valueOf(digitToReplace) + 1) % 10);
         signature = signature.replace(digitToReplace, replacedDigit);
 
-        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV3(), signatureBaseString, signature, SignatureType.POSSESSION_KNOWLEDGE);
+        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV3(), signatureBaseString, signature, true);
         assertFalse(signatureResponse.isSignatureValid());
         assertEquals(config.getActivationIdV3(), signatureResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, signatureResponse.getActivationStatus());

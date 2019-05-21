@@ -177,7 +177,6 @@ public class PowerAuthSignatureTest {
             Response responseOK = (Response) stepLogger.getResponse().getResponseObject();
             assertEquals("OK", responseOK.getStatus());
         }
-
     }
 
     @Test
@@ -553,7 +552,7 @@ public class PowerAuthSignatureTest {
         // Calculate signature of normalized signature base string with 'offline' as application secret
         String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
 
-        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV2(), signatureBaseString, signature, SignatureType.POSSESSION_KNOWLEDGE);
+        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV2(), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
         assertEquals(config.getActivationIdV2(), signatureResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, signatureResponse.getActivationStatus());
@@ -622,7 +621,7 @@ public class PowerAuthSignatureTest {
         String replacedDigit = String.valueOf((Integer.valueOf(digitToReplace) + 1) % 10);
         signature = signature.replace(digitToReplace, replacedDigit);
 
-        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV2(), signatureBaseString, signature, SignatureType.POSSESSION_KNOWLEDGE);
+        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV2(), signatureBaseString, signature, true);
         assertFalse(signatureResponse.isSignatureValid());
         assertEquals(config.getActivationIdV2(), signatureResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, signatureResponse.getActivationStatus());
@@ -681,7 +680,7 @@ public class PowerAuthSignatureTest {
         // Calculate signature of normalized signature base string with 'offline' as application secret
         String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
 
-        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV2(), signatureBaseString, signature, SignatureType.POSSESSION_KNOWLEDGE);
+        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV2(), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
         assertEquals(config.getActivationIdV2(), signatureResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, signatureResponse.getActivationStatus());
@@ -748,7 +747,7 @@ public class PowerAuthSignatureTest {
         String replacedDigit = String.valueOf((Integer.valueOf(digitToReplace) + 1) % 10);
         signature = signature.replace(digitToReplace, replacedDigit);
 
-        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV2(), signatureBaseString, signature, SignatureType.POSSESSION_KNOWLEDGE);
+        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV2(), signatureBaseString, signature, true);
         assertFalse(signatureResponse.isSignatureValid());
         assertEquals(config.getActivationIdV2(), signatureResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, signatureResponse.getActivationStatus());
@@ -756,6 +755,8 @@ public class PowerAuthSignatureTest {
         assertEquals(SignatureType.POSSESSION_KNOWLEDGE, signatureResponse.getSignatureType());
         assertEquals(config.getApplicationId(), signatureResponse.getApplicationId());
     }
+
+    // TODO - offline mode biometry test
 
     @Test
     public void signatureSwappedKeyTest() throws Exception {
