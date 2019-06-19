@@ -64,7 +64,7 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-nextstep-client</artifactId>
-            <version>0.23.0</version>
+            <version>0.22.0</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
