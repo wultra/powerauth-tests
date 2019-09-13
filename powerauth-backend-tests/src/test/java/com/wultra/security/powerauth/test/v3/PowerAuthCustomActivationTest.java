@@ -107,7 +107,7 @@ public class PowerAuthCustomActivationTest {
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
         model.setResultStatusObject(config.getResultStatusObjectV3());
-        model.setUriString("http://localhost:" + port + "/pa/v3/activation/create");
+        model.setUriString("http://localhost:" + port);
         model.setVersion("3.0");
 
         // Prepare step logger
