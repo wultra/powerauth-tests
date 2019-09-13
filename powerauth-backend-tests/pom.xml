@@ -9,7 +9,7 @@
 
     <groupId>com.wultra</groupId>
     <artifactId>powerauth-backend-tests</artifactId>
-    <version>0.23.0</version>
+    <version>0.23.0-SNAPSHOT-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -59,7 +59,7 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-restful-model</artifactId>
-            <version>0.23.0</version>
+            <version>0.23.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
@@ -69,27 +69,27 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-crypto</artifactId>
-            <version>0.23.0</version>
+            <version>0.23.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-http</artifactId>
-            <version>0.23.0</version>
+            <version>0.23.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-cmd-lib</artifactId>
-            <version>0.23.0</version>
+            <version>0.23.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-client-spring</artifactId>
-            <version>0.23.0</version>
+            <version>0.23.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-restful-security-spring</artifactId>
-            <version>0.23.0</version>
+            <version>0.23.0-SNAPSHOT</version>
         </dependency>
 
         <!-- Spring dependencies -->
