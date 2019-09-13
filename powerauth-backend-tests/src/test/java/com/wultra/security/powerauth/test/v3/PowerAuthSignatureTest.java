@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.powerauth.soap.v3.*;
+import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureFormat;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
@@ -558,7 +559,7 @@ public class PowerAuthSignatureTest {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
+        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), PowerAuthSignatureFormat.DECIMAL);
 
         VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV3(), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
@@ -621,7 +622,7 @@ public class PowerAuthSignatureTest {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
+        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), PowerAuthSignatureFormat.DECIMAL);
 
         // Cripple signature
         String digitToReplace = signature.substring(0, 1);
@@ -683,7 +684,7 @@ public class PowerAuthSignatureTest {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
+        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), PowerAuthSignatureFormat.DECIMAL);
 
         VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV3(), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
@@ -743,7 +744,7 @@ public class PowerAuthSignatureTest {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger));
+        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), PowerAuthSignatureFormat.DECIMAL);
 
         // Cripple signature
         String digitToReplace = signature.substring(0, 1);

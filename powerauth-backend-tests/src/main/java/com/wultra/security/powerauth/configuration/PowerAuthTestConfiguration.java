@@ -94,17 +94,23 @@ public class PowerAuthTestConfiguration {
     private CryptoProviderUtil keyConversion;
     private ObjectMapper objectMapper = RestClientConfiguration.defaultMapper();
 
+    // Version 3.1 temporary storage
+    private File statusFileV31;
+    private JSONObject resultStatusObjectV31 = new JSONObject();
+    private String activationIdV31;
+    private String userV31;
+
     // Version 3.0 temporary storage
     private File statusFileV3;
     private JSONObject resultStatusObjectV3 = new JSONObject();
     private String activationIdV3;
-    private String userV2;
+    private String userV3;
 
     // Version 2.1 temporary storage
     private File statusFileV2;
     private JSONObject resultStatusObjectV2 = new JSONObject();
     private String activationIdV2;
-    private String userV3;
+    private String userV2;
 
     private String password = "1234";
 
@@ -191,16 +197,16 @@ public class PowerAuthTestConfiguration {
         byte[] masterKeyBytes = BaseEncoding.base64().decode(masterPublicKey);
         masterPublicKeyConverted = PowerAuthConfiguration.INSTANCE.getKeyConvertor().convertBytesToPublicKey(masterKeyBytes);
 
-        // Create status file for version 3.0
+        // Create status file and user for version 3.1
+        statusFileV31 = File.createTempFile("pa_status_v31", ".json");
+        userV31 = "TestUser_" + UUID.randomUUID().toString();
+
+        // Create status file and user for version 3.0
         statusFileV3 = File.createTempFile("pa_status_v3", ".json");
-
-        // Create status file for version 2.1
-        statusFileV2 = File.createTempFile("pa_status_v2", ".json");
-
-        // Create random user for version 3.0
         userV3 = "TestUser_" + UUID.randomUUID().toString();
 
-        // Create random user for version 2.1
+        // Create status file and user for version 2.1
+        statusFileV2 = File.createTempFile("pa_status_v2", ".json");
         userV2 = "TestUser_" + UUID.randomUUID().toString();
 
         // Random application name
@@ -266,6 +272,14 @@ public class PowerAuthTestConfiguration {
         return keyConversion;
     }
 
+    public File getStatusFileV31() {
+        return statusFileV31;
+    }
+
+    public JSONObject getResultStatusObjectV31() {
+        return resultStatusObjectV31;
+    }
+
     public File getStatusFileV3() {
         return statusFileV3;
     }
@@ -280,6 +294,14 @@ public class PowerAuthTestConfiguration {
 
     public JSONObject getResultStatusObjectV2() {
         return resultStatusObjectV2;
+    }
+
+    public String getActivationIdV31() {
+        return activationIdV31;
+    }
+
+    public void setActivationIdV31(String activationIdV31) {
+        this.activationIdV31 = activationIdV31;
     }
 
     public String getActivationIdV3() {
@@ -312,6 +334,10 @@ public class PowerAuthTestConfiguration {
 
     public String getUserV3() {
         return userV3;
+    }
+
+    public String getUserV31() {
+        return userV31;
     }
 
     public void setApplicationKey(String applicationKey) {
