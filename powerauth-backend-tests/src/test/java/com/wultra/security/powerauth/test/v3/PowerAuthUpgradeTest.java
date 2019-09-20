@@ -140,7 +140,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Verify activation status and version
-        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatusWithEncryptedStatusBlob(initResponse.getActivationId(), null);
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
         assertEquals(2, statusResponseActive.getVersion());
 
@@ -150,7 +150,7 @@ public class PowerAuthUpgradeTest {
 
         // Verify activation status blob
         byte[] cStatusBlob = BaseEncoding.base64().decode(statusResponseActive.getEncryptedStatusBlob());
-        ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, transportMasterKey);
+        ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x3, statusBlob.getActivationStatus());
         assertEquals(5, statusBlob.getMaxFailedAttempts());
@@ -237,13 +237,13 @@ public class PowerAuthUpgradeTest {
         assertArrayEquals(new HashBasedCounter().next(BaseEncoding.base64().decode(ctrData2)), BaseEncoding.base64().decode(ctrData3));
 
         // Verify activation status and version
-        GetActivationStatusResponse statusResponseMigrated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseMigrated = powerAuthClient.getActivationStatusWithEncryptedStatusBlob(initResponse.getActivationId(), null);
         assertEquals(ActivationStatus.ACTIVE, statusResponseMigrated.getActivationStatus());
         assertEquals(3, statusResponseMigrated.getVersion());
 
         // Verify activation status blob
         cStatusBlob = BaseEncoding.base64().decode(statusResponseMigrated.getEncryptedStatusBlob());
-        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, transportMasterKey);
+        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x3, statusBlob.getActivationStatus());
         assertEquals(5, statusBlob.getMaxFailedAttempts());

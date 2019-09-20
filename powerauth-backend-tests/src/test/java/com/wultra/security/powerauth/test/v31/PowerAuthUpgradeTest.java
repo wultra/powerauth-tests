@@ -25,6 +25,7 @@ import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
@@ -67,6 +68,7 @@ public class PowerAuthUpgradeTest {
     private File dataFile;
 
     private static final PowerAuthClientActivation activation = new PowerAuthClientActivation();
+    private static final KeyGenerator keyGenerator = new KeyGenerator();
 
     @Autowired
     public void setPowerAuthServiceClient(PowerAuthServiceClient powerAuthClient) {
@@ -140,7 +142,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Verify activation status and version
-        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatusWithEncryptedStatusBlob(initResponse.getActivationId(), null);
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
         assertEquals(2, statusResponseActive.getVersion());
 
@@ -150,7 +152,7 @@ public class PowerAuthUpgradeTest {
 
         // Verify activation status blob
         byte[] cStatusBlob = BaseEncoding.base64().decode(statusResponseActive.getEncryptedStatusBlob());
-        ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, transportMasterKey);
+        ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x3, statusBlob.getActivationStatus());
         assertEquals(5, statusBlob.getMaxFailedAttempts());
@@ -237,13 +239,16 @@ public class PowerAuthUpgradeTest {
         assertArrayEquals(new HashBasedCounter().next(BaseEncoding.base64().decode(ctrData2)), BaseEncoding.base64().decode(ctrData3));
 
         // Verify activation status and version
-        GetActivationStatusResponse statusResponseMigrated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        byte[] statusChallenge = keyGenerator.generateRandomBytes(16);
+        GetActivationStatusResponse statusResponseMigrated = powerAuthClient.getActivationStatusWithEncryptedStatusBlob(initResponse.getActivationId(), BaseEncoding.base64().encode(statusChallenge));
         assertEquals(ActivationStatus.ACTIVE, statusResponseMigrated.getActivationStatus());
+        assertNotNull(statusResponseMigrated.getEncryptedStatusBlobNonce());
         assertEquals(3, statusResponseMigrated.getVersion());
+        byte[] statusNonce = BaseEncoding.base64().decode(statusResponseMigrated.getEncryptedStatusBlobNonce());
 
         // Verify activation status blob
         cStatusBlob = BaseEncoding.base64().decode(statusResponseMigrated.getEncryptedStatusBlob());
-        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, transportMasterKey);
+        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, statusChallenge,  statusNonce, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x3, statusBlob.getActivationStatus());
         assertEquals(5, statusBlob.getMaxFailedAttempts());

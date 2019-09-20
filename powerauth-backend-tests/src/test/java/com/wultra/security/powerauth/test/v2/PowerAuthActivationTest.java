@@ -350,7 +350,7 @@ public class PowerAuthActivationTest {
 
         // Verify activation status blob
         byte[] cStatusBlob = BaseEncoding.base64().decode(response.getEncryptedStatusBlob());
-        ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, transportMasterKey);
+        ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x2, statusBlob.getActivationStatus());
         assertEquals(10, statusBlob.getMaxFailedAttempts());
@@ -374,7 +374,7 @@ public class PowerAuthActivationTest {
 
         // Verify activation status blob
         cStatusBlob = BaseEncoding.base64().decode(response.getEncryptedStatusBlob());
-        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, transportMasterKey);
+        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x3, statusBlob.getActivationStatus());
 
@@ -394,7 +394,7 @@ public class PowerAuthActivationTest {
 
         // Verify activation status blob
         cStatusBlob = BaseEncoding.base64().decode(response.getEncryptedStatusBlob());
-        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, transportMasterKey);
+        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x4, statusBlob.getActivationStatus());
 
@@ -412,7 +412,7 @@ public class PowerAuthActivationTest {
 
         // Verify activation status blob
         cStatusBlob = BaseEncoding.base64().decode(response.getEncryptedStatusBlob());
-        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, transportMasterKey);
+        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x5, statusBlob.getActivationStatus());
     }
