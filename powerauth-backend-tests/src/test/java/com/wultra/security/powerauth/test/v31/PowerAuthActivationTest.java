@@ -373,6 +373,7 @@ public class PowerAuthActivationTest {
         assertEquals(0, statusBlob.getFailedAttempts());
         assertEquals(3, statusBlob.getCurrentVersion());
         assertEquals(3, statusBlob.getUpgradeVersion());
+        assertEquals(20, statusBlob.getCtrLookAhead());
         assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
 
         // Commit activation
