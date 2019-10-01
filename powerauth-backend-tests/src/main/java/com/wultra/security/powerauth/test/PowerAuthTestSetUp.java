@@ -54,6 +54,7 @@ public class PowerAuthTestSetUp {
 
     public void execute() throws Exception {
         createApplication();
+        createActivationV31();
         createActivationV3();
         createActivationV2();
     }
@@ -95,6 +96,38 @@ public class PowerAuthTestSetUp {
             // Make sure application version is supported
             powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
         }
+    }
+
+    private void createActivationV31() throws Exception {
+        // Init activation
+        InitActivationRequest initRequest = new InitActivationRequest();
+        initRequest.setApplicationId(config.getApplicationId());
+        initRequest.setUserId(config.getUserV31());
+        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+
+        // Prepare activation
+        PrepareActivationStepModel model = new PrepareActivationStepModel();
+        model.setActivationCode(initResponse.getActivationCode());
+        model.setActivationName("test v31");
+        model.setApplicationKey(config.getApplicationKey());
+        model.setApplicationSecret(config.getApplicationSecret());
+        model.setMasterPublicKey(config.getMasterPublicKey());
+        model.setHeaders(new HashMap<>());
+        model.setPassword(config.getPassword());
+        model.setStatusFileName(config.getStatusFileV31().getAbsolutePath());
+        model.setResultStatusObject(config.getResultStatusObjectV31());
+        model.setUriString(config.getPowerAuthIntegrationUrl());
+        model.setVersion("3.1");
+
+        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        new PrepareActivationStep().execute(stepLogger, model.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+
+        // Commit activation
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
+
+        config.setActivationIdV31(initResponse.getActivationId());
     }
 
     private void createActivationV3() throws Exception {

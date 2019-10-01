@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2019 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v3;
+package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
@@ -25,6 +25,7 @@ import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
@@ -67,6 +68,7 @@ public class PowerAuthUpgradeTest {
     private File dataFile;
 
     private static final PowerAuthClientActivation activation = new PowerAuthClientActivation();
+    private static final KeyGenerator keyGenerator = new KeyGenerator();
 
     @Autowired
     public void setPowerAuthServiceClient(PowerAuthServiceClient powerAuthClient) {
@@ -200,9 +202,9 @@ public class PowerAuthUpgradeTest {
         model1.setHeaders(new HashMap<>());
         model1.setResultStatusObject(resultStatusObject);
         model1.setUriString(config.getPowerAuthIntegrationUrl());
-        model1.setVersion("3.0");
+        model1.setVersion("3.1");
 
-        // Start upgrade of activation to version 3.0
+        // Start upgrade of activation to version 3.1
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new StartUpgradeStep().execute(stepLogger1, model1.toMap());
         assertTrue(stepLogger1.getResult().isSuccess());
@@ -222,9 +224,9 @@ public class PowerAuthUpgradeTest {
         model2.setHeaders(new HashMap<>());
         model2.setResultStatusObject(resultStatusObject);
         model2.setUriString(config.getPowerAuthIntegrationUrl());
-        model2.setVersion("3.0");
+        model2.setVersion("3.1");
 
-        // Commit upgrade of activation to version 3.0
+        // Commit upgrade of activation to version 3.1
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
         new CommitUpgradeStep().execute(stepLogger2, model2.toMap());
         assertTrue(stepLogger2.getResult().isSuccess());
@@ -237,23 +239,27 @@ public class PowerAuthUpgradeTest {
         assertArrayEquals(new HashBasedCounter().next(BaseEncoding.base64().decode(ctrData2)), BaseEncoding.base64().decode(ctrData3));
 
         // Verify activation status and version
-        GetActivationStatusResponse statusResponseMigrated = powerAuthClient.getActivationStatusWithEncryptedStatusBlob(initResponse.getActivationId(), null);
+        byte[] statusChallenge = keyGenerator.generateRandomBytes(16);
+        GetActivationStatusResponse statusResponseMigrated = powerAuthClient.getActivationStatusWithEncryptedStatusBlob(initResponse.getActivationId(), BaseEncoding.base64().encode(statusChallenge));
         assertEquals(ActivationStatus.ACTIVE, statusResponseMigrated.getActivationStatus());
+        assertNotNull(statusResponseMigrated.getEncryptedStatusBlobNonce());
         assertEquals(3, statusResponseMigrated.getVersion());
+        byte[] statusNonce = BaseEncoding.base64().decode(statusResponseMigrated.getEncryptedStatusBlobNonce());
 
         // Verify activation status blob
         cStatusBlob = BaseEncoding.base64().decode(statusResponseMigrated.getEncryptedStatusBlob());
-        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
+        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, statusChallenge,  statusNonce, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x3, statusBlob.getActivationStatus());
         assertEquals(5, statusBlob.getMaxFailedAttempts());
         assertEquals(0, statusBlob.getFailedAttempts());
         assertEquals(3, statusBlob.getCurrentVersion());
         assertEquals(3, statusBlob.getUpgradeVersion());
+        assertEquals(20, statusBlob.getCtrLookAhead());
         assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerPrepare), statusBlob.getCtrData());
 
-        // Verify version 3.0 signature
-        modelSig.setVersion("3.0");
+        // Verify version 3.1 signature
+        modelSig.setVersion("3.1");
         modelSig.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
         ObjectStepLogger stepLoggerSig2 = new ObjectStepLogger(System.out);
         new VerifySignatureStep().execute(stepLoggerSig2, modelSig.toMap());
@@ -292,7 +298,7 @@ public class PowerAuthUpgradeTest {
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
         model.setResultStatusObject(resultStatusObject);
         model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
+        model.setVersion("3.1");
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
@@ -316,7 +322,7 @@ public class PowerAuthUpgradeTest {
         model1.setHeaders(new HashMap<>());
         model1.setResultStatusObject(resultStatusObject);
         model1.setUriString(config.getPowerAuthIntegrationUrl());
-        model1.setVersion("3.0");
+        model1.setVersion("3.1");
 
         // Verify that it is not possible to migrate the activation
         ObjectStepLogger stepLoggerMig = new ObjectStepLogger(System.out);
@@ -363,7 +369,7 @@ public class PowerAuthUpgradeTest {
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
         model.setResultStatusObject(resultStatusObject);
         model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
+        model.setVersion("3.1");
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
@@ -393,7 +399,7 @@ public class PowerAuthUpgradeTest {
         model1.setHeaders(new HashMap<>());
         model1.setResultStatusObject(resultStatusObject);
         model1.setUriString(config.getPowerAuthIntegrationUrl());
-        model1.setVersion("3.0");
+        model1.setVersion("3.1");
 
         // Verify that it is not possible to migrate the activation
         ObjectStepLogger stepLoggerMig = new ObjectStepLogger(System.out);
@@ -437,7 +443,7 @@ public class PowerAuthUpgradeTest {
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
         model.setResultStatusObject(resultStatusObject);
         model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
+        model.setVersion("3.1");
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
@@ -454,7 +460,7 @@ public class PowerAuthUpgradeTest {
         model1.setHeaders(new HashMap<>());
         model1.setResultStatusObject(resultStatusObject);
         model1.setUriString(config.getPowerAuthIntegrationUrl());
-        model1.setVersion("3.0");
+        model1.setVersion("3.1");
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
@@ -502,7 +508,7 @@ public class PowerAuthUpgradeTest {
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
         model.setResultStatusObject(resultStatusObject);
         model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
+        model.setVersion("3.1");
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
@@ -519,7 +525,7 @@ public class PowerAuthUpgradeTest {
         model1.setHeaders(new HashMap<>());
         model1.setResultStatusObject(resultStatusObject);
         model1.setUriString(config.getPowerAuthIntegrationUrl());
-        model1.setVersion("3.0");
+        model1.setVersion("3.1");
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
@@ -543,7 +549,7 @@ public class PowerAuthUpgradeTest {
         // Unlock activation
         powerAuthClient.unblockActivation(initResponse.getActivationId(), "test");
 
-        // Start upgrade of activation to version 3.0
+        // Start upgrade of activation to version 3.1
         ObjectStepLogger stepLogger3 = new ObjectStepLogger(System.out);
         new StartUpgradeStep().execute(stepLogger3, model1.toMap());
         assertTrue(stepLogger3.getResult().isSuccess());
@@ -557,9 +563,9 @@ public class PowerAuthUpgradeTest {
         model2.setHeaders(new HashMap<>());
         model2.setResultStatusObject(resultStatusObject);
         model2.setUriString(config.getPowerAuthIntegrationUrl());
-        model2.setVersion("3.0");
+        model2.setVersion("3.1");
 
-        // Commit upgrade of activation to version 3.0
+        // Commit upgrade of activation to version 3.1
         ObjectStepLogger stepLogger4 = new ObjectStepLogger(System.out);
         new CommitUpgradeStep().execute(stepLogger4, model2.toMap());
         assertTrue(stepLogger4.getResult().isSuccess());
@@ -600,7 +606,7 @@ public class PowerAuthUpgradeTest {
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
         model.setResultStatusObject(resultStatusObject);
         model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
+        model.setVersion("3.1");
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
@@ -617,7 +623,7 @@ public class PowerAuthUpgradeTest {
         model1.setHeaders(new HashMap<>());
         model1.setResultStatusObject(resultStatusObject);
         model1.setUriString(config.getPowerAuthIntegrationUrl());
-        model1.setVersion("3.0");
+        model1.setVersion("3.1");
 
         // Verify that it is not possible to migrate the activation (it is not committed yet)
         ObjectStepLogger stepLoggerMig = new ObjectStepLogger(System.out);
@@ -697,9 +703,9 @@ public class PowerAuthUpgradeTest {
         model1.setHeaders(new HashMap<>());
         model1.setResultStatusObject(resultStatusObject);
         model1.setUriString(config.getPowerAuthIntegrationUrl());
-        model1.setVersion("3.0");
+        model1.setVersion("3.1");
 
-        // Start upgrade of activation to version 3.0
+        // Start upgrade of activation to version 3.1
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new StartUpgradeStep().execute(stepLogger1, model1.toMap());
         assertTrue(stepLogger1.getResult().isSuccess());
@@ -713,15 +719,15 @@ public class PowerAuthUpgradeTest {
         model2.setHeaders(new HashMap<>());
         model2.setResultStatusObject(resultStatusObject);
         model2.setUriString(config.getPowerAuthIntegrationUrl());
-        model2.setVersion("3.0");
+        model2.setVersion("3.1");
 
-        // Commit upgrade of activation to version 3.0 (first time - success)
+        // Commit upgrade of activation to version 3.1 (first time - success)
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
         new CommitUpgradeStep().execute(stepLogger2, model2.toMap());
         assertTrue(stepLogger2.getResult().isSuccess());
         assertEquals(200, stepLogger2.getResponse().getStatusCode());
 
-        // Commit upgrade of activation to version 3.0 (second time - fail, upgrade to version 3.0 is already committed)
+        // Commit upgrade of activation to version 3.1 (second time - fail, upgrade to version 3.1 is already committed)
         ObjectStepLogger stepLogger3 = new ObjectStepLogger(System.out);
         new CommitUpgradeStep().execute(stepLogger3, model2.toMap());
         assertFalse(stepLogger3.getResult().isSuccess());
@@ -780,9 +786,9 @@ public class PowerAuthUpgradeTest {
         model1.setHeaders(new HashMap<>());
         model1.setResultStatusObject(resultStatusObject);
         model1.setUriString(config.getPowerAuthIntegrationUrl());
-        model1.setVersion("3.0");
+        model1.setVersion("3.1");
 
-        // Start upgrade of activation to version 3.0
+        // Start upgrade of activation to version 3.1
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new StartUpgradeStep().execute(stepLogger1, model1.toMap());
         assertTrue(stepLogger1.getResult().isSuccess());
@@ -796,14 +802,14 @@ public class PowerAuthUpgradeTest {
         model2.setHeaders(new HashMap<>());
         model2.setResultStatusObject(resultStatusObject);
         model2.setUriString(config.getPowerAuthIntegrationUrl());
-        model2.setVersion("3.0");
+        model2.setVersion("3.1");
 
         // Save possession key
         String signaturePossessionKeyOrig = (String) model.getResultStatusObject().get("signaturePossessionKey");
         // Set biometry key as possession key
         model.getResultStatusObject().put("signaturePossessionKey", model.getResultStatusObject().get("signatureBiometryKey"));
 
-        // Commit upgrade of activation to version 3.0 should fail
+        // Commit upgrade of activation to version 3.1 should fail
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
         new CommitUpgradeStep().execute(stepLogger2, model2.toMap());
         assertFalse(stepLogger2.getResult().isSuccess());
@@ -864,9 +870,9 @@ public class PowerAuthUpgradeTest {
         model1.setHeaders(new HashMap<>());
         model1.setResultStatusObject(resultStatusObject);
         model1.setUriString(config.getPowerAuthIntegrationUrl());
-        model1.setVersion("3.0");
+        model1.setVersion("3.1");
 
-        // Start upgrade of activation to version 3.0
+        // Start upgrade of activation to version 3.1
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new StartUpgradeStep().execute(stepLogger1, model1.toMap());
         assertTrue(stepLogger1.getResult().isSuccess());
@@ -875,7 +881,7 @@ public class PowerAuthUpgradeTest {
         // Extract ctr_data
         byte[] ctrData = CounterUtil.getCtrData(model1, stepLogger1);
 
-        // Start upgrade of activation to version 3.0 again
+        // Start upgrade of activation to version 3.1 again
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
         new StartUpgradeStep().execute(stepLogger2, model1.toMap());
         assertTrue(stepLogger2.getResult().isSuccess());
@@ -940,9 +946,9 @@ public class PowerAuthUpgradeTest {
         model1.setHeaders(new HashMap<>());
         model1.setResultStatusObject(resultStatusObject);
         model1.setUriString(config.getPowerAuthIntegrationUrl());
-        model1.setVersion("3.0");
+        model1.setVersion("3.1");
 
-        // Start upgrade of activation to version 3.0
+        // Start upgrade of activation to version 3.1
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new StartUpgradeStep().execute(stepLogger1, model1.toMap());
         assertTrue(stepLogger1.getResult().isSuccess());
@@ -989,9 +995,9 @@ public class PowerAuthUpgradeTest {
         model2.setHeaders(new HashMap<>());
         model2.setResultStatusObject(resultStatusObject);
         model2.setUriString(config.getPowerAuthIntegrationUrl());
-        model2.setVersion("3.0");
+        model2.setVersion("3.1");
 
-        // Commit upgrade of activation to version 3.0
+        // Commit upgrade of activation to version 3.1
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
         new CommitUpgradeStep().execute(stepLogger2, model2.toMap());
         assertTrue(stepLogger2.getResult().isSuccess());
@@ -1003,8 +1009,8 @@ public class PowerAuthUpgradeTest {
         assertEquals(2, counter3);
         assertArrayEquals(new HashBasedCounter().next(BaseEncoding.base64().decode(ctrData2)), BaseEncoding.base64().decode(ctrData3));
 
-        // Verify version 3.0 signature
-        modelSig.setVersion("3.0");
+        // Verify version 3.1 signature
+        modelSig.setVersion("3.1");
         modelSig.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
         ObjectStepLogger stepLoggerSig2 = new ObjectStepLogger(System.out);
         new VerifySignatureStep().execute(stepLoggerSig2, modelSig.toMap());
@@ -1064,9 +1070,9 @@ public class PowerAuthUpgradeTest {
         model1.setHeaders(new HashMap<>());
         model1.setResultStatusObject(resultStatusObject);
         model1.setUriString(config.getPowerAuthIntegrationUrl());
-        model1.setVersion("3.0");
+        model1.setVersion("3.1");
 
-        // Prepare Runnable for upgrade of activation to version 3.0
+        // Prepare Runnable for upgrade of activation to version 3.1
         Set<String> allCtrData = Collections.synchronizedSet(new HashSet<>());
         Runnable startUpgradeRunnable = () -> {
             try {
