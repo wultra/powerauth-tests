@@ -216,12 +216,8 @@ public class PowerAuthSignatureTest {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(401, stepLogger.getResponse().getStatusCode());
-
-        ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
-        assertEquals("ERROR", errorResponse.getStatus());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
     }
 
     @Test
