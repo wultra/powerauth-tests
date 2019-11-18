@@ -130,7 +130,7 @@ public class PowerAuthActivationTest {
 
         // Verify decrypted activationId
         String activationIdPrepareResponse = null;
-        for (StepItem item: stepLoggerPrepare.getItems()) {
+        for (StepItem item : stepLoggerPrepare.getItems()) {
             if (item.getName().equals("Activation Done")) {
                 Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
                 activationIdPrepareResponse = (String) responseMap.get("activationId");
@@ -191,7 +191,7 @@ public class PowerAuthActivationTest {
 
         // Verify that application version is unsupported
         GetApplicationDetailResponse detailResponse = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        for (GetApplicationDetailResponse.Versions version: detailResponse.getVersions()) {
+        for (GetApplicationDetailResponse.Versions version : detailResponse.getVersions()) {
             if (version.getApplicationVersionName().equals(config.getApplicationVersion())) {
                 assertFalse(version.isSupported());
             }
@@ -227,7 +227,7 @@ public class PowerAuthActivationTest {
 
         // Verify that application version is supported
         GetApplicationDetailResponse detailResponse2 = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        for (GetApplicationDetailResponse.Versions version: detailResponse2.getVersions()) {
+        for (GetApplicationDetailResponse.Versions version : detailResponse2.getVersions()) {
             if (version.getApplicationVersionName().equals(config.getApplicationVersion())) {
                 assertTrue(version.isSupported());
             }
@@ -486,6 +486,80 @@ public class PowerAuthActivationTest {
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+    }
+
+    @Test
+    public void lookupActivationsTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertTrue(response.getActivations().size() >= 1);
+    }
+
+    @Test
+    public void lookupActivationsNonExistentUserTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add("nonexistent");
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertEquals(0, response.getActivations().size());
+    }
+
+    @Test
+    public void lookupActivationsApplicationTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getApplicationIds().add(config.getApplicationId());
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertTrue(response.getActivations().size() >= 1);
+    }
+
+    @Test
+    public void lookupActivationsNonExistentApplicationTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getApplicationIds().add(10000000L);
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertEquals(0, response.getActivations().size());
+    }
+
+    @Test
+    public void lookupActivationsStatusTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.setActivationStatus(ActivationStatus.ACTIVE);
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertEquals(1, response.getActivations().size());
+    }
+
+    @Test
+    public void lookupActivationsInvalidStatusTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.setActivationStatus(ActivationStatus.REMOVED);
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertEquals(0, response.getActivations().size());
+    }
+
+    @Test
+    public void lookupActivationsDateValidTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        gregorianCalendar.setTimeInMillis(System.currentTimeMillis() - 60000);
+        lookupActivationsRequest.setTimestampLastUsed(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertTrue(response.getActivations().size() >= 1);
+    }
+
+    @Test
+    public void lookupActivationsDateInvalidTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        gregorianCalendar.setTimeInMillis(System.currentTimeMillis());
+        lookupActivationsRequest.setTimestampLastUsed(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertEquals(0, response.getActivations().size());
     }
 
 }

@@ -505,4 +505,78 @@ public class PowerAuthActivationTest {
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
+    @Test
+    public void lookupActivationsTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertTrue(response.getActivations().size() >= 1);
+    }
+
+    @Test
+    public void lookupActivationsNonExistentUserTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add("nonexistent");
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertEquals(0, response.getActivations().size());
+    }
+
+    @Test
+    public void lookupActivationsApplicationTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getApplicationIds().add(config.getApplicationId());
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertTrue(response.getActivations().size() >= 1);
+    }
+
+    @Test
+    public void lookupActivationsNonExistentApplicationTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getApplicationIds().add(10000000L);
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertEquals(0, response.getActivations().size());
+    }
+
+    @Test
+    public void lookupActivationsStatusTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.setActivationStatus(ActivationStatus.ACTIVE);
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertEquals(1, response.getActivations().size());
+    }
+
+    @Test
+    public void lookupActivationsInvalidStatusTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.setActivationStatus(ActivationStatus.REMOVED);
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertEquals(0, response.getActivations().size());
+    }
+
+    @Test
+    public void lookupActivationsDateValidTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        gregorianCalendar.setTimeInMillis(System.currentTimeMillis() - 60000);
+        lookupActivationsRequest.setTimestampLastUsed(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertTrue(response.getActivations().size() >= 1);
+    }
+
+    @Test
+    public void lookupActivationsDateInvalidTest() throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        GregorianCalendar gregorianCalendar = new GregorianCalendar();
+        gregorianCalendar.setTimeInMillis(System.currentTimeMillis());
+        lookupActivationsRequest.setTimestampLastUsed(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
+        assertEquals(0, response.getActivations().size());
+    }
+
 }
