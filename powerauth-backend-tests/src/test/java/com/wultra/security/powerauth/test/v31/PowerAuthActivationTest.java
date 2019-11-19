@@ -564,7 +564,7 @@ public class PowerAuthActivationTest {
         lookupActivationsRequest.getUserIds().add(config.getUserV31());
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
         gregorianCalendar.setTimeInMillis(System.currentTimeMillis() - 60000);
-        lookupActivationsRequest.setTimestampLastUsed(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
+        lookupActivationsRequest.setTimestampLastUsedAfter(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertTrue(response.getActivations().size() >= 1);
     }
@@ -575,7 +575,7 @@ public class PowerAuthActivationTest {
         lookupActivationsRequest.getUserIds().add(config.getUserV31());
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
         gregorianCalendar.setTimeInMillis(System.currentTimeMillis() + 60000);
-        lookupActivationsRequest.setTimestampLastUsed(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
+        lookupActivationsRequest.setTimestampLastUsedAfter(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertEquals(0, response.getActivations().size());
     }
