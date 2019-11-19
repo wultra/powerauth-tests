@@ -33,6 +33,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
+import io.getlime.security.powerauth.rest.api.model.request.v3.ActivationStatusRequest;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
@@ -52,6 +53,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -528,7 +530,7 @@ public class PowerAuthActivationTest {
         lookupActivationsRequest.getUserIds().add(config.getUserV3());
         lookupActivationsRequest.setActivationStatus(ActivationStatus.ACTIVE);
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
-        assertEquals(1, response.getActivations().size());
+        assertTrue(response.getActivations().size() >= 1);
     }
 
     @Test
@@ -556,10 +558,78 @@ public class PowerAuthActivationTest {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         lookupActivationsRequest.getUserIds().add(config.getUserV3());
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        gregorianCalendar.setTimeInMillis(System.currentTimeMillis());
+        gregorianCalendar.setTimeInMillis(System.currentTimeMillis() + 60000);
         lookupActivationsRequest.setTimestampLastUsed(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertEquals(0, response.getActivations().size());
     }
+
+    @Test
+    public void updateActivationStatusTest() throws Exception {
+        JSONObject resultStatusObject = new JSONObject();
+
+        // Init activation
+        InitActivationRequest initRequest = new InitActivationRequest();
+        initRequest.setApplicationId(config.getApplicationId());
+        initRequest.setUserId(config.getUserV3());
+        initRequest.setMaxFailureCount(10L);
+        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+
+        // Prepare activation
+        model.setActivationCode(initResponse.getActivationCode());
+        model.setResultStatusObject(resultStatusObject);
+        ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
+        new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
+        assertTrue(stepLoggerPrepare.getResult().isSuccess());
+        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+
+        EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().getResponseObject();
+        assertNotNull(eciesResponse.getEncryptedData());
+        assertNotNull(eciesResponse.getMac());
+
+        // Verify activation status
+        GetStatusStepModel statusModel = new GetStatusStepModel();
+        statusModel.setResultStatusObject(resultStatusObject);
+        statusModel.setHeaders(new HashMap<>());
+        statusModel.setUriString(config.getPowerAuthIntegrationUrl());
+        statusModel.setVersion("3.0");
+
+        ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
+        new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
+        assertTrue(stepLoggerStatus.getResult().isSuccess());
+        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
+        ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().getResponseObject();
+        ActivationStatusResponse response = responseObject.getResponseObject();
+        assertEquals(initResponse.getActivationId(), response.getActivationId());
+        assertNull(response.getCustomObject());
+
+        // Get transport key
+        String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");
+        SecretKey transportMasterKey = config.getKeyConversion().convertBytesToSharedSecretKey(BaseEncoding.base64().decode(transportMasterKeyBase64));
+
+        // Verify activation status blob
+        byte[] cStatusBlob = BaseEncoding.base64().decode(response.getEncryptedStatusBlob());
+        ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
+        assertTrue(statusBlob.isValid());
+        assertEquals(0x2, statusBlob.getActivationStatus());
+        assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
+
+        // Commit activation
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
+
+        // Block activation using UpdateStatusForActivations method
+        powerAuthClient.updateStatusForActivations(Collections.singletonList(initResponse.getActivationId()), ActivationStatus.BLOCKED);
+
+        GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        assertEquals(ActivationStatus.BLOCKED, statusResponseBlocked.getActivationStatus());
+
+        // Remove activation using UpdateStatusForActivations method
+        powerAuthClient.updateStatusForActivations(Collections.singletonList(initResponse.getActivationId()), ActivationStatus.ACTIVE);
+
+        GetActivationStatusResponse statusResponseRemoved = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, statusResponseRemoved.getActivationStatus());
+    }
+
 
 }

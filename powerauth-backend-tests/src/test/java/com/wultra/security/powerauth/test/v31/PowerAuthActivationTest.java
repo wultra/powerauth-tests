@@ -54,6 +54,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
@@ -508,7 +509,7 @@ public class PowerAuthActivationTest {
     @Test
     public void lookupActivationsTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getUserIds().add(config.getUserV31());
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertTrue(response.getActivations().size() >= 1);
     }
@@ -524,7 +525,7 @@ public class PowerAuthActivationTest {
     @Test
     public void lookupActivationsApplicationTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getUserIds().add(config.getUserV31());
         lookupActivationsRequest.getApplicationIds().add(config.getApplicationId());
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertTrue(response.getActivations().size() >= 1);
@@ -533,7 +534,7 @@ public class PowerAuthActivationTest {
     @Test
     public void lookupActivationsNonExistentApplicationTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getUserIds().add(config.getUserV31());
         lookupActivationsRequest.getApplicationIds().add(10000000L);
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertEquals(0, response.getActivations().size());
@@ -542,16 +543,16 @@ public class PowerAuthActivationTest {
     @Test
     public void lookupActivationsStatusTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getUserIds().add(config.getUserV31());
         lookupActivationsRequest.setActivationStatus(ActivationStatus.ACTIVE);
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
-        assertEquals(1, response.getActivations().size());
+        assertTrue(response.getActivations().size() >= 1);
     }
 
     @Test
     public void lookupActivationsInvalidStatusTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getUserIds().add(config.getUserV31());
         lookupActivationsRequest.setActivationStatus(ActivationStatus.REMOVED);
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertEquals(0, response.getActivations().size());
@@ -560,7 +561,7 @@ public class PowerAuthActivationTest {
     @Test
     public void lookupActivationsDateValidTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getUserIds().add(config.getUserV31());
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
         gregorianCalendar.setTimeInMillis(System.currentTimeMillis() - 60000);
         lookupActivationsRequest.setTimestampLastUsed(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
@@ -571,12 +572,84 @@ public class PowerAuthActivationTest {
     @Test
     public void lookupActivationsDateInvalidTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getUserIds().add(config.getUserV31());
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        gregorianCalendar.setTimeInMillis(System.currentTimeMillis());
+        gregorianCalendar.setTimeInMillis(System.currentTimeMillis() + 60000);
         lookupActivationsRequest.setTimestampLastUsed(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertEquals(0, response.getActivations().size());
+    }
+
+    @Test
+    public void updateActivationStatusTest() throws Exception {
+        JSONObject resultStatusObject = new JSONObject();
+
+        // Init activation
+        InitActivationRequest initRequest = new InitActivationRequest();
+        initRequest.setApplicationId(config.getApplicationId());
+        initRequest.setUserId(config.getUserV31());
+        initRequest.setMaxFailureCount(10L);
+        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+
+        // Prepare activation
+        model.setActivationCode(initResponse.getActivationCode());
+        model.setResultStatusObject(resultStatusObject);
+        ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
+        new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
+        assertTrue(stepLoggerPrepare.getResult().isSuccess());
+        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+
+        EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().getResponseObject();
+        assertNotNull(eciesResponse.getEncryptedData());
+        assertNotNull(eciesResponse.getMac());
+
+        // Verify activation status
+        GetStatusStepModel statusModel = new GetStatusStepModel();
+        statusModel.setResultStatusObject(resultStatusObject);
+        statusModel.setHeaders(new HashMap<>());
+        statusModel.setUriString(config.getPowerAuthIntegrationUrl());
+        statusModel.setVersion("3.1");
+
+        ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
+        new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
+        assertTrue(stepLoggerStatus.getResult().isSuccess());
+        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
+        ActivationStatusRequest request = (ActivationStatusRequest) stepLoggerStatus.getRequest().getRequestObject();
+        assertNotNull(request.getChallenge());
+        ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().getResponseObject();
+        ActivationStatusResponse response = responseObject.getResponseObject();
+        assertEquals(initResponse.getActivationId(), response.getActivationId());
+        assertNotNull(response.getNonce());
+        assertNull(response.getCustomObject());
+
+        // Get transport key
+        String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");
+        SecretKey transportMasterKey = config.getKeyConversion().convertBytesToSharedSecretKey(BaseEncoding.base64().decode(transportMasterKeyBase64));
+
+        // Verify activation status blob
+        byte[] challengeData = BaseEncoding.base64().decode(request.getChallenge());
+        byte[] nonceData = BaseEncoding.base64().decode(response.getNonce());
+        byte[] cStatusBlob = BaseEncoding.base64().decode(response.getEncryptedStatusBlob());
+        ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
+        assertTrue(statusBlob.isValid());
+        assertEquals(0x2, statusBlob.getActivationStatus());
+        assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
+
+        // Commit activation
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
+
+        // Block activation using UpdateStatusForActivations method
+        powerAuthClient.updateStatusForActivations(Collections.singletonList(initResponse.getActivationId()), ActivationStatus.BLOCKED);
+
+        GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        assertEquals(ActivationStatus.BLOCKED, statusResponseBlocked.getActivationStatus());
+
+        // Remove activation using UpdateStatusForActivations method
+        powerAuthClient.updateStatusForActivations(Collections.singletonList(initResponse.getActivationId()), ActivationStatus.ACTIVE);
+
+        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
     }
 
 }
