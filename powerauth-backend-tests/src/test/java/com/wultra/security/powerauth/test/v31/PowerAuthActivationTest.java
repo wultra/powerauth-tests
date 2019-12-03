@@ -375,7 +375,7 @@ public class PowerAuthActivationTest {
         assertEquals(3, statusBlob.getCurrentVersion());
         assertEquals(3, statusBlob.getUpgradeVersion());
         assertEquals(20, statusBlob.getCtrLookAhead());
-        assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
+        assertTrue(activation.verifyHashForHasBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey));
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
@@ -633,7 +633,7 @@ public class PowerAuthActivationTest {
         ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x2, statusBlob.getActivationStatus());
-        assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
+        assertTrue(activation.verifyHashForHasBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey));
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");

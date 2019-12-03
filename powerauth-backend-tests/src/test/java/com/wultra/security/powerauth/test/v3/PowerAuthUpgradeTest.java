@@ -250,7 +250,8 @@ public class PowerAuthUpgradeTest {
         assertEquals(0, statusBlob.getFailedAttempts());
         assertEquals(3, statusBlob.getCurrentVersion());
         assertEquals(3, statusBlob.getUpgradeVersion());
-        assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerPrepare), statusBlob.getCtrData());
+        // For V3.0 protocol CTR_DATA has no actual meaning. We can skip this assertion.
+        // assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerPrepare), statusBlob.getCtrData());
 
         // Verify version 3.0 signature
         modelSig.setVersion("3.0");
