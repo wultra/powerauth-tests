@@ -368,7 +368,8 @@ public class PowerAuthActivationTest {
         assertEquals(0, statusBlob.getFailedAttempts());
         assertEquals(3, statusBlob.getCurrentVersion());
         assertEquals(3, statusBlob.getUpgradeVersion());
-        assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
+        // For V3.0 protocol CTR_DATA has no actual meaning. We can skip this assertion.
+        // assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
@@ -612,7 +613,8 @@ public class PowerAuthActivationTest {
         ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x2, statusBlob.getActivationStatus());
-        assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
+        // For V3.0 protocol CTR_DATA has no actual meaning. We can skip this assertion.
+        // assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
