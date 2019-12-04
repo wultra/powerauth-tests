@@ -256,7 +256,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(3, statusBlob.getCurrentVersion());
         assertEquals(3, statusBlob.getUpgradeVersion());
         assertEquals(20, statusBlob.getCtrLookAhead());
-        assertTrue(activation.verifyHashForHasBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerPrepare), transportMasterKey));
+        assertTrue(activation.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerPrepare), transportMasterKey));
 
         // Verify version 3.1 signature
         modelSig.setVersion("3.1");
