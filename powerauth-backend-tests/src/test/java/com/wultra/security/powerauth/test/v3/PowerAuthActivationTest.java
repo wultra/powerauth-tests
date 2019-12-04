@@ -368,7 +368,7 @@ public class PowerAuthActivationTest {
         assertEquals(0, statusBlob.getFailedAttempts());
         assertEquals(3, statusBlob.getCurrentVersion());
         assertEquals(3, statusBlob.getUpgradeVersion());
-        // // For V3.0 protocol CTR_DATA has no actual meaning. We can skip this assertion.
+        // For V3.0 protocol CTR_DATA has no actual meaning. We can skip this assertion.
         // assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
 
         // Commit activation
