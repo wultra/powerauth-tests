@@ -39,6 +39,8 @@ import static org.junit.Assert.assertNotEquals;
  */
 public class PowerAuthTestSetUp {
 
+    private static final String PUBLIC_KEY_RECOVERY_POSTCARD_BASE64 = "BABXgGoj4Lizl3GN0rjrtileEEwekFkpX1ERS9yyYjyuM1Iqdti3ihtATBxk5XGvjetPO1YC+qXciUYjIsETtbI=";
+
     private PowerAuthServiceClient powerAuthClient;
     private PowerAuthTestConfiguration config;
 
@@ -76,6 +78,7 @@ public class PowerAuthTestSetUp {
             config.setApplicationId(response.getApplicationId());
         }
 
+
         // Create application version if it does not exist
         GetApplicationDetailResponse detail = powerAuthClient.getApplicationDetail(config.getApplicationId());
         boolean versionExists = false;
@@ -83,8 +86,11 @@ public class PowerAuthTestSetUp {
             if (appVersion.getApplicationVersionName().equals(config.getApplicationVersion())) {
                 versionExists = true;
                 config.setApplicationVersionId(appVersion.getApplicationVersionId());
+                config.setApplicationKey(appVersion.getApplicationKey());
+                config.setApplicationSecret(appVersion.getApplicationSecret());
             }
         }
+        config.setMasterPublicKey(detail.getMasterPublicKey());
         if (!versionExists) {
             CreateApplicationVersionResponse versionResponse = powerAuthClient.createApplicationVersion(config.getApplicationId(), config.getApplicationVersion());
             assertNotEquals(0, versionResponse.getApplicationVersionId());
@@ -95,6 +101,17 @@ public class PowerAuthTestSetUp {
         } else {
             // Make sure application version is supported
             powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
+        }
+        // Set up activation recovery
+        GetRecoveryConfigResponse recoveryResponse = powerAuthClient.getRecoveryConfig(config.getApplicationId());
+        if (!recoveryResponse.isActivationRecoveryEnabled() || !recoveryResponse.isRecoveryPostcardEnabled() || recoveryResponse.getPostcardPublicKey() == null || recoveryResponse.getRemotePostcardPublicKey() == null) {
+            UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
+            request.setApplicationId(config.getApplicationId());
+            request.setActivationRecoveryEnabled(true);
+            request.setRecoveryPostcardEnabled(true);
+            request.setRemotePostcardPublicKey(PUBLIC_KEY_RECOVERY_POSTCARD_BASE64);
+            // TODO - set up keys
+            powerAuthClient.updateRecoveryConfig(request);
         }
     }
 

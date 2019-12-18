@@ -77,9 +77,6 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.test.application.version}")
     private String applicationVersion;
 
-    @Value("${powerauth.test.masterPublicKey}")
-    private String masterPublicKey;
-
     private String applicationVersionForTests;
     private String applicationKey;
     private String applicationSecret;
@@ -192,10 +189,6 @@ public class PowerAuthTestConfiguration {
 
         // Configure REST client
         RestClientConfiguration.configure();
-
-        // Convert master public key
-        byte[] masterKeyBytes = BaseEncoding.base64().decode(masterPublicKey);
-        masterPublicKeyConverted = PowerAuthConfiguration.INSTANCE.getKeyConvertor().convertBytesToPublicKey(masterKeyBytes);
 
         // Create status file and user for version 3.1
         statusFileV31 = File.createTempFile("pa_status_v31", ".json");
@@ -346,5 +339,14 @@ public class PowerAuthTestConfiguration {
 
     public void setApplicationSecret(String applicationSecret) {
         this.applicationSecret = applicationSecret;
+    }
+
+    public void setMasterPublicKey(String masterPublicKey) {
+        // Convert master public key
+        byte[] masterKeyBytes = BaseEncoding.base64().decode(masterPublicKey);
+        try {
+            masterPublicKeyConverted = PowerAuthConfiguration.INSTANCE.getKeyConvertor().convertBytesToPublicKey(masterKeyBytes);
+        } catch (Exception ex) {
+        }
     }
 }

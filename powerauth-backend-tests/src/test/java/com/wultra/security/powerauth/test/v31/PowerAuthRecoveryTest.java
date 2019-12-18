@@ -67,6 +67,8 @@ import static org.junit.Assert.*;
 @EnableConfigurationProperties
 public class PowerAuthRecoveryTest {
 
+    private static final String PRIVATE_KEY_RECOVERY_POSTCARD_BASE64 = "ALvtO6YEISVuCKugiltkUKgJaJbHRrdT77+9OhS79Gvm";
+
     private PowerAuthServiceClient powerAuthClient;
     private PowerAuthTestConfiguration config;
     private File tempStatusFile;
@@ -251,10 +253,7 @@ public class PowerAuthRecoveryTest {
     @Test
     public void recoveryPostcardTest() throws Exception {
         JSONObject resultStatusObject = new JSONObject();
-        String privateKeyLocalBase64 = "ALvtO6YEISVuCKugiltkUKgJaJbHRrdT77+9OhS79Gvm";
-        String publicKeyServerBase64 = "BAxsxEH2lXZk50HmErhDDRCCaEva+lupNEBrVFgEd4eLr3+HFHzz7wNFMW/CrkG24gC6f1yUcy9fjxWyW01qUuI=";
-        // related local public key (must be set in DB for test app): "BABXgGoj4Lizl3GN0rjrtileEEwekFkpX1ERS9yyYjyuM1Iqdti3ihtATBxk5XGvjetPO1YC+qXciUYjIsETtbI="
-        // related server private key (must be set in DB for test app): "V8RVfkFKAZD41HNmP2OU38fk7An2fgiFc2uTNcvlor8="
+        String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
         String randomUserId = "TestUser_" + UUID.randomUUID().toString();
         CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L);
 
@@ -270,7 +269,7 @@ public class PowerAuthRecoveryTest {
         KeyGenerator keyGenerator = new KeyGenerator();
         IdentifierGenerator identifierGenerator = new IdentifierGenerator();
         CryptoProviderUtil keyConversion = config.getKeyConversion();
-        PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(privateKeyLocalBase64));
+        PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(PRIVATE_KEY_RECOVERY_POSTCARD_BASE64));
         PublicKey publicKey = keyConversion.convertBytesToPublicKey(BaseEncoding.base64().decode(publicKeyServerBase64));
 
         SecretKey secretKey = keyGenerator.computeSharedKey(privateKey, publicKey, true);
@@ -447,8 +446,7 @@ public class PowerAuthRecoveryTest {
     @Test
     public void recoveryPostcardInvalidPukIndexTest() throws Exception {
         JSONObject resultStatusObject = new JSONObject();
-        String privateKeyLocalBase64 = "ALvtO6YEISVuCKugiltkUKgJaJbHRrdT77+9OhS79Gvm";
-        String publicKeyServerBase64 = "BAxsxEH2lXZk50HmErhDDRCCaEva+lupNEBrVFgEd4eLr3+HFHzz7wNFMW/CrkG24gC6f1yUcy9fjxWyW01qUuI=";
+        String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
         String randomUserId = "TestUser_" + UUID.randomUUID().toString();
         CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L);
 
@@ -456,7 +454,7 @@ public class PowerAuthRecoveryTest {
         KeyGenerator keyGenerator = new KeyGenerator();
         IdentifierGenerator identifierGenerator = new IdentifierGenerator();
         CryptoProviderUtil keyConversion = config.getKeyConversion();
-        PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(privateKeyLocalBase64));
+        PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(PRIVATE_KEY_RECOVERY_POSTCARD_BASE64));
         PublicKey publicKey = keyConversion.convertBytesToPublicKey(BaseEncoding.base64().decode(publicKeyServerBase64));
         SecretKey secretKey = keyGenerator.computeSharedKey(privateKey, publicKey, true);
 
