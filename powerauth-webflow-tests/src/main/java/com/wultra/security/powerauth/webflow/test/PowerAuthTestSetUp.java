@@ -29,6 +29,7 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -44,6 +45,7 @@ import static org.junit.Assert.assertNotEquals;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
+@Service
 public class PowerAuthTestSetUp {
 
     private PowerAuthServiceClient powerAuthClient;
@@ -63,7 +65,6 @@ public class PowerAuthTestSetUp {
         printTestConfiguration();
         createApplication();
         createActivation();
-        setUpWebDriver();
     }
 
     private void printTestConfiguration() {
@@ -72,30 +73,6 @@ public class PowerAuthTestSetUp {
         System.out.println("powerauth.webflow.service.url=" + config.getPowerAuthWebFlowUrl());
         System.out.println("powerauth.nextstep.service.url=" + config.getNextStepServiceUrl());
         System.out.println("powerauth.webflow.client.url=" + config.getWebFlowClientUrl());
-        try {
-            System.out.println("Running whoami");
-            Process p = Runtime.getRuntime().exec("whoami");
-            java.util.Scanner s1 = new java.util.Scanner(p.getInputStream()).useDelimiter("\\A");
-            if (s1.hasNext()) {
-                System.out.println("std: " + s1.next());
-            }
-            java.util.Scanner s2 = new java.util.Scanner(p.getErrorStream()).useDelimiter("\\A");
-            if (s2.hasNext()) {
-                System.out.println("err: " + s2.next());
-            }
-            System.out.println("Running safaridriver --enable");
-            Process p2 = Runtime.getRuntime().exec("sudo /usr/bin/safaridriver --enable");
-            java.util.Scanner s3 = new java.util.Scanner(p2.getInputStream()).useDelimiter("\\A");
-            if (s3.hasNext()) {
-                System.out.println("std: " + s3.next());
-            }
-            java.util.Scanner s4 = new java.util.Scanner(p2.getErrorStream()).useDelimiter("\\A");
-            if (s4.hasNext()) {
-                System.out.println("err: " + s4.next());
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
     }
 
     private void createApplication() {
@@ -174,9 +151,9 @@ public class PowerAuthTestSetUp {
         config.setActivationId(initResponse.getActivationId());
     }
 
-    private void setUpWebDriver() {
+    public void setUpWebDriver() {
         try {
-            Capabilities capabilities =  DesiredCapabilities.safari();
+            Capabilities capabilities = DesiredCapabilities.safari();
             WebDriver driver = new RemoteWebDriver(new URL("http://localhost:10000"), capabilities);
             driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
             driver.manage().window().maximize();

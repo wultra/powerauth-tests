@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.webflow.test;
 import com.wultra.security.powerauth.webflow.configuration.WebFlowTestConfiguration;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import static junit.framework.TestCase.assertTrue;
 
@@ -28,6 +29,7 @@ import static junit.framework.TestCase.assertTrue;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
+@Service
 public class PowerAuthTestTearDown {
 
     private PowerAuthServiceClient powerAuthClient;

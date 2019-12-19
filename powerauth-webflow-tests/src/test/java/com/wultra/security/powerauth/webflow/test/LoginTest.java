@@ -1,7 +1,7 @@
 package com.wultra.security.powerauth.webflow.test;
 
 import com.wultra.security.powerauth.webflow.configuration.WebFlowTestConfiguration;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runner.RunWith;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
@@ -32,6 +32,19 @@ public class LoginTest {
     By confirmButton = By.xpath("//button[@type='submit']/span[text()='Confirm']/..");
     By messageSuccess = By.xpath("//div[@class='message-success title']");
     By logoutButton = By.xpath("//button[@type='submit' and text()='Log out']");
+
+    @Before
+    public void setUp() throws Exception {
+        Process p = Runtime.getRuntime().exec("killall Safari");
+        p.waitFor();
+        config.setUpWebDriver();
+    }
+
+    @After
+    public void tearDownUp() throws Exception {
+        Process p = Runtime.getRuntime().exec("killall Safari");
+        p.waitFor();
+    }
 
     @Test
     public void loginTest() {

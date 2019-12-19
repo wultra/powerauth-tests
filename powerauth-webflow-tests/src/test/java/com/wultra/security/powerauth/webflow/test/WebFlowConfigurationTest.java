@@ -18,6 +18,9 @@
 package com.wultra.security.powerauth.webflow.test;
 
 import com.wultra.security.powerauth.webflow.configuration.WebFlowTestConfiguration;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.openqa.selenium.*;
@@ -62,15 +65,6 @@ public class WebFlowConfigurationTest {
     public void activationSetUpTest() {
         assertNotNull(config.getStatusFile());
         assertNotNull(config.getResultStatusObject());
-    }
-
-    @Test
-    public void webDriverSetUpTest() {
-        WebDriver driver = config.getWebDriver();
-        driver.get(config.getWebFlowClientUrl());
-        WebDriverWait wait = config.getWebDriverWait();
-        WebElement el = driver.findElement(logo);
-        wait.until(ExpectedConditions.visibilityOf(el));
     }
 
 }

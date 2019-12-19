@@ -272,6 +272,11 @@ public class WebFlowTestConfiguration {
         }
     }
 
+    public WebDriver setUpWebDriver() {
+        setUp.setUpWebDriver();
+        return webDriver;
+    }
+
     public WebDriver getWebDriver() {
         return webDriver;
     }
