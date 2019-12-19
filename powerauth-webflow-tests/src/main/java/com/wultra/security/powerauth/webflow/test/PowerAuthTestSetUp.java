@@ -25,8 +25,8 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.remote.DesiredCapabilities;
 import org.openqa.selenium.remote.RemoteWebDriver;
+import org.openqa.selenium.safari.SafariOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -153,7 +153,7 @@ public class PowerAuthTestSetUp {
 
     public void setUpWebDriver() {
         try {
-            Capabilities capabilities = DesiredCapabilities.safari();
+            Capabilities capabilities = new SafariOptions();
             WebDriver driver = new RemoteWebDriver(new URL("http://localhost:10000"), capabilities);
             driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
             driver.manage().window().maximize();
