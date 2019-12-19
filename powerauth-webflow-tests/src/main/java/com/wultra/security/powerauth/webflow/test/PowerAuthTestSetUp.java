@@ -23,11 +23,14 @@ import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
+import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.safari.SafariDriver;
+import org.openqa.selenium.remote.DesiredCapabilities;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -60,7 +63,7 @@ public class PowerAuthTestSetUp {
         printTestConfiguration();
         createApplication();
         createActivation();
-        setUpPhantomJs();
+        setUpWebDriver();
     }
 
     private void printTestConfiguration() {
@@ -70,6 +73,7 @@ public class PowerAuthTestSetUp {
         System.out.println("powerauth.nextstep.service.url=" + config.getNextStepServiceUrl());
         System.out.println("powerauth.webflow.client.url=" + config.getWebFlowClientUrl());
         try {
+            System.out.println("Running whoami");
             Process p = Runtime.getRuntime().exec("whoami");
             java.util.Scanner s1 = new java.util.Scanner(p.getInputStream()).useDelimiter("\\A");
             if (s1.hasNext()) {
@@ -170,12 +174,17 @@ public class PowerAuthTestSetUp {
         config.setActivationId(initResponse.getActivationId());
     }
 
-    private void setUpPhantomJs() {
-        WebDriver driver = new SafariDriver();
-        driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
-        driver.manage().window().maximize();
-        config.setWebDriver(driver);
-        WebDriverWait webDriverWait = new WebDriverWait(driver, 10);
-        config.setWebDriverWait(webDriverWait);
+    private void setUpWebDriver() {
+        try {
+            Capabilities capabilities =  DesiredCapabilities.safari();
+            WebDriver driver = new RemoteWebDriver(new URL("http://localhost:10000"), capabilities);
+            driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
+            driver.manage().window().maximize();
+            config.setWebDriver(driver);
+            WebDriverWait webDriverWait = new WebDriverWait(driver, 10);
+            config.setWebDriverWait(webDriverWait);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
     }
 }
