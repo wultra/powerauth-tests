@@ -45,7 +45,6 @@ import static org.junit.Assert.assertNotEquals;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Service
 public class PowerAuthTestSetUp {
 
     private PowerAuthServiceClient powerAuthClient;

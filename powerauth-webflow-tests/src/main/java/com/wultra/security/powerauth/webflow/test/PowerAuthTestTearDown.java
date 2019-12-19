@@ -29,7 +29,6 @@ import static junit.framework.TestCase.assertTrue;
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Service
 public class PowerAuthTestTearDown {
 
     private PowerAuthServiceClient powerAuthClient;

@@ -135,6 +135,16 @@ public class WebFlowTestConfiguration {
         return new NextStepClient(nextStepServiceUrl);
     }
 
+    @Bean
+    public PowerAuthTestSetUp testSetUp() {
+        return new PowerAuthTestSetUp();
+    }
+
+    @Bean
+    public PowerAuthTestTearDown testTearDown() {
+        return new PowerAuthTestTearDown();
+    }
+
     @PostConstruct
     public void setUp() throws Exception {
         // Add Bouncy Castle Security Provider
