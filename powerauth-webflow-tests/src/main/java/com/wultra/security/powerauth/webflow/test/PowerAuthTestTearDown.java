@@ -48,7 +48,11 @@ public class PowerAuthTestTearDown {
     public void execute() {
         powerAuthClient.removeActivation(config.getActivationId(), "test");
         assertTrue(config.getStatusFile().delete());
-        config.getWebDriver().close();
-        config.getWebDriver().quit();
+        try {
+            config.getWebDriver().close();
+            config.getWebDriver().quit();
+        } catch (Exception ex) {
+            // Ignore exceptions
+        }
     }
 }
