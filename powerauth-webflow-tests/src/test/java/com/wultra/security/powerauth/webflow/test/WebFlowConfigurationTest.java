@@ -71,6 +71,11 @@ public class WebFlowConfigurationTest {
         WebDriverWait wait = config.getWebDriverWait();
         WebElement el = driver.findElement(logo);
         wait.until(ExpectedConditions.visibilityOf(el));
+        System.out.println("Test settings:");
+        System.out.println("powerauth.service.url=" + config.getPowerAuthServiceUrl());
+        System.out.println("powerauth.webflow.service.url=" + config.getPowerAuthServiceUrl());
+        System.out.println("powerauth.nextstep.service.url=" + config.getPowerAuthServiceUrl());
+        System.out.println("powerauth.webflow.client.url=" + config.getPowerAuthServiceUrl());
     }
 
 }
