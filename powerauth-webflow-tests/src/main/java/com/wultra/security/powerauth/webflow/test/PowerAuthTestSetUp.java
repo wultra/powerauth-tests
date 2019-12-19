@@ -57,9 +57,18 @@ public class PowerAuthTestSetUp {
     }
 
     public void execute() throws Exception {
+        printTestConfiguration();
         createApplication();
         createActivation();
         setUpPhantomJs();
+    }
+
+    private void printTestConfiguration() {
+        System.out.println("Test settings:");
+        System.out.println("powerauth.service.url=" + config.getPowerAuthServiceUrl());
+        System.out.println("powerauth.webflow.service.url=" + config.getPowerAuthServiceUrl());
+        System.out.println("powerauth.nextstep.service.url=" + config.getPowerAuthServiceUrl());
+        System.out.println("powerauth.webflow.client.url=" + config.getPowerAuthServiceUrl());
     }
 
     private void createApplication() {
