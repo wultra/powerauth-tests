@@ -67,7 +67,7 @@ public class WebFlowConfigurationTest {
     @Test
     public void webDriverSetUpTest() {
         WebDriver driver = config.getWebDriver();
-        driver.get("http://localhost:8080/powerauth-webflow-client/");
+        driver.get(config.getWebFlowClientUrl());
         WebDriverWait wait = config.getWebDriverWait();
         WebElement el = driver.findElement(logo);
         wait.until(ExpectedConditions.visibilityOf(el));
