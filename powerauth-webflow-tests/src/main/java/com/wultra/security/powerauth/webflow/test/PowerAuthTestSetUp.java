@@ -70,8 +70,7 @@ public class PowerAuthTestSetUp {
         System.out.println("powerauth.nextstep.service.url=" + config.getNextStepServiceUrl());
         System.out.println("powerauth.webflow.client.url=" + config.getWebFlowClientUrl());
         try {
-            System.out.println("Running safaridriver --enable");
-            Process p = Runtime.getRuntime().exec("sudo /usr/bin/safaridriver --enable");
+            Process p = Runtime.getRuntime().exec("whoami");
             java.util.Scanner s1 = new java.util.Scanner(p.getInputStream()).useDelimiter("\\A");
             if (s1.hasNext()) {
                 System.out.println("std: " + s1.next());
@@ -79,6 +78,16 @@ public class PowerAuthTestSetUp {
             java.util.Scanner s2 = new java.util.Scanner(p.getErrorStream()).useDelimiter("\\A");
             if (s2.hasNext()) {
                 System.out.println("err: " + s2.next());
+            }
+            System.out.println("Running safaridriver --enable");
+            Process p2 = Runtime.getRuntime().exec("sudo /usr/bin/safaridriver --enable");
+            java.util.Scanner s3 = new java.util.Scanner(p2.getInputStream()).useDelimiter("\\A");
+            if (s3.hasNext()) {
+                System.out.println("std: " + s3.next());
+            }
+            java.util.Scanner s4 = new java.util.Scanner(p2.getErrorStream()).useDelimiter("\\A");
+            if (s4.hasNext()) {
+                System.out.println("err: " + s4.next());
             }
         } catch (Exception ex) {
             ex.printStackTrace();
