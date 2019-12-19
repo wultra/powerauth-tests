@@ -66,9 +66,9 @@ public class PowerAuthTestSetUp {
     private void printTestConfiguration() {
         System.out.println("Test settings:");
         System.out.println("powerauth.service.url=" + config.getPowerAuthServiceUrl());
-        System.out.println("powerauth.webflow.service.url=" + config.getPowerAuthServiceUrl());
-        System.out.println("powerauth.nextstep.service.url=" + config.getPowerAuthServiceUrl());
-        System.out.println("powerauth.webflow.client.url=" + config.getPowerAuthServiceUrl());
+        System.out.println("powerauth.webflow.service.url=" + config.getPowerAuthWebFlowUrl());
+        System.out.println("powerauth.nextstep.service.url=" + config.getNextStepServiceUrl());
+        System.out.println("powerauth.webflow.client.url=" + config.getWebFlowClientUrl());
     }
 
     private void createApplication() {

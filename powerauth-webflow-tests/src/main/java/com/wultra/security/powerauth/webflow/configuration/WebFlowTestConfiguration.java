@@ -179,6 +179,10 @@ public class WebFlowTestConfiguration {
         return powerAuthWebFlowUrl;
     }
 
+    public String getNextStepServiceUrl() {
+        return nextStepServiceUrl;
+    }
+
     public String getApplicationName() {
         return applicationName;
     }
