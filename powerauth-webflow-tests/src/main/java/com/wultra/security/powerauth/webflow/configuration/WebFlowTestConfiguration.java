@@ -22,10 +22,9 @@ import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.webflow.test.PowerAuthTestSetUp;
 import com.wultra.security.powerauth.webflow.test.PowerAuthTestTearDown;
 import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientConfiguration;
 import io.getlime.security.powerauth.lib.nextstep.client.NextStepClient;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.CryptoProviderUtilFactory;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.json.simple.JSONObject;
@@ -81,7 +80,7 @@ public class WebFlowTestConfiguration {
     private PowerAuthTestSetUp setUp;
     private PowerAuthTestTearDown tearDown;
 
-    private CryptoProviderUtil keyConversion;
+    private KeyConvertor keyConvertor;
     private ObjectMapper objectMapper = RestClientConfiguration.defaultMapper();
 
     // Temporary storage
@@ -149,9 +148,6 @@ public class WebFlowTestConfiguration {
     public void setUp() throws Exception {
         // Add Bouncy Castle Security Provider
         Security.addProvider(new BouncyCastleProvider());
-        PowerAuthConfiguration.INSTANCE.setKeyConvertor(CryptoProviderUtilFactory.getCryptoProviderUtils());
-
-        keyConversion = PowerAuthConfiguration.INSTANCE.getKeyConvertor();
 
         // Configure REST client
         RestClientConfiguration.configure();
@@ -223,8 +219,8 @@ public class WebFlowTestConfiguration {
         return masterPublicKeyConverted;
     }
 
-    public CryptoProviderUtil getKeyConversion() {
-        return keyConversion;
+    public KeyConvertor getKeyConvertor() {
+        return keyConvertor;
     }
 
     public File getStatusFile() {
@@ -267,7 +263,7 @@ public class WebFlowTestConfiguration {
         // Convert master public key
         byte[] masterKeyBytes = BaseEncoding.base64().decode(masterPublicKey);
         try {
-            masterPublicKeyConverted = PowerAuthConfiguration.INSTANCE.getKeyConvertor().convertBytesToPublicKey(masterKeyBytes);
+            masterPublicKeyConverted = keyConvertor.convertBytesToPublicKey(masterKeyBytes);
         } catch (Exception ex) {
         }
     }
