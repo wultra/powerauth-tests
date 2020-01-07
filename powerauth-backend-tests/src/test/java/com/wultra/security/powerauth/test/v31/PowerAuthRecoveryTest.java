@@ -26,6 +26,7 @@ import io.getlime.security.powerauth.crypto.lib.generator.IdentifierGenerator;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.RecoveryInfo;
 import io.getlime.security.powerauth.crypto.lib.model.RecoverySeed;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.ActivationRecoveryStepModel;
@@ -34,7 +35,6 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepMo
 import io.getlime.security.powerauth.lib.cmd.steps.v3.ActivationRecoveryStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.ConfirmRecoveryCodeStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
 import io.getlime.security.powerauth.rest.api.model.entity.ActivationRecovery;
 import io.getlime.security.powerauth.rest.api.model.exception.RecoveryError;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
@@ -268,9 +268,9 @@ public class PowerAuthRecoveryTest {
         // Derive recovery code and PUKs
         KeyGenerator keyGenerator = new KeyGenerator();
         IdentifierGenerator identifierGenerator = new IdentifierGenerator();
-        CryptoProviderUtil keyConversion = config.getKeyConversion();
-        PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(PRIVATE_KEY_RECOVERY_POSTCARD_BASE64));
-        PublicKey publicKey = keyConversion.convertBytesToPublicKey(BaseEncoding.base64().decode(publicKeyServerBase64));
+        KeyConvertor keyConvertor = config.getKeyConvertor();
+        PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(BaseEncoding.base64().decode(PRIVATE_KEY_RECOVERY_POSTCARD_BASE64));
+        PublicKey publicKey = keyConvertor.convertBytesToPublicKey(BaseEncoding.base64().decode(publicKeyServerBase64));
 
         SecretKey secretKey = keyGenerator.computeSharedKey(privateKey, publicKey, true);
 
@@ -453,9 +453,9 @@ public class PowerAuthRecoveryTest {
         // Derive recovery code and PUKs
         KeyGenerator keyGenerator = new KeyGenerator();
         IdentifierGenerator identifierGenerator = new IdentifierGenerator();
-        CryptoProviderUtil keyConversion = config.getKeyConversion();
-        PrivateKey privateKey = keyConversion.convertBytesToPrivateKey(BaseEncoding.base64().decode(PRIVATE_KEY_RECOVERY_POSTCARD_BASE64));
-        PublicKey publicKey = keyConversion.convertBytesToPublicKey(BaseEncoding.base64().decode(publicKeyServerBase64));
+        KeyConvertor keyConvertor = config.getKeyConvertor();
+        PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(BaseEncoding.base64().decode(PRIVATE_KEY_RECOVERY_POSTCARD_BASE64));
+        PublicKey publicKey = keyConvertor.convertBytesToPublicKey(BaseEncoding.base64().decode(publicKeyServerBase64));
         SecretKey secretKey = keyGenerator.computeSharedKey(privateKey, publicKey, true);
 
         RecoverySeed recoverySeed = new RecoverySeed();

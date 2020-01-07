@@ -525,7 +525,7 @@ public class PowerAuthSignatureTest {
         // The remainder of last line is Base64 encoded ECDSA signature
         String ecdsaSignature = lastLine.substring(1);
         final byte[] serverPublicKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("serverPublicKey"));
-        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConversion().convertBytesToPublicKey(serverPublicKeyBytes);
+        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(serverPublicKeyBytes);
 
         // Prepare offline data without signature
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
@@ -542,7 +542,7 @@ public class PowerAuthSignatureTest {
         byte[] signatureKnowledgeKeyEncryptedBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
 
         // Get the signature keys
-        SecretKey signaturePossessionKey = config.getKeyConversion().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
+        SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
         SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list
@@ -589,7 +589,7 @@ public class PowerAuthSignatureTest {
         // The remainder of last line is Base64 encoded ECDSA signature
         String ecdsaSignature = lastLine.substring(1);
         final byte[] serverPublicKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("serverPublicKey"));
-        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConversion().convertBytesToPublicKey(serverPublicKeyBytes);
+        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(serverPublicKeyBytes);
 
         // Prepare offline data without signature
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
@@ -606,7 +606,7 @@ public class PowerAuthSignatureTest {
         byte[] signatureKnowledgeKeyEncryptedBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
 
         // Get the signature keys
-        SecretKey signaturePossessionKey = config.getKeyConversion().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
+        SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
         SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list
@@ -670,7 +670,7 @@ public class PowerAuthSignatureTest {
         byte[] signatureKnowledgeKeyEncryptedBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
 
         // Get the signature keys
-        SecretKey signaturePossessionKey = config.getKeyConversion().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
+        SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
         SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list
@@ -732,7 +732,7 @@ public class PowerAuthSignatureTest {
         byte[] signatureKnowledgeKeyEncryptedBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
 
         // Get the signature keys
-        SecretKey signaturePossessionKey = config.getKeyConversion().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
+        SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
         SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list

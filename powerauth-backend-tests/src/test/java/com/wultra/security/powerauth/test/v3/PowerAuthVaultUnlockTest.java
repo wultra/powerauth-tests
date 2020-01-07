@@ -249,7 +249,7 @@ public class PowerAuthVaultUnlockTest {
         }
         assertTrue(keyDecryptionSuccessful);
 
-        PrivateKey devicePrivateKey = config.getKeyConversion().convertBytesToPrivateKey(BaseEncoding.base64().decode(devicePrivateKeyBase64));
+        PrivateKey devicePrivateKey = config.getKeyConvertor().convertBytesToPrivateKey(BaseEncoding.base64().decode(devicePrivateKeyBase64));
 
         byte[] signature = signatureUtils.computeECDSASignature(dataBytes, devicePrivateKey);
 
@@ -279,7 +279,7 @@ public class PowerAuthVaultUnlockTest {
         }
         assertTrue(keyDecryptionSuccessful);
 
-        PrivateKey devicePrivateKey = config.getKeyConversion().convertBytesToPrivateKey(BaseEncoding.base64().decode(devicePrivateKeyBase64));
+        PrivateKey devicePrivateKey = config.getKeyConvertor().convertBytesToPrivateKey(BaseEncoding.base64().decode(devicePrivateKeyBase64));
 
         byte[] signature = signatureUtils.computeECDSASignature("test_data_crippled".getBytes(StandardCharsets.UTF_8), devicePrivateKey);
 
@@ -309,7 +309,7 @@ public class PowerAuthVaultUnlockTest {
         }
         assertTrue(keyDecryptionSuccessful);
 
-        PrivateKey devicePrivateKey = config.getKeyConversion().convertBytesToPrivateKey(BaseEncoding.base64().decode(devicePrivateKeyBase64));
+        PrivateKey devicePrivateKey = config.getKeyConvertor().convertBytesToPrivateKey(BaseEncoding.base64().decode(devicePrivateKeyBase64));
 
         byte[] signature = signatureUtils.computeECDSASignature(dataBytes, devicePrivateKey);
 
@@ -339,7 +339,7 @@ public class PowerAuthVaultUnlockTest {
         }
         assertTrue(keyDecryptionSuccessful);
 
-        PrivateKey devicePrivateKey = config.getKeyConversion().convertBytesToPrivateKey(BaseEncoding.base64().decode(devicePrivateKeyBase64));
+        PrivateKey devicePrivateKey = config.getKeyConvertor().convertBytesToPrivateKey(BaseEncoding.base64().decode(devicePrivateKeyBase64));
 
         byte[] signature = signatureUtils.computeECDSASignature(dataBytes, devicePrivateKey);
 

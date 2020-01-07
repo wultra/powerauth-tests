@@ -148,7 +148,7 @@ public class PowerAuthUpgradeTest {
 
         // Get transport key
         String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");
-        SecretKey transportMasterKey = config.getKeyConversion().convertBytesToSharedSecretKey(BaseEncoding.base64().decode(transportMasterKeyBase64));
+        SecretKey transportMasterKey = config.getKeyConvertor().convertBytesToSharedSecretKey(BaseEncoding.base64().decode(transportMasterKeyBase64));
 
         // Verify activation status blob
         byte[] cStatusBlob = BaseEncoding.base64().decode(statusResponseActive.getEncryptedStatusBlob());
