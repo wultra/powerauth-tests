@@ -134,6 +134,7 @@ public class PowerAuthTestSetUp {
         model.setResultStatusObject(config.getResultStatusObjectV31());
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion("3.1");
+        model.setDeviceInfo("backend-tests");
 
         ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLogger, model.toMap());
@@ -166,6 +167,7 @@ public class PowerAuthTestSetUp {
         model.setResultStatusObject(config.getResultStatusObjectV3());
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion("3.0");
+        model.setDeviceInfo("backend-tests");
 
         ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLogger, model.toMap());

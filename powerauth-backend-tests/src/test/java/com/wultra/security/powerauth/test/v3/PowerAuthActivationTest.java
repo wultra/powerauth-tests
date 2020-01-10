@@ -100,6 +100,7 @@ public class PowerAuthActivationTest {
         model.setResultStatusObject(new JSONObject());
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion("3.0");
+        model.setDeviceInfo("backend-tests");
     }
 
     @After

@@ -117,6 +117,7 @@ public class PowerAuthRecoveryTest {
         prepareModel.setUriString(config.getPowerAuthIntegrationUrl());
         prepareModel.setVersion("3.1");
         prepareModel.setActivationCode(initResponse.getActivationCode());
+        prepareModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
         assertTrue(stepLoggerPrepare.getResult().isSuccess());
@@ -303,6 +304,7 @@ public class PowerAuthRecoveryTest {
         prepareModel.setUriString(config.getPowerAuthIntegrationUrl());
         prepareModel.setVersion("3.1");
         prepareModel.setActivationCode(initResponse.getActivationCode());
+        prepareModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
         assertTrue(stepLoggerPrepare.getResult().isSuccess());
@@ -487,6 +489,7 @@ public class PowerAuthRecoveryTest {
         prepareModel.setUriString(config.getPowerAuthIntegrationUrl());
         prepareModel.setVersion("3.1");
         prepareModel.setActivationCode(initResponse.getActivationCode());
+        prepareModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
         assertTrue(stepLoggerPrepare.getResult().isSuccess());

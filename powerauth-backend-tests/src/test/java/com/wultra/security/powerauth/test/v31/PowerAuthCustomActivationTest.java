@@ -111,6 +111,7 @@ public class PowerAuthCustomActivationTest {
         model.setResultStatusObject(config.getResultStatusObjectV31());
         model.setUriString("http://localhost:" + port);
         model.setVersion("3.1");
+        model.setDeviceInfo("backend-tests");
 
         // Prepare step logger
         stepLogger = new ObjectStepLogger(System.out);

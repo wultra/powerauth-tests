@@ -117,6 +117,7 @@ public class PowerAuthRecoveryTest {
         prepareModel.setUriString(config.getPowerAuthIntegrationUrl());
         prepareModel.setVersion("3.0");
         prepareModel.setActivationCode(initResponse.getActivationCode());
+        prepareModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
         assertTrue(stepLoggerPrepare.getResult().isSuccess());
@@ -199,6 +200,7 @@ public class PowerAuthRecoveryTest {
         recoveryModel.setVersion("3.0");
         recoveryModel.setActivationName("recovery test v3");
         recoveryModel.setIdentityAttributes(identityAttributes);
+        recoveryModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
         new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
         assertTrue(stepLoggerRecovery.getResult().isSuccess());
@@ -303,6 +305,7 @@ public class PowerAuthRecoveryTest {
         prepareModel.setUriString(config.getPowerAuthIntegrationUrl());
         prepareModel.setVersion("3.0");
         prepareModel.setActivationCode(initResponse.getActivationCode());
+        prepareModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
         assertTrue(stepLoggerPrepare.getResult().isSuccess());
@@ -487,6 +490,7 @@ public class PowerAuthRecoveryTest {
         prepareModel.setUriString(config.getPowerAuthIntegrationUrl());
         prepareModel.setVersion("3.0");
         prepareModel.setActivationCode(initResponse.getActivationCode());
+        prepareModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
         assertTrue(stepLoggerPrepare.getResult().isSuccess());

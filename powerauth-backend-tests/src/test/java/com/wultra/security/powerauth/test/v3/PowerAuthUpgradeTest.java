@@ -294,6 +294,7 @@ public class PowerAuthUpgradeTest {
         model.setResultStatusObject(resultStatusObject);
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion("3.0");
+        model.setDeviceInfo("backend-tests");
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
@@ -365,6 +366,7 @@ public class PowerAuthUpgradeTest {
         model.setResultStatusObject(resultStatusObject);
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion("3.0");
+        model.setDeviceInfo("backend-tests");
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
@@ -439,6 +441,7 @@ public class PowerAuthUpgradeTest {
         model.setResultStatusObject(resultStatusObject);
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion("3.0");
+        model.setDeviceInfo("backend-tests");
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
@@ -504,6 +507,7 @@ public class PowerAuthUpgradeTest {
         model.setResultStatusObject(resultStatusObject);
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion("3.0");
+        model.setDeviceInfo("backend-tests");
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
@@ -602,6 +606,7 @@ public class PowerAuthUpgradeTest {
         model.setResultStatusObject(resultStatusObject);
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion("3.0");
+        model.setDeviceInfo("backend-tests");
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());

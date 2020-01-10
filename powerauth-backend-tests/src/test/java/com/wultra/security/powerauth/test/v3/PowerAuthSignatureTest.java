@@ -346,6 +346,7 @@ public class PowerAuthSignatureTest {
         modelPrepare.setResultStatusObject(resultStatusObject);
         modelPrepare.setUriString(config.getPowerAuthIntegrationUrl());
         modelPrepare.setVersion("3.0");
+        modelPrepare.setDeviceInfo("backend-tests");
 
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, modelPrepare.toMap());
@@ -421,6 +422,7 @@ public class PowerAuthSignatureTest {
         modelPrepare.setResultStatusObject(resultStatusObject);
         modelPrepare.setUriString(config.getPowerAuthIntegrationUrl());
         modelPrepare.setVersion("3.0");
+        modelPrepare.setDeviceInfo("backend-tests");
 
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, modelPrepare.toMap());
