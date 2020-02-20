@@ -251,6 +251,112 @@ public class PowerAuthRecoveryTest {
     }
 
     @Test
+    public void activationRecoveryInvalidPukTest() throws Exception {
+        JSONObject resultStatusObject = new JSONObject();
+
+        // Init activation
+        InitActivationRequest initRequest = new InitActivationRequest();
+        initRequest.setApplicationId(config.getApplicationId());
+        initRequest.setUserId(config.getUserV3());
+        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+
+        // Prepare activation, assume recovery is enabled on server
+        PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
+        prepareModel.setActivationName("test_recovery_invalid_puk_v3");
+        prepareModel.setApplicationKey(config.getApplicationKey());
+        prepareModel.setApplicationSecret(config.getApplicationSecret());
+        prepareModel.setMasterPublicKey(config.getMasterPublicKey());
+        prepareModel.setHeaders(new HashMap<>());
+        prepareModel.setPassword(config.getPassword());
+        prepareModel.setStatusFileName(tempStatusFile.getAbsolutePath());
+        prepareModel.setResultStatusObject(resultStatusObject);
+        prepareModel.setUriString(config.getPowerAuthIntegrationUrl());
+        prepareModel.setVersion("3.0");
+        prepareModel.setActivationCode(initResponse.getActivationCode());
+        ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
+        new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
+        assertTrue(stepLoggerPrepare.getResult().isSuccess());
+        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+
+        // Extract recovery data
+        EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().getResponseObject();
+        assertNotNull(eciesResponse.getEncryptedData());
+        assertNotNull(eciesResponse.getMac());
+
+        // Verify decrypted activationId
+        String activationId = null;
+        ActivationRecovery activationRecovery = null;
+        for (StepItem item: stepLoggerPrepare.getItems()) {
+            if (item.getName().equals("Activation Done")) {
+                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+                activationId = (String) responseMap.get("activationId");
+                break;
+            }
+            if (item.getName().equals("Decrypted Layer 2 Response")) {
+                activationRecovery = ((ActivationLayer2Response)item.getObject()).getActivationRecovery();
+            }
+        }
+
+        // Verify extracted data
+        assertNotNull(activationId);
+        assertNotNull(activationRecovery);
+        assertNotNull(activationRecovery.getRecoveryCode());
+        assertNotNull(activationRecovery.getPuk());
+
+        // Commit activation
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
+
+        // Verify activation status
+        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
+
+        // Verify recovery code and PUK status
+        LookupRecoveryCodesResponse rcStatusResponse1 = powerAuthClient.lookupRecoveryCodes(initResponse.getUserId(), activationId, config.getApplicationId(), null, null);
+        assertEquals(1, rcStatusResponse1.getRecoveryCodes().size());
+        assertEquals(RecoveryCodeStatus.ACTIVE, rcStatusResponse1.getRecoveryCodes().get(0).getStatus());
+        assertEquals(1, rcStatusResponse1.getRecoveryCodes().get(0).getPuks().size());
+        assertEquals(RecoveryPukStatus.VALID, rcStatusResponse1.getRecoveryCodes().get(0).getPuks().get(0).getStatus());
+
+        // Create new activation using recovery code with wrong PUK.
+        // Assume that number of failed attempts is 5.
+        final String invalidPuk = "0000000000";
+        for (int i = 1; i <= 6; i++) {
+
+            final boolean useValidPuk = i == 6;
+
+            Map<String, String> identityAttributes = new HashMap<>();
+            identityAttributes.put("recoveryCode", activationRecovery.getRecoveryCode());
+            identityAttributes.put("puk", useValidPuk ? activationRecovery.getPuk() : invalidPuk);
+
+            ActivationRecoveryStepModel recoveryModel = new ActivationRecoveryStepModel();
+            recoveryModel.setApplicationKey(config.getApplicationKey());
+            recoveryModel.setApplicationSecret(config.getApplicationSecret());
+            recoveryModel.setMasterPublicKey(config.getMasterPublicKey());
+            recoveryModel.setHeaders(new HashMap<>());
+            recoveryModel.setPassword(config.getPassword());
+            recoveryModel.setStatusFileName(tempStatusFile.getAbsolutePath());
+            recoveryModel.setResultStatusObject(resultStatusObject);
+            recoveryModel.setUriString(config.getPowerAuthIntegrationUrl());
+            recoveryModel.setVersion("3.0");
+            recoveryModel.setActivationName("recovery test v3");
+            recoveryModel.setIdentityAttributes(identityAttributes);
+            ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
+            new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
+
+            assertFalse(stepLoggerRecovery.getResult().isSuccess());
+            assertEquals(400, stepLoggerRecovery.getResponse().getStatusCode());
+        }
+
+        // Verify recovery code and PUK status after
+        LookupRecoveryCodesResponse rcStatusResponse2 = powerAuthClient.lookupRecoveryCodes(initResponse.getUserId(), activationId, config.getApplicationId(), null, null);
+        assertEquals(1, rcStatusResponse2.getRecoveryCodes().size());
+        assertEquals(RecoveryCodeStatus.BLOCKED, rcStatusResponse2.getRecoveryCodes().get(0).getStatus());
+        assertEquals(1, rcStatusResponse2.getRecoveryCodes().get(0).getPuks().size());
+        assertEquals(RecoveryPukStatus.INVALID, rcStatusResponse2.getRecoveryCodes().get(0).getPuks().get(0).getStatus());
+    }
+
+    @Test
     public void recoveryPostcardTest() throws Exception {
         JSONObject resultStatusObject = new JSONObject();
         String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
