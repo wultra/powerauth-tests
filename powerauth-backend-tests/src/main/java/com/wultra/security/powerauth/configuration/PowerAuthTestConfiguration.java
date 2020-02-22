@@ -186,17 +186,20 @@ public class PowerAuthTestConfiguration {
         // Configure REST client
         RestClientConfiguration.configure();
 
+        // Prepare common userId
+        final String userId = UUID.randomUUID().toString();
+
         // Create status file and user for version 3.1
         statusFileV31 = File.createTempFile("pa_status_v31", ".json");
-        userV31 = "TestUser_" + UUID.randomUUID().toString();
+        userV31 = "TestUserV31_" + userId;
 
         // Create status file and user for version 3.0
         statusFileV3 = File.createTempFile("pa_status_v3", ".json");
-        userV3 = "TestUser_" + UUID.randomUUID().toString();
+        userV3 = "TestUserV3_" + userId;
 
         // Create status file and user for version 2.1
         statusFileV2 = File.createTempFile("pa_status_v2", ".json");
-        userV2 = "TestUser_" + UUID.randomUUID().toString();
+        userV2 = "TestUserV2_" + userId;
 
         // Random application name
         applicationVersionForTests = applicationVersion + "_" + System.currentTimeMillis();

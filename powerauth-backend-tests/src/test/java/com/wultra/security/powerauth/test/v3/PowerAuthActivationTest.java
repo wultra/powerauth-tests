@@ -537,9 +537,13 @@ public class PowerAuthActivationTest {
 
     @Test
     public void lookupActivationsInvalidStatusTest() throws Exception {
+        //
+        // This test may fail in case that our battery of tests leaves some activation in the blocked state.
+        // Try to re-run the test alone, or fix the new test case that collides with this one.
+        //
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         lookupActivationsRequest.getUserIds().add(config.getUserV3());
-        lookupActivationsRequest.setActivationStatus(ActivationStatus.REMOVED);
+        lookupActivationsRequest.setActivationStatus(ActivationStatus.BLOCKED);
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertEquals(0, response.getActivations().size());
     }
