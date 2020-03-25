@@ -20,13 +20,16 @@ package com.wultra.security.powerauth.test.v31;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.provider.CustomActivationProviderForTests;
 import io.getlime.powerauth.soap.v3.*;
+import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.ActivationRecoveryStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
+import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.ActivationRecoveryStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
+import io.getlime.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import io.getlime.security.powerauth.rest.api.model.entity.ActivationRecovery;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
@@ -61,6 +64,7 @@ public class PowerAuthCustomActivationOtpTest {
     private PowerAuthTestConfiguration config;
     private CreateActivationStepModel createModel;
     private ActivationRecoveryStepModel recoveryModel;
+    private GetStatusStepModel statusModel;
 
     private static File dataFile;
     private File tempStatusFile;
@@ -126,6 +130,12 @@ public class PowerAuthCustomActivationOtpTest {
         recoveryModel.setUriString("http://localhost:" + port);
         recoveryModel.setVersion("3.1");
         recoveryModel.setDeviceInfo("backend-tests");
+
+        statusModel = new GetStatusStepModel();
+        statusModel.setHeaders(new HashMap<>());
+        statusModel.setResultStatusObject(config.getResultStatusObjectV31());
+        statusModel.setUriString(config.getPowerAuthIntegrationUrl());
+        statusModel.setVersion("3.1");
 
         // Prepare step logger
         stepLogger = new ObjectStepLogger(System.out);
@@ -273,6 +283,17 @@ public class PowerAuthCustomActivationOtpTest {
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
 
+        // Try to get activation status via RESTful API
+        ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
+        new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
+        assertTrue(stepLoggerStatus.getResult().isSuccess());
+        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
+
+        // Validate failed attempts counter.
+        Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("Activation Status").getObject();
+        ActivationStatusBlobInfo statusBlobInfo = (ActivationStatusBlobInfo) statusResponseMap.get("statusBlob");
+        assertEquals(0L, statusBlobInfo.getFailedAttempts());
+
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
     }
@@ -407,6 +428,17 @@ public class PowerAuthCustomActivationOtpTest {
             GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(activationId);
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
+
+        // Try to get activation status via RESTful API
+        ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
+        new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
+        assertTrue(stepLoggerStatus.getResult().isSuccess());
+        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
+
+        // Validate failed attempts counter.
+        Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("Activation Status").getObject();
+        ActivationStatusBlobInfo statusBlobInfo = (ActivationStatusBlobInfo) statusResponseMap.get("statusBlob");
+        assertEquals(0L, statusBlobInfo.getFailedAttempts());
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");

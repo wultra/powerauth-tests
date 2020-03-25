@@ -20,14 +20,12 @@ package com.wultra.security.powerauth.test.v31;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
+import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
-import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
+import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
+import io.getlime.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.json.simple.JSONObject;
 import org.junit.After;
@@ -56,6 +54,7 @@ public class PowerAuthActivationOtpTest {
     private PowerAuthServiceClient powerAuthClient;
     private PowerAuthTestConfiguration config;
     private PrepareActivationStepModel model;
+    private GetStatusStepModel statusModel;
     private File tempStatusFile;
 
     private final String validOtpValue = "1234-5678";
@@ -78,7 +77,7 @@ public class PowerAuthActivationOtpTest {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_v31", ".json");
 
-        // Model shared among tests
+        // Models shared among tests
         model = new PrepareActivationStepModel();
         model.setActivationName("test v31");
         model.setApplicationKey(config.getApplicationKey());
@@ -87,10 +86,16 @@ public class PowerAuthActivationOtpTest {
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(new JSONObject());
+        model.setResultStatusObject(config.getResultStatusObjectV31());
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion("3.1");
         model.setDeviceInfo("backend-tests");
+
+        statusModel = new GetStatusStepModel();
+        statusModel.setHeaders(new HashMap<>());
+        statusModel.setResultStatusObject(config.getResultStatusObjectV31());
+        statusModel.setUriString(config.getPowerAuthIntegrationUrl());
+        statusModel.setVersion("3.1");
     }
 
     @After
@@ -310,6 +315,19 @@ public class PowerAuthActivationOtpTest {
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
 
+        // Try to get activation status via RESTful API
+        ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
+        statusModel.setResultStatusObject(resultStatusObject);
+        new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
+        assertTrue(stepLoggerStatus.getResult().isSuccess());
+        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
+
+        // Validate failed and max failed attempts.
+        Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("Activation Status").getObject();
+        ActivationStatusBlobInfo statusBlobInfo = (ActivationStatusBlobInfo) statusResponseMap.get("statusBlob");
+        assertEquals(5L, statusBlobInfo.getMaxFailedAttempts());
+        assertEquals(0L, statusBlobInfo.getFailedAttempts());
+
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
@@ -396,6 +414,32 @@ public class PowerAuthActivationOtpTest {
         initRequest.setMaxFailureCount(5L);
         // Set OTP with no validation specified
         initRequest.setActivationOtp(validOtpValue);
+        powerAuthClient.initActivation(initRequest);
+    }
+
+    @Test(expected = SoapFaultClientException.class)
+    public void wrongActivationInitParamTest4() throws Exception {
+        // Init activation
+        InitActivationRequest initRequest = new InitActivationRequest();
+        initRequest.setApplicationId(config.getApplicationId());
+        initRequest.setUserId(config.getUserV31());
+        initRequest.setMaxFailureCount(5L);
+        // Set ON_KEYS_EXCHANGE but empty OTP
+        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEYS_EXCHANGE);
+        initRequest.setActivationOtp("");
+        powerAuthClient.initActivation(initRequest);
+    }
+
+    @Test(expected = SoapFaultClientException.class)
+    public void wrongActivationInitParamTest5() throws Exception {
+        // Init activation
+        InitActivationRequest initRequest = new InitActivationRequest();
+        initRequest.setApplicationId(config.getApplicationId());
+        initRequest.setUserId(config.getUserV31());
+        initRequest.setMaxFailureCount(5L);
+        // Set ON_COMMIT but empty OTP
+        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_COMMIT);
+        initRequest.setActivationOtp("");
         powerAuthClient.initActivation(initRequest);
     }
 
