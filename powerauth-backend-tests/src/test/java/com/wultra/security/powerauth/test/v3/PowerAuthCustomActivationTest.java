@@ -45,6 +45,8 @@ import org.springframework.ws.soap.client.SoapFaultClientException;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.HashMap;
@@ -530,7 +532,7 @@ public class PowerAuthCustomActivationTest {
         VerifySignatureStepModel signatureModel = new VerifySignatureStepModel();
         signatureModel.setApplicationKey(config.getApplicationKey());
         signatureModel.setApplicationSecret(config.getApplicationSecret());
-        signatureModel.setDataFileName(dataFile.getAbsolutePath());
+        signatureModel.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
         signatureModel.setHeaders(new HashMap<>());
         signatureModel.setHttpMethod("POST");
         signatureModel.setPassword(config.getPassword());

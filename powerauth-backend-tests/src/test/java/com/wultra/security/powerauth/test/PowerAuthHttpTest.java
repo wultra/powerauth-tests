@@ -18,12 +18,12 @@
 package com.wultra.security.powerauth.test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.Unirest;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.http.PowerAuthSignatureHttpHeader;
 import io.getlime.security.powerauth.http.PowerAuthTokenHttpHeader;
+import kong.unirest.HttpResponse;
+import kong.unirest.Unirest;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,14 +60,14 @@ public class PowerAuthHttpTest {
         headers.put("Content-Type", "application/json");
         headers.put(PowerAuthSignatureHttpHeader.HEADER_NAME, signatureHeaderInvalid);
 
-        HttpResponse response = Unirest.post(config.getPowerAuthIntegrationUrl() + "/pa/signature/validate")
+        HttpResponse<String> response = Unirest.post(config.getPowerAuthIntegrationUrl() + "/pa/signature/validate")
                 .headers(headers)
                 .body(data)
                 .asString();
         assertEquals(401, response.getStatus());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(response.getRawBody(), ErrorResponse.class);
+        ErrorResponse errorResponse = objectMapper.readValue(response.getBody(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
     }
@@ -90,14 +90,14 @@ public class PowerAuthHttpTest {
             tokenUrl = config.getPowerAuthIntegrationUrl() + "/token/authorize";
         }
 
-        HttpResponse response = Unirest.post(tokenUrl)
+        HttpResponse<String> response = Unirest.post(tokenUrl)
                 .headers(headers)
                 .body(data)
                 .asString();
         assertEquals(401, response.getStatus());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(response.getRawBody(), ErrorResponse.class);
+        ErrorResponse errorResponse = objectMapper.readValue(response.getBody(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
     }
@@ -112,14 +112,14 @@ public class PowerAuthHttpTest {
         headers.put("Content-Type", "application/json");
         headers.put(PowerAuthTokenHttpHeader.HEADER_NAME, tokenHeaderInvalid);
 
-        HttpResponse response = Unirest.post(config.getPowerAuthIntegrationUrl() + "/pa/v3/activation/create")
+        HttpResponse<String> response = Unirest.post(config.getPowerAuthIntegrationUrl() + "/pa/v3/activation/create")
                 .headers(headers)
                 .body(data)
                 .asString();
         assertEquals(400, response.getStatus());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(response.getRawBody(), ErrorResponse.class);
+        ErrorResponse errorResponse = objectMapper.readValue(response.getBody(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
