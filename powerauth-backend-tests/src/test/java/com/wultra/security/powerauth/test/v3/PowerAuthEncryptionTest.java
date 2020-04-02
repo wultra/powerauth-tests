@@ -45,6 +45,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.HashMap;
 
@@ -87,11 +88,11 @@ public class PowerAuthEncryptionTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
         encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());
         encryptModel.setApplicationSecret(config.getApplicationSecret());
-        encryptModel.setDataFileName(dataFile.getAbsolutePath());
+        encryptModel.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
         encryptModel.setMasterPublicKey(config.getMasterPublicKey());
         encryptModel.setHeaders(new HashMap<>());
         encryptModel.setResultStatusObject(config.getResultStatusObjectV3());
@@ -100,7 +101,7 @@ public class PowerAuthEncryptionTest {
         signatureModel = new VerifySignatureStepModel();
         signatureModel.setApplicationKey(config.getApplicationKey());
         signatureModel.setApplicationSecret(config.getApplicationSecret());
-        signatureModel.setDataFileName(dataFile.getAbsolutePath());
+        signatureModel.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
         signatureModel.setHeaders(new HashMap<>());
         signatureModel.setHttpMethod("POST");
         signatureModel.setPassword(config.getPassword());
@@ -188,7 +189,7 @@ public class PowerAuthEncryptionTest {
         FileWriter fw = new FileWriter(emptyDataFile);
         fw.close();
 
-        encryptModel.setDataFileName(emptyDataFile.getAbsolutePath());
+        encryptModel.setData(Files.readAllBytes(Paths.get(emptyDataFile.getAbsolutePath())));
         encryptModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/activation");
         encryptModel.setScope("activation");
 
@@ -290,7 +291,7 @@ public class PowerAuthEncryptionTest {
         FileWriter fw = new FileWriter(emptyDataFile);
         fw.close();
 
-        signatureModel.setDataFileName(emptyDataFile.getAbsolutePath());
+        signatureModel.setData(Files.readAllBytes(Paths.get(emptyDataFile.getAbsolutePath())));
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         // It is allowed to encrypt and sign empty data
@@ -316,7 +317,7 @@ public class PowerAuthEncryptionTest {
         fw.write("\"}");
         fw.close();
 
-        signatureModel.setDataFileName(dataFileLarge.getAbsolutePath());
+        signatureModel.setData(Files.readAllBytes(Paths.get(dataFileLarge.getAbsolutePath())));
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
@@ -337,7 +338,7 @@ public class PowerAuthEncryptionTest {
         out.write("\"" + requestData + "\"");
         out.close();
 
-        signatureModel.setDataFileName(dataFileLarge.getAbsolutePath());
+        signatureModel.setData(Files.readAllBytes(Paths.get(dataFileLarge.getAbsolutePath())));
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
@@ -367,7 +368,7 @@ public class PowerAuthEncryptionTest {
         out.write(requestData);
         out.close();
 
-        signatureModel.setDataFileName(dataFileLarge.getAbsolutePath());
+        signatureModel.setData(Files.readAllBytes(Paths.get(dataFileLarge.getAbsolutePath())));
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());

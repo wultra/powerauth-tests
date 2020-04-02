@@ -49,6 +49,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -147,7 +149,7 @@ public class PowerAuthTokenTest {
         modelVerify.setHeaders(new HashMap<>());
         modelVerify.setResultStatusObject(config.getResultStatusObjectV3());
         modelVerify.setUriString(getTokenUri());
-        modelVerify.setDataFileName(dataFile.getAbsolutePath());
+        modelVerify.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
         modelVerify.setHttpMethod("POST");
         modelVerify.setVersion("3.0");
 
@@ -156,8 +158,8 @@ public class PowerAuthTokenTest {
         assertTrue(stepLogger2.getResult().isSuccess());
         assertEquals(200, stepLogger2.getResponse().getStatusCode());
 
-        Response responseOK = (Response) stepLogger2.getResponse().getResponseObject();
-        assertEquals("OK", responseOK.getStatus());
+        Map<String, Object> responseOK = (Map<String, Object>) stepLogger2.getResponse().getResponseObject();
+        assertEquals("OK", responseOK.get("status"));
     }
 
     @Test
@@ -182,7 +184,7 @@ public class PowerAuthTokenTest {
         modelVerify.setHeaders(new HashMap<>());
         modelVerify.setResultStatusObject(config.getResultStatusObjectV3());
         modelVerify.setUriString(getTokenUri());
-        modelVerify.setDataFileName(dataFile.getAbsolutePath());
+        modelVerify.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
         modelVerify.setHttpMethod("POST");
         modelVerify.setVersion("3.0");
 
@@ -233,7 +235,7 @@ public class PowerAuthTokenTest {
         modelVerify.setHeaders(new HashMap<>());
         modelVerify.setResultStatusObject(config.getResultStatusObjectV3());
         modelVerify.setUriString(getTokenUri());
-        modelVerify.setDataFileName(dataFile.getAbsolutePath());
+        modelVerify.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
         modelVerify.setHttpMethod("POST");
         modelVerify.setVersion("3.0");
 

@@ -54,6 +54,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.security.interfaces.ECPublicKey;
 import java.util.ArrayList;
@@ -109,11 +111,11 @@ public class PowerAuthSignatureTest {
     }
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
         model = new VerifySignatureStepModel();
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
-        model.setDataFileName(dataFile.getAbsolutePath());
+        model.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
         model.setHeaders(new HashMap<>());
         model.setHttpMethod("POST");
         model.setPassword(config.getPassword());
@@ -242,7 +244,7 @@ public class PowerAuthSignatureTest {
         dataFile.deleteOnExit();
         FileWriter fw = new FileWriter(dataFile);
         fw.close();
-        model.setDataFileName(dataFile.getAbsolutePath());
+        model.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
@@ -497,7 +499,7 @@ public class PowerAuthSignatureTest {
         }
         fw.close();
 
-        model.setDataFileName(dataFileLarge.getAbsolutePath());
+        model.setData(Files.readAllBytes(Paths.get(dataFileLarge.getAbsolutePath())));
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
