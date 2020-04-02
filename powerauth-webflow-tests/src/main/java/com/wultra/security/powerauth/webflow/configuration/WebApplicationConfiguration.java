@@ -19,10 +19,14 @@
  */
 package com.wultra.security.powerauth.webflow.configuration;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.getlime.security.powerauth.rest.api.spring.annotation.PowerAuthAnnotationInterceptor;
 import io.getlime.security.powerauth.rest.api.spring.annotation.PowerAuthEncryptionArgumentResolver;
 import io.getlime.security.powerauth.rest.api.spring.annotation.PowerAuthWebArgumentResolver;
 import io.getlime.security.powerauth.rest.api.spring.filter.PowerAuthRequestFilter;
+import kong.unirest.ObjectMapper;
+import kong.unirest.Unirest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,6 +34,7 @@ import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import javax.annotation.PostConstruct;
 import java.util.List;
 
 /**
@@ -40,6 +45,13 @@ import java.util.List;
  */
 @Configuration
 public class WebApplicationConfiguration implements WebMvcConfigurer {
+
+    private final com.fasterxml.jackson.databind.ObjectMapper mapper;
+
+    @Autowired
+    public WebApplicationConfiguration(com.fasterxml.jackson.databind.ObjectMapper mapper) {
+        this.mapper = mapper;
+    }
 
     /**
      * Register a new @PowerAuth annotation interceptor.
@@ -97,6 +109,30 @@ public class WebApplicationConfiguration implements WebMvcConfigurer {
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
         registry.addInterceptor(powerAuthInterceptor());
+    }
+
+    @PostConstruct
+    public void postConstruct() {
+        // Configure Unirest properties
+        Unirest.config()
+                .setObjectMapper(new ObjectMapper() {
+
+                    public String writeValue(Object value) {
+                        try {
+                            return mapper.writeValueAsString(value);
+                        } catch (JsonProcessingException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
+                    public <T> T readValue(String value, Class<T> valueType) {
+                        try {
+                            return mapper.readValue(value, valueType);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
     }
 
 }
