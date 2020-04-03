@@ -51,6 +51,8 @@ import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static junit.framework.TestCase.assertTrue;
@@ -163,7 +165,7 @@ public class PowerAuthUpgradeTest {
         VerifySignatureStepModel modelSig = new VerifySignatureStepModel();
         modelSig.setApplicationKey(config.getApplicationKey());
         modelSig.setApplicationSecret(config.getApplicationSecret());
-        modelSig.setDataFileName(dataFile.getAbsolutePath());
+        modelSig.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
         modelSig.setHeaders(new HashMap<>());
         modelSig.setHttpMethod("POST");
         modelSig.setPassword(config.getPassword());
@@ -684,7 +686,7 @@ public class PowerAuthUpgradeTest {
         VerifySignatureStepModel modelSig = new VerifySignatureStepModel();
         modelSig.setApplicationKey(config.getApplicationKey());
         modelSig.setApplicationSecret(config.getApplicationSecret());
-        modelSig.setDataFileName(dataFile.getAbsolutePath());
+        modelSig.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
         modelSig.setHeaders(new HashMap<>());
         modelSig.setHttpMethod("POST");
         modelSig.setPassword(config.getPassword());
@@ -964,7 +966,7 @@ public class PowerAuthUpgradeTest {
         VerifySignatureStepModel modelSig = new VerifySignatureStepModel();
         modelSig.setApplicationKey(config.getApplicationKey());
         modelSig.setApplicationSecret(config.getApplicationSecret());
-        modelSig.setDataFileName(dataFile.getAbsolutePath());
+        modelSig.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
         modelSig.setHeaders(new HashMap<>());
         modelSig.setHttpMethod("POST");
         modelSig.setPassword(config.getPassword());
