@@ -113,7 +113,7 @@ public class PowerAuthActivationOtpTest {
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV31());
         initRequest.setMaxFailureCount(5L);
-        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEYS_EXCHANGE);
+        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEY_EXCHANGE);
         initRequest.setActivationOtp(validOtpValue);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
@@ -145,7 +145,7 @@ public class PowerAuthActivationOtpTest {
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV31());
         initRequest.setMaxFailureCount(5L);
-        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEYS_EXCHANGE);
+        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEY_EXCHANGE);
         initRequest.setActivationOtp(validOtpValue);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
@@ -323,7 +323,7 @@ public class PowerAuthActivationOtpTest {
         assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
 
         // Validate failed and max failed attempts.
-        Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("Activation Status").getObject();
+        Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("activation-status-obtained").getObject();
         ActivationStatusBlobInfo statusBlobInfo = (ActivationStatusBlobInfo) statusResponseMap.get("statusBlob");
         assertEquals(5L, statusBlobInfo.getMaxFailedAttempts());
         assertEquals(0L, statusBlobInfo.getFailedAttempts());
@@ -388,8 +388,8 @@ public class PowerAuthActivationOtpTest {
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV31());
         initRequest.setMaxFailureCount(5L);
-        // Set ON_KEYS_EXCHANGE but no OTP
-        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEYS_EXCHANGE);
+        // Set ON_KEY_EXCHANGE but no OTP
+        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEY_EXCHANGE);
         powerAuthClient.initActivation(initRequest);
     }
 
@@ -424,8 +424,8 @@ public class PowerAuthActivationOtpTest {
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV31());
         initRequest.setMaxFailureCount(5L);
-        // Set ON_KEYS_EXCHANGE but empty OTP
-        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEYS_EXCHANGE);
+        // Set ON_KEY_EXCHANGE but empty OTP
+        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEY_EXCHANGE);
         initRequest.setActivationOtp("");
         powerAuthClient.initActivation(initRequest);
     }
@@ -506,7 +506,7 @@ public class PowerAuthActivationOtpTest {
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV31());
         initRequest.setMaxFailureCount(5L);
-        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEYS_EXCHANGE);
+        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEY_EXCHANGE);
         initRequest.setActivationOtp(validOtpValue);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 

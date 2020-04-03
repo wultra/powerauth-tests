@@ -290,7 +290,7 @@ public class PowerAuthCustomActivationOtpTest {
         assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
 
         // Validate failed attempts counter.
-        Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("Activation Status").getObject();
+        Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("activation-status-obtained").getObject();
         ActivationStatusBlobInfo statusBlobInfo = (ActivationStatusBlobInfo) statusResponseMap.get("statusBlob");
         assertEquals(0L, statusBlobInfo.getFailedAttempts());
 
@@ -436,7 +436,7 @@ public class PowerAuthCustomActivationOtpTest {
         assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
 
         // Validate failed attempts counter.
-        Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("Activation Status").getObject();
+        Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("activation-status-obtained").getObject();
         ActivationStatusBlobInfo statusBlobInfo = (ActivationStatusBlobInfo) statusResponseMap.get("statusBlob");
         assertEquals(0L, statusBlobInfo.getFailedAttempts());
 
