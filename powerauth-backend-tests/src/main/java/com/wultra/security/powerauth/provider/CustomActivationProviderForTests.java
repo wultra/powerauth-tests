@@ -35,6 +35,8 @@ import java.util.Map;
 public class CustomActivationProviderForTests implements CustomActivationProvider {
 
     private static String testId;
+    // Set max failed attempt count to 3
+    public static int MAX_FAILED_ATTEMPTS = 3;
 
     @Override
     public String lookupUserIdForAttributes(Map<String, String> identityAttributes) {
@@ -57,35 +59,49 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
 
     @Override
     public Map<String, Object> processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, ActivationType activationType) {
-        Map<String, Object> processedCustomAttributes = new HashMap<>(customAttributes);
-        switch (testId) {
-            case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
-                processedCustomAttributes.remove("key");
-                processedCustomAttributes.put("key_new", "value_new");
-                break;
-            case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
-                break;
-            case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS":
-                break;
-            default:
-                // Default action for negative tests - do nothing
+        Map<String, Object> processedCustomAttributes = new HashMap<>();
+        if (customAttributes != null) {
+            processedCustomAttributes.putAll(customAttributes);
+        }
+        if (testId != null) {
+            switch (testId) {
+                case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
+                    processedCustomAttributes.remove("key");
+                    processedCustomAttributes.put("key_new", "value_new");
+                    break;
+                case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
+                    break;
+                case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS":
+                    break;
+                default:
+                    // Default action for negative tests - do nothing
+            }
         }
         return processedCustomAttributes;
     }
 
     @Override
     public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, ActivationType activationType) {
-        switch (testId) {
-            case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
-                return true;
-            case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
-                return false;
-            case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS":
-                return true;
-            default:
-                // Default action for negative tests
-                return true;
+        if (testId != null) {
+            switch (testId) {
+                case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
+                    return true;
+                case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
+                    return false;
+                case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS":
+                    return true;
+                default:
+                    break;
+            }
         }
+        if (customAttributes != null) {
+            Object o = customAttributes.get("TEST_SHOULD_AUTOCOMMIT");
+            if (o != null) {
+                return "YES".equals(o);
+            }
+        }
+        // Default action for all other tests
+        return true;
     }
 
     @Override
@@ -95,8 +111,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
 
     @Override
     public Integer getMaxFailedAttemptCount(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId, ActivationType activationType) {
-        // Set max failed attempt count to 3
-        return 3;
+        return MAX_FAILED_ATTEMPTS;
     }
 
     @Override

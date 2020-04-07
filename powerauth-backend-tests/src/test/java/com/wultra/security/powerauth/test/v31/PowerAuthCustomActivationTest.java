@@ -99,7 +99,7 @@ public class PowerAuthCustomActivationTest {
     @Before
     public void setUp() throws IOException {
         // Create temp status file
-        tempStatusFile = File.createTempFile("pa_status_v3", ".json");
+        tempStatusFile = File.createTempFile("pa_status_v31", ".json");
 
         // Model shared among tests
         model = new CreateActivationStepModel();
