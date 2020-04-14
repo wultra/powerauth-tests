@@ -189,7 +189,7 @@ public class PowerAuthActivationOtpTest {
         // Verify activation status
         GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertNotNull(activationStatusResponse);
-        assertEquals(ActivationStatus.OTP_USED, activationStatusResponse.getActivationStatus());
+        assertEquals(ActivationStatus.PENDING_COMMIT, activationStatusResponse.getActivationStatus());
 
         // Try commit activation with wrong OTP. Last attempt is valid.
         for (int iteration = 1; iteration <= 5; iteration++) {
@@ -209,7 +209,7 @@ public class PowerAuthActivationOtpTest {
 
             // Verify activation status
             activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
-            assertEquals(lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.OTP_USED, activationStatusResponse.getActivationStatus());
+            assertEquals(lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT, activationStatusResponse.getActivationStatus());
         }
 
         // Remove activation
@@ -242,7 +242,7 @@ public class PowerAuthActivationOtpTest {
         // Verify activation status
         GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertNotNull(activationStatusResponse);
-        assertEquals(ActivationStatus.OTP_USED, activationStatusResponse.getActivationStatus());
+        assertEquals(ActivationStatus.PENDING_COMMIT, activationStatusResponse.getActivationStatus());
 
         // Try commit activation with wrong OTP. Last attempt is valid.
         for (int iteration = 1; iteration <= 5; iteration++) {
@@ -261,7 +261,7 @@ public class PowerAuthActivationOtpTest {
             assertFalse(isActivated);
 
             // Verify activation status
-            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.OTP_USED;
+            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.PENDING_COMMIT;
             activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
@@ -289,7 +289,7 @@ public class PowerAuthActivationOtpTest {
 
         // Verify activation status
         GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
-        assertEquals(ActivationStatus.OTP_USED, activationStatusResponse.getActivationStatus());
+        assertEquals(ActivationStatus.PENDING_COMMIT, activationStatusResponse.getActivationStatus());
 
         // Update OTP
         powerAuthClient.updateActivationOtp(initResponse.getActivationId(), null, validOtpValue);
@@ -310,7 +310,7 @@ public class PowerAuthActivationOtpTest {
             assertEquals(lastIteration, isActivated);
 
             // Verify activation status
-            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.OTP_USED;
+            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
             activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
@@ -354,7 +354,7 @@ public class PowerAuthActivationOtpTest {
 
         // Verify activation status
         GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
-        assertEquals(ActivationStatus.OTP_USED, activationStatusResponse.getActivationStatus());
+        assertEquals(ActivationStatus.PENDING_COMMIT, activationStatusResponse.getActivationStatus());
 
         // Update OTP
         powerAuthClient.updateActivationOtp(initResponse.getActivationId(), null, validOtpValue);
@@ -375,7 +375,7 @@ public class PowerAuthActivationOtpTest {
             assertFalse(isActivated);
 
             // Verify activation status
-            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.OTP_USED;
+            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.PENDING_COMMIT;
             activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
@@ -467,7 +467,7 @@ public class PowerAuthActivationOtpTest {
 
         // Verify activation status
         GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
-        assertEquals(ActivationStatus.OTP_USED, activationStatusResponse.getActivationStatus());
+        assertEquals(ActivationStatus.PENDING_COMMIT, activationStatusResponse.getActivationStatus());
 
         // Try commit with no OTP for more than max failed attempts. Use OTP in the last iteration, that should pass.
         for (int iteration = 1; iteration <= 6; iteration++) {
@@ -487,7 +487,7 @@ public class PowerAuthActivationOtpTest {
             assertEquals(lastIteration, isActivated);
 
             // Verify activation status again
-            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.OTP_USED;
+            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
             activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
