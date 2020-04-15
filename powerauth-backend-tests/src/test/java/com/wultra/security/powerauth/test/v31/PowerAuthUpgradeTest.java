@@ -137,7 +137,7 @@ public class PowerAuthUpgradeTest {
 
         // Verify activation status
         GetActivationStatusResponse statusResponseOtpUsed = powerAuthClient.getActivationStatus(initResponse.getActivationId());
-        assertEquals(ActivationStatus.OTP_USED, statusResponseOtpUsed.getActivationStatus());
+        assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseOtpUsed.getActivationStatus());
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
@@ -384,7 +384,7 @@ public class PowerAuthUpgradeTest {
 
         // Verify activation status
         GetActivationStatusResponse statusResponseOtpUsed = powerAuthClient.getActivationStatus(initResponse.getActivationId());
-        assertEquals(ActivationStatus.OTP_USED, statusResponseOtpUsed.getActivationStatus());
+        assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseOtpUsed.getActivationStatus());
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");

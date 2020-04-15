@@ -198,7 +198,7 @@ public class PowerAuthCustomActivationTest {
                 assertNotNull(layer2Response.getServerPublicKey());
                 // Verify activation status - activation was not automatically committed
                 GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
-                assertEquals(ActivationStatus.OTP_USED, statusResponseActive.getActivationStatus());
+                assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseActive.getActivationStatus());
                 assertEquals("static_username", statusResponseActive.getUserId());
                 layer2ResponseOk = true;
                 continue;

@@ -242,7 +242,7 @@ public class PowerAuthCustomActivationOtpTest {
                 assertNotNull(layer2Response.getServerPublicKey());
                 // Verify activation status - activation was not automatically committed
                 GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
-                assertEquals(ActivationStatus.OTP_USED, statusResponseActive.getActivationStatus());
+                assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseActive.getActivationStatus());
                 assertEquals("static_username", statusResponseActive.getUserId());
                 layer2ResponseOk = true;
                 continue;
@@ -278,7 +278,7 @@ public class PowerAuthCustomActivationOtpTest {
             assertEquals(lastIteration, isActivated);
 
             // Verify activation status
-            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.OTP_USED;
+            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
             GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(activationId);
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
@@ -327,7 +327,7 @@ public class PowerAuthCustomActivationOtpTest {
                 assertNotNull(layer2Response.getServerPublicKey());
                 // Verify activation status - activation was not automatically committed
                 GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
-                assertEquals(ActivationStatus.OTP_USED, statusResponseActive.getActivationStatus());
+                assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseActive.getActivationStatus());
                 assertEquals("static_username", statusResponseActive.getUserId());
                 layer2ResponseOk = true;
                 continue;
@@ -363,7 +363,7 @@ public class PowerAuthCustomActivationOtpTest {
             assertFalse(isActivated);
 
             // Verify activation status
-            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.OTP_USED;
+            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.PENDING_COMMIT;
             GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(activationId);
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
@@ -424,7 +424,7 @@ public class PowerAuthCustomActivationOtpTest {
             assertEquals(lastIteration, isActivated);
 
             // Verify activation status
-            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.OTP_USED;
+            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
             GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(activationId);
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
@@ -496,7 +496,7 @@ public class PowerAuthCustomActivationOtpTest {
             assertFalse(isActivated);
 
             // Verify activation status
-            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.OTP_USED;
+            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.PENDING_COMMIT;
             GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(activationId);
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
