@@ -149,19 +149,23 @@ public class PowerAuthActivationOtpTest {
         initRequest.setActivationOtp(validOtpValue);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
-        // Prepare activation
-        model.setActivationCode(initResponse.getActivationCode());
-        model.setResultStatusObject(resultStatusObject);
-        model.setAdditionalActivationOtp(invalidOtpValue);
-        ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
-        new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertFalse(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(400, stepLoggerPrepare.getResponse().getStatusCode());
+        for (int iteration = 1; iteration <= 5; iteration++) {
+            final boolean lastIteration = iteration == 5;
+            // Prepare activation
+            model.setActivationCode(initResponse.getActivationCode());
+            model.setResultStatusObject(resultStatusObject);
+            model.setAdditionalActivationOtp(invalidOtpValue);
+            ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
+            new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
+            assertFalse(stepLoggerPrepare.getResult().isSuccess());
+            assertEquals(400, stepLoggerPrepare.getResponse().getStatusCode());
 
-        // Verify activation status
-        GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
-        assertNotNull(activationStatusResponse);
-        assertEquals(ActivationStatus.REMOVED, activationStatusResponse.getActivationStatus());
+            // Verify activation status
+            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.CREATED;
+            GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+            assertNotNull(activationStatusResponse);
+            assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
+        }
     }
 
     @Test
