@@ -131,6 +131,11 @@ public class PowerAuthActivationOtpTest {
         assertNotNull(activationStatusResponse);
         assertEquals(ActivationStatus.ACTIVE, activationStatusResponse.getActivationStatus());
 
+        // Verify associated recovery code
+        LookupRecoveryCodesResponse recoveryCodes = powerAuthClient.lookupRecoveryCodes(config.getUserV31(), initResponse.getActivationId(), config.getApplicationId(), null, null);
+        assertEquals(1, recoveryCodes.getRecoveryCodes().size());
+        assertEquals(RecoveryCodeStatus.ACTIVE, recoveryCodes.getRecoveryCodes().get(0).getStatus());
+
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
