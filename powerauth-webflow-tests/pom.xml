@@ -9,7 +9,7 @@
 
     <groupId>com.wultra</groupId>
     <artifactId>powerauth-webflow-tests</artifactId>
-    <version>0.24.0</version>
+    <version>1.0.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <parent>
