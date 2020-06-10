@@ -194,7 +194,7 @@ public class PowerAuthActivationFlagsTest {
     }
 
     @Test
-    public void activationProviderTest() throws Exception {
+    public void activationProviderFlagTest() throws Exception {
         // Create custom activation with test provider
         CreateActivationStepModel model = new CreateActivationStepModel();
         model.setActivationName("test v3.1");
