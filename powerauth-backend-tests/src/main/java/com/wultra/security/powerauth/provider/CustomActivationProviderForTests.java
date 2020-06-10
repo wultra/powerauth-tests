@@ -23,7 +23,9 @@ import io.getlime.security.powerauth.rest.api.base.provider.CustomActivationProv
 import io.getlime.security.powerauth.rest.api.model.entity.ActivationType;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -118,5 +120,9 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     public Integer getValidityPeriodDuringActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId, ActivationType activationType) {
         // Return 10 seconds as validity period
         return 10000;
+    }
+
+    public List<String> getActivationFlags(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, ActivationType activationType) {
+        return Collections.singletonList("TEST-PROVIDER");
     }
 }

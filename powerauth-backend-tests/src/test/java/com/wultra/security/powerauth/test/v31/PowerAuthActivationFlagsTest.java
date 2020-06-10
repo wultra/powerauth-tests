@@ -20,8 +20,12 @@ package com.wultra.security.powerauth.test.v31;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
+import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
+import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
+import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
+import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.json.simple.JSONObject;
 import org.junit.After;
@@ -31,15 +35,14 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.xml.datatype.DatatypeFactory;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
+import java.util.*;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -50,14 +53,18 @@ import static org.junit.Assert.assertEquals;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = PowerAuthTestConfiguration.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
+@ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
 public class PowerAuthActivationFlagsTest {
 
     private PowerAuthServiceClient powerAuthClient;
     private PowerAuthTestConfiguration config;
     private PrepareActivationStepModel model;
     private File tempStatusFile;
+
+    @LocalServerPort
+    private int port;
 
     @Autowired
     public void setPowerAuthServiceClient(PowerAuthServiceClient powerAuthClient) {
@@ -184,5 +191,52 @@ public class PowerAuthActivationFlagsTest {
         lookupRequest.getActivationFlags().add("FLAG5");
         LookupActivationsResponse response5 = powerAuthClient.lookupActivations(lookupRequest);
         assertTrue(response5.getActivations().isEmpty());
+    }
+
+    @Test
+    public void activationProviderTest() throws Exception {
+        // Create custom activation with test provider
+        CreateActivationStepModel model = new CreateActivationStepModel();
+        model.setActivationName("test v3.1");
+        model.setApplicationKey(config.getApplicationKey());
+        model.setApplicationSecret(config.getApplicationSecret());
+        model.setMasterPublicKey(config.getMasterPublicKey());
+        model.setHeaders(new HashMap<>());
+        model.setPassword(config.getPassword());
+        model.setStatusFileName(tempStatusFile.getAbsolutePath());
+        model.setResultStatusObject(config.getResultStatusObjectV31());
+        model.setUriString("http://localhost:" + port);
+        model.setVersion("3.1");
+        model.setDeviceInfo("backend-tests");
+
+        // Set unique user identity
+        final String userIdSuffix = UUID.randomUUID().toString();
+        final String userId = "TestUser_Flags_"+userIdSuffix;
+        Map<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("test_id", "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS");
+        identityAttributes.put("username", userId);
+        model.setIdentityAttributes(identityAttributes);
+        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        new CreateActivationStep().execute(stepLogger, model.toMap());
+
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        String activationId = null;
+        // Verify decrypted responses
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Layer 2 Response")) {
+                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+                activationId = layer2Response.getActivationId();
+                break;
+            }
+        }
+
+        LookupActivationsRequest lookupRequest = new LookupActivationsRequest();
+        lookupRequest.getUserIds().add(userId);
+        lookupRequest.getActivationFlags().add("TEST-PROVIDER");
+        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupRequest);
+        assertEquals(1, response.getActivations().size());
+        assertEquals(activationId, response.getActivations().get(0).getActivationId());
     }
 }
