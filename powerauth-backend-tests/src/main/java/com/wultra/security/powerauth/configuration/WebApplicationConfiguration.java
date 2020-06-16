@@ -73,7 +73,7 @@ public class WebApplicationConfiguration implements WebMvcConfigurer {
      * @return PowerAuthRequestFilter instance.
      */
     @Bean
-    public FilterRegistrationBean powerAuthFilterRegistration() {
+    public FilterRegistrationBean<PowerAuthRequestFilter> powerAuthFilterRegistration() {
         FilterRegistrationBean<PowerAuthRequestFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new PowerAuthRequestFilter());
         registrationBean.setMatchAfter(true);

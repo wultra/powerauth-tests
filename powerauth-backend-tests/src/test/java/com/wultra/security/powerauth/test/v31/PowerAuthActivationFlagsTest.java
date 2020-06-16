@@ -120,7 +120,7 @@ public class PowerAuthActivationFlagsTest {
 
         // Test flags CRUD
         String activationId = initResponse.getActivationId();
-        powerAuthClient.createActivationFlags(activationId, Arrays.asList("FLAG1", "FLAG2"));
+        powerAuthClient.addActivationFlags(activationId, Arrays.asList("FLAG1", "FLAG2"));
 
         GetActivationStatusResponse status = powerAuthClient.getActivationStatus(activationId);
         assertEquals(Arrays.asList("FLAG1", "FLAG2"), status.getActivationFlags());
@@ -138,7 +138,7 @@ public class PowerAuthActivationFlagsTest {
         ListActivationFlagsResponse listResponse3 = powerAuthClient.listActivationFlags(activationId);
         assertEquals(Collections.singletonList("FLAG3"), listResponse3.getActivationFlags());
 
-        powerAuthClient.createActivationFlags(activationId, Arrays.asList("FLAG3", "FLAG4"));
+        powerAuthClient.addActivationFlags(activationId, Arrays.asList("FLAG3", "FLAG4"));
 
         ListActivationFlagsResponse listResponse4 = powerAuthClient.listActivationFlags(activationId);
         assertEquals(Arrays.asList("FLAG3", "FLAG4"), listResponse4.getActivationFlags());
@@ -172,7 +172,7 @@ public class PowerAuthActivationFlagsTest {
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupRequest);
         assertTrue(response.getActivations().isEmpty());
 
-        powerAuthClient.createActivationFlags(activationId, Arrays.asList("FLAG1", "FLAG2"));
+        powerAuthClient.addActivationFlags(activationId, Arrays.asList("FLAG1", "FLAG2"));
         LookupActivationsResponse response2 = powerAuthClient.lookupActivations(lookupRequest);
         assertEquals(1, response2.getActivations().size());
 
@@ -180,14 +180,14 @@ public class PowerAuthActivationFlagsTest {
         LookupActivationsResponse response3 = powerAuthClient.lookupActivations(lookupRequest);
         assertTrue(response3.getActivations().isEmpty());
 
-        powerAuthClient.createActivationFlags(activationId, Arrays.asList("FLAG3", "FLAG4"));
+        powerAuthClient.addActivationFlags(activationId, Arrays.asList("FLAG3", "FLAG4"));
         lookupRequest.getActivationFlags().clear();
         lookupRequest.getActivationFlags().add("FLAG3");
         lookupRequest.getActivationFlags().add("FLAG4");
         LookupActivationsResponse response4 = powerAuthClient.lookupActivations(lookupRequest);
         assertEquals(1, response4.getActivations().size());
 
-        powerAuthClient.createActivationFlags(activationId, Arrays.asList("FLAG3", "FLAG4"));
+        powerAuthClient.addActivationFlags(activationId, Arrays.asList("FLAG3", "FLAG4"));
         lookupRequest.getActivationFlags().add("FLAG5");
         LookupActivationsResponse response5 = powerAuthClient.lookupActivations(lookupRequest);
         assertTrue(response5.getActivations().isEmpty());
