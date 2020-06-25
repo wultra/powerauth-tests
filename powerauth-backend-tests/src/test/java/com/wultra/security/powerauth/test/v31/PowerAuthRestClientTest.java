@@ -122,7 +122,7 @@ public class PowerAuthRestClientTest {
 
     @Test
     public void errorListTest() {
-        GetErrorCodeListResponse response = powerAuthClient.getErrorList();
+        GetErrorCodeListResponse response = powerAuthClient.getErrorList(Locale.ENGLISH.getLanguage());
         assertTrue(response.getErrors().size() > 32);
     }
 
