@@ -79,14 +79,14 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * PowerAuth REST client tests.
+ * PowerAuth API tests.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthRestClientTest {
+public class PowerAuthApiTest {
 
     private PowerAuthRestClient powerAuthClient;
     private PowerAuthTestConfiguration config;
