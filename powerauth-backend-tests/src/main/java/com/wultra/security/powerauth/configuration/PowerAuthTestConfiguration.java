@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.test.PowerAuthTestTearDown;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientConfiguration;
 import io.getlime.security.powerauth.lib.nextstep.client.NextStepClient;
+import io.getlime.security.powerauth.soap.spring.client.PowerAuthRestClient;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.apache.wss4j.dom.WSConstants;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -53,6 +54,9 @@ public class PowerAuthTestConfiguration {
 
     @Value("${powerauth.service.url}")
     private String powerAuthServiceUrl;
+
+    @Value("${powerauth.rest.url}")
+    private String powerAuthRestUrl;
 
     @Value("${powerauth.integration.service.url}")
     private String powerAuthIntegrationUrl;
@@ -145,12 +149,12 @@ public class PowerAuthTestConfiguration {
     }
 
     /**
-     * Initialize PowerAuth client.
+     * Initialize PowerAuth SOAP client.
      * @param marshaller JAXB marshaller.
-     * @return PowerAuth client.
+     * @return PowerAuth SOAP client.
      */
     @Bean
-    public PowerAuthServiceClient powerAuthClient(Jaxb2Marshaller marshaller) {
+    public PowerAuthServiceClient powerAuthServiceClient(Jaxb2Marshaller marshaller) {
         PowerAuthServiceClient client = new PowerAuthServiceClient();
         client.setDefaultUri(powerAuthServiceUrl);
         client.setMarshaller(marshaller);
@@ -160,6 +164,15 @@ public class PowerAuthTestConfiguration {
             client.setInterceptors(new ClientInterceptor[]{interceptor});
         }
         return client;
+    }
+
+    /**
+     * Initialize PowerAuth REST client.
+     * @return PowerAuth REST client.
+     */
+    @Bean
+    public PowerAuthRestClient powerAuthRestClient() {
+        return new PowerAuthRestClient(powerAuthRestUrl);
     }
 
     @Bean
