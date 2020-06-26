@@ -42,7 +42,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.ws.soap.client.SoapFaultClientException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -493,8 +493,7 @@ public class PowerAuthCustomActivationTest {
         try {
             powerAuthClient.commitActivation(activationId, "test");
             fail("Double commit should not be allowed");
-        } catch (SoapFaultClientException ex) {
-            assertEquals("Incorrect activation state.", ex.getMessage());
+        } catch (WebClientResponseException ex) {
             powerAuthClient.removeActivation(activationId, "test");
         }
     }
