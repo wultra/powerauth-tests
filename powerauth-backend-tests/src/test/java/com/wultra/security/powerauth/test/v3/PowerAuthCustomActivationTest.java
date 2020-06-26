@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.test.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.powerauth.soap.v3.*;
@@ -61,7 +62,7 @@ import static org.junit.Assert.*;
 @ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
 public class PowerAuthCustomActivationTest {
 
-    private PowerAuthServiceClient powerAuthClient;
+    private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
     private CreateActivationStepModel model;
     private static File dataFile;

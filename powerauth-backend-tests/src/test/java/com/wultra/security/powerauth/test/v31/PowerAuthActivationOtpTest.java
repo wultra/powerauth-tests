@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.test.v31;
 
+import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
@@ -51,7 +52,7 @@ import static org.junit.Assert.*;
 @EnableConfigurationProperties
 public class PowerAuthActivationOtpTest {
 
-    private PowerAuthServiceClient powerAuthClient;
+    private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
     private PrepareActivationStepModel model;
     private GetStatusStepModel statusModel;

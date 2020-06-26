@@ -19,6 +19,7 @@ package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.powerauth.soap.v3.*;
@@ -69,7 +70,7 @@ public class PowerAuthRecoveryTest {
 
     private static final String PRIVATE_KEY_RECOVERY_POSTCARD_BASE64 = "ALvtO6YEISVuCKugiltkUKgJaJbHRrdT77+9OhS79Gvm";
 
-    private PowerAuthServiceClient powerAuthClient;
+    private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
     private File tempStatusFile;
 

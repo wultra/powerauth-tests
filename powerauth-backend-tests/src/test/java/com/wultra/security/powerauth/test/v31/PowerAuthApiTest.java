@@ -17,9 +17,9 @@
  */
 package com.wultra.security.powerauth.test.v31;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
@@ -56,7 +56,7 @@ import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2
 import io.getlime.security.powerauth.rest.api.model.response.v3.ConfirmRecoveryResponsePayload;
 import io.getlime.security.powerauth.rest.api.model.response.v3.UpgradeResponsePayload;
 import io.getlime.security.powerauth.rest.api.model.response.v3.VaultUnlockResponsePayload;
-import io.getlime.security.powerauth.soap.spring.client.PowerAuthRestClient;
+import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,12 +68,9 @@ import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.security.*;
 import java.security.interfaces.ECPublicKey;
-import java.security.spec.InvalidKeySpecException;
+import java.security.spec.*;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -88,15 +85,13 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnableConfigurationProperties
 public class PowerAuthApiTest {
 
-    private PowerAuthRestClient powerAuthClient;
+    private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
 
     private final PowerAuthClientActivation activation = new PowerAuthClientActivation();
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final EciesFactory eciesFactory = new EciesFactory();
-    // TODO - fix bug with mismatch in Token ECIES payload classes
-    // See: https://github.com/wultra/powerauth-server/issues/447
-    private final ObjectMapper objectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final KeyGenerator keyGenerator = new KeyGenerator();
     private final PowerAuthClientSignature signature = new PowerAuthClientSignature();
     private final PowerAuthClientVault vault = new PowerAuthClientVault();

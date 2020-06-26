@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.test.v31;
 
+import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.provider.CustomActivationProviderForTests;
 import io.getlime.powerauth.soap.v3.*;
@@ -60,7 +61,7 @@ import static org.junit.Assert.*;
 @ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
 public class PowerAuthCustomActivationOtpTest {
 
-    private PowerAuthServiceClient powerAuthClient;
+    private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
     private CreateActivationStepModel createModel;
     private ActivationRecoveryStepModel recoveryModel;

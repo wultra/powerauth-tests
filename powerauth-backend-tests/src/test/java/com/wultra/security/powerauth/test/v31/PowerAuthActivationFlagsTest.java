@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.test.v31;
 
+import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -58,7 +59,7 @@ import static org.junit.Assert.assertEquals;
 @ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
 public class PowerAuthActivationFlagsTest {
 
-    private PowerAuthServiceClient powerAuthClient;
+    private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
     private PrepareActivationStepModel model;
     private File tempStatusFile;

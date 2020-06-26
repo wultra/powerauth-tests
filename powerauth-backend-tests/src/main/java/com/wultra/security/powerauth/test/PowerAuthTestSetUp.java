@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.test;
 
+import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -41,7 +42,7 @@ public class PowerAuthTestSetUp {
 
     private static final String PUBLIC_KEY_RECOVERY_POSTCARD_BASE64 = "BABXgGoj4Lizl3GN0rjrtileEEwekFkpX1ERS9yyYjyuM1Iqdti3ihtATBxk5XGvjetPO1YC+qXciUYjIsETtbI=";
 
-    private PowerAuthServiceClient powerAuthClient;
+    private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
 
     @Autowired

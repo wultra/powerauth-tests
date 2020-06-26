@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
@@ -64,7 +65,7 @@ public class PowerAuthTokenTest {
 
     private PowerAuthTestConfiguration config;
     private NextStepClient nextStepClient;
-    private PowerAuthServiceClient powerAuthClient;
+    private PowerAuthClient powerAuthClient;
     private CreateTokenStepModel model;
     private ObjectStepLogger stepLogger;
 

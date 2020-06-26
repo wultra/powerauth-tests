@@ -19,12 +19,12 @@ package com.wultra.security.powerauth.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
 import com.wultra.security.powerauth.test.PowerAuthTestSetUp;
 import com.wultra.security.powerauth.test.PowerAuthTestTearDown;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientConfiguration;
 import io.getlime.security.powerauth.lib.nextstep.client.NextStepClient;
-import io.getlime.security.powerauth.soap.spring.client.PowerAuthRestClient;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.apache.wss4j.dom.WSConstants;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;

@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.test.v31;
 
+import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
@@ -41,7 +42,7 @@ import static org.junit.Assert.assertEquals;
 @EnableConfigurationProperties
 public class PowerAuthApplicationRolesTest {
 
-    private PowerAuthServiceClient powerAuthClient;
+    private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
 
     @Autowired
@@ -86,5 +87,4 @@ public class PowerAuthApplicationRolesTest {
         ListApplicationRolesResponse listResponse4 = powerAuthClient.listApplicationRoles(applicationId);
         assertEquals(Arrays.asList("ROLE3", "ROLE4"), listResponse4.getApplicationRoles());
     }
-
 }

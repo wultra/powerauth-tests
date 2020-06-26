@@ -19,6 +19,7 @@ package com.wultra.security.powerauth.test.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
@@ -62,7 +63,7 @@ public class PowerAuthEncryptionTest {
     private EncryptStepModel encryptModel;
     private VerifySignatureStepModel signatureModel;
     private ObjectStepLogger stepLogger;
-    private PowerAuthServiceClient powerAuthClient;
+    private PowerAuthClient powerAuthClient;
 
     @Autowired
     public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {
