@@ -18,9 +18,9 @@
 package com.wultra.security.powerauth.test.v31;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.provider.CustomActivationProviderForTests;
-import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
@@ -35,7 +35,6 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import io.getlime.security.powerauth.rest.api.model.entity.ActivationRecovery;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
-import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.json.simple.JSONObject;
 import org.junit.*;
 import org.junit.runner.RunWith;
@@ -83,7 +82,7 @@ public class PowerAuthCustomActivationOtpTest {
     }
 
     @Autowired
-    public void setPowerAuthServiceClient(PowerAuthServiceClient powerAuthClient) {
+    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 

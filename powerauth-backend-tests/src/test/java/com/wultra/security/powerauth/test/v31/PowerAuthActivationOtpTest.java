@@ -18,8 +18,8 @@
 package com.wultra.security.powerauth.test.v31;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -27,7 +27,6 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
-import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.json.simple.JSONObject;
 import org.junit.After;
 import org.junit.Before;
@@ -37,7 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.ws.soap.client.SoapFaultClientException;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.File;
 import java.io.IOException;
@@ -64,7 +63,7 @@ public class PowerAuthActivationOtpTest {
     private static final PowerAuthClientActivation activation = new PowerAuthClientActivation();
 
     @Autowired
-    public void setPowerAuthServiceClient(PowerAuthServiceClient powerAuthClient) {
+    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 
@@ -391,7 +390,7 @@ public class PowerAuthActivationOtpTest {
         }
     }
 
-    @Test(expected = SoapFaultClientException.class)
+    @Test(expected = WebClientResponseException.class)
     public void wrongActivationInitParamTest1() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -403,7 +402,7 @@ public class PowerAuthActivationOtpTest {
         powerAuthClient.initActivation(initRequest);
     }
 
-    @Test(expected = SoapFaultClientException.class)
+    @Test(expected = WebClientResponseException.class)
     public void wrongActivationInitParamTest2() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -415,7 +414,7 @@ public class PowerAuthActivationOtpTest {
         powerAuthClient.initActivation(initRequest);
     }
 
-    @Test(expected = SoapFaultClientException.class)
+    @Test(expected = WebClientResponseException.class)
     public void wrongActivationInitParamTest3() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -427,7 +426,7 @@ public class PowerAuthActivationOtpTest {
         powerAuthClient.initActivation(initRequest);
     }
 
-    @Test(expected = SoapFaultClientException.class)
+    @Test(expected = WebClientResponseException.class)
     public void wrongActivationInitParamTest4() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -440,7 +439,7 @@ public class PowerAuthActivationOtpTest {
         powerAuthClient.initActivation(initRequest);
     }
 
-    @Test(expected = SoapFaultClientException.class)
+    @Test(expected = WebClientResponseException.class)
     public void wrongActivationInitParamTest5() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();

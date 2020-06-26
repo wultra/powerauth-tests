@@ -20,8 +20,8 @@ package com.wultra.security.powerauth.test.v31;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.crypto.client.keyfactory.PowerAuthClientKeyFactory;
 import io.getlime.security.powerauth.crypto.client.signature.PowerAuthClientSignature;
@@ -56,7 +56,6 @@ import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2
 import io.getlime.security.powerauth.rest.api.model.response.v3.ConfirmRecoveryResponsePayload;
 import io.getlime.security.powerauth.rest.api.model.response.v3.UpgradeResponsePayload;
 import io.getlime.security.powerauth.rest.api.model.response.v3.VaultUnlockResponsePayload;
-import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,9 +67,12 @@ import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.security.*;
+import java.security.InvalidKeyException;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
-import java.security.spec.*;
+import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -100,7 +102,7 @@ public class PowerAuthApiTest {
     private final ClientTokenGenerator tokenGenerator = new ClientTokenGenerator();
 
     @Autowired
-    public void setPowerAuthRestClient(PowerAuthRestClient powerAuthClient) {
+    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 
@@ -561,7 +563,7 @@ public class PowerAuthApiTest {
         byte[] signature = activation.computeApplicationSignature(activationIdentity, nonceDeviceBytes, cDevicePublicKeyBytes, BaseEncoding.base64().decode(config.getApplicationKey()),
                 BaseEncoding.base64().decode(config.getApplicationSecret()));
         byte[] ephemeralPublicKeyBytes = keyConvertor.convertPublicKeyToBytes(clientEphemeralKeyPair.getPublic());
-        io.getlime.powerauth.soap.v2.CreateActivationResponse createResponse = powerAuthClient.v2().createActivation(config.getApplicationKey(), config.getUserV31(), activationIdentity,
+        com.wultra.security.powerauth.client.v2.CreateActivationResponse createResponse = powerAuthClient.v2().createActivation(config.getApplicationKey(), config.getUserV31(), activationIdentity,
                 "test_activation_v2", BaseEncoding.base64().encode(nonceDeviceBytes),
                 BaseEncoding.base64().encode(ephemeralPublicKeyBytes), BaseEncoding.base64().encode(cDevicePublicKeyBytes),
                 null, BaseEncoding.base64().encode(signature));

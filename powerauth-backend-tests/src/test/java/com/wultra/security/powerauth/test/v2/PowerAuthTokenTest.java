@@ -33,7 +33,6 @@ import io.getlime.security.powerauth.lib.cmd.steps.v2.CreateTokenStep;
 import io.getlime.security.powerauth.lib.nextstep.client.NextStepClient;
 import io.getlime.security.powerauth.lib.nextstep.model.enumeration.AuthMethod;
 import io.getlime.security.powerauth.lib.nextstep.model.response.GetAuthMethodsResponse;
-import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -79,7 +78,7 @@ public class PowerAuthTokenTest {
     }
 
     @Autowired
-    public void setPowerAuthServiceClient(PowerAuthServiceClient powerAuthClient) {
+    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 
