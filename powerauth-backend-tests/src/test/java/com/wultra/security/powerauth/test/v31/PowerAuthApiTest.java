@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.test.v31;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
@@ -112,19 +113,19 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void systemStatusTest() {
+    public void systemStatusTest() throws PowerAuthClientException {
         GetSystemStatusResponse response = powerAuthClient.getSystemStatus();
         assertEquals("OK", response.getStatus());
     }
 
     @Test
-    public void errorListTest() {
+    public void errorListTest() throws PowerAuthClientException {
         GetErrorCodeListResponse response = powerAuthClient.getErrorList(Locale.ENGLISH.getLanguage());
         assertTrue(response.getErrors().size() > 32);
     }
 
     @Test
-    public void initActivationTest() {
+    public void initActivationTest() throws PowerAuthClientException {
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
         assertNotNull(response.getActivationId());
         assertNotNull(response.getActivationCode());
@@ -136,7 +137,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void prepareActivationTest() throws CryptoProviderException, GenericCryptoException, EciesException, IOException {
+    public void prepareActivationTest() throws CryptoProviderException, GenericCryptoException, EciesException, IOException, PowerAuthClientException {
         String activationName = "test_prepare";
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
         String activationId = response.getActivationId();
@@ -163,7 +164,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void createActivationTest() throws CryptoProviderException, GenericCryptoException, EciesException, IOException {
+    public void createActivationTest() throws CryptoProviderException, GenericCryptoException, EciesException, IOException, PowerAuthClientException {
         String activationName = "test_create";
         KeyPair deviceKeyPair = activation.generateDeviceKeyPair();
         byte[] devicePublicKeyBytes = keyConvertor.convertPublicKeyToBytes(deviceKeyPair.getPublic());
@@ -191,7 +192,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void updateActivationOtpAndCommitTest() throws CryptoProviderException, GenericCryptoException, EciesException, IOException {
+    public void updateActivationOtpAndCommitTest() throws CryptoProviderException, GenericCryptoException, EciesException, IOException, PowerAuthClientException {
         String activationName = "test_update_otp";
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId(), ActivationOtpValidation.NONE, null);
         String activationId = response.getActivationId();
@@ -220,7 +221,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void removeActivationTest() {
+    public void removeActivationTest() throws PowerAuthClientException {
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
@@ -231,7 +232,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void activationListForUserTest() {
+    public void activationListForUserTest() throws PowerAuthClientException {
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
@@ -240,7 +241,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void lookupActivationsTest() {
+    public void lookupActivationsTest() throws PowerAuthClientException {
         Calendar now = new GregorianCalendar();
         now.add(Calendar.SECOND, -1);
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
@@ -252,7 +253,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void activationStatusUpdateTest() {
+    public void activationStatusUpdateTest() throws PowerAuthClientException {
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
@@ -263,7 +264,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void verifySignatureTest() throws GenericCryptoException, CryptoProviderException, InvalidKeyException {
+    public void verifySignatureTest() throws GenericCryptoException, CryptoProviderException, InvalidKeyException, PowerAuthClientException {
         Calendar before = new GregorianCalendar();
         before.add(Calendar.SECOND, -1);
         byte[] nonceBytes = keyGenerator.generateRandomBytes(16);
@@ -304,7 +305,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void nonPersonalizedOfflineSignaturePayloadTest() {
+    public void nonPersonalizedOfflineSignaturePayloadTest() throws PowerAuthClientException {
         // For more complete tests for createNonPersonalizedOfflineSignaturePayload see PowerAuthSignatureTest
         CreateNonPersonalizedOfflineSignaturePayloadResponse response = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(config.getApplicationId(), "test_data");
         assertNotNull(response.getOfflineData());
@@ -312,7 +313,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void personalizedOfflineSignaturePayloadTest() {
+    public void personalizedOfflineSignaturePayloadTest() throws PowerAuthClientException {
         // For more complete tests for createPersonalizedOfflineSignaturePayload see PowerAuthSignatureTest
         CreatePersonalizedOfflineSignaturePayloadResponse response = powerAuthClient.createPersonalizedOfflineSignaturePayload(config.getActivationIdV31(), "test_data");
         assertNotNull(response.getOfflineData());
@@ -320,14 +321,14 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void verifyOfflineSignatureTest() {
+    public void verifyOfflineSignatureTest() throws PowerAuthClientException {
         // For more complete tests for verifyOfflineSignature see PowerAuthSignatureTest
         VerifyOfflineSignatureResponse response = powerAuthClient.verifyOfflineSignature(config.getActivationIdV31(), "test_data", "12345678", false);
         assertFalse(response.isSignatureValid());
     }
 
     @Test
-    public void unlockVaultAndECDSASignatureTest() throws GenericCryptoException, CryptoProviderException, InvalidKeySpecException, EciesException, IOException, InvalidKeyException {
+    public void unlockVaultAndECDSASignatureTest() throws GenericCryptoException, CryptoProviderException, InvalidKeySpecException, EciesException, IOException, InvalidKeyException, PowerAuthClientException {
         byte[] transportMasterKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "transportMasterKey"));
         byte[] serverPublicKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "serverPublicKey"));
         byte[] encryptedDevicePrivateKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "encryptedDevicePrivateKey"));
@@ -380,7 +381,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void activationHistoryTest() {
+    public void activationHistoryTest() throws PowerAuthClientException {
         Calendar before = new GregorianCalendar();
         before.add(Calendar.SECOND, -1);
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
@@ -395,7 +396,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void blockAndUnblockActivationTest() {
+    public void blockAndUnblockActivationTest() throws PowerAuthClientException {
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
@@ -413,7 +414,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void applicationListTest() {
+    public void applicationListTest() throws PowerAuthClientException {
         List<GetApplicationListResponse.Applications> applications = powerAuthClient.getApplicationList();
         assertNotEquals(0, applications.size());
         boolean testApplicationFound = false;
@@ -426,7 +427,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void applicationDetailTest() {
+    public void applicationDetailTest() throws PowerAuthClientException {
         GetApplicationDetailResponse response = powerAuthClient.getApplicationDetail(config.getApplicationId());
         assertEquals("PA_Tests", response.getApplicationName());
         boolean testAppVersionFound = false;
@@ -439,7 +440,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void applicationVersionLookupTest() {
+    public void applicationVersionLookupTest() throws PowerAuthClientException {
         LookupApplicationByAppKeyResponse response = powerAuthClient.lookupApplicationByAppKey(config.getApplicationKey());
         assertEquals(config.getApplicationId(), response.getApplicationId());
     }
@@ -447,7 +448,7 @@ public class PowerAuthApiTest {
     // createApplication and createApplication version tests are skipped to avoid creating too many applications
 
     @Test
-    public void applicationSupportTest() {
+    public void applicationSupportTest() throws PowerAuthClientException {
         UnsupportApplicationVersionResponse response = powerAuthClient.unsupportApplicationVersion(config.getApplicationVersionId());
         assertFalse(response.isSupported());
         SupportApplicationVersionResponse response2 = powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
@@ -455,7 +456,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void applicationIntegrationTest() {
+    public void applicationIntegrationTest() throws PowerAuthClientException {
         String integrationName = UUID.randomUUID().toString();
         CreateIntegrationResponse response = powerAuthClient.createIntegration(integrationName);
         assertEquals(integrationName, response.getName());
@@ -472,7 +473,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void callbackTest() {
+    public void callbackTest() throws PowerAuthClientException {
         String callbackName = UUID.randomUUID().toString();
         String url = "http://test.wultra.com/";
         CreateCallbackUrlResponse response = powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, url);
@@ -490,7 +491,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void createValidateAndRemoveTokenTest() throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, IOException, EciesException {
+    public void createValidateAndRemoveTokenTest() throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, IOException, EciesException, PowerAuthClientException {
         byte[] transportMasterKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "transportMasterKey"));
         byte[] serverPublicKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "serverPublicKey"));
         final ECPublicKey serverPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(serverPublicKeyBytes);
@@ -524,7 +525,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void getEciesDecryptorTest() throws CryptoProviderException, GenericCryptoException, EciesException {
+    public void getEciesDecryptorTest() throws CryptoProviderException, GenericCryptoException, EciesException, PowerAuthClientException {
         String requestData = "test_data";
         EciesEncryptor eciesEncryptor = eciesFactory.getEciesEncryptorForApplication((ECPublicKey) config.getMasterPublicKey(), config.getApplicationSecret().getBytes(StandardCharsets.UTF_8), EciesSharedInfo1.APPLICATION_SCOPE_GENERIC);
         EciesCryptogram eciesCryptogram = eciesEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8), true);
@@ -552,7 +553,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void upgradeTest() throws CryptoProviderException, GenericCryptoException, InvalidKeyException, InvalidKeySpecException, EciesException, IOException {
+    public void upgradeTest() throws CryptoProviderException, GenericCryptoException, InvalidKeyException, InvalidKeySpecException, EciesException, IOException, PowerAuthClientException {
         KeyPair clientEphemeralKeyPair = keyGenerator.generateKeyPair();
         KeyPair deviceKeyPair = activation.generateDeviceKeyPair();
         String activationIdentity = UUID.randomUUID().toString();
@@ -598,7 +599,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void recoveryCodeCreateLookupRevokeTest() {
+    public void recoveryCodeCreateLookupRevokeTest() throws PowerAuthClientException {
         CreateRecoveryCodeResponse createResponse = powerAuthClient.createRecoveryCode(config.getApplicationId(), config.getUserV31(), 2L);
         assertEquals(config.getUserV31(), createResponse.getUserId());
         assertEquals(RecoveryCodeStatus.CREATED, createResponse.getStatus());
@@ -610,7 +611,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void recoveryCodeConfirmAndActivationTest() throws CryptoProviderException, GenericCryptoException, IOException, EciesException, InvalidKeyException, InvalidKeySpecException {
+    public void recoveryCodeConfirmAndActivationTest() throws CryptoProviderException, GenericCryptoException, IOException, EciesException, InvalidKeyException, InvalidKeySpecException, PowerAuthClientException {
         String activationName = "test_create_recovery";
         KeyPair deviceKeyPair = activation.generateDeviceKeyPair();
         byte[] devicePublicKeyBytes = keyConvertor.convertPublicKeyToBytes(deviceKeyPair.getPublic());
@@ -692,7 +693,7 @@ public class PowerAuthApiTest {
     }
 
     @Test
-    public void recoveryConfigTest() {
+    public void recoveryConfigTest() throws PowerAuthClientException {
         GetRecoveryConfigResponse response = powerAuthClient.getRecoveryConfig(config.getApplicationId());
         String remotePostcardPublicKey = response.getRemotePostcardPublicKey();
         assertNotNull(response.getPostcardPublicKey());

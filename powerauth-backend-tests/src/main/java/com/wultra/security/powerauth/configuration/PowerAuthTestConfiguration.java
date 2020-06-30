@@ -20,18 +20,24 @@ package com.wultra.security.powerauth.configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
 import com.wultra.security.powerauth.test.PowerAuthTestSetUp;
 import com.wultra.security.powerauth.test.PowerAuthTestTearDown;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientConfiguration;
 import io.getlime.security.powerauth.lib.nextstep.client.NextStepClient;
+import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
+import org.apache.wss4j.dom.WSConstants;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.oxm.jaxb.Jaxb2Marshaller;
+import org.springframework.ws.client.support.interceptor.ClientInterceptor;
+import org.springframework.ws.soap.security.wss4j2.Wss4jSecurityInterceptor;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -48,11 +54,11 @@ import java.util.UUID;
 @Configuration
 public class PowerAuthTestConfiguration {
 
-    @Value("${powerauth.service.url}")
-    private String powerAuthServiceUrl;
-
     @Value("${powerauth.rest.url}")
     private String powerAuthRestUrl;
+
+    @Value("${powerauth.soap.url}")
+    private String powerAuthServiceUrl;
 
     @Value("${powerauth.integration.service.url}")
     private String powerAuthIntegrationUrl;
@@ -74,6 +80,9 @@ public class PowerAuthTestConfiguration {
 
     @Value("${powerauth.test.application.version}")
     private String applicationVersion;
+
+    @Value("${powerauth.test.client.transport}")
+    private String clientTransport;
 
     private String applicationVersionForTests;
     private String applicationKey;
@@ -120,12 +129,50 @@ public class PowerAuthTestConfiguration {
     }
 
     /**
-     * Initialize PowerAuth REST client.
-     * @return PowerAuth REST client.
+     * Initialize security interceptor.
+     * @return Security interceptor.
      */
     @Bean
-    public PowerAuthClient powerAuthClient() {
-        return new PowerAuthRestClient(powerAuthRestUrl);
+    public Wss4jSecurityInterceptor securityInterceptor() {
+        Wss4jSecurityInterceptor wss4jSecurityInterceptor = new Wss4jSecurityInterceptor();
+        wss4jSecurityInterceptor.setSecurementActions("UsernameToken");
+        wss4jSecurityInterceptor.setSecurementUsername(clientToken);
+        wss4jSecurityInterceptor.setSecurementPassword(clientSecret);
+        wss4jSecurityInterceptor.setSecurementPasswordType(WSConstants.PW_TEXT);
+        return wss4jSecurityInterceptor;
+    }
+
+    /**
+     * Initialize JAXB marshaller.
+     * @return JAXB marshaller.
+     */
+    @Bean
+    public Jaxb2Marshaller marshaller() {
+        Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
+        marshaller.setContextPaths("com.wultra.security.powerauth.client.v2", "com.wultra.security.powerauth.client.v3");
+        return marshaller;
+    }
+
+    /**
+     * Initialize PowerAuth client.
+     * @param marshaller JAXB marshaller.
+     * @return PowerAuth client.
+     */
+    @Bean
+    public PowerAuthClient powerAuthClient(Jaxb2Marshaller marshaller) {
+        if ("SOAP".equals(clientTransport)) {
+            PowerAuthServiceClient client = new PowerAuthServiceClient();
+            client.setDefaultUri(powerAuthServiceUrl);
+            client.setMarshaller(marshaller);
+            client.setUnmarshaller(marshaller);
+            if (!clientToken.isEmpty()) {
+                ClientInterceptor interceptor = securityInterceptor();
+                client.setInterceptors(new ClientInterceptor[]{interceptor});
+            }
+            return client;
+        } else {
+            return new PowerAuthRestClient(powerAuthRestUrl);
+        }
     }
 
     @Bean
@@ -173,7 +220,7 @@ public class PowerAuthTestConfiguration {
     }
 
     @PreDestroy
-    public void tearDown() {
+    public void tearDown() throws PowerAuthClientException {
         tearDown.execute();
     }
 

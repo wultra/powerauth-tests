@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.test.v31;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
@@ -36,7 +37,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.File;
 import java.io.IOException;
@@ -390,7 +390,7 @@ public class PowerAuthActivationOtpTest {
         }
     }
 
-    @Test(expected = WebClientResponseException.class)
+    @Test(expected = PowerAuthClientException.class)
     public void wrongActivationInitParamTest1() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -402,7 +402,7 @@ public class PowerAuthActivationOtpTest {
         powerAuthClient.initActivation(initRequest);
     }
 
-    @Test(expected = WebClientResponseException.class)
+    @Test(expected = PowerAuthClientException.class)
     public void wrongActivationInitParamTest2() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -414,7 +414,7 @@ public class PowerAuthActivationOtpTest {
         powerAuthClient.initActivation(initRequest);
     }
 
-    @Test(expected = WebClientResponseException.class)
+    @Test(expected = PowerAuthClientException.class)
     public void wrongActivationInitParamTest3() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -426,7 +426,7 @@ public class PowerAuthActivationOtpTest {
         powerAuthClient.initActivation(initRequest);
     }
 
-    @Test(expected = WebClientResponseException.class)
+    @Test(expected = PowerAuthClientException.class)
     public void wrongActivationInitParamTest4() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -439,7 +439,7 @@ public class PowerAuthActivationOtpTest {
         powerAuthClient.initActivation(initRequest);
     }
 
-    @Test(expected = WebClientResponseException.class)
+    @Test(expected = PowerAuthClientException.class)
     public void wrongActivationInitParamTest5() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();

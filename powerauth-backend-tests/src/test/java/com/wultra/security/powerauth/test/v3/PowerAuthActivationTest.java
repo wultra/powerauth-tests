@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.test.v3;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
@@ -179,7 +180,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationNonExistentTest() {
+    public void activationNonExistentTest() throws PowerAuthClientException {
         // Verify activation status
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus("AAAAA-BBBBB-CCCCC-DDDDD");
         assertEquals(ActivationStatus.REMOVED, statusResponse.getActivationStatus());

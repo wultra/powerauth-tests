@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.test;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -61,7 +62,7 @@ public class PowerAuthTestSetUp {
         createActivationV2();
     }
 
-    private void createApplication() {
+    private void createApplication() throws PowerAuthClientException {
         // Create application if it does not exist
         List<GetApplicationListResponse.Applications> applications = powerAuthClient.getApplicationList();
         boolean applicationExists = false;

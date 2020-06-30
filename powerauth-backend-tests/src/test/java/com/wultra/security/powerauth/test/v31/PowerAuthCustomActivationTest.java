@@ -19,6 +19,7 @@ package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.v3.ActivationStatus;
 import com.wultra.security.powerauth.client.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.v3.GetApplicationDetailResponse;
@@ -42,7 +43,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.client.WebClientResponseException;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -493,7 +493,7 @@ public class PowerAuthCustomActivationTest {
         try {
             powerAuthClient.commitActivation(activationId, "test");
             fail("Double commit should not be allowed");
-        } catch (WebClientResponseException ex) {
+        } catch (PowerAuthClientException ex) {
             powerAuthClient.removeActivation(activationId, "test");
         }
     }
