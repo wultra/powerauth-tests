@@ -137,7 +137,7 @@ public class PowerAuthHttpTest {
                 .exchange()
                 .block();
 
-        assertEquals(401, Objects.requireNonNull(response).rawStatusCode());
+        assertEquals(400, Objects.requireNonNull(response).rawStatusCode());
 
         ResponseEntity<ErrorResponse> responseEntity = Objects.requireNonNull(response.toEntity(ErrorResponse.class).block());
         ErrorResponse errorResponse = Objects.requireNonNull(responseEntity.getBody());
