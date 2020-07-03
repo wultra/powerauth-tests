@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.webflow.test.PowerAuthTestSetUp;
 import com.wultra.security.powerauth.webflow.test.PowerAuthTestTearDown;
-import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientConfiguration;
 import io.getlime.security.powerauth.lib.nextstep.client.NextStepClient;
@@ -148,9 +147,6 @@ public class WebFlowTestConfiguration {
     public void setUp() throws Exception {
         // Add Bouncy Castle Security Provider
         Security.addProvider(new BouncyCastleProvider());
-
-        // Configure REST client
-        RestClientConfiguration.configure();
 
         // Create status file and user
         statusFile = File.createTempFile("webflow_status", ".json");
