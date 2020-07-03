@@ -195,9 +195,6 @@ public class PowerAuthTestConfiguration {
         // Add Bouncy Castle Security Provider
         Security.addProvider(new BouncyCastleProvider());
 
-        // Configure REST client
-        RestClientConfiguration.configure();
-
         // Prepare common userId
         final String userId = UUID.randomUUID().toString();
 

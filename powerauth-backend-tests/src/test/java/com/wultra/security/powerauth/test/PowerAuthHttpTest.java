@@ -17,23 +17,26 @@
  */
 package com.wultra.security.powerauth.test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.http.PowerAuthSignatureHttpHeader;
 import io.getlime.security.powerauth.http.PowerAuthTokenHttpHeader;
-import kong.unirest.HttpResponse;
-import kong.unirest.Unirest;
+import io.getlime.security.powerauth.lib.cmd.util.MapUtil;
+import io.getlime.security.powerauth.lib.cmd.util.WebClientFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ClientResponse;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
@@ -60,14 +63,20 @@ public class PowerAuthHttpTest {
         headers.put("Content-Type", "application/json");
         headers.put(PowerAuthSignatureHttpHeader.HEADER_NAME, signatureHeaderInvalid);
 
-        HttpResponse<String> response = Unirest.post(config.getPowerAuthIntegrationUrl() + "/pa/signature/validate")
-                .headers(headers)
-                .body(data)
-                .asString();
-        assertEquals(401, response.getStatus());
+        ClientResponse response = WebClientFactory.getWebClient()
+                .post()
+                .uri(config.getPowerAuthIntegrationUrl() + "/pa/signature/validate")
+                .headers(h -> {
+                    h.addAll(MapUtil.toMultiValueMap(headers));
+                })
+                .body(BodyInserters.fromValue(data))
+                .exchange()
+                .block();
 
-        ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(response.getBody(), ErrorResponse.class);
+        assertEquals(401, Objects.requireNonNull(response).rawStatusCode());
+
+        ResponseEntity<ErrorResponse> responseEntity = Objects.requireNonNull(response.toEntity(ErrorResponse.class).block());
+        ErrorResponse errorResponse = Objects.requireNonNull(responseEntity.getBody());
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
     }
@@ -90,14 +99,20 @@ public class PowerAuthHttpTest {
             tokenUrl = config.getPowerAuthIntegrationUrl() + "/token/authorize";
         }
 
-        HttpResponse<String> response = Unirest.post(tokenUrl)
-                .headers(headers)
-                .body(data)
-                .asString();
-        assertEquals(401, response.getStatus());
+        ClientResponse response = WebClientFactory.getWebClient()
+                .post()
+                .uri(tokenUrl)
+                .headers(h -> {
+                    h.addAll(MapUtil.toMultiValueMap(headers));
+                })
+                .body(BodyInserters.fromValue(data))
+                .exchange()
+                .block();
 
-        ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(response.getBody(), ErrorResponse.class);
+        assertEquals(401, Objects.requireNonNull(response).rawStatusCode());
+
+        ResponseEntity<ErrorResponse> responseEntity = Objects.requireNonNull(response.toEntity(ErrorResponse.class).block());
+        ErrorResponse errorResponse = Objects.requireNonNull(responseEntity.getBody());
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
     }
@@ -112,14 +127,20 @@ public class PowerAuthHttpTest {
         headers.put("Content-Type", "application/json");
         headers.put(PowerAuthTokenHttpHeader.HEADER_NAME, tokenHeaderInvalid);
 
-        HttpResponse<String> response = Unirest.post(config.getPowerAuthIntegrationUrl() + "/pa/v3/activation/create")
-                .headers(headers)
-                .body(data)
-                .asString();
-        assertEquals(400, response.getStatus());
+        ClientResponse response = WebClientFactory.getWebClient()
+                .post()
+                .uri(config.getPowerAuthIntegrationUrl() + "/pa/v3/activation/create")
+                .headers(h -> {
+                    h.addAll(MapUtil.toMultiValueMap(headers));
+                })
+                .body(BodyInserters.fromValue(data))
+                .exchange()
+                .block();
 
-        ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(response.getBody(), ErrorResponse.class);
+        assertEquals(401, Objects.requireNonNull(response).rawStatusCode());
+
+        ResponseEntity<ErrorResponse> responseEntity = Objects.requireNonNull(response.toEntity(ErrorResponse.class).block());
+        ErrorResponse errorResponse = Objects.requireNonNull(responseEntity.getBody());
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
