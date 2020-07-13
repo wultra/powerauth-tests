@@ -19,6 +19,7 @@
  */
 package com.wultra.security.powerauth.provider;
 
+import io.getlime.security.powerauth.rest.api.base.exception.PowerAuthActivationException;
 import io.getlime.security.powerauth.rest.api.base.provider.CustomActivationProvider;
 import io.getlime.security.powerauth.rest.api.model.entity.ActivationType;
 import org.springframework.stereotype.Component;
@@ -60,7 +61,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public Map<String, Object> processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, ActivationType activationType) {
+    public Map<String, Object> processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType) throws PowerAuthActivationException {
         Map<String, Object> processedCustomAttributes = new HashMap<>();
         if (customAttributes != null) {
             processedCustomAttributes.putAll(customAttributes);
@@ -83,7 +84,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, ActivationType activationType) {
+    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType) throws PowerAuthActivationException {
         if (testId != null) {
             switch (testId) {
                 case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
@@ -107,7 +108,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public void activationWasCommitted(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, ActivationType activationType) {
+    public void activationWasCommitted(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType) throws PowerAuthActivationException {
         // Ignore
     }
 
