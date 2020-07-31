@@ -476,7 +476,7 @@ public class PowerAuthApiTest {
     public void callbackTest() throws PowerAuthClientException {
         String callbackName = UUID.randomUUID().toString();
         String url = "http://test.wultra.com/";
-        CreateCallbackUrlResponse response = powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, url);
+        CreateCallbackUrlResponse response = powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, url, Collections.emptyList());
         assertEquals(callbackName, response.getName());
         List<GetCallbackUrlListResponse.CallbackUrlList> items = powerAuthClient.getCallbackUrlList(config.getApplicationId());
         boolean callbackFound = false;
