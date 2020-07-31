@@ -18,6 +18,8 @@
 package com.wultra.security.powerauth.test.v31;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.GetApplicationDetailResponse;
+import com.wultra.security.powerauth.client.v3.ListApplicationRolesResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,6 +27,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.util.Arrays;
+import java.util.Collections;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Application roles tests.
@@ -51,7 +58,6 @@ public class PowerAuthApplicationRolesTest {
 
     @Test
     public void applicationRolesCrudTest() throws Exception {
-        /*
         // Test application roles CRUD
         long applicationId = config.getApplicationId();
 
@@ -81,6 +87,5 @@ public class PowerAuthApplicationRolesTest {
 
         ListApplicationRolesResponse listResponse4 = powerAuthClient.listApplicationRoles(applicationId);
         assertEquals(Arrays.asList("ROLE3", "ROLE4"), listResponse4.getApplicationRoles());
-         */
     }
 }
