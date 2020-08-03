@@ -123,7 +123,8 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
         return 10000;
     }
 
-    public List<String> getActivationFlags(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, ActivationType activationType) {
+    @Override
+    public List<String> getActivationFlags(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType) {
         return Collections.singletonList("TEST-PROVIDER");
     }
 }
