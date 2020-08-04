@@ -21,17 +21,19 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.v3.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.security.powerauth.lib.cmd.util.WebClientFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.ClientResponse;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.hibernate.validator.internal.util.Contracts.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -43,12 +45,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = PowerAuthTestConfiguration.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
+@ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
 public class PowerAuthCallbackTest {
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
+
+    @LocalServerPort
+    private int port;
 
     @Autowired
     public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
@@ -123,4 +129,38 @@ public class PowerAuthCallbackTest {
         assertEquals(callbackCountOrig - 1, powerAuthClient.getCallbackUrlList(config.getApplicationId()).size());
     }
 
+    @Test
+    public void callbackExecutionTest() throws PowerAuthClientException, InterruptedException {
+        String callbackName = UUID.randomUUID().toString();
+        String callbackUrlPost = "http://localhost:" + port + "/callback/post";
+        powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, callbackUrlPost, Arrays.asList("activationId", "userId", "activationName", "deviceInfo", "platform", "activationFlags", "activationStatus", "blockedReason", "applicationId"));
+        List<GetCallbackUrlListResponse.CallbackUrlList> callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
+        // Update activation status
+        powerAuthClient.blockActivation(config.getActivationIdV31(), "TEST_CALLBACK", config.getUserV31());
+        String callbackUrlVerify = "http://localhost:" + port + "/callback/verify";
+        // When a HTTP error occurs, the test fails
+        Map<String, Object> request = new HashMap<>();
+        request.put("activationId", config.getActivationIdV31());
+        request.put("userId", config.getUserV31());
+        request.put("activationName", "test v31");
+        request.put("deviceInfo", "backend-tests");
+        request.put("platform", "unknown");
+        request.put("activationFlags", Collections.emptyList());
+        request.put("activationStatus", "BLOCKED");
+        request.put("blockedReason", "TEST_CALLBACK");
+        request.put("applicationId", config.getApplicationId());
+        ClientResponse response = WebClientFactory.getWebClient().post().uri(callbackUrlVerify).body(BodyInserters.fromValue(request)).exchange().block();
+        assertTrue(Objects.requireNonNull(response).statusCode().is2xxSuccessful());
+        powerAuthClient.unblockActivation(config.getActivationIdV31(), config.getUserV31());
+        boolean callbackFound = false;
+        for (GetCallbackUrlListResponse.CallbackUrlList callback: callbacks) {
+            if (callbackName.equals(callback.getName())) {
+                callbackFound = true;
+                int callbackCountOrig = callbacks.size();
+                powerAuthClient.removeCallbackUrl(callback.getId());
+                assertEquals(callbackCountOrig - 1, powerAuthClient.getCallbackUrlList(config.getApplicationId()).size());
+            }
+        }
+        assertTrue(callbackFound);
+    }
 }
