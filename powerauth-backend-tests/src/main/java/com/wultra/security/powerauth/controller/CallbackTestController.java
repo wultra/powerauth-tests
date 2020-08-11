@@ -56,7 +56,7 @@ public class CallbackTestController {
             }
             counter++;
             try {
-                Thread.sleep(10);
+                Thread.sleep(100);
             } catch (InterruptedException e) {
             }
             if (counter > CALLBACK_VERIFY_MAX_ATTEMPTS) {
