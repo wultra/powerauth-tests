@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.client.v3.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.lib.cmd.util.WebClientFactory;
+import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -64,6 +65,15 @@ public class PowerAuthCallbackTest {
     @Autowired
     public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {
         this.config = config;
+    }
+
+    @After
+    public void tearDown() throws PowerAuthClientException {
+        // Remove all callbacks on test application, they slow down tests
+        List<GetCallbackUrlListResponse.CallbackUrlList> callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
+        for (GetCallbackUrlListResponse.CallbackUrlList callback: callbacks) {
+            powerAuthClient.removeCallbackUrl(callback.getId());
+        }
     }
 
     @Test
