@@ -63,7 +63,9 @@ public class PowerAuthApplicationRolesTest {
 
         // Remove all existing roles
         ListApplicationRolesResponse initResponse = powerAuthClient.listApplicationRoles(applicationId);
-        powerAuthClient.removeApplicationRoles(applicationId, initResponse.getApplicationRoles());
+        if (!initResponse.getApplicationRoles().isEmpty()) {
+            powerAuthClient.removeApplicationRoles(applicationId, initResponse.getApplicationRoles());
+        }
 
         powerAuthClient.addApplicationRoles(applicationId, Arrays.asList("ROLE1", "ROLE2"));
 
