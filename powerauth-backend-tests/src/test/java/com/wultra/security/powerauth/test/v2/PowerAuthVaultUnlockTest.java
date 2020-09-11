@@ -130,7 +130,7 @@ public class PowerAuthVaultUnlockTest {
         ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_SECURE_VAULT", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_SECURE_VAULT_INVALID", errorResponse.getResponseObject().getMessage());
+        assertEquals("com.wultra.security.powerauth.client.model.error.PowerAuthClientException: Invalid Signature Provided.", errorResponse.getResponseObject().getMessage());
     }
 
     @Test
@@ -222,7 +222,7 @@ public class PowerAuthVaultUnlockTest {
         ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_SECURE_VAULT", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_SECURE_VAULT_INVALID", errorResponse.getResponseObject().getMessage());
+        assertEquals("com.wultra.security.powerauth.client.model.error.PowerAuthClientException: Invalid input parameter format.", errorResponse.getResponseObject().getMessage());
     }
 
     @Test

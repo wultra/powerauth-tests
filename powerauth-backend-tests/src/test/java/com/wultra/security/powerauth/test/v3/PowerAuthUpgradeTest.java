@@ -332,7 +332,7 @@ public class PowerAuthUpgradeTest {
         ErrorResponse errorResponse = objectMapper.readValue(stepLoggerMig.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_UPGRADE", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
+        assertEquals("com.wultra.security.powerauth.client.model.error.PowerAuthClientException: Incorrect activation state.", errorResponse.getResponseObject().getMessage());
 
         // Support application version
         powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
@@ -410,7 +410,7 @@ public class PowerAuthUpgradeTest {
         ErrorResponse errorResponse = objectMapper.readValue(stepLoggerMig.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_UPGRADE", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
+        assertEquals("com.wultra.security.powerauth.client.model.error.PowerAuthClientException: Incorrect activation state.", errorResponse.getResponseObject().getMessage());
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
@@ -479,7 +479,7 @@ public class PowerAuthUpgradeTest {
         ErrorResponse errorResponse = objectMapper.readValue(stepLoggerMig.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_UPGRADE", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
+        assertEquals("com.wultra.security.powerauth.client.model.error.PowerAuthClientException: Incorrect activation state.", errorResponse.getResponseObject().getMessage());
     }
 
     @Test
@@ -545,7 +545,7 @@ public class PowerAuthUpgradeTest {
         ErrorResponse errorResponse = objectMapper.readValue(stepLoggerMig.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_UPGRADE", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
+        assertEquals("com.wultra.security.powerauth.client.model.error.PowerAuthClientException: Incorrect activation state.", errorResponse.getResponseObject().getMessage());
 
         // Unlock activation
         powerAuthClient.unblockActivation(initResponse.getActivationId(), "test");
@@ -637,7 +637,7 @@ public class PowerAuthUpgradeTest {
         ErrorResponse errorResponse = objectMapper.readValue(stepLoggerMig.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_UPGRADE", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
+        assertEquals("com.wultra.security.powerauth.client.model.error.PowerAuthClientException: Incorrect activation state.", errorResponse.getResponseObject().getMessage());
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
@@ -739,7 +739,7 @@ public class PowerAuthUpgradeTest {
         ErrorResponse errorResponse = objectMapper.readValue(stepLogger3.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_UPGRADE", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
+        assertEquals("com.wultra.security.powerauth.client.model.error.PowerAuthClientException: Incorrect activation state.", errorResponse.getResponseObject().getMessage());
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
@@ -1112,7 +1112,7 @@ public class PowerAuthUpgradeTest {
     private void checkSignatureError(ErrorResponse errorResponse) {
         // Errors differ when Web Flow is used because of its Exception handler
         assertTrue("POWERAUTH_AUTH_FAIL".equals(errorResponse.getResponseObject().getCode()) || "ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()));
-        assertTrue("Signature validation failed".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_SIGNATURE_INVALID_VALUE".equals(errorResponse.getResponseObject().getMessage()));
+        assertTrue("Signature validation failed".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_SIGNATURE_INVALID".equals(errorResponse.getResponseObject().getMessage()));
     }
 
 }
