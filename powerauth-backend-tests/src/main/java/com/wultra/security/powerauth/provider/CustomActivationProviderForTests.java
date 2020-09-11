@@ -118,9 +118,9 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public Integer getValidityPeriodDuringActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId, ActivationType activationType) {
+    public Long getValidityPeriodDuringActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId, ActivationType activationType) {
         // Return 10 seconds as validity period
-        return 10000;
+        return 10000L;
     }
 
     @Override
