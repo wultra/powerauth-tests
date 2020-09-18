@@ -262,7 +262,7 @@ public class PowerAuthActivationTest {
         ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
-        assertEquals("com.wultra.security.powerauth.client.model.error.PowerAuthClientException: Activation with given activation ID was not found.", errorResponse.getResponseObject().getMessage());
+        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
     @Test
@@ -279,7 +279,7 @@ public class PowerAuthActivationTest {
         ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
-        assertEquals("com.wultra.security.powerauth.client.model.error.PowerAuthClientException: Activation with given activation ID was not found.", errorResponse.getResponseObject().getMessage());
+        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
     @Test
