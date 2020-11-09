@@ -42,7 +42,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     public static int MAX_FAILED_ATTEMPTS = 3;
 
     @Override
-    public String lookupUserIdForAttributes(Map<String, String> identityAttributes) {
+    public String lookupUserIdForAttributes(Map<String, String> identityAttributes, Map<String, Object> context) {
         testId = identityAttributes.get("test_id");
         Map<String, String> userNameToUserIdMap = new HashMap<>();
         userNameToUserIdMap.put("TestUser1", "12345678");
@@ -61,7 +61,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public Map<String, Object> processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType) throws PowerAuthActivationException {
+    public Map<String, Object> processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType, Map<String, Object> context) throws PowerAuthActivationException {
         Map<String, Object> processedCustomAttributes = new HashMap<>();
         if (customAttributes != null) {
             processedCustomAttributes.putAll(customAttributes);
@@ -84,7 +84,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType) throws PowerAuthActivationException {
+    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType, Map<String, Object> context) throws PowerAuthActivationException {
         if (testId != null) {
             switch (testId) {
                 case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
@@ -108,23 +108,23 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public void activationWasCommitted(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType) throws PowerAuthActivationException {
+    public void activationWasCommitted(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType, Map<String, Object> context) throws PowerAuthActivationException {
         // Ignore
     }
 
     @Override
-    public Integer getMaxFailedAttemptCount(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId, ActivationType activationType) {
+    public Integer getMaxFailedAttemptCount(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId, ActivationType activationType, Map<String, Object> context) {
         return MAX_FAILED_ATTEMPTS;
     }
 
     @Override
-    public Long getValidityPeriodDuringActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId, ActivationType activationType) {
+    public Long getValidityPeriodDuringActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId, ActivationType activationType, Map<String, Object> context) {
         // Return 10 seconds as validity period
         return 10000L;
     }
 
     @Override
-    public List<String> getActivationFlags(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType) {
+    public List<String> getActivationFlags(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType, Map<String, Object> context) {
         return Collections.singletonList("TEST-PROVIDER");
     }
 }
