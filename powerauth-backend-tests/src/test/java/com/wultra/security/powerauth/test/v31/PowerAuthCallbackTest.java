@@ -17,11 +17,12 @@
  */
 package com.wultra.security.powerauth.test.v31;
 
+import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.v3.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import io.getlime.security.powerauth.lib.cmd.util.WebClientFactory;
+import io.getlime.security.powerauth.lib.cmd.util.RestClientFactory;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -30,9 +31,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.ClientResponse;
 
 import java.util.*;
 
@@ -140,7 +140,7 @@ public class PowerAuthCallbackTest {
     }
 
     @Test
-    public void callbackExecutionTest() throws PowerAuthClientException, InterruptedException {
+    public void callbackExecutionTest() throws PowerAuthClientException, InterruptedException, RestClientException {
         String callbackName = UUID.randomUUID().toString();
         String callbackUrlPost = "http://localhost:" + port + "/callback/post";
         powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, callbackUrlPost, Arrays.asList("activationId", "userId", "activationName", "deviceInfo", "platform", "activationFlags", "activationStatus", "blockedReason", "applicationId"));
@@ -159,8 +159,7 @@ public class PowerAuthCallbackTest {
         request.put("activationStatus", "BLOCKED");
         request.put("blockedReason", "TEST_CALLBACK");
         request.put("applicationId", config.getApplicationId());
-        ClientResponse response = WebClientFactory.getWebClient().post().uri(callbackUrlVerify).body(BodyInserters.fromValue(request)).exchange().block();
-        assertTrue(Objects.requireNonNull(response).statusCode().is2xxSuccessful());
+        RestClientFactory.getRestClient().post(callbackUrlVerify, request, new ParameterizedTypeReference<String>() {});
         powerAuthClient.unblockActivation(config.getActivationIdV31(), config.getUserV31());
         boolean callbackFound = false;
         for (GetCallbackUrlListResponse.CallbackUrlList callback: callbacks) {

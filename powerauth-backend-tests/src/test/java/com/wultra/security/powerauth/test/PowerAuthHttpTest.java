@@ -17,21 +17,21 @@
  */
 package com.wultra.security.powerauth.test;
 
+import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
+import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.security.powerauth.http.PowerAuthSignatureHttpHeader;
 import io.getlime.security.powerauth.http.PowerAuthTokenHttpHeader;
 import io.getlime.security.powerauth.lib.cmd.util.MapUtil;
-import io.getlime.security.powerauth.lib.cmd.util.WebClientFactory;
+import io.getlime.security.powerauth.lib.cmd.util.RestClientFactory;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.ResponseEntity;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.ClientResponse;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -63,22 +63,19 @@ public class PowerAuthHttpTest {
         headers.put("Content-Type", "application/json");
         headers.put(PowerAuthSignatureHttpHeader.HEADER_NAME, signatureHeaderInvalid);
 
-        ClientResponse response = WebClientFactory.getWebClient()
-                .post()
-                .uri(config.getPowerAuthIntegrationUrl() + "/pa/signature/validate")
-                .headers(h -> {
-                    h.addAll(MapUtil.toMultiValueMap(headers));
-                })
-                .body(BodyInserters.fromValue(data))
-                .exchange()
-                .block();
-
-        assertEquals(401, Objects.requireNonNull(response).rawStatusCode());
-
-        ResponseEntity<ErrorResponse> responseEntity = Objects.requireNonNull(response.toEntity(ErrorResponse.class).block());
-        ErrorResponse errorResponse = Objects.requireNonNull(responseEntity.getBody());
-        assertEquals("ERROR", errorResponse.getStatus());
-        checkSignatureError(errorResponse);
+        try {
+            RestClientFactory.getRestClient().post(
+                    config.getPowerAuthIntegrationUrl() + "/pa/signature/validate",
+                    data,
+                    MapUtil.toMultiValueMap(headers),
+                    new ParameterizedTypeReference<Response>() {}
+            );
+        } catch (RestClientException ex) {
+            assertEquals(401, ex.getStatusCode().value());
+            ErrorResponse errorResponse = Objects.requireNonNull(ex.getErrorResponse());
+            assertEquals("ERROR", errorResponse.getStatus());
+            checkSignatureError(errorResponse);
+        }
     }
 
     @Test
@@ -99,22 +96,19 @@ public class PowerAuthHttpTest {
             tokenUrl = config.getPowerAuthIntegrationUrl() + "/token/authorize";
         }
 
-        ClientResponse response = WebClientFactory.getWebClient()
-                .post()
-                .uri(tokenUrl)
-                .headers(h -> {
-                    h.addAll(MapUtil.toMultiValueMap(headers));
-                })
-                .body(BodyInserters.fromValue(data))
-                .exchange()
-                .block();
-
-        assertEquals(401, Objects.requireNonNull(response).rawStatusCode());
-
-        ResponseEntity<ErrorResponse> responseEntity = Objects.requireNonNull(response.toEntity(ErrorResponse.class).block());
-        ErrorResponse errorResponse = Objects.requireNonNull(responseEntity.getBody());
-        assertEquals("ERROR", errorResponse.getStatus());
-        checkSignatureError(errorResponse);
+        try {
+            RestClientFactory.getRestClient().post(
+                    tokenUrl,
+                    data,
+                    MapUtil.toMultiValueMap(headers),
+                    new ParameterizedTypeReference<Response>() {}
+            );
+        } catch (RestClientException ex) {
+            assertEquals(401, ex.getStatusCode().value());
+            ErrorResponse errorResponse = Objects.requireNonNull(ex.getErrorResponse());
+            assertEquals("ERROR", errorResponse.getStatus());
+            checkSignatureError(errorResponse);
+        }
     }
 
     @Test
@@ -127,23 +121,20 @@ public class PowerAuthHttpTest {
         headers.put("Content-Type", "application/json");
         headers.put(PowerAuthTokenHttpHeader.HEADER_NAME, tokenHeaderInvalid);
 
-        ClientResponse response = WebClientFactory.getWebClient()
-                .post()
-                .uri(config.getPowerAuthIntegrationUrl() + "/pa/v3/activation/create")
-                .headers(h -> {
-                    h.addAll(MapUtil.toMultiValueMap(headers));
-                })
-                .body(BodyInserters.fromValue(data))
-                .exchange()
-                .block();
-
-        assertEquals(400, Objects.requireNonNull(response).rawStatusCode());
-
-        ResponseEntity<ErrorResponse> responseEntity = Objects.requireNonNull(response.toEntity(ErrorResponse.class).block());
-        ErrorResponse errorResponse = Objects.requireNonNull(responseEntity.getBody());
-        assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+        try {
+            RestClientFactory.getRestClient().post(
+                    config.getPowerAuthIntegrationUrl() + "/pa/v3/activation/create",
+                    data,
+                    MapUtil.toMultiValueMap(headers),
+                    new ParameterizedTypeReference<Response>() {}
+            );
+        } catch (RestClientException ex) {
+            assertEquals(400, ex.getStatusCode().value());
+            ErrorResponse errorResponse = Objects.requireNonNull(ex.getErrorResponse());
+            assertEquals("ERROR", errorResponse.getStatus());
+            assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
+            assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+        }
     }
 
     private void checkSignatureError(ErrorResponse errorResponse) {

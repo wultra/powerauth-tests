@@ -31,6 +31,8 @@ import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.apache.wss4j.dom.WSConstants;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -53,6 +55,8 @@ import java.util.UUID;
  */
 @Configuration
 public class PowerAuthTestConfiguration {
+
+    private static final Logger logger = LoggerFactory.getLogger(PowerAuthTestConfiguration.class);
 
     @Value("${powerauth.rest.url}")
     private String powerAuthRestUrl;
@@ -171,7 +175,12 @@ public class PowerAuthTestConfiguration {
             }
             return client;
         } else {
-            return new PowerAuthRestClient(powerAuthRestUrl);
+            try {
+                return new PowerAuthRestClient(powerAuthRestUrl);
+            } catch (PowerAuthClientException ex) {
+                logger.error(ex.getMessage(), ex);
+                return null;
+            }
         }
     }
 
