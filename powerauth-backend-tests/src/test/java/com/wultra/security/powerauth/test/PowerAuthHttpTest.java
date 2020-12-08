@@ -67,6 +67,7 @@ public class PowerAuthHttpTest {
             RestClientFactory.getRestClient().post(
                     config.getPowerAuthIntegrationUrl() + "/pa/signature/validate",
                     data,
+                    null,
                     MapUtil.toMultiValueMap(headers),
                     new ParameterizedTypeReference<Response>() {}
             );
@@ -100,6 +101,7 @@ public class PowerAuthHttpTest {
             RestClientFactory.getRestClient().post(
                     tokenUrl,
                     data,
+                    null,
                     MapUtil.toMultiValueMap(headers),
                     new ParameterizedTypeReference<Response>() {}
             );
@@ -125,6 +127,7 @@ public class PowerAuthHttpTest {
             RestClientFactory.getRestClient().post(
                     config.getPowerAuthIntegrationUrl() + "/pa/v3/activation/create",
                     data,
+                    null,
                     MapUtil.toMultiValueMap(headers),
                     new ParameterizedTypeReference<Response>() {}
             );
