@@ -110,6 +110,7 @@ public class PowerAuthTestSetUp {
             request.setApplicationId(config.getApplicationId());
             request.setActivationRecoveryEnabled(true);
             request.setRecoveryPostcardEnabled(true);
+            request.setAllowMultipleRecoveryCodes(false);
             request.setRemotePostcardPublicKey(PUBLIC_KEY_RECOVERY_POSTCARD_BASE64);
             powerAuthClient.updateRecoveryConfig(request);
         }

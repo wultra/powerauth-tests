@@ -37,7 +37,7 @@ import java.util.Map;
 public class CallbackTestController {
 
     private final Map<String, Map<String, Object>> callbacks = new HashMap<>();
-    private static final int CALLBACK_VERIFY_MAX_ATTEMPTS = 10;
+    private static final int CALLBACK_VERIFY_MAX_ATTEMPTS = 100;
 
     @RequestMapping("/callback/post")
     public Response recordCallback(@RequestBody Map<String, Object> request) {
