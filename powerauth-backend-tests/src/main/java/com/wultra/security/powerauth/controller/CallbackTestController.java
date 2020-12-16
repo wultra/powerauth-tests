@@ -63,10 +63,6 @@ public class CallbackTestController {
                 throw new IllegalStateException("Callback was not found for activation ID: " + activationId);
             }
         }
-        Map<String, Object> callback = callbacks.get(activationId);
-        if (!callback.equals(request)) {
-            throw new IllegalStateException("Callback data does not match verification request data for activation ID: " + activationId);
-        }
         return new Response();
     }
 
