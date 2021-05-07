@@ -80,7 +80,7 @@ public class PowerAuthCallbackTest {
     public void callbackCreateDeleteTest() throws PowerAuthClientException {
         String callbackName = UUID.randomUUID().toString();
         String callbackUrl = "http://test.test";
-        powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, callbackUrl, Collections.singletonList("activationId"));
+        powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, "ACTIVATION_STATUS_CHANGE", callbackUrl, Collections.singletonList("activationId"));
         List<GetCallbackUrlListResponse.CallbackUrlList> callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
         boolean callbackFound = false;
         for (GetCallbackUrlListResponse.CallbackUrlList callback: callbacks) {
@@ -102,7 +102,7 @@ public class PowerAuthCallbackTest {
     public void callbackUpdateTest() throws PowerAuthClientException {
         String callbackName = UUID.randomUUID().toString();
         String callbackUrl = "http://test.test";
-        powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, callbackUrl, Collections.singletonList("activationId"));
+        powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, "ACTIVATION_STATUS_CHANGE", callbackUrl, Collections.singletonList("activationId"));
         List<GetCallbackUrlListResponse.CallbackUrlList> callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
         boolean callbackFound = false;
         String callbackId = null;
@@ -140,10 +140,10 @@ public class PowerAuthCallbackTest {
     }
 
     @Test
-    public void callbackExecutionTest() throws PowerAuthClientException, InterruptedException, RestClientException {
+    public void callbackExecutionTest() throws PowerAuthClientException, RestClientException {
         String callbackName = UUID.randomUUID().toString();
         String callbackUrlPost = "http://localhost:" + port + "/callback/post";
-        powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, callbackUrlPost, Arrays.asList("activationId", "userId", "activationName", "deviceInfo", "platform", "activationFlags", "activationStatus", "blockedReason", "applicationId"));
+        powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, "ACTIVATION_STATUS_CHANGE", callbackUrlPost, Arrays.asList("activationId", "userId", "activationName", "deviceInfo", "platform", "activationFlags", "activationStatus", "blockedReason", "applicationId"));
         List<GetCallbackUrlListResponse.CallbackUrlList> callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
         // Update activation status
         powerAuthClient.blockActivation(config.getActivationIdV31(), "TEST_CALLBACK", config.getUserV31());

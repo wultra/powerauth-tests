@@ -27,6 +27,7 @@ import com.wultra.security.powerauth.test.PowerAuthTestTearDown;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientConfiguration;
 import io.getlime.security.powerauth.lib.nextstep.client.NextStepClient;
+import io.getlime.security.powerauth.lib.nextstep.client.NextStepClientException;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -143,7 +144,11 @@ public class PowerAuthTestConfiguration {
 
     @Bean
     public NextStepClient nextStepClient() {
-        return new NextStepClient(nextStepServiceUrl);
+        try {
+            return new NextStepClient(nextStepServiceUrl);
+        } catch (NextStepClientException ex) {
+            return null;
+        }
     }
 
     @Bean
