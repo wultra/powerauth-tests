@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.test.v31;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -476,7 +477,7 @@ public class PowerAuthApiTest {
     public void callbackTest() throws PowerAuthClientException {
         String callbackName = UUID.randomUUID().toString();
         String url = "http://test.wultra.com/";
-        CreateCallbackUrlResponse response = powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, "ACTIVATION_STATUS_CHANGE", url, Collections.emptyList());
+        CreateCallbackUrlResponse response = powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, url, Collections.emptyList());
         assertEquals(callbackName, response.getName());
         List<GetCallbackUrlListResponse.CallbackUrlList> items = powerAuthClient.getCallbackUrlList(config.getApplicationId());
         boolean callbackFound = false;
