@@ -28,31 +28,31 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import org.json.simple.JSONObject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.xml.datatype.DatatypeFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Activation flag tests.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
 @ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
@@ -76,7 +76,7 @@ public class PowerAuthActivationFlagsTest {
         this.config = config;
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_v31", ".json");
@@ -96,7 +96,7 @@ public class PowerAuthActivationFlagsTest {
         model.setDeviceInfo("backend-tests");
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         assertTrue(tempStatusFile.delete());
     }

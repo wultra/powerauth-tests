@@ -39,14 +39,14 @@ import io.getlime.security.powerauth.rest.api.model.request.v3.ActivationStatusR
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
 import org.json.simple.JSONObject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.crypto.SecretKey;
 import javax.xml.datatype.DatatypeFactory;
@@ -59,10 +59,9 @@ import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 public class PowerAuthActivationTest {
@@ -84,7 +83,7 @@ public class PowerAuthActivationTest {
         this.config = config;
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_v31", ".json");
@@ -104,7 +103,7 @@ public class PowerAuthActivationTest {
         model.setDeviceInfo("backend-tests");
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         assertTrue(tempStatusFile.delete());
     }

@@ -38,15 +38,15 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
 import io.getlime.security.powerauth.lib.cmd.util.EncryptedStorageUtil;
 import org.json.simple.JSONObject;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.crypto.SecretKey;
 import java.io.File;
@@ -62,10 +62,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 public class PowerAuthSignatureTest {
@@ -97,7 +96,7 @@ public class PowerAuthSignatureTest {
         this.powerAuthClient = powerAuthClient;
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpBeforeClass() throws IOException {
         dataFile = File.createTempFile("data", ".json");
         FileWriter fw = new FileWriter(dataFile);
@@ -105,12 +104,12 @@ public class PowerAuthSignatureTest {
         fw.close();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownAfterClass() {
         assertTrue(dataFile.delete());
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
         model = new VerifySignatureStepModel();
         model.setApplicationKey(config.getApplicationKey());

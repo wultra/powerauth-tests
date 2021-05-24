@@ -41,14 +41,14 @@ import io.getlime.security.powerauth.rest.api.model.exception.RecoveryError;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
 import org.json.simple.JSONObject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.crypto.SecretKey;
 import java.io.File;
@@ -59,10 +59,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 public class PowerAuthRecoveryTest {
@@ -83,13 +82,13 @@ public class PowerAuthRecoveryTest {
         this.config = config;
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_recovery_v31", ".json");
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         assertTrue(tempStatusFile.delete());
     }

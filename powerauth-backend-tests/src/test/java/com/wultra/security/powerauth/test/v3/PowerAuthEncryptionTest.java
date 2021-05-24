@@ -32,15 +32,15 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.SignAndEncryptStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -49,10 +49,9 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.HashMap;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 public class PowerAuthEncryptionTest {
@@ -74,7 +73,7 @@ public class PowerAuthEncryptionTest {
         this.powerAuthClient = powerAuthClient;
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpBeforeClass() throws IOException {
         dataFile = File.createTempFile("data", ".json");
         FileWriter fw = new FileWriter(dataFile);
@@ -82,12 +81,12 @@ public class PowerAuthEncryptionTest {
         fw.close();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownAfterClass() {
         assertTrue(dataFile.delete());
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
         encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());

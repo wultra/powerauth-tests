@@ -33,15 +33,15 @@ import io.getlime.security.powerauth.lib.cmd.steps.v2.CreateTokenStep;
 import io.getlime.security.powerauth.lib.nextstep.client.NextStepClient;
 import io.getlime.security.powerauth.lib.nextstep.model.enumeration.AuthMethod;
 import io.getlime.security.powerauth.lib.nextstep.model.response.GetAuthMethodsResponse;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -51,10 +51,9 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 public class PowerAuthTokenTest {
@@ -82,7 +81,7 @@ public class PowerAuthTokenTest {
         this.powerAuthClient = powerAuthClient;
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpBeforeClass() throws IOException {
         dataFile = File.createTempFile("data", ".json");
         FileWriter fw = new FileWriter(dataFile);
@@ -90,12 +89,12 @@ public class PowerAuthTokenTest {
         fw.close();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownAfterClass() {
         assertTrue(dataFile.delete());
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         model = new CreateTokenStepModel();
         model.setApplicationKey(config.getApplicationKey());

@@ -37,15 +37,15 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.CommitUpgradeStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.StartUpgradeStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
 import org.json.simple.JSONObject;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.crypto.SecretKey;
 import java.io.File;
@@ -55,10 +55,9 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 public class PowerAuthUpgradeTest {
@@ -80,7 +79,7 @@ public class PowerAuthUpgradeTest {
         this.config = config;
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status", ".json");
@@ -92,7 +91,7 @@ public class PowerAuthUpgradeTest {
         fw.close();
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         assertTrue(tempStatusFile.delete());
         assertTrue(dataFile.delete());
@@ -1085,7 +1084,7 @@ public class PowerAuthUpgradeTest {
                 byte[] ctrData = CounterUtil.getCtrData(model1, stepLogger1);
                 allCtrData.add(BaseEncoding.base64().encode(ctrData));
             } catch (Exception e) {
-                Assert.fail();
+                Assertions.fail();
             }
         };
 

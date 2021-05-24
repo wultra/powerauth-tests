@@ -29,24 +29,23 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepMo
 import io.getlime.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import org.json.simple.JSONObject;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 public class PowerAuthActivationOtpTest {
@@ -72,7 +71,7 @@ public class PowerAuthActivationOtpTest {
         this.config = config;
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_v31", ".json");
@@ -98,7 +97,7 @@ public class PowerAuthActivationOtpTest {
         statusModel.setVersion("3.1");
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         assertTrue(tempStatusFile.delete());
     }
@@ -390,66 +389,76 @@ public class PowerAuthActivationOtpTest {
         }
     }
 
-    @Test(expected = PowerAuthClientException.class)
-    public void wrongActivationInitParamTest1() throws Exception {
-        // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
-        initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV31());
-        initRequest.setMaxFailureCount(5L);
-        // Set ON_KEY_EXCHANGE but no OTP
-        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEY_EXCHANGE);
-        powerAuthClient.initActivation(initRequest);
+    @Test
+    public void wrongActivationInitParamTest1() {
+        assertThrows(PowerAuthClientException.class, () -> {
+            // Init activation
+            InitActivationRequest initRequest = new InitActivationRequest();
+            initRequest.setApplicationId(config.getApplicationId());
+            initRequest.setUserId(config.getUserV31());
+            initRequest.setMaxFailureCount(5L);
+            // Set ON_KEY_EXCHANGE but no OTP
+            initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEY_EXCHANGE);
+            powerAuthClient.initActivation(initRequest);
+        });
     }
 
-    @Test(expected = PowerAuthClientException.class)
-    public void wrongActivationInitParamTest2() throws Exception {
-        // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
-        initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV31());
-        initRequest.setMaxFailureCount(5L);
-        // Set ON_COMMIT but no OTP
-        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_COMMIT);
-        powerAuthClient.initActivation(initRequest);
+    @Test
+    public void wrongActivationInitParamTest2() {
+        assertThrows(PowerAuthClientException.class, () -> {
+            // Init activation
+            InitActivationRequest initRequest = new InitActivationRequest();
+            initRequest.setApplicationId(config.getApplicationId());
+            initRequest.setUserId(config.getUserV31());
+            initRequest.setMaxFailureCount(5L);
+            // Set ON_COMMIT but no OTP
+            initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_COMMIT);
+            powerAuthClient.initActivation(initRequest);
+        });
     }
 
-    @Test(expected = PowerAuthClientException.class)
-    public void wrongActivationInitParamTest3() throws Exception {
-        // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
-        initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV31());
-        initRequest.setMaxFailureCount(5L);
-        // Set OTP with no validation specified
-        initRequest.setActivationOtp(validOtpValue);
-        powerAuthClient.initActivation(initRequest);
+    @Test
+    public void wrongActivationInitParamTest3() {
+        assertThrows(PowerAuthClientException.class, () -> {
+            // Init activation
+            InitActivationRequest initRequest = new InitActivationRequest();
+            initRequest.setApplicationId(config.getApplicationId());
+            initRequest.setUserId(config.getUserV31());
+            initRequest.setMaxFailureCount(5L);
+            // Set OTP with no validation specified
+            initRequest.setActivationOtp(validOtpValue);
+            powerAuthClient.initActivation(initRequest);
+        });
     }
 
-    @Test(expected = PowerAuthClientException.class)
-    public void wrongActivationInitParamTest4() throws Exception {
-        // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
-        initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV31());
-        initRequest.setMaxFailureCount(5L);
-        // Set ON_KEY_EXCHANGE but empty OTP
-        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEY_EXCHANGE);
-        initRequest.setActivationOtp("");
-        powerAuthClient.initActivation(initRequest);
+    @Test
+    public void wrongActivationInitParamTest4() {
+        assertThrows(PowerAuthClientException.class, () -> {
+            // Init activation
+            InitActivationRequest initRequest = new InitActivationRequest();
+            initRequest.setApplicationId(config.getApplicationId());
+            initRequest.setUserId(config.getUserV31());
+            initRequest.setMaxFailureCount(5L);
+            // Set ON_KEY_EXCHANGE but empty OTP
+            initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEY_EXCHANGE);
+            initRequest.setActivationOtp("");
+            powerAuthClient.initActivation(initRequest);
+        });
     }
 
-    @Test(expected = PowerAuthClientException.class)
-    public void wrongActivationInitParamTest5() throws Exception {
-        // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
-        initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV31());
-        initRequest.setMaxFailureCount(5L);
-        // Set ON_COMMIT but empty OTP
-        initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_COMMIT);
-        initRequest.setActivationOtp("");
-        powerAuthClient.initActivation(initRequest);
+    @Test
+    public void wrongActivationInitParamTest5() {
+        assertThrows(PowerAuthClientException.class, () -> {
+            // Init activation
+            InitActivationRequest initRequest = new InitActivationRequest();
+            initRequest.setApplicationId(config.getApplicationId());
+            initRequest.setUserId(config.getUserV31());
+            initRequest.setMaxFailureCount(5L);
+            // Set ON_COMMIT but empty OTP
+            initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_COMMIT);
+            initRequest.setActivationOtp("");
+            powerAuthClient.initActivation(initRequest);
+        });
     }
 
     @Test

@@ -35,14 +35,14 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepMode
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
-import org.junit.*;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -54,10 +54,9 @@ import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
 @ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
@@ -83,7 +82,7 @@ public class PowerAuthCustomActivationTest {
         this.powerAuthClient = powerAuthClient;
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void setUpBeforeClass() throws IOException {
         dataFile = File.createTempFile("data", ".json");
         FileWriter fw = new FileWriter(dataFile);
@@ -91,12 +90,12 @@ public class PowerAuthCustomActivationTest {
         fw.close();
     }
 
-    @AfterClass
+    @AfterAll
     public static void tearDownAfterClass() {
         assertTrue(dataFile.delete());
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_v31", ".json");
@@ -119,7 +118,7 @@ public class PowerAuthCustomActivationTest {
         stepLogger = new ObjectStepLogger(System.out);
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         assertTrue(tempStatusFile.delete());
     }

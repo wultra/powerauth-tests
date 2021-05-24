@@ -24,29 +24,27 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.client.v3.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientFactory;
-import org.junit.After;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.*;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Callback tests.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
 @ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
@@ -68,7 +66,7 @@ public class PowerAuthCallbackTest {
         this.config = config;
     }
 
-    @After
+    @AfterEach
     public void tearDown() throws PowerAuthClientException {
         // Remove all callbacks on test application, they slow down tests
         List<GetCallbackUrlListResponse.CallbackUrlList> callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
