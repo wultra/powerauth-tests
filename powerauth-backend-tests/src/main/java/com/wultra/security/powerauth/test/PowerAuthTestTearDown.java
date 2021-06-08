@@ -22,7 +22,7 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Global test teardown.
