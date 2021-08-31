@@ -38,6 +38,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
  * Callback tests.
@@ -140,6 +141,8 @@ public class PowerAuthCallbackTest {
 
     @Test
     public void callbackExecutionTest() throws PowerAuthClientException, RestClientException {
+        // Skip test when the tested PA server is not running on localhost
+        assumeTrue(config.getPowerAuthServiceUrl().contains("localhost"));
         String callbackName = UUID.randomUUID().toString();
         String callbackUrlPost = "http://localhost:" + port + "/callback/post";
         powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrlPost, Arrays.asList("activationId", "userId", "activationName", "deviceInfo", "platform", "activationFlags", "activationStatus", "blockedReason", "applicationId"));

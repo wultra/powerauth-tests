@@ -198,6 +198,10 @@ public class PowerAuthTestConfiguration {
         tearDown.execute();
     }
 
+    public String getPowerAuthRestUrl() {
+        return powerAuthRestUrl;
+    }
+
     public String getPowerAuthServiceUrl() {
         return powerAuthServiceUrl;
     }
