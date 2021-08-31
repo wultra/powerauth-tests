@@ -22,6 +22,7 @@ import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
+import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
 import com.wultra.security.powerauth.test.PowerAuthTestSetUp;
 import com.wultra.security.powerauth.test.PowerAuthTestTearDown;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -134,9 +135,14 @@ public class PowerAuthTestConfiguration {
      */
     @Bean
     public PowerAuthClient powerAuthClient() {
+        PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
+        config.setPowerAuthClientToken(clientToken);
+        config.setPowerAuthClientSecret(clientSecret);
+        config.setAcceptInvalidSslCertificate(true);
         try {
-            return new PowerAuthRestClient(powerAuthRestUrl);
+            return new PowerAuthRestClient(powerAuthRestUrl, config);
         } catch (PowerAuthClientException ex) {
+            // Log the error in case Rest client initialization failed
             logger.error(ex.getMessage(), ex);
             return null;
         }
