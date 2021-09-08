@@ -328,16 +328,16 @@ public class PowerAuthEncryptionTest {
         signatureModel.setResourceId("/exchange/v3/signed/string");
         signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed/string");
 
-        File dataFileLarge = File.createTempFile("data_string_v3", ".dat");
-        dataFileLarge.deleteOnExit();
-        BufferedWriter out = Files.newBufferedWriter(dataFileLarge.toPath(), StandardCharsets.UTF_8);
+        File dataFile = File.createTempFile("data_string_v3", ".dat");
+        dataFile.deleteOnExit();
+        BufferedWriter out = Files.newBufferedWriter(dataFile.toPath(), StandardCharsets.UTF_8);
 
         String requestData = BaseEncoding.base64().encode(generateRandomString().getBytes(StandardCharsets.UTF_8));
         // JSON Strings need to be enclosed in double quotes
         out.write("\"" + requestData + "\"");
         out.close();
 
-        signatureModel.setData(Files.readAllBytes(Paths.get(dataFileLarge.getAbsolutePath())));
+        signatureModel.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
@@ -359,15 +359,15 @@ public class PowerAuthEncryptionTest {
         signatureModel.setResourceId("/exchange/v3/signed/raw");
         signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed/raw");
 
-        File dataFileLarge = File.createTempFile("data_raw_v3", ".dat");
-        dataFileLarge.deleteOnExit();
-        BufferedWriter out = Files.newBufferedWriter(dataFileLarge.toPath(), StandardCharsets.UTF_8);
+        File dataFile = File.createTempFile("data_raw_v3", ".dat");
+        dataFile.deleteOnExit();
+        BufferedWriter out = Files.newBufferedWriter(dataFile.toPath(), StandardCharsets.UTF_8);
 
         String requestData = generateRandomString();
         out.write(requestData);
         out.close();
 
-        signatureModel.setData(Files.readAllBytes(Paths.get(dataFileLarge.getAbsolutePath())));
+        signatureModel.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
@@ -377,6 +377,33 @@ public class PowerAuthEncryptionTest {
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 assertEquals(requestData, item.getObject());
+                responseSuccessfullyDecrypted = true;
+                break;
+            }
+        }
+        assertTrue(responseSuccessfullyDecrypted);
+    }
+
+    @Test
+    public void signAndEncryptGenerifiedDataTest() throws Exception {
+        signatureModel.setResourceId("/exchange/v3/signed/generics");
+        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed/generics");
+        File dataFileWithGenerics = File.createTempFile("data-generics", ".json");
+        dataFileWithGenerics.deleteOnExit();
+        FileWriter fw = new FileWriter(dataFileWithGenerics);
+        fw.write("{\"requestObject\":{\"data\":\"test-data\"}}");
+        fw.close();
+        byte[] data = Files.readAllBytes(Paths.get(dataFileWithGenerics.getAbsolutePath()));
+        signatureModel.setData(data);
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        boolean responseSuccessfullyDecrypted = false;
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                assertEquals("{\"status\":\"OK\",\"responseObject\":{\"data\":\"test-data\"}}", item.getObject());
                 responseSuccessfullyDecrypted = true;
                 break;
             }
