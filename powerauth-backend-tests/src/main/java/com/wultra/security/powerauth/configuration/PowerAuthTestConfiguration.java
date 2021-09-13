@@ -67,6 +67,9 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.nextstep.service.url}")
     private String nextStepServiceUrl;
 
+    @Value("${powerauth.enrollment.service.url}")
+    private String enrollmentServiceUrl;
+
     @Value("${powerauth.custom.service.url}")
     private String customServiceUrl;
 
@@ -208,6 +211,10 @@ public class PowerAuthTestConfiguration {
 
     public String getPowerAuthIntegrationUrl() {
         return powerAuthIntegrationUrl;
+    }
+
+    public String getEnrollmentServiceUrl() {
+        return enrollmentServiceUrl;
     }
 
     public String getCustomServiceUrl() {
