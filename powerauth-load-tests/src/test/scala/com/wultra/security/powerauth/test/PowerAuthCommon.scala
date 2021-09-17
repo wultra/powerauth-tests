@@ -63,7 +63,7 @@ object PowerAuthCommon {
 
   val appContext: ConfigurableApplicationContext = new SpringApplicationBuilder(classOf[CmdLibApplication])
     .web(WebApplicationType.NONE)
-    .run("--resultstatus.persistenceType=memory", "--steplogger.type=json")
+    .run("--resultstatus.persistenceType=memory", "--steplogger.type=disabled")
 
   val stepLogger: StepLogger = appContext.getBeanFactory.getBean(classOf[StepLogger])
 

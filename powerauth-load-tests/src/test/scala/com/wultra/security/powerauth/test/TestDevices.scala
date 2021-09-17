@@ -25,6 +25,8 @@ import scala.collection.mutable.ListBuffer
  */
 object TestDevices {
 
+  val MAX_USERS_PER_SECOND: Integer = Integer.getInteger("maxUsersPerSecond", 80)
+
   val NUMBER_OF_DEVICES: Integer = Integer.getInteger("numberOfDevices", 100)
 
   val devicesActivated: ListBuffer[Device] = ListBuffer.empty[Device]

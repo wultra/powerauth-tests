@@ -40,10 +40,10 @@ class PowerAuthLoadTest extends Simulation {
       ).protocols(httpProtocolPowerAuthRestServer)
         .andThen(
           TokenCreateV3Scenario.scnTokenCreate.inject(
-            rampUsersPerSec(1).to(80).during(15.minutes)
+            rampUsersPerSec(1).to(Math.min(TestDevices.NUMBER_OF_DEVICES, TestDevices.MAX_USERS_PER_SECOND).intValue()).during(15.minutes)
           ).protocols(httpProtocolPowerAuthRestServer),
           SignatureVerifyV3Scenario.scnSignatureVerify.inject(
-            rampUsersPerSec(1).to(80).during(15.minutes)
+            rampUsersPerSec(1).to(Math.min(TestDevices.NUMBER_OF_DEVICES, TestDevices.MAX_USERS_PER_SECOND).intValue()).during(15.minutes)
           ).protocols(httpProtocolPowerAuthRestServer)
         )
     )

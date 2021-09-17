@@ -16,7 +16,7 @@
 package com.wultra.security.powerauth.test.scenario.v3
 
 import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon, TestDevices}
-import io.gatling.core.Predef.{StringBody, jsonPath, scenario, _}
+import io.gatling.core.Predef.{jsonPath, scenario, _}
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.{http, _}
 import io.getlime.security.powerauth.http.PowerAuthEncryptionHttpHeader
@@ -35,7 +35,7 @@ import java.util.Collections
  *
  * @author Lukas Lukovsky, lukas.lukovsky@wultra.com
  */
-object ActivationPrepareV3Scenario {
+object ActivationPrepareV3Scenario extends AbstractScenario {
 
   val activationPrepareStep: PrepareActivationStep =
     PowerAuthCommon.stepProvider.getStep(PowerAuthStep.ACTIVATION_CREATE, PowerAuthVersion.V3_1).asInstanceOf[PrepareActivationStep]
@@ -57,23 +57,18 @@ object ActivationPrepareV3Scenario {
     model
   }
 
-  val scnActivationCreate: ScenarioBuilder = scenario("scnActivationCreate")
-    .exec(session => {
-      val device = TestDevices.nextDevice(TestDevices.devicesInitialized, TestDevices.indexInitialized)
-      val model = createActivationPrepareStepModel(device)
+  override def createStepContext(device: Device): StepContext[_, _] = {
+    val model = createActivationPrepareStepModel(device)
+    activationPrepareStep.prepareStepContext(model.toMap)
+  }
 
-      val stepContext = activationPrepareStep.prepareStepContext(model.toMap)
-      session
-        .set("device", device)
-        .set("powerAuthHeader", stepContext.getRequestContext.getAuthorizationHeader)
-        .set("request", stepContext.getRequestContext.getRequestObject)
-        .set("stepContext", stepContext)
-    })
+  val scnActivationCreate: ScenarioBuilder = scenario("scnActivationCreate")
+    .exec(prepareSessionData)
     .exec(http("PowerAuth - activation create")
       .post("/pa/v3/activation/create")
-      .header(PowerAuthEncryptionHttpHeader.HEADER_NAME, "${powerAuthHeader}")
+      .header(PowerAuthEncryptionHttpHeader.HEADER_NAME, "${httpPowerAuthHeader}")
       .body(StringBody(session => {
-        val objectRequest = session("request").as[EciesEncryptedRequest]
+        val objectRequest = session("requestObject").as[EciesEncryptedRequest]
         RestClientConfiguration.defaultMapper().writeValueAsString(objectRequest)
       }))
       .check(jsonPath("$.encryptedData").saveAs("encryptedData"))

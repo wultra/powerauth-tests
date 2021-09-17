@@ -15,7 +15,7 @@
  */
 package com.wultra.security.powerauth.test.scenario.v3
 
-import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon, TestDevices}
+import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon}
 import io.gatling.core.Predef.{ByteArrayBody, jsonPath, scenario, _}
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.{http, _}
@@ -35,7 +35,7 @@ import java.util.Collections
  *
  * @author Lukas Lukovsky, lukas.lukovsky@wultra.com
  */
-object SignatureVerifyV3Scenario {
+object SignatureVerifyV3Scenario extends AbstractScenario {
 
   val signatureVerifyStep: VerifySignatureStep =
     PowerAuthCommon.stepProvider.getStep(PowerAuthStep.SIGNATURE_VERIFY, PowerAuthVersion.V3_1).asInstanceOf[VerifySignatureStep]
@@ -60,22 +60,18 @@ object SignatureVerifyV3Scenario {
     model
   }
 
+  override def createStepContext(device: Device): StepContext[_, _] = {
+    val model = prepareVerifySignatureStepModel(device)
+    signatureVerifyStep.prepareStepContext(model.toMap)
+  }
+
   val scnSignatureVerify: ScenarioBuilder = scenario("scnSignatureVerify")
-    .exec(session => {
-      val device = TestDevices.nextDevice(TestDevices.devicesActivated, TestDevices.indexDevice)
-      val model = prepareVerifySignatureStepModel(device)
-      val stepContext = SignatureVerifyV3Scenario.signatureVerifyStep.prepareStepContext(model.toMap)
-      session
-        .set("device", device)
-        .set("powerAuthHeader", stepContext.getRequestContext.getAuthorizationHeader)
-        .set("request", stepContext.getRequestContext.getRequestObject)
-        .set("stepContext", stepContext)
-    })
+    .exec(prepareSessionData)
     .exec(http("PowerAuth - signature verify")
       .post("/pa/v3/signature/validate")
-      .header(PowerAuthSignatureHttpHeader.HEADER_NAME, "${powerAuthHeader}")
+      .header(PowerAuthSignatureHttpHeader.HEADER_NAME, "${httpPowerAuthHeader}")
       .body(ByteArrayBody(session => {
-        session("request").as[Array[Byte]]
+        session("requestObject").as[Array[Byte]]
       }))
       .check(jsonPath("$.status").is("OK"))
     )

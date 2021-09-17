@@ -15,7 +15,7 @@
  */
 package com.wultra.security.powerauth.test.scenario.v3
 
-import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon, TestDevices}
+import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon}
 import io.gatling.core.Predef.{ByteArrayBody, jsonPath, scenario, _}
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.{http, _}
@@ -25,7 +25,7 @@ import io.getlime.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVer
 import io.getlime.security.powerauth.lib.cmd.steps.context.{ResponseContext, StepContext}
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateTokenStep
-import io.getlime.security.powerauth.lib.cmd.util.RestClientConfiguration
+import io.getlime.security.powerauth.lib.cmd.util.{HttpUtil, RestClientConfiguration}
 import io.getlime.security.powerauth.rest.api.model.request.v3.EciesEncryptedRequest
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse
 
@@ -34,7 +34,7 @@ import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedRe
  *
  * @author Lukas Lukovsky, lukas.lukovsky@wultra.com
  */
-object TokenCreateV3Scenario {
+object TokenCreateV3Scenario extends AbstractScenario {
 
   val tokenCreateStep: CreateTokenStep =
     PowerAuthCommon.stepProvider.getStep(PowerAuthStep.TOKEN_CREATE, PowerAuthVersion.V3_1).asInstanceOf[CreateTokenStep]
@@ -51,22 +51,18 @@ object TokenCreateV3Scenario {
     model
   }
 
+  override def createStepContext(device: Device): StepContext[_, _] = {
+    val model = prepareCreateTokenStepModel(device)
+    tokenCreateStep.prepareStepContext(model.toMap)
+  }
+
   val scnTokenCreate: ScenarioBuilder = scenario("scnTokenCreate")
-    .exec(session => {
-      val device = TestDevices.nextDevice(TestDevices.devicesActivated, TestDevices.indexDevice)
-      val model = prepareCreateTokenStepModel(device)
-      val stepContext = tokenCreateStep.prepareStepContext(model.toMap)
-      session
-        .set("device", device)
-        .set("powerAuthHeader", stepContext.getRequestContext.getAuthorizationHeader)
-        .set("request", stepContext.getRequestContext.getRequestObject)
-        .set("stepContext", stepContext)
-    })
+    .exec(prepareSessionData)
     .exec(http("PowerAuth - token create")
       .post("/pa/v3/token/create")
-      .header(PowerAuthSignatureHttpHeader.HEADER_NAME, "${powerAuthHeader}")
+      .header(PowerAuthSignatureHttpHeader.HEADER_NAME, "${httpPowerAuthHeader}")
       .body(ByteArrayBody(session => {
-        RestClientConfiguration.defaultMapper.writeValueAsBytes(session("request").as[EciesEncryptedRequest])
+        HttpUtil.toRequestBytes(session("requestObject").as[EciesEncryptedRequest])
       }))
       .check(jsonPath("$.encryptedData").saveAs("encryptedData"))
       .check(jsonPath("$.mac").saveAs("mac"))
