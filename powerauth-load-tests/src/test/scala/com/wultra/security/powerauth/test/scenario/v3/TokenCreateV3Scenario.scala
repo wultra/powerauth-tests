@@ -16,17 +16,15 @@
 package com.wultra.security.powerauth.test.scenario.v3
 
 import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon}
-import io.gatling.core.Predef.{ByteArrayBody, jsonPath, scenario, _}
+import io.gatling.core.Predef.{scenario, _}
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.{http, _}
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes
 import io.getlime.security.powerauth.http.PowerAuthSignatureHttpHeader
 import io.getlime.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVersion}
-import io.getlime.security.powerauth.lib.cmd.steps.context.{ResponseContext, StepContext}
+import io.getlime.security.powerauth.lib.cmd.steps.context.StepContext
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateTokenStep
-import io.getlime.security.powerauth.lib.cmd.util.{HttpUtil, RestClientConfiguration}
-import io.getlime.security.powerauth.rest.api.model.request.v3.EciesEncryptedRequest
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse
 
 /**
@@ -44,7 +42,7 @@ object TokenCreateV3Scenario extends AbstractScenario {
     model.setApplicationKey(ClientConfig.applicationKey)
     model.setApplicationSecret(ClientConfig.applicationSecret)
     model.setPassword(device.password)
-    model.setResultStatusObject(device.resultStatusObject)
+    model.setResultStatus(device.resultStatusObject)
     model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE)
     model.setVersion(ClientConfig.modelVersion)
 
@@ -53,7 +51,7 @@ object TokenCreateV3Scenario extends AbstractScenario {
 
   override def createStepContext(device: Device): StepContext[_, _] = {
     val model = prepareCreateTokenStepModel(device)
-    tokenCreateStep.prepareStepContext(model.toMap)
+    tokenCreateStep.prepareStepContext(ClientConfig.stepLogger, model.toMap)
   }
 
   val scnTokenCreate: ScenarioBuilder = scenario("scnTokenCreate")
@@ -61,22 +59,15 @@ object TokenCreateV3Scenario extends AbstractScenario {
     .exec(http("PowerAuth - token create")
       .post("/pa/v3/token/create")
       .header(PowerAuthSignatureHttpHeader.HEADER_NAME, "${httpPowerAuthHeader}")
-      .body(ByteArrayBody(session => {
-        HttpUtil.toRequestBytes(session("requestObject").as[EciesEncryptedRequest])
-      }))
-      .check(jsonPath("$.encryptedData").saveAs("encryptedData"))
-      .check(jsonPath("$.mac").saveAs("mac"))
+      .body(requestBody())
+      .check(bodyBytes.saveAs("responseBodyBytes"))
     )
     .exec(session => {
       val device: Device = session("device").as[Device]
-      val response = new EciesEncryptedResponse(session("encryptedData").as[String], session("mac").as[String])
       val stepContext = session("stepContext").as[StepContext[CreateTokenStepModel, EciesEncryptedResponse]]
-      stepContext.setResponseContext(
-        ResponseContext.builder[EciesEncryptedResponse]()
-          .responseBodyObject(response)
-          .build()
-      )
-      tokenCreateStep.processResponse(stepContext)
+
+      tokenCreateStep.processResponse(stepContext, session("responseBodyBytes").as[Array[Byte]], classOf[EciesEncryptedResponse])
+
       device.resultStatusObject = stepContext.getModel.getResultStatus
 
       session

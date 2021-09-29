@@ -27,7 +27,6 @@ import io.getlime.security.powerauth.lib.cmd.steps.context.StepContext
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel
 
 import java.nio.charset.StandardCharsets
-import java.util
 import java.util.Collections
 
 /**
@@ -48,7 +47,7 @@ object SignatureVerifyV3Scenario extends AbstractScenario {
     model.setHttpMethod("POST")
     model.setPassword(device.password)
     model.setResourceId("/pa/signature/validate")
-    model.setResultStatusObject(device.resultStatusObject)
+    model.setResultStatus(device.resultStatusObject)
     model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE)
     model.setUriString(s"${PowerAuthCommon.POWER_AUTH_REST_SERVER_URL}/pa/v3/signature/validate")
     model.setVersion(ClientConfig.modelVersion)
@@ -62,7 +61,7 @@ object SignatureVerifyV3Scenario extends AbstractScenario {
 
   override def createStepContext(device: Device): StepContext[_, _] = {
     val model = prepareVerifySignatureStepModel(device)
-    signatureVerifyStep.prepareStepContext(model.toMap)
+    signatureVerifyStep.prepareStepContext(ClientConfig.stepLogger, model.toMap)
   }
 
   val scnSignatureVerify: ScenarioBuilder = scenario("scnSignatureVerify")
@@ -70,16 +69,8 @@ object SignatureVerifyV3Scenario extends AbstractScenario {
     .exec(http("PowerAuth - signature verify")
       .post("/pa/v3/signature/validate")
       .header(PowerAuthSignatureHttpHeader.HEADER_NAME, "${httpPowerAuthHeader}")
-      .body(ByteArrayBody(session => {
-        session("requestObject").as[Array[Byte]]
-      }))
+      .body(requestBody())
       .check(jsonPath("$.status").is("OK"))
     )
-    .exec(session => {
-      val device: Device = session("device").as[Device]
-      val stepContext = session("stepContext").as[StepContext[VerifySignatureStepModel, util.Map[String, AnyRef]]]
-      device.resultStatusObject = stepContext.getModel.getResultStatus
-      session
-    })
 
 }

@@ -16,7 +16,7 @@
 package com.wultra.security.powerauth.test
 
 import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion
-import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger
+import io.getlime.security.powerauth.lib.cmd.logging.{DisabledStepLogger, StepLogger}
 import io.getlime.security.powerauth.lib.cmd.util.ConfigurationUtil
 import org.json.simple.{JSONObject, JSONValue}
 
@@ -31,7 +31,7 @@ import java.security.interfaces.ECPublicKey
  */
 object ClientConfig {
 
-  val stepLogger = new ObjectStepLogger()
+  val stepLogger: StepLogger = DisabledStepLogger.INSTANCE
 
   val clientConfigObject: JSONObject = {
     try {

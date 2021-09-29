@@ -17,8 +17,10 @@ package com.wultra.security.powerauth.test.scenario.v3
 
 import com.wultra.security.powerauth.test.{Device, TestDevices}
 import io.gatling.core.Predef.{Session, _}
+import io.gatling.core.body.Body
 import io.gatling.core.session
 import io.getlime.security.powerauth.lib.cmd.steps.context.StepContext
+import io.getlime.security.powerauth.lib.cmd.util.HttpUtil
 
 /**
  * Abstract scenario with common expressions
@@ -45,9 +47,17 @@ abstract class AbstractScenario {
       session
         .set("device", device)
         .set("httpPowerAuthHeader", stepContext.getRequestContext.getAuthorizationHeader)
+        .set("httpPowerAuthHeaderName", stepContext.getRequestContext.getAuthorizationHeaderName)
         .set("requestObject", stepContext.getRequestContext.getRequestObject)
         .set("stepContext", stepContext)
     }
+  }
+
+  def requestBody() : Body = {
+    ByteArrayBody(session => {
+      val objectRequest = session("requestObject").as[Object]
+      HttpUtil.toRequestBytes(objectRequest)
+    })
   }
 
 }

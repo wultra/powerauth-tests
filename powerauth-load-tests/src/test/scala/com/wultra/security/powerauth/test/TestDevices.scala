@@ -33,9 +33,9 @@ object TestDevices {
 
   val devicesInitialized: ListBuffer[Device] = ListBuffer.empty[Device]
 
-  val indexInitialized: AtomicInteger = new AtomicInteger(0)
-
   val indexDevice: AtomicInteger = new AtomicInteger(0)
+
+  val indexInitialized: AtomicInteger = new AtomicInteger(0)
 
   def nextDevice(devices: ListBuffer[Device], indexCounter: AtomicInteger): Device = {
     var index = indexCounter.incrementAndGet()

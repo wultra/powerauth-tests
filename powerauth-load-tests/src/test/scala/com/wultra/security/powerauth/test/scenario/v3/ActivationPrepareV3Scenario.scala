@@ -16,16 +16,14 @@
 package com.wultra.security.powerauth.test.scenario.v3
 
 import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon, TestDevices}
-import io.gatling.core.Predef.{jsonPath, scenario, _}
+import io.gatling.core.Predef.{scenario, _}
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.{http, _}
 import io.getlime.security.powerauth.http.PowerAuthEncryptionHttpHeader
 import io.getlime.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVersion}
-import io.getlime.security.powerauth.lib.cmd.steps.context.{ResponseContext, StepContext}
+import io.getlime.security.powerauth.lib.cmd.steps.context.StepContext
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep
-import io.getlime.security.powerauth.lib.cmd.util.RestClientConfiguration
-import io.getlime.security.powerauth.rest.api.model.request.v3.EciesEncryptedRequest
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse
 
 import java.util.Collections
@@ -51,7 +49,7 @@ object ActivationPrepareV3Scenario extends AbstractScenario {
     model.setMasterPublicKey(ClientConfig.masterPublicKey)
     model.setPassword(device.password)
     model.setPlatform("devicePlatform")
-    model.setResultStatusObject(device.resultStatusObject)
+    model.setResultStatus(device.resultStatusObject)
     model.setVersion(ClientConfig.modelVersion)
 
     model
@@ -59,7 +57,7 @@ object ActivationPrepareV3Scenario extends AbstractScenario {
 
   override def createStepContext(device: Device): StepContext[_, _] = {
     val model = createActivationPrepareStepModel(device)
-    activationPrepareStep.prepareStepContext(model.toMap)
+    activationPrepareStep.prepareStepContext(ClientConfig.stepLogger, model.toMap)
   }
 
   val scnActivationCreate: ScenarioBuilder = scenario("scnActivationCreate")
@@ -67,24 +65,14 @@ object ActivationPrepareV3Scenario extends AbstractScenario {
     .exec(http("PowerAuth - activation create")
       .post("/pa/v3/activation/create")
       .header(PowerAuthEncryptionHttpHeader.HEADER_NAME, "${httpPowerAuthHeader}")
-      .body(StringBody(session => {
-        val objectRequest = session("requestObject").as[EciesEncryptedRequest]
-        RestClientConfiguration.defaultMapper().writeValueAsString(objectRequest)
-      }))
-      .check(jsonPath("$.encryptedData").saveAs("encryptedData"))
-      .check(jsonPath("$.mac").saveAs("mac"))
+      .body(requestBody())
+      .check(bodyBytes.saveAs("responseBodyBytes"))
     )
     .exec(session => {
       val device: Device = session("device").as[Device]
       val stepContext = session("stepContext").as[StepContext[PrepareActivationStepModel, EciesEncryptedResponse]]
-      val response = new EciesEncryptedResponse(session("encryptedData").as[String], session("mac").as[String])
-      stepContext.setResponseContext(
-        ResponseContext.builder[EciesEncryptedResponse]()
-          .responseBodyObject(response)
-          .build()
-      )
 
-      activationPrepareStep.processResponse(response, stepContext)
+      activationPrepareStep.processResponse(stepContext, session("responseBodyBytes").as[Array[Byte]], classOf[EciesEncryptedResponse])
 
       val deviceActivated: Device = device.copy()
       deviceActivated.resultStatusObject = stepContext.getModel.getResultStatus
