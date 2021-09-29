@@ -430,7 +430,7 @@ public class PowerAuthApiTest {
     @Test
     public void applicationDetailTest() throws PowerAuthClientException {
         GetApplicationDetailResponse response = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        assertEquals("PA_Tests", response.getApplicationName());
+        assertEquals(config.getApplicationName(), response.getApplicationName());
         boolean testAppVersionFound = false;
         for (GetApplicationDetailResponse.Versions version: response.getVersions()) {
             if (version.getApplicationVersionId() == config.getApplicationVersionId()) {

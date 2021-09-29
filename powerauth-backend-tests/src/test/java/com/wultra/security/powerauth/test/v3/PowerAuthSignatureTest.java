@@ -760,9 +760,9 @@ public class PowerAuthSignatureTest {
     @Test
     public void signatureSwappedKeyTest() throws Exception {
         // Save biometry key
-        String biometryKeyOrig = model.getResultStatus().getSignatureBiometryKey();
+        String biometryKeyOrig = (String) model.getResultStatusObject().get("signatureBiometryKey");
         // Set possession key as biometry key
-        model.getResultStatus().setSignatureBiometryKey(model.getResultStatus().getSignaturePossessionKey());
+        model.getResultStatusObject().put("signatureBiometryKey", model.getResultStatusObject().get("signaturePossessionKey"));
         // Verify three factor signature
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY);
 
@@ -776,7 +776,7 @@ public class PowerAuthSignatureTest {
         checkSignatureError(errorResponse);
 
         // Revert biometry key change
-        model.getResultStatus().setSignatureBiometryKey(biometryKeyOrig);
+        model.getResultStatusObject().put("signatureBiometryKey", biometryKeyOrig);
     }
 
     @Test
