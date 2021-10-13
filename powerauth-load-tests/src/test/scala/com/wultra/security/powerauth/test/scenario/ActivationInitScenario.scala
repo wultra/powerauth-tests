@@ -28,7 +28,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject
  */
 object ActivationInitScenario {
 
-  val devicesToInit: Array[Device] = (1 to TestDevices.NUMBER_OF_DEVICES).toList
+  val devicesToInit: Array[Device] = (1 to TestDevices.DEVICES_COUNT).toList
     .map(index => {
       val device = new Device()
       device.userId = s"loadTestUser_$index"
@@ -49,6 +49,7 @@ object ActivationInitScenario {
 				}"""
       }
       ))
+      .check(status.is(200))
       .check(jsonPath("$.status").is("OK"))
       .check(jsonPath("$.responseObject.activationCode").saveAs("activationCode"))
       .check(jsonPath("$.responseObject.activationId").saveAs("activationId"))

@@ -51,7 +51,7 @@ object TokenCreateV3Scenario extends AbstractScenario {
 
   override def createStepContext(device: Device): StepContext[_, _] = {
     val model = prepareCreateTokenStepModel(device)
-    tokenCreateStep.prepareStepContext(ClientConfig.stepLogger, model.toMap)
+    tokenCreateStep.prepareStepContext(PowerAuthCommon.stepLogger, model.toMap)
   }
 
   val scnTokenCreate: ScenarioBuilder = scenario("scnTokenCreate")
@@ -60,6 +60,7 @@ object TokenCreateV3Scenario extends AbstractScenario {
       .post("/pa/v3/token/create")
       .header(PowerAuthSignatureHttpHeader.HEADER_NAME, "${httpPowerAuthHeader}")
       .body(requestBody())
+      .check(status.is(200))
       .check(bodyBytes.saveAs("responseBodyBytes"))
     )
     .exec(session => {

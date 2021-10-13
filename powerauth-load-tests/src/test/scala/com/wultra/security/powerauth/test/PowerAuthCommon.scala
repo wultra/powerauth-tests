@@ -15,10 +15,11 @@
  */
 package com.wultra.security.powerauth.test
 
-import io.gatling.core.Predef.{Simulation, _}
+import io.gatling.core.Predef._
 import io.gatling.http.Predef.http
 import io.gatling.http.protocol.HttpProtocolBuilder
 import io.getlime.security.powerauth.lib.cmd.CmdLibApplication
+import io.getlime.security.powerauth.lib.cmd.consts.StepLoggerType
 import io.getlime.security.powerauth.lib.cmd.logging.StepLogger
 import io.getlime.security.powerauth.lib.cmd.steps.StepProvider
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -43,27 +44,29 @@ object PowerAuthCommon {
   // Add Bouncy Castle Security Provider
   Security.addProvider(new BouncyCastleProvider)
 
-  val POWER_AUTH_SERVER_URL: String = System.getProperty("powerAuthServerUrl", "http://localhost:8080")
+  val POWER_AUTH_JAVA_SERVER_URL: String = System.getProperty("powerAuthJavaServerUrl", "http://localhost:8080/powerauth-java-server")
 
-  val httpProtocolPowerAuthServer: HttpProtocolBuilder = http
-    .baseUrl(POWER_AUTH_SERVER_URL)
+  val httpProtocolPowerAuthJavaServer: HttpProtocolBuilder = http
+    .baseUrl(POWER_AUTH_JAVA_SERVER_URL)
     .inferHtmlResources()
     .acceptHeader("application/json")
     .contentTypeHeader("application/json")
-    .userAgentHeader("PowerAuth-LoadTest/gatling com.wultra.powerauth/1.2.0-SNAPSHOT")
+    .userAgentHeader("PowerAuth-LoadTest/gatling")
 
-  val POWER_AUTH_REST_SERVER_URL: String = System.getProperty("powerAuthRestServerUrl", "http://localhost:8081")
+  val POWER_AUTH_REST_SERVER_URL: String = System.getProperty("powerAuthRestServerUrl", "http://localhost:8080/powerauth-restful-server-spring")
 
   val httpProtocolPowerAuthRestServer: HttpProtocolBuilder = http
     .baseUrl(POWER_AUTH_REST_SERVER_URL)
     .inferHtmlResources()
     .acceptHeader("application/json")
     .contentTypeHeader("application/json")
-    .userAgentHeader("PowerAuth-LoadTest/gatling com.wultra.powerauth/1.2.0-SNAPSHOT")
+    .userAgentHeader("PowerAuth-LoadTest/gatling")
+
+  val STEP_LOGGER_TYPE: StepLoggerType = StepLoggerType.valueOf(System.getProperty("stepLoggerType", "disabled").toUpperCase)
 
   val appContext: ConfigurableApplicationContext = new SpringApplicationBuilder(classOf[CmdLibApplication])
     .web(WebApplicationType.NONE)
-    .run("--resultstatus.persistenceType=memory", "--steplogger.type=disabled")
+    .run("--resultstatus.persistenceType=memory", "--steplogger.type=" + STEP_LOGGER_TYPE.toString.toLowerCase)
 
   val stepLogger: StepLogger = appContext.getBeanFactory.getBean(classOf[StepLogger])
 

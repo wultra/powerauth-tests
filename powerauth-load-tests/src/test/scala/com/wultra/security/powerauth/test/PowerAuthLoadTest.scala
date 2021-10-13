@@ -15,7 +15,7 @@
  */
 package com.wultra.security.powerauth.test
 
-import com.wultra.security.powerauth.test.PowerAuthCommon.{httpProtocolPowerAuthRestServer, httpProtocolPowerAuthServer}
+import com.wultra.security.powerauth.test.PowerAuthCommon.{httpProtocolPowerAuthRestServer, httpProtocolPowerAuthJavaServer}
 import com.wultra.security.powerauth.test.scenario.ActivationInitScenario
 import com.wultra.security.powerauth.test.scenario.v3.{ActivationPrepareV3Scenario, SignatureVerifyV3Scenario, TokenCreateV3Scenario}
 import io.gatling.core.Predef._
@@ -31,22 +31,30 @@ class PowerAuthLoadTest extends Simulation {
 
   println(s"Load testing PowerAuth")
 
+  val activationCreateTime: FiniteDuration = Math.max((TestDevices.DEVICES_COUNT.floatValue() / 100).intValue(), 2).seconds
+
+  val maxUsersPerSec: Int = Math.min(TestDevices.DEVICES_COUNT, TestDevices.DEVICES_MAX_CONCURRENT_PER_SECOND).intValue()
+
   setUp(
+    // Init activation for all devices
     ActivationInitScenario.scnActivationInit.inject(
-      rampUsers(TestDevices.NUMBER_OF_DEVICES).during(Math.max((TestDevices.NUMBER_OF_DEVICES.floatValue() / 200).intValue(), 1).seconds)
-    ).protocols(httpProtocolPowerAuthServer).andThen(
-      ActivationPrepareV3Scenario.scnActivationCreate.inject(
-        rampUsers(TestDevices.NUMBER_OF_DEVICES).during(Math.max((TestDevices.NUMBER_OF_DEVICES.floatValue() / 100).intValue() , 1).seconds)
-      ).protocols(httpProtocolPowerAuthRestServer)
-        .andThen(
-          TokenCreateV3Scenario.scnTokenCreate.inject(
-            rampUsersPerSec(1).to(Math.min(TestDevices.NUMBER_OF_DEVICES, TestDevices.MAX_USERS_PER_SECOND).intValue()).during(15.minutes)
-          ).protocols(httpProtocolPowerAuthRestServer),
-          SignatureVerifyV3Scenario.scnSignatureVerify.inject(
-            rampUsersPerSec(1).to(Math.min(TestDevices.NUMBER_OF_DEVICES, TestDevices.MAX_USERS_PER_SECOND).intValue()).during(15.minutes)
-          ).protocols(httpProtocolPowerAuthRestServer)
-        )
-    )
+      rampUsers(TestDevices.DEVICES_COUNT).during(activationCreateTime./(2))
+    ).protocols(httpProtocolPowerAuthJavaServer)
+      // Create activation for all devices
+      .andThen(
+        ActivationPrepareV3Scenario.scnActivationCreate.inject(
+          rampUsers(TestDevices.DEVICES_COUNT).during(activationCreateTime)
+        ).protocols(httpProtocolPowerAuthRestServer)
+          // Run in parallel scenarios for TokenCreate and SignatureVerify on all devices (sequenced)
+          .andThen(
+            TokenCreateV3Scenario.scnTokenCreate.inject(
+              rampUsersPerSec(1).to(maxUsersPerSec).during(TestDevices.TEST_DURATION)
+            ).protocols(httpProtocolPowerAuthRestServer),
+            SignatureVerifyV3Scenario.scnSignatureVerify.inject(
+              rampUsersPerSec(1).to(maxUsersPerSec).during(TestDevices.TEST_DURATION)
+            ).protocols(httpProtocolPowerAuthRestServer)
+          )
+      )
   )
 
 }

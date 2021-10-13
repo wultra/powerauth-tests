@@ -57,7 +57,7 @@ object ActivationPrepareV3Scenario extends AbstractScenario {
 
   override def createStepContext(device: Device): StepContext[_, _] = {
     val model = createActivationPrepareStepModel(device)
-    activationPrepareStep.prepareStepContext(ClientConfig.stepLogger, model.toMap)
+    activationPrepareStep.prepareStepContext(PowerAuthCommon.stepLogger, model.toMap)
   }
 
   val scnActivationCreate: ScenarioBuilder = scenario("scnActivationCreate")
@@ -66,6 +66,7 @@ object ActivationPrepareV3Scenario extends AbstractScenario {
       .post("/pa/v3/activation/create")
       .header(PowerAuthEncryptionHttpHeader.HEADER_NAME, "${httpPowerAuthHeader}")
       .body(requestBody())
+      .check(status.is(200))
       .check(bodyBytes.saveAs("responseBodyBytes"))
     )
     .exec(session => {

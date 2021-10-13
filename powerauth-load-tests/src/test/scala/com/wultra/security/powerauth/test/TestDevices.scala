@@ -17,6 +17,8 @@ package com.wultra.security.powerauth.test
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 /**
  * Simulated devices to run the tests on
@@ -25,9 +27,11 @@ import scala.collection.mutable.ListBuffer
  */
 object TestDevices {
 
-  val MAX_USERS_PER_SECOND: Integer = Integer.getInteger("maxUsersPerSecond", 80)
+  val DEVICES_COUNT: Integer = Integer.getInteger("countOfDevices", 100)
 
-  val NUMBER_OF_DEVICES: Integer = Integer.getInteger("numberOfDevices", 100)
+  val DEVICES_MAX_CONCURRENT_PER_SECOND: Integer = Integer.getInteger("maxDevicesPerSecond", 80)
+
+  val TEST_DURATION: FiniteDuration = Duration(System.getProperty("testDuration", "15 minutes")).asInstanceOf[FiniteDuration]
 
   val devicesActivated: ListBuffer[Device] = ListBuffer.empty[Device]
 

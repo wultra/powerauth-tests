@@ -16,7 +16,7 @@
 package com.wultra.security.powerauth.test.scenario.v3
 
 import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon}
-import io.gatling.core.Predef.{ByteArrayBody, jsonPath, scenario, _}
+import io.gatling.core.Predef.{jsonPath, scenario, _}
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.{http, _}
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes
@@ -61,7 +61,7 @@ object SignatureVerifyV3Scenario extends AbstractScenario {
 
   override def createStepContext(device: Device): StepContext[_, _] = {
     val model = prepareVerifySignatureStepModel(device)
-    signatureVerifyStep.prepareStepContext(ClientConfig.stepLogger, model.toMap)
+    signatureVerifyStep.prepareStepContext(PowerAuthCommon.stepLogger, model.toMap)
   }
 
   val scnSignatureVerify: ScenarioBuilder = scenario("scnSignatureVerify")
@@ -70,6 +70,7 @@ object SignatureVerifyV3Scenario extends AbstractScenario {
       .post("/pa/v3/signature/validate")
       .header(PowerAuthSignatureHttpHeader.HEADER_NAME, "${httpPowerAuthHeader}")
       .body(requestBody())
+      .check(status.is(200))
       .check(jsonPath("$.status").is("OK"))
     )
 

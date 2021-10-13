@@ -47,7 +47,6 @@ abstract class AbstractScenario {
       session
         .set("device", device)
         .set("httpPowerAuthHeader", stepContext.getRequestContext.getAuthorizationHeader)
-        .set("httpPowerAuthHeaderName", stepContext.getRequestContext.getAuthorizationHeaderName)
         .set("requestObject", stepContext.getRequestContext.getRequestObject)
         .set("stepContext", stepContext)
     }

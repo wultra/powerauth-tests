@@ -1,3 +1,4 @@
+# How to run a load test
 
 ## Prepare config file
 1. Open PowerAuth admin
@@ -20,12 +21,22 @@ TRUNCATE pa_signature_audit CASCADE;
 TRUNCATE pa_activation CASCADE;
 ```
 
-## Run test
+## Run a test
+
 ```shell
-cd powerauth-load-tests
 mvn gatling:test -Dgatling.simulationClass=com.wultra.security.powerauth.test.PowerAuthLoadTest \
 -DconfigFile="directory_with_the_config_file/config.json" \
--DpowerAuthServerUrl=http://localhost:8080 \
--DpowerAuthRestServerUrl=http://localhost:8081 \
--DnumberOfDevices=1
+-DpowerAuthJavaServerUrl=http://localhost:8080/powerauth-java-server \
+-DpowerAuthRestServerUrl=http://localhost:8080/powerauth-restful-server-spring \
+-DcountOfDevices=10 \
+-DmaxDevicesPerSecond=5
 ```
+
+Command line parameters:
+- `configFile` - file with application configuration, defaults to `./config.json`
+- `powerAuthJavaServerUrl` - base url of the PowerAuth Java server
+- `powerAuthRestServerUrl` - base url of the PowerAuth REST server
+- `countOfDevices` - count of simulated devices, defaults to 100
+- `maxDevicesPerSecond` - maximum allowed number of active devices in one second, defaults to 80
+- `testDuration` - duration of the load test, defaults to `15 minutes`
+- `stepLoggerType` - type of used step logger, defaults to `disabled`, other allowed values (`json`, `object`)
