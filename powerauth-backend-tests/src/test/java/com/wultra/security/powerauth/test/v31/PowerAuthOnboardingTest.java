@@ -20,15 +20,24 @@ package com.wultra.security.powerauth.test.v31;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.ActivationStatus;
+import com.wultra.security.powerauth.client.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
+import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
+import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
+import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
+import io.getlime.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
+import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
+import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
 import lombok.Data;
+import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,9 +47,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -52,9 +63,12 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnableConfigurationProperties
 public class PowerAuthOnboardingTest {
 
-    private PowerAuthTestConfiguration config;
     private PowerAuthClient powerAuthClient;
+    private PowerAuthTestConfiguration config;
     private EncryptStepModel encryptModel;
+    private CreateActivationStepModel activationModel;
+    private GetStatusStepModel statusModel;
+    private File tempStatusFile;
     private ObjectStepLogger stepLogger;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -80,13 +94,38 @@ public class PowerAuthOnboardingTest {
         encryptModel.setVersion("3.1");
         encryptModel.setScope("application");
 
+        // Create temp status file
+        tempStatusFile = File.createTempFile("pa_status_v31", ".json");
+
+        // Model shared among tests
+        activationModel = new CreateActivationStepModel();
+        activationModel.setActivationName("test v3.1");
+        activationModel.setApplicationKey(config.getApplicationKey());
+        activationModel.setApplicationSecret(config.getApplicationSecret());
+        activationModel.setMasterPublicKey(config.getMasterPublicKey());
+        activationModel.setHeaders(new HashMap<>());
+        activationModel.setPassword(config.getPassword());
+        activationModel.setStatusFileName(tempStatusFile.getAbsolutePath());
+        activationModel.setResultStatusObject(config.getResultStatusObjectV31());
+        activationModel.setUriString(config.getEnrollmentServiceUrl());
+        activationModel.setVersion("3.1");
+        activationModel.setDeviceInfo("backend-tests");
+
+        statusModel = new GetStatusStepModel();
+        statusModel.setHeaders(new HashMap<>());
+        statusModel.setResultStatusObject(config.getResultStatusObjectV31());
+        statusModel.setUriString(config.getEnrollmentServiceUrl());
+        statusModel.setVersion("3.1");
+
         stepLogger = new ObjectStepLogger(System.out);
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     public void testSuccessfulOnboarding() throws Exception {
         // Test onboarding start
-        String processId = startOnboarding();
+        String clientId = generateRandomClientId();
+        String processId = startOnboarding(clientId);
 
         // Test onboarding status
         assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
@@ -118,10 +157,23 @@ public class PowerAuthOnboardingTest {
         assertNotNull(otpCode);
 
         // Create a new custom activation
-        // TODO
+        String activationId = createCustomActivation(processId, otpCode, clientId);
 
-        // Test onboarding cleanup until activation is ready
-        onboardingCleanup(processId);
+        // Test onboarding status
+        assertEquals(OnboardingStatus.FINISHED, getProcessStatus(processId));
+
+        // Verify activation flags using custom object in status
+        ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
+        new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
+        assertTrue(stepLoggerStatus.getResult().isSuccess());
+        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
+        ObjectResponse<ActivationStatusResponse> objectResponse = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().getResponseObject();
+        Map<String, Object> customObject = objectResponse.getResponseObject().getCustomObject();
+        assertNotNull(customObject);
+        assertEquals(Collections.singletonList("VERIFICATION_PENDING"), customObject.get("activationFlags"));
+
+        // Remove activation
+        powerAuthClient.removeActivation(activationId, "test");
     }
 
     @Test
@@ -195,7 +247,7 @@ public class PowerAuthOnboardingTest {
         Map<String, Object> identification = new LinkedHashMap<>();
         if (clientId == null) {
             clientId = generateRandomClientId();
-            identification.put("clientId", "12345678");
+            identification.put("clientId", clientId);
         }
         identification.put("clientId", clientId);
         identification.put("birthDate", "1970/03/21");
@@ -276,9 +328,44 @@ public class PowerAuthOnboardingTest {
 
     private String generateRandomClientId() {
         SecureRandom random = new SecureRandom();
-        BigInteger bound = BigInteger.TEN.pow(18).add(BigInteger.ONE.negate());
+        BigInteger bound = BigInteger.TEN.pow(18).subtract(BigInteger.ONE);
         long number = Math.abs(random.nextLong() % bound.longValue());
         return Long.toString(number);
+    }
+
+    private String createCustomActivation(String processId, String otpCode, String clientId) throws Exception {
+        stepLogger = new ObjectStepLogger(System.out);
+        Map<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("processId", processId);
+        identityAttributes.put("otpCode", otpCode);
+        activationModel.setIdentityAttributes(identityAttributes);
+        new CreateActivationStep().execute(stepLogger, activationModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        String activationId = null;
+        boolean responseOk = false;
+        boolean layer1ResponseOk = false;
+        // Verify decrypted responses
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Layer 2 Response")) {
+                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+                activationId = layer2Response.getActivationId();
+                assertNotNull(activationId);
+                assertNotNull(layer2Response.getCtrData());
+                assertNotNull(layer2Response.getServerPublicKey());
+                // Verify activation status - activation was automatically committed
+                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+                assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
+                assertEquals("mockuser_" + clientId, statusResponseActive.getUserId());
+                assertEquals(Collections.singletonList("VERIFICATION_PENDING"), statusResponseActive.getActivationFlags());
+                responseOk = true;
+                continue;
+            }
+        }
+
+        assertTrue(responseOk);
+        return activationId;
     }
 
     // Model classes
