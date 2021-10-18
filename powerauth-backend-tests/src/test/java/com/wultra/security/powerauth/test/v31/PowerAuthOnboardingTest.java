@@ -39,6 +39,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -160,9 +161,7 @@ public class PowerAuthOnboardingTest {
     @Test
     public void testMaxProcesses() throws Exception {
         // Use same mock client ID suffix to make sure user ID is the same across all requests
-        SecureRandom secureRandom = new SecureRandom();
-        int randomInt = secureRandom.nextInt(99999999);
-        String clientId = Integer.toString(randomInt);
+        String clientId = generateRandomClientId();
         String processId = startOnboarding(clientId);
         onboardingCleanup(processId);
         processId = startOnboarding(clientId);
@@ -195,10 +194,10 @@ public class PowerAuthOnboardingTest {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/start");
         Map<String, Object> identification = new LinkedHashMap<>();
         if (clientId == null) {
+            clientId = generateRandomClientId();
             identification.put("clientId", "12345678");
-        } else {
-            identification.put("clientId", clientId);
         }
+        identification.put("clientId", clientId);
         identification.put("birthDate", "1970/03/21");
         OnboardingStartRequest request = new OnboardingStartRequest();
         request.setIdentification(identification);
@@ -273,6 +272,13 @@ public class PowerAuthOnboardingTest {
         assertTrue(responseStatusSuccessfullyDecrypted);
         assertNotNull(processId);
         return onboardingStatus;
+    }
+
+    private String generateRandomClientId() {
+        SecureRandom random = new SecureRandom();
+        BigInteger bound = BigInteger.TEN.pow(18).add(BigInteger.ONE.negate());
+        long number = Math.abs(random.nextLong() % bound.longValue());
+        return Long.toString(number);
     }
 
     // Model classes
