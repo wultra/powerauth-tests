@@ -70,9 +70,6 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.enrollment.service.url}")
     private String enrollmentServiceUrl;
 
-    @Value("${powerauth.custom.service.url}")
-    private String customServiceUrl;
-
     @Value("${powerauth.service.security.clientToken}")
     private String clientToken;
 
@@ -217,10 +214,6 @@ public class PowerAuthTestConfiguration {
         return enrollmentServiceUrl;
     }
 
-    public String getCustomServiceUrl() {
-        return customServiceUrl;
-    }
-
     public String getApplicationName() {
         return applicationName;
     }
@@ -343,6 +336,7 @@ public class PowerAuthTestConfiguration {
         try {
             masterPublicKeyConverted = keyConvertor.convertBytesToPublicKey(masterKeyBytes);
         } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
         }
     }
 }

@@ -121,7 +121,7 @@ public class PowerAuthActivationCodeTest {
         assumeFalse(config.getEnrollmentServiceUrl().isEmpty());
 
         // Obtain activation code from enrollment server
-        signatureModel.setResourceId("api/activation/code");
+        signatureModel.setResourceId("/api/activation/code");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/activation/code");
 
         File dataFile = File.createTempFile("data_activation_code", ".dat");

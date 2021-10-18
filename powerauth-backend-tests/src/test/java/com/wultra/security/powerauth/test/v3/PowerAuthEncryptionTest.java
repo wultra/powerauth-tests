@@ -115,7 +115,7 @@ public class PowerAuthEncryptionTest {
 
     @Test
     public void encryptInActivationScopeTest() throws Exception {
-        encryptModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
         encryptModel.setScope("activation");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
@@ -139,7 +139,7 @@ public class PowerAuthEncryptionTest {
 
     @Test
     public void encryptInApplicationScopeTest() throws Exception {
-        encryptModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/application");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/application");
         encryptModel.setScope("application");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
@@ -163,7 +163,7 @@ public class PowerAuthEncryptionTest {
 
     @Test
     public void encryptInInvalidScope1Test() throws Exception {
-        encryptModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
         encryptModel.setScope("application");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
@@ -173,7 +173,7 @@ public class PowerAuthEncryptionTest {
 
     @Test
     public void encryptInInvalidScope2Test() throws Exception {
-        encryptModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/application");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/application");
         encryptModel.setScope("activation");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
@@ -189,7 +189,7 @@ public class PowerAuthEncryptionTest {
         fw.close();
 
         encryptModel.setData(Files.readAllBytes(Paths.get(emptyDataFile.getAbsolutePath())));
-        encryptModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
         encryptModel.setScope("activation");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
@@ -200,7 +200,7 @@ public class PowerAuthEncryptionTest {
 
     @Test
     public void encryptBlockedActivationTest() throws Exception {
-        encryptModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
         encryptModel.setScope("activation");
 
         // Block activation and verify that data exchange fails
@@ -237,7 +237,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
@@ -261,7 +261,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptWeakSignatureTypeTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
 
@@ -273,7 +273,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptInvalidPasswordTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         signatureModel.setPassword("0000");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
@@ -284,7 +284,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptEmptyDataTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         File emptyDataFile = File.createTempFile("data_empty_signed", ".json");
         emptyDataFile.deleteOnExit();
         FileWriter fw = new FileWriter(emptyDataFile);
@@ -301,7 +301,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptLargeDataTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
         SecureRandom secureRandom = new SecureRandom();
         File dataFileLarge = File.createTempFile("data_large_v3", ".dat");
@@ -326,7 +326,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptStringDataTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed/string");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed/string");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed/string");
 
         File dataFileLarge = File.createTempFile("data_string_v3", ".dat");
         dataFileLarge.deleteOnExit();
@@ -357,7 +357,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptRawDataTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed/raw");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed/raw");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed/raw");
 
         File dataFileLarge = File.createTempFile("data_raw_v3", ".dat");
         dataFileLarge.deleteOnExit();
@@ -387,7 +387,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptInvalidResourceIdTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/invalid");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertFalse(stepLogger.getResult().isSuccess());
@@ -397,7 +397,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptBlockedActivationTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
         // Block activation and verify that data exchange fails
         powerAuthClient.blockActivation(config.getActivationIdV3(), "test", "test");
@@ -431,7 +431,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptUnsupportedApplicationTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
         powerAuthClient.unsupportApplicationVersion(config.getApplicationVersionId());
 
@@ -469,7 +469,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptCounterIncrementTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
         byte[] ctrData = CounterUtil.getCtrData(signatureModel, stepLogger);
         HashBasedCounter counter = new HashBasedCounter();
@@ -488,7 +488,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptLookAheadTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
         // Move counter by 1-4, next signature should succeed thanks to counter lookahead and it is still in max failure limit
         for (int i = 1; i < 4; i++) {
@@ -511,7 +511,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptSingleFactorTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
@@ -526,7 +526,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptBiometryTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_BIOMETRY);
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
@@ -537,7 +537,7 @@ public class PowerAuthEncryptionTest {
     @Test
     public void signAndEncryptThreeFactorTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getCustomServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY);
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
