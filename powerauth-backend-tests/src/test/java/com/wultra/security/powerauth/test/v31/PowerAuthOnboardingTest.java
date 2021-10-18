@@ -32,12 +32,14 @@ import lombok.Data;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.IOException;
+import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -83,45 +85,10 @@ public class PowerAuthOnboardingTest {
     @Test
     public void testSuccessfulOnboarding() throws Exception {
         // Test onboarding start
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/start");
-        Map<String, Object> identification = new LinkedHashMap<>();
-        identification.put("clientId", "12345678");
-        identification.put("birthDate", "1970/03/21");
-        OnboardingStartRequest request = new OnboardingStartRequest();
-        request.setIdentification(identification);
-        executeRequest(request);
-
-        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
-        assertNotNull(responseOK.getEncryptedData());
-        assertNotNull(responseOK.getMac());
-
-        boolean responseSuccessfullyDecrypted = false;
-        String processId = null;
-        OnboardingStatus onboardingStatus = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
-                ObjectResponse<OnboardingStartResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OnboardingStartResponse>>() {});
-                OnboardingStartResponse response = objectResponse.getResponseObject();
-                processId = response.getProcessId();
-                onboardingStatus = response.getOnboardingStatus();
-                responseSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseSuccessfullyDecrypted);
-        assertNotNull(processId);
-        assertEquals(OnboardingStatus.IN_PROGRESS, onboardingStatus);
+        String processId = startOnboarding();
 
         // Test onboarding status
         assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
-
-        // Test OTP resend
-        stepLogger = new ObjectStepLogger(System.out);
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/otp/resend");
-        OtpResendRequest requestResend = new OtpResendRequest();
-        requestResend.setProcessId(processId);
-        executeRequest(requestResend);
 
         // Obtain activation OTP from testing endpoint
         stepLogger = new ObjectStepLogger(System.out);
@@ -151,14 +118,87 @@ public class PowerAuthOnboardingTest {
 
         // Create a new custom activation
         // TODO
+
+        // Test onboarding cleanup until activation is ready
+        onboardingCleanup(processId);
     }
 
     @Test
     public void testOnboardingCleanup() throws Exception {
         // Test onboarding start
+        String processId = startOnboarding();
+
+        // Test onboarding status
+        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
+
+        // Test onboarding cleanup
+        onboardingCleanup(processId);
+
+        // Test onboarding status
+        assertEquals(OnboardingStatus.FAILED, getProcessStatus(processId));
+    }
+
+    @Test
+    public void testResendPeriod() throws Exception {
+        // Test onboarding start
+        String processId = startOnboarding();
+
+        // Test failed OTP resend
+        stepLogger = new ObjectStepLogger(System.out);
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/otp/resend");
+        OtpResendRequest requestResend = new OtpResendRequest();
+        requestResend.setProcessId(processId);
+        ObjectRequest<Object> objectRequest = new ObjectRequest<>();
+        objectRequest.setRequestObject(requestResend);
+        byte[] data = objectMapper.writeValueAsBytes(objectRequest);
+        encryptModel.setData(data);
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
+    }
+
+    @Test
+    public void testMaxProcesses() throws Exception {
+        // Use same mock client ID suffix to make sure user ID is the same across all requests
+        SecureRandom secureRandom = new SecureRandom();
+        int randomInt = secureRandom.nextInt(99999999);
+        String clientId = Integer.toString(randomInt);
+        String processId = startOnboarding(clientId);
+        onboardingCleanup(processId);
+        processId = startOnboarding(clientId);
+        onboardingCleanup(processId);
+        processId = startOnboarding(clientId);
+        onboardingCleanup(processId);
+        processId = startOnboarding(clientId);
+        onboardingCleanup(processId);
+        processId = startOnboarding(clientId);
+        onboardingCleanup(processId);
+        // Sixth attempt should fail
+        processId = null;
+        try {
+            processId = startOnboarding(clientId);
+        } catch (AssertionFailedError e) {
+            // Expected failure
+        }
+        assertNull(processId);
+    }
+
+    // TODO - max attempts test
+
+    // Shared test logic
+    private String startOnboarding() throws Exception {
+        return startOnboarding(null);
+    }
+
+    private String startOnboarding(String clientId) throws Exception {
+        stepLogger = new ObjectStepLogger(System.out);
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/start");
         Map<String, Object> identification = new LinkedHashMap<>();
-        identification.put("clientId", "12345678");
+        if (clientId == null) {
+            identification.put("clientId", "12345678");
+        } else {
+            identification.put("clientId", clientId);
+        }
         identification.put("birthDate", "1970/03/21");
         OnboardingStartRequest request = new OnboardingStartRequest();
         request.setIdentification(identification);
@@ -185,22 +225,9 @@ public class PowerAuthOnboardingTest {
         assertTrue(responseSuccessfullyDecrypted);
         assertNotNull(processId);
         assertEquals(OnboardingStatus.IN_PROGRESS, onboardingStatus);
-
-        // Test onboarding status
-        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
-
-        // Test OTP cleanup
-        stepLogger = new ObjectStepLogger(System.out);
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/cleanup");
-        OnboardingCleanupRequest requestCleanup = new OnboardingCleanupRequest();
-        requestCleanup.setProcessId(processId);
-        executeRequest(requestCleanup);
-
-        // Test onboarding status
-        assertEquals(OnboardingStatus.FAILED, getProcessStatus(processId));
+        return processId;
     }
 
-    // Shared logic
     private void executeRequest(Object request) throws Exception {
         ObjectRequest<Object> objectRequest = new ObjectRequest<>();
         objectRequest.setRequestObject(request);
@@ -209,6 +236,14 @@ public class PowerAuthOnboardingTest {
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
+    }
+
+    private void onboardingCleanup(String processId) throws Exception {
+        stepLogger = new ObjectStepLogger(System.out);
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/cleanup");
+        OnboardingCleanupRequest requestCleanup = new OnboardingCleanupRequest();
+        requestCleanup.setProcessId(processId);
+        executeRequest(requestCleanup);
     }
 
     private OnboardingStatus getProcessStatus(String processId) throws Exception {
