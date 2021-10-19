@@ -68,7 +68,6 @@ public class PowerAuthOnboardingTest {
     private EncryptStepModel encryptModel;
     private CreateActivationStepModel activationModel;
     private GetStatusStepModel statusModel;
-    private File tempStatusFile;
     private ObjectStepLogger stepLogger;
 
     private final ObjectMapper objectMapper = new ObjectMapper();
@@ -95,7 +94,7 @@ public class PowerAuthOnboardingTest {
         encryptModel.setScope("application");
 
         // Create temp status file
-        tempStatusFile = File.createTempFile("pa_status_v31", ".json");
+        File tempStatusFile = File.createTempFile("pa_status_v31", ".json");
 
         // Model shared among tests
         activationModel = new CreateActivationStepModel();
@@ -151,6 +150,42 @@ public class PowerAuthOnboardingTest {
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    @Test
+    public void testInvalidOtp() throws Exception {
+        // Test onboarding start
+        String clientId = generateRandomClientId();
+        String processId = startOnboarding(clientId);
+
+        // Test onboarding status
+        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
+
+        // Activation with invalid OTP should fail
+        boolean activationSucceeded = false;
+        try {
+            createCustomActivation(processId, "0000000000", clientId);
+            activationSucceeded = true;
+        } catch (AssertionFailedError e) {
+            // Expected failed test
+        }
+        assertFalse(activationSucceeded);
+
+        // Test onboarding cleanup
+        onboardingCleanup(processId);
+    }
+
+    @Test
+    public void testInvalidProcessId() throws Exception {
+        // Activation with invalid OTP should fail
+        boolean activationSucceeded = false;
+        try {
+            createCustomActivation("8b2928d2-f7e7-489b-8ebc-76d4aad173a6", "0000000000", "12345678");
+            activationSucceeded = true;
+        } catch (AssertionFailedError e) {
+            // Expected failed test
+        }
+        assertFalse(activationSucceeded);
     }
 
     @Test
@@ -215,7 +250,7 @@ public class PowerAuthOnboardingTest {
     }
 
     @Test
-    public void testMaxAttempts() throws Exception {
+    public void testMaxAttemptsReached() throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
         String processId = startOnboarding(clientId);
@@ -245,6 +280,34 @@ public class PowerAuthOnboardingTest {
             // Expected failed test
         }
         assertFalse(activationSucceeded);
+    }
+
+    @Test
+    public void testMaxAttemptsNotReached() throws Exception {
+        // Test onboarding start
+        String clientId = generateRandomClientId();
+        String processId = startOnboarding(clientId);
+
+        // Test onboarding status
+        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
+
+        // Obtain activation OTP from testing endpoint
+        String otpCode = getOtpCode(processId);
+
+        // Create a new custom activation with invalid OTP code, repeat 5x
+        boolean activationSucceeded = false;
+        for (int i = 0; i < 4; i++) {
+            try {
+                createCustomActivation(processId, "0000000000", clientId);
+                activationSucceeded = true;
+            } catch (AssertionFailedError e) {
+                // Expected failed test
+            }
+        }
+        assertFalse(activationSucceeded);
+        // Fifth attempt with correct OTP code should succeed
+        String activationId = createCustomActivation(processId, otpCode, clientId);
+        assertNotNull(activationId);
     }
 
     // Shared test logic
