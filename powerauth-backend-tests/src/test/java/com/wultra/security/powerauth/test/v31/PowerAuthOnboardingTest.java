@@ -131,30 +131,7 @@ public class PowerAuthOnboardingTest {
         assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
 
         // Obtain activation OTP from testing endpoint
-        stepLogger = new ObjectStepLogger(System.out);
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/otp/detail");
-        OtpDetailRequest requestOtp = new OtpDetailRequest();
-        requestOtp.setProcessId(processId);
-        executeRequest(requestOtp);
-
-        EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
-        assertNotNull(responseOtpOK.getEncryptedData());
-        assertNotNull(responseOtpOK.getMac());
-
-        boolean responseOtpSuccessfullyDecrypted = false;
-        String otpCode = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
-                ObjectResponse<OtpDetailResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OtpDetailResponse>>() {});
-                OtpDetailResponse response = objectResponse.getResponseObject();
-                otpCode = response.getOtpCode();
-                responseOtpSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseOtpSuccessfullyDecrypted);
-        assertNotNull(otpCode);
+        String otpCode = getOtpCode(processId);
 
         // Create a new custom activation
         String activationId = createCustomActivation(processId, otpCode, clientId);
@@ -208,6 +185,9 @@ public class PowerAuthOnboardingTest {
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
         assertFalse(stepLogger.getResult().isSuccess());
         assertEquals(400, stepLogger.getResponse().getStatusCode());
+
+        // Test onboarding cleanup
+        onboardingCleanup(processId);
     }
 
     @Test
@@ -234,7 +214,38 @@ public class PowerAuthOnboardingTest {
         assertNull(processId);
     }
 
-    // TODO - max attempts test
+    @Test
+    public void testMaxAttempts() throws Exception {
+        // Test onboarding start
+        String clientId = generateRandomClientId();
+        String processId = startOnboarding(clientId);
+
+        // Test onboarding status
+        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
+
+        // Obtain activation OTP from testing endpoint
+        String otpCode = getOtpCode(processId);
+
+        // Create a new custom activation with invalid OTP code, repeat 5x
+        boolean activationSucceeded = false;
+        for (int i = 0; i < 5; i++) {
+            try {
+                createCustomActivation(processId, "0000000000", clientId);
+                activationSucceeded = true;
+            } catch (AssertionFailedError e) {
+                // Expected failed test
+            }
+        }
+        assertFalse(activationSucceeded);
+        // Sixth attempt with correct OTP code should fail
+        try {
+            createCustomActivation(processId, otpCode, clientId);
+            activationSucceeded = true;
+        } catch (AssertionFailedError e) {
+            // Expected failed test
+        }
+        assertFalse(activationSucceeded);
+    }
 
     // Shared test logic
     private String startOnboarding() throws Exception {
@@ -366,6 +377,34 @@ public class PowerAuthOnboardingTest {
 
         assertTrue(responseOk);
         return activationId;
+    }
+
+    private String getOtpCode(String processId) throws Exception {
+        stepLogger = new ObjectStepLogger(System.out);
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/otp/detail");
+        OtpDetailRequest requestOtp = new OtpDetailRequest();
+        requestOtp.setProcessId(processId);
+        executeRequest(requestOtp);
+
+        EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        assertNotNull(responseOtpOK.getEncryptedData());
+        assertNotNull(responseOtpOK.getMac());
+
+        boolean responseOtpSuccessfullyDecrypted = false;
+        String otpCode = null;
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                String responseData = item.getObject().toString();
+                ObjectResponse<OtpDetailResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OtpDetailResponse>>() {});
+                OtpDetailResponse response = objectResponse.getResponseObject();
+                otpCode = response.getOtpCode();
+                responseOtpSuccessfullyDecrypted = true;
+                break;
+            }
+        }
+        assertTrue(responseOtpSuccessfullyDecrypted);
+        assertNotNull(otpCode);
+        return otpCode;
     }
 
     // Model classes
