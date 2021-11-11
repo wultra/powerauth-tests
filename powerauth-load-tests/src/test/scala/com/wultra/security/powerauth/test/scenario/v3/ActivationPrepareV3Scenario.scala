@@ -55,7 +55,7 @@ object ActivationPrepareV3Scenario extends AbstractScenario {
     model
   }
 
-  override def createStepContext(device: Device): StepContext[_, _] = {
+  override def createStepContext(device: Device, session: Session): StepContext[_, _] = {
     val model = createActivationPrepareStepModel(device)
     activationPrepareStep.prepareStepContext(PowerAuthCommon.stepLogger, model.toMap)
   }

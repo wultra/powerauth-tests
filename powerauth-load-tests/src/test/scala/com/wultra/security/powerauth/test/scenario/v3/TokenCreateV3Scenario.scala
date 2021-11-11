@@ -25,6 +25,7 @@ import io.getlime.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVer
 import io.getlime.security.powerauth.lib.cmd.steps.context.StepContext
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateTokenStep
+import io.getlime.security.powerauth.rest.api.model.entity.TokenResponsePayload
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse
 
 /**
@@ -33,6 +34,10 @@ import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedRe
  * @author Lukas Lukovsky, lukas.lukovsky@wultra.com
  */
 object TokenCreateV3Scenario extends AbstractScenario {
+
+  val SESSION_TOKEN_ID: String = "tokenId"
+
+  val SESSION_TOKEN_SECRET: String = "tokenSecret"
 
   val tokenCreateStep: CreateTokenStep =
     PowerAuthCommon.stepProvider.getStep(PowerAuthStep.TOKEN_CREATE, PowerAuthVersion.V3_1).asInstanceOf[CreateTokenStep]
@@ -49,7 +54,7 @@ object TokenCreateV3Scenario extends AbstractScenario {
     model
   }
 
-  override def createStepContext(device: Device): StepContext[_, _] = {
+  override def createStepContext(device: Device, session: Session): StepContext[_, _] = {
     val model = prepareCreateTokenStepModel(device)
     tokenCreateStep.prepareStepContext(PowerAuthCommon.stepLogger, model.toMap)
   }
@@ -69,9 +74,13 @@ object TokenCreateV3Scenario extends AbstractScenario {
 
       tokenCreateStep.processResponse(stepContext, session("responseBodyBytes").as[Array[Byte]], classOf[EciesEncryptedResponse])
 
+      val tokenResponsePayload = stepContext.getResponseContext.getResponsePayloadDecrypted.asInstanceOf[TokenResponsePayload]
+      val resultSession = session.set(SESSION_TOKEN_ID, tokenResponsePayload.getTokenId)
+                                 .set(SESSION_TOKEN_SECRET, tokenResponsePayload.getTokenSecret)
+
       device.resultStatusObject = stepContext.getModel.getResultStatus
 
-      session
+      resultSession
     })
 
 }

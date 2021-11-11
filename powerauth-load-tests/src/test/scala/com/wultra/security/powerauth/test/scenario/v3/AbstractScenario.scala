@@ -34,7 +34,7 @@ abstract class AbstractScenario {
    * @param device Device
    * @return Step context with a prepared request
    */
-  def createStepContext(device: Device): StepContext[_,_]
+  def createStepContext(device: Device, session: Session): StepContext[_,_]
 
   /**
    * Prepares session data
@@ -43,7 +43,7 @@ abstract class AbstractScenario {
   def prepareSessionData: session.Expression[Session] = {
     session: Session => {
       val device = TestDevices.nextDevice(TestDevices.devicesInitialized, TestDevices.indexInitialized)
-      val stepContext = createStepContext(device)
+      val stepContext = createStepContext(device, session)
       session
         .set("device", device)
         .set("httpPowerAuthHeader", stepContext.getRequestContext.getAuthorizationHeader)

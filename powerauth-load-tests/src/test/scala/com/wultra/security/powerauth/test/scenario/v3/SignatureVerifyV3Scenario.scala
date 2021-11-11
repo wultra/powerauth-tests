@@ -59,7 +59,7 @@ object SignatureVerifyV3Scenario extends AbstractScenario {
     model
   }
 
-  override def createStepContext(device: Device): StepContext[_, _] = {
+  override def createStepContext(device: Device, session: Session): StepContext[_, _] = {
     val model = prepareVerifySignatureStepModel(device)
     signatureVerifyStep.prepareStepContext(PowerAuthCommon.stepLogger, model.toMap)
   }

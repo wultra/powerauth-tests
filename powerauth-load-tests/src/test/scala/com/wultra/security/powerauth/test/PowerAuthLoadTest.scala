@@ -15,9 +15,9 @@
  */
 package com.wultra.security.powerauth.test
 
-import com.wultra.security.powerauth.test.PowerAuthCommon.{httpProtocolPowerAuthRestServer, httpProtocolPowerAuthJavaServer}
+import com.wultra.security.powerauth.test.PowerAuthCommon.{httpProtocolPowerAuthJavaServer, httpProtocolPowerAuthRestServer}
 import com.wultra.security.powerauth.test.scenario.ActivationInitScenario
-import com.wultra.security.powerauth.test.scenario.v3.{ActivationPrepareV3Scenario, SignatureVerifyV3Scenario, TokenCreateV3Scenario}
+import com.wultra.security.powerauth.test.scenario.v3.{ActivationPrepareV3Scenario, SignatureVerifyV3Scenario, TokenCreateV3Scenario, TokenVerifyV3Scenario}
 import io.gatling.core.Predef._
 
 import scala.concurrent.duration._
@@ -47,7 +47,7 @@ class PowerAuthLoadTest extends Simulation {
         ).protocols(httpProtocolPowerAuthRestServer)
           // Run in parallel scenarios for TokenCreate and SignatureVerify on all devices (sequenced)
           .andThen(
-            TokenCreateV3Scenario.scnTokenCreate.inject(
+            TokenCreateV3Scenario.scnTokenCreate.exec(TokenVerifyV3Scenario.scnTokenVerify).inject(
               rampUsersPerSec(1).to(maxUsersPerSec).during(TestDevices.TEST_DURATION)
             ).protocols(httpProtocolPowerAuthRestServer),
             SignatureVerifyV3Scenario.scnSignatureVerify.inject(
