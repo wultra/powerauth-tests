@@ -19,50 +19,49 @@ import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon
 import io.gatling.core.Predef.{scenario, _}
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.{http, _}
-import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes
 import io.getlime.security.powerauth.http.PowerAuthSignatureHttpHeader
 import io.getlime.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVersion}
+import io.getlime.security.powerauth.lib.cmd.steps.VerifyTokenStep
 import io.getlime.security.powerauth.lib.cmd.steps.context.StepContext
-import io.getlime.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel
-import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateTokenStep
-import io.getlime.security.powerauth.rest.api.model.entity.TokenResponsePayload
+import io.getlime.security.powerauth.lib.cmd.steps.model.{CreateTokenStepModel, VerifyTokenStepModel}
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse
+import org.springframework.http.HttpMethod
+
+import java.util
+import java.util.Map
 
 /**
- * Scenario to check token creation (v3)
+ * Scenario to verify created token (v3)
  *
  * @author Lukas Lukovsky, lukas.lukovsky@wultra.com
  */
-object TokenCreateV3Scenario extends AbstractScenario {
+object TokenVerifyV3Scenario extends AbstractScenario {
 
-  val SESSION_TOKEN_ID: String = "tokenId"
+  val POWER_AUTH_TOKEN_VERIFY_URL: String = System.getProperty("powerAuthTokenVerifyUrl", "http://localhost:8080/powerauth-webflow/api/auth/token/app/operation/list")
 
-  val SESSION_TOKEN_SECRET: String = "tokenSecret"
+  val tokenVerifyStep: VerifyTokenStep =
+    PowerAuthCommon.stepProvider.getStep(PowerAuthStep.TOKEN_VALIDATE, PowerAuthVersion.V3_1).asInstanceOf[VerifyTokenStep]
 
-  val tokenCreateStep: CreateTokenStep =
-    PowerAuthCommon.stepProvider.getStep(PowerAuthStep.TOKEN_CREATE, PowerAuthVersion.V3_1).asInstanceOf[CreateTokenStep]
-
-  def prepareCreateTokenStepModel(device: Device): CreateTokenStepModel = {
-    val model = new CreateTokenStepModel
-    model.setApplicationKey(ClientConfig.applicationKey)
-    model.setApplicationSecret(ClientConfig.applicationSecret)
-    model.setPassword(device.password)
+  def prepareVerifyTokenStepModel(device: Device, session: Session): VerifyTokenStepModel = {
+    val model = new VerifyTokenStepModel
     model.setResultStatus(device.resultStatusObject)
-    model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE)
     model.setVersion(ClientConfig.modelVersion)
-
+    model.setHttpMethod(HttpMethod.POST.name())
+    model.setUriString(POWER_AUTH_TOKEN_VERIFY_URL)
+    model.setTokenId(session(TokenCreateV3Scenario.SESSION_TOKEN_ID).as[String])
+    model.setTokenSecret(session(TokenCreateV3Scenario.SESSION_TOKEN_SECRET).as[String])
     model
   }
 
   override def createStepContext(device: Device, session: Session): StepContext[_, _] = {
-    val model = prepareCreateTokenStepModel(device)
-    tokenCreateStep.prepareStepContext(PowerAuthCommon.stepLogger, model.toMap)
+    val model = prepareVerifyTokenStepModel(device, session)
+    tokenVerifyStep.prepareStepContext(PowerAuthCommon.stepLogger, model.toMap)
   }
 
-  val scnTokenCreate: ScenarioBuilder = scenario("scnTokenCreate")
+  val scnTokenVerify: ScenarioBuilder = scenario("scnTokenVerify")
     .exec(prepareSessionData)
-    .exec(http("PowerAuth - token create")
-      .post("/pa/v3/token/create")
+    .exec(http("PowerAuth - token verify")
+      .post(POWER_AUTH_TOKEN_VERIFY_URL)
       .header(PowerAuthSignatureHttpHeader.HEADER_NAME, "${httpPowerAuthHeader}")
       .body(requestBody())
       .check(status.is(200))
@@ -70,17 +69,11 @@ object TokenCreateV3Scenario extends AbstractScenario {
     )
     .exec(session => {
       val device: Device = session("device").as[Device]
-      val stepContext = session("stepContext").as[StepContext[CreateTokenStepModel, EciesEncryptedResponse]]
-
-      tokenCreateStep.processResponse(stepContext, session("responseBodyBytes").as[Array[Byte]], classOf[EciesEncryptedResponse])
-
-      val tokenResponsePayload = tokenCreateStep.decryptResponse(stepContext, classOf[TokenResponsePayload])
-      val resultSession = session.set(SESSION_TOKEN_ID, tokenResponsePayload.getTokenId)
-                                 .set(SESSION_TOKEN_SECRET, tokenResponsePayload.getTokenSecret)
+      val stepContext = session("stepContext").as[StepContext[VerifyTokenStepModel, util.Map[String, AnyRef]]]
 
       device.resultStatusObject = stepContext.getModel.getResultStatus
 
-      resultSession
+      session
     })
 
 }
