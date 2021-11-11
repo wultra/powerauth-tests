@@ -74,7 +74,7 @@ object TokenCreateV3Scenario extends AbstractScenario {
 
       tokenCreateStep.processResponse(stepContext, session("responseBodyBytes").as[Array[Byte]], classOf[EciesEncryptedResponse])
 
-      val tokenResponsePayload = tokenCreateStep.decryptResponse(stepContext, classOf[TokenResponsePayload])
+      val tokenResponsePayload = stepContext.getResponseContext.getResponsePayloadDecrypted.asInstanceOf[TokenResponsePayload]
       val resultSession = session.set(SESSION_TOKEN_ID, tokenResponsePayload.getTokenId)
                                  .set(SESSION_TOKEN_SECRET, tokenResponsePayload.getTokenSecret)
 
