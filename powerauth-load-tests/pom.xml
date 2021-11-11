@@ -1,0 +1,124 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>com.wultra</groupId>
+    <artifactId>powerauth-load-tests</artifactId>
+    <version>1.2.0-SNAPSHOT</version>
+
+    <inceptionYear>2021</inceptionYear>
+    <url>https://www.wultra.com</url>
+
+    <organization>
+        <name>Wultra s.r.o.</name>
+        <url>https://wultra.com/</url>
+    </organization>
+
+    <licenses>
+        <license>
+            <name>Apache 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Lukas Lukovsky</name>
+            <email>lukas.lukovsky@wultra.com</email>
+            <roles>
+                <role>developer</role>
+            </roles>
+        </developer>
+    </developers>
+
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <scala.version>2.13.6</scala.version>
+        <scala.minor.version>2.13.6</scala.minor.version>
+
+        <maven-plugin-gatling.version>3.1.2</maven-plugin-gatling.version>
+        <maven-plugin-scala.version>4.5.4</maven-plugin-scala.version>
+        <maven-plugin-surefire.version>2.22.2</maven-plugin-surefire.version>
+
+        <bcprov.version>1.68</bcprov.version>
+        <gatling.version>3.6.1</gatling.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.getlime.security</groupId>
+            <artifactId>powerauth-java-cmd-lib</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>${bcprov.version}</version>
+        </dependency>
+
+        <!-- Gatling -->
+        <dependency>
+            <groupId>io.gatling.highcharts</groupId>
+            <artifactId>gatling-charts-highcharts</artifactId>
+            <version>${gatling.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <testSourceDirectory>src/test/scala</testSourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>${maven-plugin-scala.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>testCompile</goal>
+                        </goals>
+                        <configuration>
+                            <jvmArgs>
+                                <jvmArg>-Xss100M</jvmArg>
+                            </jvmArgs>
+                            <args>
+                                <arg>-target:jvm-1.8</arg>
+                                <arg>-deprecation</arg>
+                                <arg>-feature</arg>
+                                <arg>-unchecked</arg>
+                                <arg>-language:implicitConversions</arg>
+                                <arg>-language:postfixOps</arg>
+                            </args>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <scalaVersion>${scala.version}</scalaVersion>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>io.gatling</groupId>
+                <artifactId>gatling-maven-plugin</artifactId>
+                <version>${maven-plugin-gatling.version}</version>
+                <configuration>
+                    <resultsFolder>${project.basedir}/target/test-results/gatling</resultsFolder>
+                    <simulationsFolder>${project.basedir}/src/test/scala</simulationsFolder>
+                    <runDescription>Wultra PowerAuth Load Test</runDescription>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-plugin-surefire.version}</version>
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
