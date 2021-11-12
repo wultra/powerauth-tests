@@ -19,61 +19,70 @@ package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.v3.ActivationStatus;
 import com.wultra.security.powerauth.client.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.model.enumeration.CardSide;
+import com.wultra.security.powerauth.model.enumeration.DocumentStatus;
+import com.wultra.security.powerauth.model.enumeration.DocumentType;
 import com.wultra.security.powerauth.model.enumeration.OnboardingStatus;
 import com.wultra.security.powerauth.model.request.*;
+import com.wultra.security.powerauth.model.response.DocumentSubmitResponse;
 import com.wultra.security.powerauth.model.response.OnboardingStartResponse;
-import com.wultra.security.powerauth.model.response.OnboardingStatusResponse;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
+import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
-import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
+import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
-import io.getlime.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
+import io.getlime.security.powerauth.lib.cmd.steps.v3.SignAndEncryptStep;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
+import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthOnboardingTest {
+public class PowerAuthIdentityVerificationTest {
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
     private EncryptStepModel encryptModel;
+    private VerifySignatureStepModel signatureModel;
     private CreateActivationStepModel activationModel;
-    private GetStatusStepModel statusModel;
     private ObjectStepLogger stepLogger;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
     @Autowired
     public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {
@@ -99,223 +108,109 @@ public class PowerAuthOnboardingTest {
         // Create temp status file
         File tempStatusFile = File.createTempFile("pa_status_v31", ".json");
 
+        // Create result status object
+        JSONObject resultStatusObject = new JSONObject();
+
+        signatureModel = new VerifySignatureStepModel();
+        signatureModel.setApplicationKey(config.getApplicationKey());
+        signatureModel.setApplicationSecret(config.getApplicationSecret());
+        signatureModel.setHeaders(new HashMap<>());
+        signatureModel.setHttpMethod("POST");
+        signatureModel.setPassword(config.getPassword());
+        signatureModel.setResultStatusObject(resultStatusObject);
+        signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
+        signatureModel.setStatusFileName(tempStatusFile.getAbsolutePath());
+        signatureModel.setVersion("3.1");
+
         // Model shared among tests
         activationModel = new CreateActivationStepModel();
-        activationModel.setActivationName("test v3.1 onboarding");
+        activationModel.setActivationName("test v3.1 document verification");
         activationModel.setApplicationKey(config.getApplicationKey());
         activationModel.setApplicationSecret(config.getApplicationSecret());
         activationModel.setMasterPublicKey(config.getMasterPublicKey());
         activationModel.setHeaders(new HashMap<>());
         activationModel.setPassword(config.getPassword());
         activationModel.setStatusFileName(tempStatusFile.getAbsolutePath());
-        activationModel.setResultStatusObject(config.getResultStatusObjectV31());
+        activationModel.setResultStatusObject(resultStatusObject);
         activationModel.setUriString(config.getEnrollmentServiceUrl());
         activationModel.setVersion("3.1");
         activationModel.setDeviceInfo("backend-tests");
-
-        statusModel = new GetStatusStepModel();
-        statusModel.setHeaders(new HashMap<>());
-        statusModel.setResultStatusObject(config.getResultStatusObjectV31());
-        statusModel.setUriString(config.getEnrollmentServiceUrl());
-        statusModel.setVersion("3.1");
 
         stepLogger = new ObjectStepLogger(System.out);
     }
 
     @Test
-    @SuppressWarnings("unchecked")
-    public void testSuccessfulOnboarding() throws Exception {
-        // Test onboarding start
-        String clientId = generateRandomClientId();
-        String processId = startOnboarding(clientId);
+    public void testSuccessfulIdentityVerification() throws Exception {
+        String activationId = prepareActivation();
 
-        // Test onboarding status
-        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
+        File image = new ClassPathResource("images/id_card_mock.png").getFile();
 
-        // Obtain activation OTP from testing endpoint
-        String otpCode = getOtpCode(processId);
+        DocumentSubmitRequest submitRequest = new DocumentSubmitRequest();
+        DocumentSubmitRequest.DocumentMetadata metadata = new DocumentSubmitRequest.DocumentMetadata();
+        metadata.setFilename("id_card_mock.png");
+        metadata.setSide(CardSide.FRONT);
+        metadata.setType(DocumentType.ID_CARD);
+        submitRequest.setDocuments(Collections.singletonList(metadata));
+        submitRequest.setResubmit(false);
 
-        // Create a new custom activation
-        String activationId = createCustomActivation(processId, otpCode, clientId);
+        // ZIP request data
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ZipOutputStream zos = new ZipOutputStream(baos);
+        ZipEntry entry = new ZipEntry(image.getName());
+        byte[] data = Files.readAllBytes(image.toPath());
+        zos.putNextEntry(entry);
+        zos.write(data, 0, data.length);
+        zos.closeEntry();
+        baos.close();
+        submitRequest.setData(baos.toByteArray());
 
-        // Test onboarding status
-        assertEquals(OnboardingStatus.FINISHED, getProcessStatus(processId));
+        // Submit ID card
+        stepLogger = new ObjectStepLogger(System.out);
+        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(submitRequest)));
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/submit");
+        signatureModel.setResourceId("/api/identity/document/submit");
 
-        // Verify activation flags using custom object in status
-        ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
-        new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-        assertTrue(stepLoggerStatus.getResult().isSuccess());
-        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
-        ObjectResponse<ActivationStatusResponse> objectResponse = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().getResponseObject();
-        Map<String, Object> customObject = objectResponse.getResponseObject().getCustomObject();
-        assertNotNull(customObject);
-        assertEquals(Collections.singletonList("VERIFICATION_PENDING"), customObject.get("activationFlags"));
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        assertNotNull(responseOtpOK.getEncryptedData());
+        assertNotNull(responseOtpOK.getMac());
+
+        boolean documentVerificationPending = false;
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                String responseData = item.getObject().toString();
+                ObjectResponse<DocumentSubmitResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentSubmitResponse>>() {});
+                DocumentSubmitResponse response = objectResponse.getResponseObject();
+                assertEquals(1, response.getDocuments().size());
+                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(0).getStatus());
+                documentVerificationPending = true;
+                break;
+            }
+        }
+        assertTrue(documentVerificationPending);
+
+        // Init presence check
+        InitPresenceCheckRequest presenceCheckRequest = new InitPresenceCheckRequest();
+        stepLogger = new ObjectStepLogger(System.out);
+        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(presenceCheckRequest)));
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/presence-check/init");
+        signatureModel.setResourceId("/api/identity/presence-check/init");
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
     }
 
-    @Test
-    public void testInvalidOtp() throws Exception {
-        // Test onboarding start
+    private String prepareActivation() throws Exception {
         String clientId = generateRandomClientId();
         String processId = startOnboarding(clientId);
-
-        // Test onboarding status
-        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
-
-        // Activation with invalid OTP should fail
-        boolean activationSucceeded = false;
-        try {
-            createCustomActivation(processId, "0000000000", clientId);
-            activationSucceeded = true;
-        } catch (AssertionFailedError e) {
-            // Expected failed test
-        }
-        assertFalse(activationSucceeded);
-
-        // Test onboarding cleanup
-        onboardingCleanup(processId);
-    }
-
-    @Test
-    public void testInvalidProcessId() throws Exception {
-        // Activation with invalid OTP should fail
-        boolean activationSucceeded = false;
-        try {
-            createCustomActivation("8b2928d2-f7e7-489b-8ebc-76d4aad173a6", "0000000000", "12345678");
-            activationSucceeded = true;
-        } catch (AssertionFailedError e) {
-            // Expected failed test
-        }
-        assertFalse(activationSucceeded);
-    }
-
-    @Test
-    public void testOnboardingCleanup() throws Exception {
-        // Test onboarding start
-        String processId = startOnboarding();
-
-        // Test onboarding status
-        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
-
-        // Test onboarding cleanup
-        onboardingCleanup(processId);
-
-        // Test onboarding status
-        assertEquals(OnboardingStatus.FAILED, getProcessStatus(processId));
-    }
-
-    @Test
-    public void testResendPeriod() throws Exception {
-        // Test onboarding start
-        String processId = startOnboarding();
-
-        // Test failed OTP resend
-        stepLogger = new ObjectStepLogger(System.out);
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/otp/resend");
-        OtpResendRequest requestResend = new OtpResendRequest();
-        requestResend.setProcessId(processId);
-        ObjectRequest<Object> objectRequest = new ObjectRequest<>();
-        objectRequest.setRequestObject(requestResend);
-        byte[] data = objectMapper.writeValueAsBytes(objectRequest);
-        encryptModel.setData(data);
-        new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
-
-        // Test onboarding cleanup
-        onboardingCleanup(processId);
-    }
-
-    @Test
-    public void testMaxProcesses() throws Exception {
-        // Use same mock client ID suffix to make sure user ID is the same across all requests
-        String clientId = generateRandomClientId();
-        String processId = startOnboarding(clientId);
-        onboardingCleanup(processId);
-        processId = startOnboarding(clientId);
-        onboardingCleanup(processId);
-        processId = startOnboarding(clientId);
-        onboardingCleanup(processId);
-        processId = startOnboarding(clientId);
-        onboardingCleanup(processId);
-        processId = startOnboarding(clientId);
-        onboardingCleanup(processId);
-        // Sixth attempt should fail
-        processId = null;
-        try {
-            processId = startOnboarding(clientId);
-        } catch (AssertionFailedError e) {
-            // Expected failure
-        }
-        assertNull(processId);
-    }
-
-    @Test
-    public void testMaxAttemptsReached() throws Exception {
-        // Test onboarding start
-        String clientId = generateRandomClientId();
-        String processId = startOnboarding(clientId);
-
-        // Test onboarding status
-        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
-
-        // Obtain activation OTP from testing endpoint
-        String otpCode = getOtpCode(processId);
-
-        // Create a new custom activation with invalid OTP code, repeat 5x
-        boolean activationSucceeded = false;
-        for (int i = 0; i < 5; i++) {
-            try {
-                createCustomActivation(processId, "0000000000", clientId);
-                activationSucceeded = true;
-            } catch (AssertionFailedError e) {
-                // Expected failed test
-            }
-        }
-        assertFalse(activationSucceeded);
-        // Sixth attempt with correct OTP code should fail
-        try {
-            createCustomActivation(processId, otpCode, clientId);
-            activationSucceeded = true;
-        } catch (AssertionFailedError e) {
-            // Expected failed test
-        }
-        assertFalse(activationSucceeded);
-    }
-
-    @Test
-    public void testMaxAttemptsNotReached() throws Exception {
-        // Test onboarding start
-        String clientId = generateRandomClientId();
-        String processId = startOnboarding(clientId);
-
-        // Test onboarding status
-        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
-
-        // Obtain activation OTP from testing endpoint
-        String otpCode = getOtpCode(processId);
-
-        // Create a new custom activation with invalid OTP code, repeat 5x
-        boolean activationSucceeded = false;
-        for (int i = 0; i < 4; i++) {
-            try {
-                createCustomActivation(processId, "0000000000", clientId);
-                activationSucceeded = true;
-            } catch (AssertionFailedError e) {
-                // Expected failed test
-            }
-        }
-        assertFalse(activationSucceeded);
-        // Fifth attempt with correct OTP code should succeed
-        String activationId = createCustomActivation(processId, otpCode, clientId);
-        assertNotNull(activationId);
-    }
-
-    // Shared test logic
-    private String startOnboarding() throws Exception {
-        return startOnboarding(null);
+        return createCustomActivation(processId, getOtpCode(processId), clientId);
     }
 
     private String startOnboarding(String clientId) throws Exception {
@@ -364,43 +259,6 @@ public class PowerAuthOnboardingTest {
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
-    }
-
-    private void onboardingCleanup(String processId) throws Exception {
-        stepLogger = new ObjectStepLogger(System.out);
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/cleanup");
-        OnboardingCleanupRequest requestCleanup = new OnboardingCleanupRequest();
-        requestCleanup.setProcessId(processId);
-        executeRequest(requestCleanup);
-    }
-
-    private OnboardingStatus getProcessStatus(String processId) throws Exception {
-        OnboardingStatus onboardingStatus = null;
-        stepLogger = new ObjectStepLogger(System.out);
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/status");
-        OnboardingStatusRequest requestStatus = new OnboardingStatusRequest();
-        requestStatus.setProcessId(processId);
-        executeRequest(requestStatus);
-
-        EciesEncryptedResponse responseStatusOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
-        assertNotNull(responseStatusOK.getEncryptedData());
-        assertNotNull(responseStatusOK.getMac());
-
-        boolean responseStatusSuccessfullyDecrypted = false;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
-                ObjectResponse<OnboardingStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OnboardingStatusResponse>>() {});
-                OnboardingStatusResponse response = objectResponse.getResponseObject();
-                processId = response.getProcessId();
-                onboardingStatus = response.getOnboardingStatus();
-                responseStatusSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseStatusSuccessfullyDecrypted);
-        assertNotNull(processId);
-        return onboardingStatus;
     }
 
     private String generateRandomClientId() {
