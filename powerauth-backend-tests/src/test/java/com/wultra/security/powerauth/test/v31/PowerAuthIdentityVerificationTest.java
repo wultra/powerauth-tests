@@ -179,18 +179,35 @@ public class PowerAuthIdentityVerificationTest {
         assertNotNull(responseOtpOK.getMac());
 
         boolean documentVerificationPending = false;
+        String documentId = null;
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 String responseData = item.getObject().toString();
                 ObjectResponse<DocumentSubmitResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentSubmitResponse>>() {});
                 DocumentSubmitResponse response = objectResponse.getResponseObject();
                 assertEquals(1, response.getDocuments().size());
+                documentId = response.getDocuments().get(0).getId();
+                assertNotNull(documentId);
                 assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(0).getStatus());
                 documentVerificationPending = true;
                 break;
             }
         }
         assertTrue(documentVerificationPending);
+
+        // Check status of submitted document
+        DocumentStatusRequest docStatusRequest = new DocumentStatusRequest();
+        DocumentStatusRequest.DocumentFilter filter = new DocumentStatusRequest.DocumentFilter();
+        filter.setDocumentId(documentId);
+        docStatusRequest.setFilter(Collections.singletonList(filter));
+        stepLogger = new ObjectStepLogger(System.out);
+        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(docStatusRequest)));
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/status");
+        signatureModel.setResourceId("/api/identity/document/status");
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
 
         // Init presence check
         InitPresenceCheckRequest presenceCheckRequest = new InitPresenceCheckRequest();
