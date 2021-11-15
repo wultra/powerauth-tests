@@ -228,20 +228,23 @@ public class PowerAuthIdentityVerificationTest {
             signatureModel.setResourceId("/api/identity/status");
 
             new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-            if (!stepLogger.getResult().isSuccess()) {
-                Thread.sleep(1000);
-                continue;
-            }
+            assertTrue(stepLogger.getResult().isSuccess());
             assertEquals(200, stepLogger.getResponse().getStatusCode());
+            IdentityVerificationStatus status = null;
             for (StepItem item: stepLogger.getItems()) {
                 if (item.getName().equals("Decrypted Response")) {
                     String responseData = item.getObject().toString();
                     ObjectResponse<IdentityVerificationStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<IdentityVerificationStatusResponse>>() {});
                     IdentityVerificationStatusResponse response = objectResponse.getResponseObject();
-                    assertEquals(IdentityVerificationStatus.ACCEPTED, response.getIdentityVerificationStatus());
-                    verificationComplete = true;
+                    status = response.getIdentityVerificationStatus();
                     break;
                 }
+            }
+            if (status == IdentityVerificationStatus.ACCEPTED) {
+                verificationComplete = true;
+                break;
+            } else {
+                Thread.sleep(1000);
             }
         }
 
