@@ -24,12 +24,10 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.v3.ActivationStatus;
 import com.wultra.security.powerauth.client.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.model.enumeration.CardSide;
-import com.wultra.security.powerauth.model.enumeration.DocumentStatus;
-import com.wultra.security.powerauth.model.enumeration.DocumentType;
-import com.wultra.security.powerauth.model.enumeration.OnboardingStatus;
+import com.wultra.security.powerauth.model.enumeration.*;
 import com.wultra.security.powerauth.model.request.*;
 import com.wultra.security.powerauth.model.response.DocumentSubmitResponse;
+import com.wultra.security.powerauth.model.response.IdentityVerificationStatusResponse;
 import com.wultra.security.powerauth.model.response.OnboardingStartResponse;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
@@ -219,6 +217,35 @@ public class PowerAuthIdentityVerificationTest {
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        // Presence check should succeed immediately in mock implementation, but in general this can take some time
+        boolean verificationComplete = false;
+        for (int i = 0; i < 10; i++) {
+            IdentityVerificationStatusRequest statusRequest = new IdentityVerificationStatusRequest();
+            stepLogger = new ObjectStepLogger(System.out);
+            signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(statusRequest)));
+            signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/status");
+            signatureModel.setResourceId("/api/identity/status");
+
+            new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+            if (!stepLogger.getResult().isSuccess()) {
+                Thread.sleep(1000);
+                continue;
+            }
+            assertEquals(200, stepLogger.getResponse().getStatusCode());
+            for (StepItem item: stepLogger.getItems()) {
+                if (item.getName().equals("Decrypted Response")) {
+                    String responseData = item.getObject().toString();
+                    ObjectResponse<IdentityVerificationStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<IdentityVerificationStatusResponse>>() {});
+                    IdentityVerificationStatusResponse response = objectResponse.getResponseObject();
+                    assertEquals(IdentityVerificationStatus.ACCEPTED, response.getIdentityVerificationStatus());
+                    verificationComplete = true;
+                    break;
+                }
+            }
+        }
+
+        assertTrue(verificationComplete);
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
