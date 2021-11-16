@@ -25,6 +25,11 @@ package com.wultra.security.powerauth.model.enumeration;
 public enum IdentityVerificationStatus {
 
     /**
+     * Default state before initialization of identity verification.
+     */
+    NOT_INITIALIZED,
+
+    /**
      * Upload or verification of submitted documents is in progress.
      */
     IN_PROGRESS,
