@@ -20,11 +20,11 @@ package com.wultra.security.powerauth.model.request;
 import lombok.Data;
 
 /**
- * Request class used when initializing presence check.
+ * Request class used when initializing identity verification.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Data
-public class InitPresenceCheckRequest {
+public class IdentityVerificationInitRequest {
 
 }

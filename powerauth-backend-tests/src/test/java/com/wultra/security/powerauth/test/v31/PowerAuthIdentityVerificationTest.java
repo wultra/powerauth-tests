@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.v3.ActivationStatus;
 import com.wultra.security.powerauth.client.v3.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.v3.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.model.enumeration.*;
 import com.wultra.security.powerauth.model.request.*;
@@ -35,6 +36,7 @@ import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
+import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
@@ -140,6 +142,25 @@ public class PowerAuthIdentityVerificationTest {
     public void testSuccessfulIdentityVerification() throws Exception {
         String activationId = prepareActivation();
 
+        // Check activation flags
+        ListActivationFlagsResponse flagResponse = powerAuthClient.listActivationFlags(activationId);
+        assertEquals(Collections.singletonList("VERIFICATION_PENDING"), flagResponse.getActivationFlags());
+
+        // Initialize identity verification request
+        IdentityVerificationInitRequest initRequest = new IdentityVerificationInitRequest();
+        stepLogger = new ObjectStepLogger(System.out);
+        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(initRequest)));
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/init");
+        signatureModel.setResourceId("/api/identity/init");
+
+        new VerifySignatureStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        // Check activation flags
+        ListActivationFlagsResponse flagResponse2 = powerAuthClient.listActivationFlags(activationId);
+        assertEquals(Collections.singletonList("VERIFICATION_IN_PROGRESS"), flagResponse2.getActivationFlags());
+
         File image = new ClassPathResource("images/id_card_mock.png").getFile();
 
         DocumentSubmitRequest submitRequest = new DocumentSubmitRequest();
@@ -207,7 +228,7 @@ public class PowerAuthIdentityVerificationTest {
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
         // Init presence check
-        InitPresenceCheckRequest presenceCheckRequest = new InitPresenceCheckRequest();
+        PresenceCheckInitRequest presenceCheckRequest = new PresenceCheckInitRequest();
         stepLogger = new ObjectStepLogger(System.out);
         signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(presenceCheckRequest)));
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/presence-check/init");
@@ -248,6 +269,10 @@ public class PowerAuthIdentityVerificationTest {
         }
 
         assertTrue(verificationComplete);
+
+        // Check activation flags
+        ListActivationFlagsResponse flagResponse3 = powerAuthClient.listActivationFlags(activationId);
+        assertTrue(flagResponse3.getActivationFlags().isEmpty());
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
