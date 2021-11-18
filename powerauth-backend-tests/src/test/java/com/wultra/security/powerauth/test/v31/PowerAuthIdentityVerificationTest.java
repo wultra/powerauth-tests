@@ -27,10 +27,7 @@ import com.wultra.security.powerauth.client.v3.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.model.enumeration.*;
 import com.wultra.security.powerauth.model.request.*;
-import com.wultra.security.powerauth.model.response.DocumentSubmitResponse;
-import com.wultra.security.powerauth.model.response.IdentityVerificationStatusResponse;
-import com.wultra.security.powerauth.model.response.OnboardingStartResponse;
-import com.wultra.security.powerauth.model.response.OtpDetailResponse;
+import com.wultra.security.powerauth.model.response.*;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
@@ -61,10 +58,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.security.SecureRandom;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -284,6 +278,142 @@ public class PowerAuthIdentityVerificationTest {
         // Check activation flags
         ListActivationFlagsResponse flagResponse3 = powerAuthClient.listActivationFlags(activationId);
         assertTrue(flagResponse3.getActivationFlags().isEmpty());
+
+        // Remove activation
+        powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    @Test
+    public void largeUploadTest() throws Exception {
+        String activationId = prepareActivation();
+
+        // Initialize identity verification request
+        IdentityVerificationInitRequest initRequest = new IdentityVerificationInitRequest();
+        stepLogger = new ObjectStepLogger(System.out);
+        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(initRequest)));
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/init");
+        signatureModel.setResourceId("/api/identity/init");
+
+        new VerifySignatureStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        File imageFront = new ClassPathResource("images/id_card_mock_front_large.png").getFile();
+
+        // ZIP request data for front side
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ZipOutputStream zos = new ZipOutputStream(baos);
+        ZipEntry entry = new ZipEntry(imageFront.getName());
+        byte[] data = Files.readAllBytes(imageFront.toPath());
+        zos.putNextEntry(entry);
+        zos.write(data, 0, data.length);
+        zos.closeEntry();
+        baos.close();
+        byte[] imageZipped = baos.toByteArray();
+
+        // Submit large image for front side
+        stepLogger = new ObjectStepLogger(System.out);
+        encryptModel.setData(imageZipped);
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/upload");
+        encryptModel.setScope("activation");
+
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        String uploadIdFront = null;
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                String responseData = item.getObject().toString();
+                ObjectResponse<DocumentUploadResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentUploadResponse>>() {});
+                DocumentUploadResponse response = objectResponse.getResponseObject();
+                uploadIdFront = response.getId();
+                break;
+            }
+        }
+
+        assertNotNull(uploadIdFront);
+
+        File imageBack = new ClassPathResource("images/id_card_mock_back_large.png").getFile();
+
+        // ZIP request data for front side
+        baos = new ByteArrayOutputStream();
+        zos = new ZipOutputStream(baos);
+        entry = new ZipEntry(imageBack.getName());
+        data = Files.readAllBytes(imageBack.toPath());
+        zos.putNextEntry(entry);
+        zos.write(data, 0, data.length);
+        zos.closeEntry();
+        baos.close();
+        imageZipped = baos.toByteArray();
+
+        // Submit large image for back side
+        stepLogger = new ObjectStepLogger(System.out);
+        encryptModel.setData(imageZipped);
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/upload");
+        encryptModel.setScope("activation");
+
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        String uploadIdBack = null;
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                String responseData = item.getObject().toString();
+                ObjectResponse<DocumentUploadResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentUploadResponse>>() {});
+                DocumentUploadResponse response = objectResponse.getResponseObject();
+                uploadIdBack = response.getId();
+                break;
+            }
+        }
+
+        assertNotNull(uploadIdBack);
+
+        List<DocumentSubmitRequest.DocumentMetadata> metadataList = new ArrayList<>();
+        DocumentSubmitRequest submitRequest = new DocumentSubmitRequest();
+        DocumentSubmitRequest.DocumentMetadata metadata = new DocumentSubmitRequest.DocumentMetadata();
+        metadata.setSide(CardSide.FRONT);
+        metadata.setType(DocumentType.ID_CARD);
+        metadata.setFilename("id_card_mock_front_large.png");
+        metadata.setUploadId(uploadIdFront);
+        metadataList.add(metadata);
+        metadata = new DocumentSubmitRequest.DocumentMetadata();
+        metadata.setSide(CardSide.BACK);
+        metadata.setType(DocumentType.ID_CARD);
+        metadata.setFilename("id_card_mock_back_large.png");
+        metadata.setUploadId(uploadIdBack);
+        metadataList.add(metadata);
+        submitRequest.setDocuments(metadataList);
+        submitRequest.setResubmit(false);
+
+        // Submit ID card
+        stepLogger = new ObjectStepLogger(System.out);
+        encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(submitRequest)));
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/submit");
+        encryptModel.setScope("activation");
+
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        boolean documentVerificationPending = false;
+        String documentId = null;
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                String responseData = item.getObject().toString();
+                ObjectResponse<DocumentSubmitResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentSubmitResponse>>() {});
+                DocumentSubmitResponse response = objectResponse.getResponseObject();
+                assertEquals(2, response.getDocuments().size());
+                documentId = response.getDocuments().get(0).getId();
+                assertNotNull(documentId);
+                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(0).getStatus());
+                documentVerificationPending = true;
+                break;
+            }
+        }
+        assertTrue(documentVerificationPending);
+        assertNotNull(documentId);
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
