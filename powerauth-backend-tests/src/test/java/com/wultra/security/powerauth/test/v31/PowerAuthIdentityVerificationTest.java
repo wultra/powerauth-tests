@@ -161,12 +161,18 @@ public class PowerAuthIdentityVerificationTest {
         ListActivationFlagsResponse flagResponse2 = powerAuthClient.listActivationFlags(activationId);
         assertEquals(Collections.singletonList("VERIFICATION_IN_PROGRESS"), flagResponse2.getActivationFlags());
 
-        File image = new ClassPathResource("images/id_card_mock.png").getFile();
+        File imageFront = new ClassPathResource("images/id_card_mock_front.png").getFile();
+        File imageBack = new ClassPathResource("images/id_card_mock_back.png").getFile();
 
         DocumentSubmitRequest submitRequest = new DocumentSubmitRequest();
         DocumentSubmitRequest.DocumentMetadata metadata = new DocumentSubmitRequest.DocumentMetadata();
-        metadata.setFilename("id_card_mock.png");
+        metadata.setFilename("id_card_mock_front.png");
         metadata.setSide(CardSide.FRONT);
+        metadata.setType(DocumentType.ID_CARD);
+        submitRequest.setDocuments(Collections.singletonList(metadata));
+        metadata = new DocumentSubmitRequest.DocumentMetadata();
+        metadata.setFilename("id_card_mock_back.png");
+        metadata.setSide(CardSide.BACK);
         metadata.setType(DocumentType.ID_CARD);
         submitRequest.setDocuments(Collections.singletonList(metadata));
         submitRequest.setResubmit(false);
@@ -174,8 +180,13 @@ public class PowerAuthIdentityVerificationTest {
         // ZIP request data
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ZipOutputStream zos = new ZipOutputStream(baos);
-        ZipEntry entry = new ZipEntry(image.getName());
-        byte[] data = Files.readAllBytes(image.toPath());
+        ZipEntry entry = new ZipEntry(imageFront.getName());
+        byte[] data = Files.readAllBytes(imageFront.toPath());
+        zos.putNextEntry(entry);
+        zos.write(data, 0, data.length);
+        zos.closeEntry();
+        entry = new ZipEntry(imageBack.getName());
+        data = Files.readAllBytes(imageBack.toPath());
         zos.putNextEntry(entry);
         zos.write(data, 0, data.length);
         zos.closeEntry();
