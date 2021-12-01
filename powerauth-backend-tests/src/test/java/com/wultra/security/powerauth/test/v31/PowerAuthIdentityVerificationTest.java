@@ -160,15 +160,17 @@ public class PowerAuthIdentityVerificationTest {
 
         DocumentSubmitRequest submitRequest = new DocumentSubmitRequest();
         DocumentSubmitRequest.DocumentMetadata metadata = new DocumentSubmitRequest.DocumentMetadata();
+        List<DocumentSubmitRequest.DocumentMetadata> allMetadata = new ArrayList<>();
         metadata.setFilename("id_card_mock_front.png");
         metadata.setSide(CardSide.FRONT);
         metadata.setType(DocumentType.ID_CARD);
-        submitRequest.setDocuments(Collections.singletonList(metadata));
+        allMetadata.add(metadata);
         metadata = new DocumentSubmitRequest.DocumentMetadata();
         metadata.setFilename("id_card_mock_back.png");
         metadata.setSide(CardSide.BACK);
         metadata.setType(DocumentType.ID_CARD);
-        submitRequest.setDocuments(Collections.singletonList(metadata));
+        allMetadata.add(metadata);
+        submitRequest.setDocuments(allMetadata);
         submitRequest.setResubmit(false);
 
         // ZIP request data
@@ -202,16 +204,16 @@ public class PowerAuthIdentityVerificationTest {
         assertNotNull(responseOtpOK.getMac());
 
         boolean documentVerificationPending = false;
-        String documentId = null;
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 String responseData = item.getObject().toString();
                 ObjectResponse<DocumentSubmitResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentSubmitResponse>>() {});
                 DocumentSubmitResponse response = objectResponse.getResponseObject();
-                assertEquals(1, response.getDocuments().size());
-                documentId = response.getDocuments().get(0).getId();
-                assertNotNull(documentId);
+                assertEquals(2, response.getDocuments().size());
+                assertNotNull(response.getDocuments().get(0).getId());
+                assertNotNull(response.getDocuments().get(1).getId());
                 assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(0).getStatus());
+                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(1).getStatus());
                 documentVerificationPending = true;
                 break;
             }
@@ -220,9 +222,6 @@ public class PowerAuthIdentityVerificationTest {
 
         // Check status of submitted document
         DocumentStatusRequest docStatusRequest = new DocumentStatusRequest();
-        DocumentStatusRequest.DocumentFilter filter = new DocumentStatusRequest.DocumentFilter();
-        filter.setDocumentId(documentId);
-        docStatusRequest.setFilter(Collections.singletonList(filter));
         stepLogger = new ObjectStepLogger(System.out);
         signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(docStatusRequest)));
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/status");
@@ -231,6 +230,18 @@ public class PowerAuthIdentityVerificationTest {
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                String responseData = item.getObject().toString();
+                ObjectResponse<DocumentStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentStatusResponse>>() {});
+                DocumentStatusResponse response = objectResponse.getResponseObject();
+                assertEquals(2, response.getDocuments().size());
+                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(0).getStatus());
+                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(1).getStatus());
+                break;
+            }
+        }
 
         // Init presence check
         PresenceCheckInitRequest presenceCheckRequest = new PresenceCheckInitRequest();
