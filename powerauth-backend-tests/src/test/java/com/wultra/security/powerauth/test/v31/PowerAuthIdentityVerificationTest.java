@@ -287,11 +287,11 @@ public class PowerAuthIdentityVerificationTest {
             }
 
             assertTrue(verificationComplete);
-        }
 
-        // Check activation flags
-        ListActivationFlagsResponse flagResponse3 = powerAuthClient.listActivationFlags(activationId);
-        assertTrue(flagResponse3.getActivationFlags().isEmpty());
+            // Check activation flags
+            ListActivationFlagsResponse flagResponse3 = powerAuthClient.listActivationFlags(activationId);
+            assertTrue(flagResponse3.getActivationFlags().isEmpty());
+        }
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
