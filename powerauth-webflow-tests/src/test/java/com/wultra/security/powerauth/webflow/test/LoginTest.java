@@ -26,7 +26,7 @@ public class LoginTest {
     }
 
     By loginLink = By.xpath("//a[@href='#LOGIN']");
-    By loginButton = By.xpath("//button[@type='submit' and text()='Log in']");
+    By loginButton = By.xpath("//button[@type='submit' and text()='Connect']");
     By usernameField = By.xpath("//div[@class='panel-body']//input[@type='text' and @placeholder='Login number']");
     By passwordField = By.xpath("//div[@class='panel-body']//input[@type='password' and @placeholder='Password']");
     By signInButton = By.xpath("//button[@type='submit']/span[text()='Sign In']/..");
