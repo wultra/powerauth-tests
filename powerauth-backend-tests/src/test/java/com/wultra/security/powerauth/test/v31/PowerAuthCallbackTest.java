@@ -142,7 +142,7 @@ public class PowerAuthCallbackTest {
     @Test
     public void callbackExecutionTest() throws PowerAuthClientException, RestClientException {
         // Skip test when the tested PA server is not running on localhost
-        assumeTrue(config.getPowerAuthServiceUrl().contains("localhost"));
+        assumeTrue(config.getPowerAuthRestUrl().contains("localhost"));
         String callbackName = UUID.randomUUID().toString();
         String callbackUrlPost = "http://localhost:" + port + "/callback/post";
         powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrlPost, Arrays.asList("activationId", "userId", "activationName", "deviceInfo", "platform", "activationFlags", "activationStatus", "blockedReason", "applicationId"));
