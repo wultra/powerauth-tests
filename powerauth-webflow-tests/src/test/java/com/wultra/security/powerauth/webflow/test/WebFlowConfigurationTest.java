@@ -20,7 +20,6 @@ package com.wultra.security.powerauth.webflow.test;
 import com.wultra.security.powerauth.webflow.configuration.WebFlowTestConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.openqa.selenium.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,8 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @SpringBootTest(classes = WebFlowTestConfiguration.class)
 @EnableConfigurationProperties
 public class WebFlowConfigurationTest {
-
-    By logo = new By.ByXPath("//img[@class='logo']");
 
     private WebFlowTestConfiguration config;
 

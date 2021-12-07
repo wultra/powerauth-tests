@@ -35,7 +35,7 @@ public class PowerAuthTestTearDown {
     private WebFlowTestConfiguration config;
 
     @Autowired
-    public void setPowerAuthServiceClient(PowerAuthClient powerAuthClient) {
+    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 

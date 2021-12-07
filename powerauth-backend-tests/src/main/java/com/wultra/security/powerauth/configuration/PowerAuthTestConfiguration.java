@@ -58,9 +58,6 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.rest.url}")
     private String powerAuthRestUrl;
 
-    @Value("${powerauth.soap.url}")
-    private String powerAuthServiceUrl;
-
     @Value("${powerauth.integration.service.url}")
     private String powerAuthIntegrationUrl;
 
@@ -81,9 +78,6 @@ public class PowerAuthTestConfiguration {
 
     @Value("${powerauth.test.application.version}")
     private String applicationVersion;
-
-    @Value("${powerauth.test.client.transport}")
-    private String clientTransport;
 
     @Value("${powerauth.test.identity.presence-check.skip}")
     private boolean skipPresenceCheck;
@@ -203,10 +197,6 @@ public class PowerAuthTestConfiguration {
 
     public String getPowerAuthRestUrl() {
         return powerAuthRestUrl;
-    }
-
-    public String getPowerAuthServiceUrl() {
-        return powerAuthServiceUrl;
     }
 
     public String getPowerAuthIntegrationUrl() {

@@ -45,11 +45,13 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthTestSetUp {
 
+    private static final String PUBLIC_KEY_RECOVERY_POSTCARD_BASE64 = "BABXgGoj4Lizl3GN0rjrtileEEwekFkpX1ERS9yyYjyuM1Iqdti3ihtATBxk5XGvjetPO1YC+qXciUYjIsETtbI=";
+
     private PowerAuthClient powerAuthClient;
     private WebFlowTestConfiguration config;
 
     @Autowired
-    public void setPowerAuthServiceClient(PowerAuthClient powerAuthClient) {
+    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 
@@ -113,6 +115,17 @@ public class PowerAuthTestSetUp {
             // Make sure application version is supported
             powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
         }
+        // Set up activation recovery
+        GetRecoveryConfigResponse recoveryResponse = powerAuthClient.getRecoveryConfig(config.getApplicationId());
+        if (!recoveryResponse.isActivationRecoveryEnabled() || !recoveryResponse.isRecoveryPostcardEnabled() || recoveryResponse.getPostcardPublicKey() == null || recoveryResponse.getRemotePostcardPublicKey() == null) {
+            UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
+            request.setApplicationId(config.getApplicationId());
+            request.setActivationRecoveryEnabled(true);
+            request.setRecoveryPostcardEnabled(true);
+            request.setAllowMultipleRecoveryCodes(false);
+            request.setRemotePostcardPublicKey(PUBLIC_KEY_RECOVERY_POSTCARD_BASE64);
+            powerAuthClient.updateRecoveryConfig(request);
+        }
     }
 
     private void createActivation() throws Exception {
@@ -125,7 +138,7 @@ public class PowerAuthTestSetUp {
         // Prepare activation
         PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(initResponse.getActivationCode());
-        model.setActivationName("test webflow");
+        model.setActivationName("test v31");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -144,7 +157,6 @@ public class PowerAuthTestSetUp {
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
-        System.out.println("committed: "+initResponse.getActivationId());
 
         config.setActivationId(initResponse.getActivationId());
     }

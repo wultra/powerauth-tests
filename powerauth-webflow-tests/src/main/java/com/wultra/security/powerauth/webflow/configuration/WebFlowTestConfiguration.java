@@ -32,11 +32,12 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.json.simple.JSONObject;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -52,6 +53,8 @@ import java.util.UUID;
  */
 @Configuration
 public class WebFlowTestConfiguration {
+
+    private static final Logger logger = LoggerFactory.getLogger(WebFlowTestConfiguration.class);
 
     @Value("${powerauth.rest.url}")
     private String powerAuthRestUrl;
@@ -71,6 +74,12 @@ public class WebFlowTestConfiguration {
     @Value("${powerauth.webflow.client.url}")
     private String webFlowClientUrl;
 
+    @Value("${powerauth.service.security.clientToken}")
+    private String clientToken;
+
+    @Value("${powerauth.service.security.clientSecret}")
+    private String clientSecret;
+
     private String applicationVersionForTests;
     private String applicationKey;
     private String applicationSecret;
@@ -82,7 +91,7 @@ public class WebFlowTestConfiguration {
     private PowerAuthTestSetUp setUp;
     private PowerAuthTestTearDown tearDown;
 
-    private KeyConvertor keyConvertor;
+    private KeyConvertor keyConvertor = new KeyConvertor();
     private ObjectMapper objectMapper = RestClientConfiguration.defaultMapper();
 
     // Temporary storage
@@ -107,17 +116,6 @@ public class WebFlowTestConfiguration {
     }
 
     /**
-     * Initialize JAXB marshaller.
-     * @return JAXB marshaller.
-     */
-    @Bean
-    public Jaxb2Marshaller marshaller() {
-        Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-        marshaller.setContextPaths("io.getlime.powerauth.soap.v3");
-        return marshaller;
-    }
-
-    /**
      * Initialize PowerAuth client.
      * @return PowerAuth client.
      */
@@ -125,10 +123,13 @@ public class WebFlowTestConfiguration {
     public PowerAuthClient powerAuthClient() {
         PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
         config.setAcceptInvalidSslCertificate(true);
+        config.setPowerAuthClientToken(clientToken);
+        config.setPowerAuthClientSecret(clientSecret);
         try {
             return new PowerAuthRestClient(powerAuthRestUrl, config);
         } catch (PowerAuthClientException ex) {
             // Log the error in case Rest client initialization failed
+            logger.error(ex.getMessage(), ex);
             return null;
         }
     }
@@ -270,6 +271,7 @@ public class WebFlowTestConfiguration {
         try {
             masterPublicKeyConverted = keyConvertor.convertBytesToPublicKey(masterKeyBytes);
         } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
         }
     }
 
