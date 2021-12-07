@@ -255,36 +255,39 @@ public class PowerAuthIdentityVerificationTest {
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
         // Presence check should succeed immediately in mock implementation, but in general this can take some time
-        boolean verificationComplete = false;
-        for (int i = 0; i < 10; i++) {
-            IdentityVerificationStatusRequest statusRequest = new IdentityVerificationStatusRequest();
-            stepLogger = new ObjectStepLogger(System.out);
-            signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(statusRequest)));
-            signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/status");
-            signatureModel.setResourceId("/api/identity/status");
+        if (!config.isSkipPresenceCheck()) {
+            boolean verificationComplete = false;
+            for (int i = 0; i < 10; i++) {
+                IdentityVerificationStatusRequest statusRequest = new IdentityVerificationStatusRequest();
+                stepLogger = new ObjectStepLogger(System.out);
+                signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(statusRequest)));
+                signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/status");
+                signatureModel.setResourceId("/api/identity/status");
 
-            new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-            assertTrue(stepLogger.getResult().isSuccess());
-            assertEquals(200, stepLogger.getResponse().getStatusCode());
-            IdentityVerificationStatus status = null;
-            for (StepItem item: stepLogger.getItems()) {
-                if (item.getName().equals("Decrypted Response")) {
-                    String responseData = item.getObject().toString();
-                    ObjectResponse<IdentityVerificationStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<IdentityVerificationStatusResponse>>() {});
-                    IdentityVerificationStatusResponse response = objectResponse.getResponseObject();
-                    status = response.getIdentityVerificationStatus();
+                new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+                assertTrue(stepLogger.getResult().isSuccess());
+                assertEquals(200, stepLogger.getResponse().getStatusCode());
+                IdentityVerificationStatus status = null;
+                for (StepItem item : stepLogger.getItems()) {
+                    if (item.getName().equals("Decrypted Response")) {
+                        String responseData = item.getObject().toString();
+                        ObjectResponse<IdentityVerificationStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<IdentityVerificationStatusResponse>>() {
+                        });
+                        IdentityVerificationStatusResponse response = objectResponse.getResponseObject();
+                        status = response.getIdentityVerificationStatus();
+                        break;
+                    }
+                }
+                if (status == IdentityVerificationStatus.ACCEPTED) {
+                    verificationComplete = true;
                     break;
+                } else {
+                    Thread.sleep(1000);
                 }
             }
-            if (status == IdentityVerificationStatus.ACCEPTED) {
-                verificationComplete = true;
-                break;
-            } else {
-                Thread.sleep(1000);
-            }
-        }
 
-        assertTrue(verificationComplete);
+            assertTrue(verificationComplete);
+        }
 
         // Check activation flags
         ListActivationFlagsResponse flagResponse3 = powerAuthClient.listActivationFlags(activationId);

@@ -85,6 +85,9 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.test.client.transport}")
     private String clientTransport;
 
+    @Value("${powerauth.test.identity.presence-check.skip}")
+    private boolean skipPresenceCheck;
+
     private String applicationVersionForTests;
     private String applicationKey;
     private String applicationSecret;
@@ -338,5 +341,13 @@ public class PowerAuthTestConfiguration {
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
         }
+    }
+
+    public boolean isSkipPresenceCheck() {
+        return skipPresenceCheck;
+    }
+
+    public void setSkipPresenceCheck(boolean skipPresenceCheck) {
+        this.skipPresenceCheck = skipPresenceCheck;
     }
 }
