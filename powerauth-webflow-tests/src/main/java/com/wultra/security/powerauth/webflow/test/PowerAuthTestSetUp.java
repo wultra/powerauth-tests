@@ -17,8 +17,9 @@
  */
 package com.wultra.security.powerauth.webflow.test;
 
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.webflow.configuration.WebFlowTestConfiguration;
-import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
@@ -29,7 +30,6 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.SafariOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.net.URL;
 import java.util.HashMap;
@@ -74,7 +74,7 @@ public class PowerAuthTestSetUp {
         System.out.println("powerauth.webflow.client.url=" + config.getWebFlowClientUrl());
     }
 
-    private void createApplication() {
+    private void createApplication() throws PowerAuthClientException {
         // Create application if it does not exist
         List<GetApplicationListResponse.Applications> applications = powerAuthClient.getApplicationList();
         boolean applicationExists = false;

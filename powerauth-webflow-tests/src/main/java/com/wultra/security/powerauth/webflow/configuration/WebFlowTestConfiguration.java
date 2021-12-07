@@ -19,6 +19,7 @@ package com.wultra.security.powerauth.webflow.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.webflow.test.PowerAuthTestSetUp;
 import com.wultra.security.powerauth.webflow.test.PowerAuthTestTearDown;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
@@ -159,7 +160,7 @@ public class WebFlowTestConfiguration {
     }
 
     @PreDestroy
-    public void tearDown() {
+    public void tearDown() throws PowerAuthClientException {
         tearDown.execute();
     }
 
