@@ -1,17 +1,19 @@
 package com.wultra.security.powerauth.webflow.test;
 
 import com.wultra.security.powerauth.webflow.configuration.WebFlowTestConfiguration;
-import org.junit.*;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = WebFlowTestConfiguration.class)
 @EnableConfigurationProperties
 public class LoginTest {
@@ -33,14 +35,14 @@ public class LoginTest {
     By messageSuccess = By.xpath("//div[@class='message-success title']");
     By logoutButton = By.xpath("//button[@type='submit' and text()='Log out']");
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         Process p = Runtime.getRuntime().exec("killall Safari");
         p.waitFor();
         config.setUpWebDriver();
     }
 
-    @After
+    @AfterEach
     public void tearDownUp() throws Exception {
         Process p = Runtime.getRuntime().exec("killall Safari");
         p.waitFor();
