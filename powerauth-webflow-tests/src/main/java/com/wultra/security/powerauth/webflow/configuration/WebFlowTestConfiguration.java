@@ -19,13 +19,15 @@ package com.wultra.security.powerauth.webflow.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
+import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
 import com.wultra.security.powerauth.webflow.test.PowerAuthTestSetUp;
 import com.wultra.security.powerauth.webflow.test.PowerAuthTestTearDown;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientConfiguration;
 import io.getlime.security.powerauth.lib.nextstep.client.NextStepClient;
-import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.json.simple.JSONObject;
 import org.openqa.selenium.WebDriver;
@@ -51,8 +53,8 @@ import java.util.UUID;
 @Configuration
 public class WebFlowTestConfiguration {
 
-    @Value("${powerauth.service.url}")
-    private String powerAuthServiceUrl;
+    @Value("${powerauth.rest.url}")
+    private String powerAuthRestUrl;
 
     @Value("${powerauth.webflow.service.url}")
     private String powerAuthWebFlowUrl;
@@ -117,21 +119,27 @@ public class WebFlowTestConfiguration {
 
     /**
      * Initialize PowerAuth client.
-     * @param marshaller JAXB marshaller.
      * @return PowerAuth client.
      */
     @Bean
-    public PowerAuthServiceClient powerAuthClient(Jaxb2Marshaller marshaller) {
-        PowerAuthServiceClient client = new PowerAuthServiceClient();
-        client.setDefaultUri(powerAuthServiceUrl);
-        client.setMarshaller(marshaller);
-        client.setUnmarshaller(marshaller);
-        return client;
+    public PowerAuthClient powerAuthClient() {
+        PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
+        config.setAcceptInvalidSslCertificate(true);
+        try {
+            return new PowerAuthRestClient(powerAuthRestUrl, config);
+        } catch (PowerAuthClientException ex) {
+            // Log the error in case Rest client initialization failed
+            return null;
+        }
     }
 
     @Bean
     public NextStepClient nextStepClient() {
-        return new NextStepClient(nextStepServiceUrl);
+        try {
+            return new NextStepClient(nextStepServiceUrl);
+        } catch (Exception ex) {
+            return null;
+        }
     }
 
     @Bean
@@ -164,8 +172,8 @@ public class WebFlowTestConfiguration {
         tearDown.execute();
     }
 
-    public String getPowerAuthServiceUrl() {
-        return powerAuthServiceUrl;
+    public String getPowerAuthRestUrl() {
+        return powerAuthRestUrl;
     }
 
     public String getPowerAuthWebFlowUrl() {

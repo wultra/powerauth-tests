@@ -17,13 +17,13 @@
  */
 package com.wultra.security.powerauth.webflow.test;
 
+import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.webflow.configuration.WebFlowTestConfiguration;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
-import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
@@ -36,9 +36,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Global test setup.
@@ -47,11 +45,11 @@ import static org.junit.Assert.assertNotEquals;
  */
 public class PowerAuthTestSetUp {
 
-    private PowerAuthServiceClient powerAuthClient;
+    private PowerAuthClient powerAuthClient;
     private WebFlowTestConfiguration config;
 
     @Autowired
-    public void setPowerAuthServiceClient(PowerAuthServiceClient powerAuthClient) {
+    public void setPowerAuthServiceClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 
@@ -68,7 +66,7 @@ public class PowerAuthTestSetUp {
 
     private void printTestConfiguration() {
         System.out.println("Test settings:");
-        System.out.println("powerauth.service.url=" + config.getPowerAuthServiceUrl());
+        System.out.println("powerauth.service.url=" + config.getPowerAuthRestUrl());
         System.out.println("powerauth.webflow.service.url=" + config.getPowerAuthWebFlowUrl());
         System.out.println("powerauth.nextstep.service.url=" + config.getNextStepServiceUrl());
         System.out.println("powerauth.webflow.client.url=" + config.getWebFlowClientUrl());
