@@ -41,6 +41,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
+import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -98,6 +99,7 @@ public class PowerAuthOnboardingTest {
 
         // Create temp status file
         File tempStatusFile = File.createTempFile("pa_status_v31", ".json");
+        JSONObject resultStatusObject = new JSONObject();
 
         // Model shared among tests
         activationModel = new CreateActivationStepModel();
@@ -108,14 +110,14 @@ public class PowerAuthOnboardingTest {
         activationModel.setHeaders(new HashMap<>());
         activationModel.setPassword(config.getPassword());
         activationModel.setStatusFileName(tempStatusFile.getAbsolutePath());
-        activationModel.setResultStatusObject(config.getResultStatusObjectV31());
+        activationModel.setResultStatusObject(resultStatusObject);
         activationModel.setUriString(config.getEnrollmentServiceUrl());
         activationModel.setVersion("3.1");
         activationModel.setDeviceInfo("backend-tests");
 
         statusModel = new GetStatusStepModel();
         statusModel.setHeaders(new HashMap<>());
-        statusModel.setResultStatusObject(config.getResultStatusObjectV31());
+        statusModel.setResultStatusObject(resultStatusObject);
         statusModel.setUriString(config.getEnrollmentServiceUrl());
         statusModel.setVersion("3.1");
 
