@@ -19,9 +19,9 @@
  */
 package com.wultra.security.powerauth.provider;
 
-import io.getlime.security.powerauth.rest.api.base.exception.PowerAuthActivationException;
-import io.getlime.security.powerauth.rest.api.base.provider.CustomActivationProvider;
 import io.getlime.security.powerauth.rest.api.model.entity.ActivationType;
+import io.getlime.security.powerauth.rest.api.spring.exception.PowerAuthActivationException;
+import io.getlime.security.powerauth.rest.api.spring.provider.CustomActivationProvider;
 import org.springframework.stereotype.Component;
 
 import java.util.Collections;

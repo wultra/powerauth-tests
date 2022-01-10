@@ -58,9 +58,6 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.rest.url}")
     private String powerAuthRestUrl;
 
-    @Value("${powerauth.soap.url}")
-    private String powerAuthServiceUrl;
-
     @Value("${powerauth.integration.service.url}")
     private String powerAuthIntegrationUrl;
 
@@ -69,9 +66,6 @@ public class PowerAuthTestConfiguration {
 
     @Value("${powerauth.enrollment.service.url}")
     private String enrollmentServiceUrl;
-
-    @Value("${powerauth.custom.service.url}")
-    private String customServiceUrl;
 
     @Value("${powerauth.service.security.clientToken}")
     private String clientToken;
@@ -205,20 +199,12 @@ public class PowerAuthTestConfiguration {
         return powerAuthRestUrl;
     }
 
-    public String getPowerAuthServiceUrl() {
-        return powerAuthServiceUrl;
-    }
-
     public String getPowerAuthIntegrationUrl() {
         return powerAuthIntegrationUrl;
     }
 
     public String getEnrollmentServiceUrl() {
         return enrollmentServiceUrl;
-    }
-
-    public String getCustomServiceUrl() {
-        return customServiceUrl;
     }
 
     public String getApplicationName() {
