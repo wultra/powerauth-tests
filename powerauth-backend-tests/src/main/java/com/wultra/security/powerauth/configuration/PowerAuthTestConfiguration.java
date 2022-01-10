@@ -79,9 +79,6 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.test.application.version}")
     private String applicationVersion;
 
-    @Value("${powerauth.test.client.transport}")
-    private String clientTransport;
-
     private String applicationVersionForTests;
     private String applicationKey;
     private String applicationSecret;
