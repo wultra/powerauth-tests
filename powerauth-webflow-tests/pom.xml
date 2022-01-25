@@ -9,7 +9,7 @@
 
     <groupId>com.wultra</groupId>
     <artifactId>powerauth-webflow-tests</artifactId>
-    <version>1.2.0-SNAPSHOT</version>
+    <version>1.2.0</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -64,7 +64,7 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-nextstep-client</artifactId>
-            <version>1.2.0-SNAPSHOT</version>
+            <version>1.2.0</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
