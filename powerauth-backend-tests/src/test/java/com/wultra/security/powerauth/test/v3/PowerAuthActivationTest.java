@@ -352,7 +352,6 @@ public class PowerAuthActivationTest {
         ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().getResponseObject();
         ActivationStatusResponse response = responseObject.getResponseObject();
         assertEquals(initResponse.getActivationId(), response.getActivationId());
-        assertNull(response.getCustomObject());
 
         // Get transport key
         String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");
@@ -605,7 +604,6 @@ public class PowerAuthActivationTest {
         ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().getResponseObject();
         ActivationStatusResponse response = responseObject.getResponseObject();
         assertEquals(initResponse.getActivationId(), response.getActivationId());
-        assertNull(response.getCustomObject());
 
         // Get transport key
         String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");

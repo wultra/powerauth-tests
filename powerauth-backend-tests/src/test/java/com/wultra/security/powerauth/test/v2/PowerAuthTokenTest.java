@@ -311,13 +311,7 @@ public class PowerAuthTokenTest {
     }
 
     private String getTokenUri() {
-        if (isWebFlowRunning()) {
-            // Tests are running against Spring integration on Web Flow
-            return config.getPowerAuthIntegrationUrl() + "/api/auth/token/app/operation/list";
-        } else {
-            // Tests are running against Java EE integration on demo server
-            return config.getPowerAuthIntegrationUrl() + "/token/authorize";
-        }
+        return config.getPowerAuthIntegrationUrl() + "/api/auth/token/app/operation/list";
     }
 
     private boolean isWebFlowRunning() {
