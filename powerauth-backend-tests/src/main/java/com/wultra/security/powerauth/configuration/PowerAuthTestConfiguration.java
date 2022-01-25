@@ -43,6 +43,7 @@ import javax.annotation.PreDestroy;
 import java.io.File;
 import java.security.PublicKey;
 import java.security.Security;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -55,28 +56,28 @@ public class PowerAuthTestConfiguration {
 
     private static final Logger logger = LoggerFactory.getLogger(PowerAuthTestConfiguration.class);
 
-    @Value("${powerauth.rest.url}")
+    @Value("${powerauth.rest.url:http://localhost:8080/powerauth-java-server/rest}")
     private String powerAuthRestUrl;
 
-    @Value("${powerauth.integration.service.url}")
+    @Value("${powerauth.integration.service.url:http://localhost:8080/enrollment-server}")
     private String powerAuthIntegrationUrl;
 
-    @Value("${powerauth.nextstep.service.url}")
-    private String nextStepServiceUrl;
+    @Value("${powerauth.nextstep.service.url:http://localhost:8080/powerauth-nextstep}")
+    private Optional<String> nextStepServiceUrl;
 
-    @Value("${powerauth.enrollment.service.url}")
+    @Value("${powerauth.enrollment.service.url:http://localhost:8080/enrollment-server}")
     private String enrollmentServiceUrl;
 
-    @Value("${powerauth.service.security.clientToken}")
+    @Value("${powerauth.service.security.clientToken:}")
     private String clientToken;
 
-    @Value("${powerauth.service.security.clientSecret}")
+    @Value("${powerauth.service.security.clientSecret:}")
     private String clientSecret;
 
-    @Value("${powerauth.test.application.name}")
+    @Value("${powerauth.test.application.name:PA_Tests}")
     private String applicationName;
 
-    @Value("${powerauth.test.application.version}")
+    @Value("${powerauth.test.application.version:default}")
     private String applicationVersion;
 
     private String applicationVersionForTests;
@@ -144,8 +145,11 @@ public class PowerAuthTestConfiguration {
 
     @Bean
     public NextStepClient nextStepClient() {
+        if (!nextStepServiceUrl.isPresent()) {
+            return null;
+        }
         try {
-            return new NextStepClient(nextStepServiceUrl);
+            return new NextStepClient(nextStepServiceUrl.get());
         } catch (NextStepClientException ex) {
             return null;
         }
