@@ -89,13 +89,7 @@ public class PowerAuthHttpTest {
         headers.put("Content-Type", "application/json");
         headers.put(PowerAuthTokenHttpHeader.HEADER_NAME, tokenHeaderInvalid);
         String tokenUrl;
-        if (config.getPowerAuthIntegrationUrl().contains("powerauth-webflow")) {
-            // Tests are running against Spring integration on Web Flow
-            tokenUrl = config.getPowerAuthIntegrationUrl() + "/api/auth/token/app/operation/list";
-        } else {
-            // Tests are running against Java EE integration on demo server
-            tokenUrl = config.getPowerAuthIntegrationUrl() + "/token/authorize";
-        }
+        tokenUrl = config.getPowerAuthIntegrationUrl() + "/api/auth/token/app/operation/list";
 
         try {
             RestClientFactory.getRestClient().post(
