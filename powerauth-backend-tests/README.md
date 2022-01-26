@@ -26,61 +26,17 @@ You can find the resulting jar files and war files in the `target` folder. The b
 
 Things get a bit more complicated when building a development version of the stack, because there are many internal dependencies which need to be satisfied when building the final artifacts.
 
-### Building Java Core Libraries
+Clone the following repositories and use the default `develop` branch to build the latest version of the PowerAuth stack.
 
-Repository: `https://github.com/wultra/lime-java-core` (develop branch)
-
-Build: `mvn clean install`
-
-Result: the libraries are installed into local maven repository (.m2 folder)
-
-### Building PowerAuth Crypto
-
-Repository: `https://github.com/wultra/powerauth-crypto` (develop branch)
-
-Build: `mvn clean install`
-
-Result: the libraries are installed into local maven repository (.m2 folder)
-
-### Building PowerAuth Server
-
-Repository: `https://github.com/wultra/powerauth-server` (develop branch)
-
-Build: `mvn clean install`
-
-Result: the libraries are installed into local maven repository (.m2 folder) and the PowerAuth server artifact is available in `powerauth-java-server/target`
-
-### Building PowerAuth RESTful Integration Libraries
-
-Repository: `https://github.com/wultra/powerauth-restful-integration` (develop branch)
-
-Build: `mvn clean install`
-
-Result: the libraries are installed into local maven repository (.m2 folder)
-
-### Building Enrollment Server
-
-Repository: `https://github.com/wultra/enrollment-server-wultra` (develop branch)
-
-Build: `mvn clean package`
-
-Result: the Enrollment Server artifact is available in `enrollment-server/target`
-
-### Building PowerAuth Command-Line Tool
-
-Repository: `https://github.com/wultra/powerauth-cmd-tool` (develop branch)
-
-Build: `mvn clean install`
-
-Result: the library is installed into local maven repository (.m2 folder)
-
-### Building Web Flow (optional)
-
-Repository: `https://github.com/wultra/powerauth-webflow` (develop branch)
-
-Build: `mvn clean install`
-
-Result: the libraries are installed into local maven repository (.m2 folder) and the artifacts are available in `powerauth-nextstep/target` and `powerauth-webflow/target` folders
+| Repository | Command | Result |
+|---|---|---|
+| https://github.com/wultra/lime-java-core | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) |
+| https://github.com/wultra/powerauth-crypto | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) |
+| https://github.com/wultra/powerauth-server | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) and the PowerAuth server artifact is available in `powerauth-java-server/target` |
+| https://github.com/wultra/powerauth-restful-integration | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) |
+| https://github.com/wultra/enrollment-server-wultra | `mvn clean install` | the Enrollment Server artifact is available in `enrollment-server/target` |
+| https://github.com/wultra/powerauth-cmd-tool | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) |
+| https://github.com/wultra/powerauth-webflow | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) and the artifacts are available in `powerauth-nextstep/target` and `powerauth-webflow/target` folders |
 
 ## Deploying PowerAuth Components
 
