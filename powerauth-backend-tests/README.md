@@ -18,7 +18,7 @@ We recommend to use one of the LTS releases of Java for running the tests: 8, 11
 
 The release version of PowerAuth stack can be built easily using following commend for each component:
 
-`mvn clean -Dmaven.test.skip=true package`
+`mvn clean package`
 
 You can find the resulting jar files and war files in the `target` folder. The build succeeds because all necessary libraries are deployed to public Maven repositories through the OSS Sonatype service.
 
@@ -30,7 +30,7 @@ Things get a bit more complicated when building a development version of the sta
 
 Repository: `https://github.com/wultra/lime-java-core` (develop branch)
 
-Build: `mvn clean -Dmaven.test.skip=true install`
+Build: `mvn clean install`
 
 Result: the libraries are installed into local maven repository (.m2 folder)
 
@@ -38,7 +38,7 @@ Result: the libraries are installed into local maven repository (.m2 folder)
 
 Repository: `https://github.com/wultra/powerauth-crypto` (develop branch)
 
-Build: `mvn clean -Dmaven.test.skip=true install`
+Build: `mvn clean install`
 
 Result: the libraries are installed into local maven repository (.m2 folder)
 
@@ -46,7 +46,7 @@ Result: the libraries are installed into local maven repository (.m2 folder)
 
 Repository: `https://github.com/wultra/powerauth-server` (develop branch)
 
-Build: `mvn clean -Dmaven.test.skip=true install`
+Build: `mvn clean install`
 
 Result: the libraries are installed into local maven repository (.m2 folder) and the PowerAuth server artifact is available in `powerauth-java-server/target`
 
@@ -54,7 +54,7 @@ Result: the libraries are installed into local maven repository (.m2 folder) and
 
 Repository: `https://github.com/wultra/powerauth-restful-integration` (develop branch)
 
-Build: `mvn clean -Dmaven.test.skip=true install`
+Build: `mvn clean install`
 
 Result: the libraries are installed into local maven repository (.m2 folder)
 
@@ -62,7 +62,7 @@ Result: the libraries are installed into local maven repository (.m2 folder)
 
 Repository: `https://github.com/wultra/enrollment-server-wultra` (develop branch)
 
-Build: `mvn clean -Dmaven.test.skip=true package`
+Build: `mvn clean package`
 
 Result: the Enrollment Server artifact is available in `enrollment-server/target`
 
@@ -70,7 +70,7 @@ Result: the Enrollment Server artifact is available in `enrollment-server/target
 
 Repository: `https://github.com/wultra/powerauth-cmd-tool` (develop branch)
 
-Build: `mvn clean -Dmaven.test.skip=true install`
+Build: `mvn clean install`
 
 Result: the library is installed into local maven repository (.m2 folder)
 
@@ -78,7 +78,7 @@ Result: the library is installed into local maven repository (.m2 folder)
 
 Repository: `https://github.com/wultra/powerauth-webflow` (develop branch)
 
-Build: `mvn clean -Dmaven.test.skip=true install`
+Build: `mvn clean install`
 
 Result: the libraries are installed into local maven repository (.m2 folder) and the artifacts are available in `powerauth-nextstep/target` and `powerauth-webflow/target` folders
 
