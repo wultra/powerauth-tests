@@ -83,10 +83,10 @@ File `enrollment-server.xml`:
 
 Once you start the Tomcat server, you should see both applications up and running. You can check the services on following URLs:
 
-- PowerAuth server URL: [http://localhost:8080/powerauth-java-server]()
-- Enrollment server URL: [http://localhost:8080/enrollment-server]()
-- PowerAuth Web Flow URL (optional): [http://localhost:8080/powerauth-webflow]()
-- PowerAuth Next Step URL (optional): [http://localhost:8080/powerauth-nextstep]()
+- PowerAuth server URL: http://localhost:8080/powerauth-java-server
+- Enrollment server URL: http://localhost:8080/enrollment-server
+- PowerAuth Web Flow URL (optional): http://localhost:8080/powerauth-webflow
+- PowerAuth Next Step URL (optional): http://localhost:8080/powerauth-nextstep
 
 ## Test Configuration
 
