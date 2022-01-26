@@ -105,7 +105,7 @@ powerauth.integration.service.url=http://localhost:8080/enrollment-server
 powerauth.enrollment.service.url=http://localhost:8080/enrollment-server
 ```
 
-_Note: The standard RESTful integration services are available in vanilla version of enrollment server (repository `https://github.com/wultra/enrollment-server`. The customization of enrollment processes for tests is done in Wultra fork of enrollment server (repository `https://github.com/wultra/enrollment-server-wultra`). You can simply use the Wultra fork for both configuration parameters for enrollment because it also contains the generic functionality from vanilla version of enrollment server._
+_Note: The standard RESTful integration services are available in vanilla version of enrollment server (repository `https://github.com/wultra/enrollment-server`). The customization of enrollment processes for tests is done in Wultra fork of enrollment server (repository `https://github.com/wultra/enrollment-server-wultra`). You can simply use the Wultra fork for both configuration parameters for enrollment because it also contains the generic functionality from vanilla version of enrollment server._
 
 In case authentication is enabled on the server, you can configure it using following properties (disabled by default):
 ```properties
