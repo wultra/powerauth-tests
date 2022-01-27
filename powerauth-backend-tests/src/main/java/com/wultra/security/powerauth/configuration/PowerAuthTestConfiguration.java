@@ -80,7 +80,7 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.test.application.version:default}")
     private String applicationVersion;
 
-    @Value("${powerauth.test.identity.presence-check.skip}")
+    @Value("${powerauth.test.identity.presence-check.skip:true}")
     private boolean skipPresenceCheck;
 
     private String applicationVersionForTests;
