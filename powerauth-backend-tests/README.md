@@ -116,8 +116,8 @@ powerauth.service.security.clientSecret=
 In case you want to test Web Flow and Next Step instead of Enrollment server, use the following configuration:
 ```properties
 # URLs used when testing Web Flow and Next Step
-#powerauth.integration.service.url=http://localhost:8080/powerauth-webflow
-#powerauth.nextstep.service.url=http://localhost:8080/powerauth-nextstep
+powerauth.integration.service.url=http://localhost:8080/powerauth-webflow
+powerauth.nextstep.service.url=http://localhost:8080/powerauth-nextstep
 ```
 
 ## Running Tests from Console
