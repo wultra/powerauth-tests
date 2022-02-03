@@ -30,6 +30,7 @@ import java.util.List;
 @Data
 public class DocumentSubmitRequest {
 
+    private String processId;
     private byte[] data;
     private boolean resubmit;
     private List<DocumentMetadata> documents;

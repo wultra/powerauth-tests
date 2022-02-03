@@ -141,7 +141,7 @@ public class PowerAuthOnboardingTest {
         String activationId = createCustomActivation(processId, otpCode, clientId);
 
         // Test onboarding status
-        assertEquals(OnboardingStatus.FINISHED, getProcessStatus(processId));
+        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
 
         // Verify activation flags using custom object in status
         ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
