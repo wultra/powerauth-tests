@@ -19,14 +19,18 @@ package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.app.enrollmentserver.api.model.request.OnboardingCleanupRequest;
+import com.wultra.app.enrollmentserver.api.model.request.OnboardingStartRequest;
+import com.wultra.app.enrollmentserver.api.model.request.OnboardingStatusRequest;
+import com.wultra.app.enrollmentserver.api.model.request.OtpResendRequest;
+import com.wultra.app.enrollmentserver.api.model.response.OnboardingStartResponse;
+import com.wultra.app.enrollmentserver.api.model.response.OnboardingStatusResponse;
+import com.wultra.app.enrollmentserver.model.enumeration.OnboardingStatus;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.v3.ActivationStatus;
 import com.wultra.security.powerauth.client.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.model.enumeration.OnboardingStatus;
-import com.wultra.security.powerauth.model.request.*;
-import com.wultra.security.powerauth.model.response.OnboardingStartResponse;
-import com.wultra.security.powerauth.model.response.OnboardingStatusResponse;
+import com.wultra.security.powerauth.model.request.OtpDetailRequest;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
@@ -132,7 +136,7 @@ public class PowerAuthOnboardingTest {
         String processId = startOnboarding(clientId);
 
         // Test onboarding status
-        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(processId));
 
         // Obtain activation OTP from testing endpoint
         String otpCode = getOtpCode(processId);
@@ -141,7 +145,7 @@ public class PowerAuthOnboardingTest {
         String activationId = createCustomActivation(processId, otpCode, clientId);
 
         // Test onboarding status
-        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
+        assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, getProcessStatus(processId));
 
         // Verify activation flags using custom object in status
         ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
@@ -164,7 +168,7 @@ public class PowerAuthOnboardingTest {
         String processId = startOnboarding(clientId);
 
         // Test onboarding status
-        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(processId));
 
         // Activation with invalid OTP should fail
         boolean activationSucceeded = false;
@@ -199,7 +203,7 @@ public class PowerAuthOnboardingTest {
         String processId = startOnboarding();
 
         // Test onboarding status
-        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(processId));
 
         // Test onboarding cleanup
         onboardingCleanup(processId);
@@ -261,7 +265,7 @@ public class PowerAuthOnboardingTest {
         String processId = startOnboarding(clientId);
 
         // Test onboarding status
-        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(processId));
 
         // Obtain activation OTP from testing endpoint
         String otpCode = getOtpCode(processId);
@@ -294,7 +298,7 @@ public class PowerAuthOnboardingTest {
         String processId = startOnboarding(clientId);
 
         // Test onboarding status
-        assertEquals(OnboardingStatus.IN_PROGRESS, getProcessStatus(processId));
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(processId));
 
         // Obtain activation OTP from testing endpoint
         String otpCode = getOtpCode(processId);
@@ -354,7 +358,7 @@ public class PowerAuthOnboardingTest {
         }
         assertTrue(responseSuccessfullyDecrypted);
         assertNotNull(processId);
-        assertEquals(OnboardingStatus.IN_PROGRESS, onboardingStatus);
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, onboardingStatus);
         return processId;
     }
 

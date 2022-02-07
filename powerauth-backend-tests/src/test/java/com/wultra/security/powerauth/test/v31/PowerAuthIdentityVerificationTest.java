@@ -25,9 +25,11 @@ import com.wultra.security.powerauth.client.v3.ActivationStatus;
 import com.wultra.security.powerauth.client.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.v3.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.model.enumeration.*;
-import com.wultra.security.powerauth.model.request.*;
-import com.wultra.security.powerauth.model.response.*;
+import com.wultra.app.enrollmentserver.model.enumeration.*;
+import com.wultra.app.enrollmentserver.api.model.request.*;
+import com.wultra.app.enrollmentserver.api.model.response.*;
+import com.wultra.security.powerauth.model.request.OtpDetailRequest;
+import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
@@ -500,7 +502,7 @@ public class PowerAuthIdentityVerificationTest {
         }
         assertTrue(responseSuccessfullyDecrypted);
         assertNotNull(processId);
-        assertEquals(OnboardingStatus.IN_PROGRESS, onboardingStatus);
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, onboardingStatus);
         return processId;
     }
 
