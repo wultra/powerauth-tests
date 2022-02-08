@@ -282,6 +282,7 @@ public class PowerAuthIdentityVerificationTest {
         // Presence check should succeed immediately in mock implementation, but in general this can take some time
         if (!config.isSkipPresenceCheck()) {
             boolean verificationComplete = false;
+            boolean otpVerified = false;
             for (int i = 0; i < 10; i++) {
                 IdentityVerificationStatusRequest statusRequest = new IdentityVerificationStatusRequest();
                 stepLogger = new ObjectStepLogger(System.out);
@@ -302,11 +303,53 @@ public class PowerAuthIdentityVerificationTest {
                         break;
                     }
                 }
-                if (status == IdentityVerificationStatus.ACCEPTED) {
-                    verificationComplete = true;
-                    break;
+                if (!config.isSkipOtpVerification() && !otpVerified) {
+                    if (status == IdentityVerificationStatus.VERIFICATION_PENDING) {
+                        IdentityVerificationOtpSendRequest otpRequest = new IdentityVerificationOtpSendRequest();
+                        otpRequest.setProcessId(processId);
+                        stepLogger = new ObjectStepLogger(System.out);
+                        encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpRequest)));
+                        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/otp/send");
+                        encryptModel.setScope("activation");
+                        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+                        assertTrue(stepLogger.getResult().isSuccess());
+                        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+                        String otpCode = getOtpCode(processId, OtpType.USER_VERIFICATION);
+
+                        IdentityVerificationOtpVerifyRequest otpVerifyRequest = new IdentityVerificationOtpVerifyRequest();
+                        otpVerifyRequest.setProcessId(processId);
+                        otpVerifyRequest.setOtpCode(otpCode);
+                        stepLogger = new ObjectStepLogger(System.out);
+                        encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpVerifyRequest)));
+                        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/otp/verify");
+                        encryptModel.setScope("activation");
+                        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+                        assertTrue(stepLogger.getResult().isSuccess());
+                        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+                        for (StepItem item : stepLogger.getItems()) {
+                            if (item.getName().equals("Decrypted Response")) {
+                                String responseData = item.getObject().toString();
+                                ObjectResponse<OtpVerifyResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OtpVerifyResponse>>() {});
+                                OtpVerifyResponse response = objectResponse.getResponseObject();
+                                otpVerified = response.isVerified();
+                            }
+                        }
+                        if (otpVerified) {
+                            // Force status refresh
+                            continue;
+                        }
+                    } else {
+                        Thread.sleep(1000);
+                    }
                 } else {
-                    Thread.sleep(1000);
+                    if (status == IdentityVerificationStatus.ACCEPTED) {
+                        verificationComplete = true;
+                        break;
+                    } else {
+                        Thread.sleep(1000);
+                    }
                 }
             }
 
@@ -463,7 +506,7 @@ public class PowerAuthIdentityVerificationTest {
     private String[] prepareActivation() throws Exception {
         String clientId = generateRandomClientId();
         String processId = startOnboarding(clientId);
-        String activationId = createCustomActivation(processId, getOtpCode(processId), clientId);
+        String activationId = createCustomActivation(processId, getOtpCode(processId, OtpType.ACTIVATION), clientId);
         return new String[]{activationId, processId};
     }
 
@@ -580,12 +623,13 @@ public class PowerAuthIdentityVerificationTest {
         tokenAndEncryptModel.setTokenSecret(tokenSecret);
     }
 
-    private String getOtpCode(String processId) throws Exception {
+    private String getOtpCode(String processId, OtpType otpType) throws Exception {
         stepLogger = new ObjectStepLogger(System.out);
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/otp/detail");
+        encryptModel.setScope("application");
         OtpDetailRequest requestOtp = new OtpDetailRequest();
         requestOtp.setProcessId(processId);
-        requestOtp.setOtpType(OtpType.ACTIVATION);
+        requestOtp.setOtpType(otpType);
         executeRequest(requestOtp);
 
         EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();

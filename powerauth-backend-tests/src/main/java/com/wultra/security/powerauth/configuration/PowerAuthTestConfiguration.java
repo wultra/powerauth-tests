@@ -83,6 +83,9 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.test.identity.presence-check.skip:true}")
     private boolean skipPresenceCheck;
 
+    @Value("${powerauth.test.identity.otp-verification.skip:true}")
+    private boolean skipOtpVerification;
+
     private String applicationVersionForTests;
     private String applicationKey;
     private String applicationSecret;
@@ -343,5 +346,13 @@ public class PowerAuthTestConfiguration {
 
     public void setSkipPresenceCheck(boolean skipPresenceCheck) {
         this.skipPresenceCheck = skipPresenceCheck;
+    }
+
+    public boolean isSkipOtpVerification() {
+        return skipOtpVerification;
+    }
+
+    public void setSkipOtpVerification(boolean skipOtpVerification) {
+        this.skipOtpVerification = skipOtpVerification;
     }
 }
