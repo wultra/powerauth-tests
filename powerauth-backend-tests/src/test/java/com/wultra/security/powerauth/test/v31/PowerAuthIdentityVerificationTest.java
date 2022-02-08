@@ -585,6 +585,7 @@ public class PowerAuthIdentityVerificationTest {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/otp/detail");
         OtpDetailRequest requestOtp = new OtpDetailRequest();
         requestOtp.setProcessId(processId);
+        requestOtp.setOtpType(OtpType.ACTIVATION);
         executeRequest(requestOtp);
 
         EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();

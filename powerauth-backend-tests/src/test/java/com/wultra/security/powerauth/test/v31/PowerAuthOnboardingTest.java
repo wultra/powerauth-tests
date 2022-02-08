@@ -26,6 +26,7 @@ import com.wultra.app.enrollmentserver.api.model.request.OtpResendRequest;
 import com.wultra.app.enrollmentserver.api.model.response.OnboardingStartResponse;
 import com.wultra.app.enrollmentserver.api.model.response.OnboardingStatusResponse;
 import com.wultra.app.enrollmentserver.model.enumeration.OnboardingStatus;
+import com.wultra.app.enrollmentserver.model.enumeration.OtpType;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.v3.ActivationStatus;
 import com.wultra.security.powerauth.client.v3.GetActivationStatusResponse;
@@ -454,6 +455,7 @@ public class PowerAuthOnboardingTest {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/otp/detail");
         OtpDetailRequest requestOtp = new OtpDetailRequest();
         requestOtp.setProcessId(processId);
+        requestOtp.setOtpType(OtpType.ACTIVATION);
         executeRequest(requestOtp);
 
         EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
