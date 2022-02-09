@@ -20,9 +20,10 @@ package com.wultra.security.powerauth.test.v31;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.app.enrollmentserver.api.model.request.OnboardingCleanupRequest;
+import com.wultra.app.enrollmentserver.api.model.request.OnboardingOtpResendRequest;
 import com.wultra.app.enrollmentserver.api.model.request.OnboardingStartRequest;
 import com.wultra.app.enrollmentserver.api.model.request.OnboardingStatusRequest;
-import com.wultra.app.enrollmentserver.api.model.request.OtpResendRequest;
+import com.wultra.app.enrollmentserver.api.model.request.OnboardingOtpResendRequest;
 import com.wultra.app.enrollmentserver.api.model.response.OnboardingStartResponse;
 import com.wultra.app.enrollmentserver.api.model.response.OnboardingStatusResponse;
 import com.wultra.app.enrollmentserver.model.enumeration.OnboardingStatus;
@@ -221,7 +222,7 @@ public class PowerAuthOnboardingTest {
         // Test failed OTP resend
         stepLogger = new ObjectStepLogger(System.out);
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/otp/resend");
-        OtpResendRequest requestResend = new OtpResendRequest();
+        OnboardingOtpResendRequest requestResend = new OnboardingOtpResendRequest();
         requestResend.setProcessId(processId);
         ObjectRequest<Object> objectRequest = new ObjectRequest<>();
         objectRequest.setRequestObject(requestResend);
