@@ -86,6 +86,9 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.test.identity.otp-verification.skip:true}")
     private boolean skipOtpVerification;
 
+    @Value("${powerauth.test.identity.verificationOnSubmitEnabled:true}")
+    private boolean verificationOnSubmitEnabled;
+
     private String applicationVersionForTests;
     private String applicationKey;
     private String applicationSecret;
@@ -350,6 +353,10 @@ public class PowerAuthTestConfiguration {
 
     public boolean isSkipOtpVerification() {
         return skipOtpVerification;
+    }
+
+    public boolean isVerificationOnSubmitEnabled() {
+        return verificationOnSubmitEnabled;
     }
 
     public void setSkipOtpVerification(boolean skipOtpVerification) {
