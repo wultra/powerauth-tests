@@ -255,20 +255,21 @@ public class PowerAuthIdentityVerificationTest {
             assertTrue(documentVerificationPending);
         }
 
-        int checkCounter = 1;
-        int checkCounterMax = config.isVerificationOnSubmitEnabled() ? 5 : 1;
+        int assertCounter = 1;
+        int assertMaxRetries = config.isVerificationOnSubmitEnabled() ? config.getAssertMaxRetries() : 1;
 
-        while(checkCounter <= checkCounterMax) {
+        while(assertCounter <= assertMaxRetries) {
             try {
-                checkStatusOfSubmittedDocs(processId);
+                assertStatusOfSubmittedDocs(processId);
+                break;
             } catch (AssertionFailedError e) {
-                if (checkCounter >= checkCounterMax) {
+                if (assertCounter >= assertMaxRetries) {
                     throw e;
                 }
             }
-            stepLogger.writeItem("check-submitted-doc-retry", "Assert failed this time", "Retrying document status check " + checkCounter, "INFO", null);
-            checkCounter++;
-            Thread.sleep(5_000);
+            stepLogger.writeItem("assert-submitted-doc-retry", "Assert failed this time", "Retrying document status assert " + assertCounter, "INFO", null);
+            assertCounter++;
+            Thread.sleep(config.getAssertRetryWaitPeriod().toMillis());
         }
 
         // Init presence check
@@ -368,7 +369,7 @@ public class PowerAuthIdentityVerificationTest {
         powerAuthClient.removeActivation(activationId, "test");
     }
 
-    private void checkStatusOfSubmittedDocs(String processId) throws Exception {
+    private void assertStatusOfSubmittedDocs(String processId) throws Exception {
         // Check status of submitted document
         DocumentStatusRequest docStatusRequest = new DocumentStatusRequest();
         docStatusRequest.setProcessId(processId);

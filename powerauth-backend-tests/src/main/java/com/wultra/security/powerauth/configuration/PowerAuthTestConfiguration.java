@@ -43,6 +43,7 @@ import javax.annotation.PreDestroy;
 import java.io.File;
 import java.security.PublicKey;
 import java.security.Security;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -88,6 +89,12 @@ public class PowerAuthTestConfiguration {
 
     @Value("${powerauth.test.identity.verificationOnSubmitEnabled:true}")
     private boolean verificationOnSubmitEnabled;
+
+    @Value("${powerauth.test.assertMaxRetries:15}")
+    private int assertMaxRetries;
+
+    @Value("${powerauth.test.assertRetryWaitPeriod:PT1S}")
+    private Duration assertRetryWaitPeriod;
 
     private String applicationVersionForTests;
     private String applicationKey;
@@ -341,6 +348,14 @@ public class PowerAuthTestConfiguration {
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
         }
+    }
+
+    public Duration getAssertRetryWaitPeriod() {
+        return assertRetryWaitPeriod;
+    }
+
+    public int getAssertMaxRetries() {
+        return assertMaxRetries;
     }
 
     public boolean isSkipPresenceCheck() {
