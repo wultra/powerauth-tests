@@ -43,6 +43,7 @@ import javax.annotation.PreDestroy;
 import java.io.File;
 import java.security.PublicKey;
 import java.security.Security;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -85,6 +86,15 @@ public class PowerAuthTestConfiguration {
 
     @Value("${powerauth.test.identity.otp-verification.skip:true}")
     private boolean skipOtpVerification;
+
+    @Value("${powerauth.test.identity.verificationOnSubmitEnabled:true}")
+    private boolean verificationOnSubmitEnabled;
+
+    @Value("${powerauth.test.assertMaxRetries:15}")
+    private int assertMaxRetries;
+
+    @Value("${powerauth.test.assertRetryWaitPeriod:PT1S}")
+    private Duration assertRetryWaitPeriod;
 
     private String applicationVersionForTests;
     private String applicationKey;
@@ -340,6 +350,14 @@ public class PowerAuthTestConfiguration {
         }
     }
 
+    public Duration getAssertRetryWaitPeriod() {
+        return assertRetryWaitPeriod;
+    }
+
+    public int getAssertMaxRetries() {
+        return assertMaxRetries;
+    }
+
     public boolean isSkipPresenceCheck() {
         return skipPresenceCheck;
     }
@@ -350,6 +368,10 @@ public class PowerAuthTestConfiguration {
 
     public boolean isSkipOtpVerification() {
         return skipOtpVerification;
+    }
+
+    public boolean isVerificationOnSubmitEnabled() {
+        return verificationOnSubmitEnabled;
     }
 
     public void setSkipOtpVerification(boolean skipOtpVerification) {

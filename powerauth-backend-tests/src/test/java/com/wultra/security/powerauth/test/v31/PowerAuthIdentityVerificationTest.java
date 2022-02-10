@@ -20,14 +20,14 @@ package com.wultra.security.powerauth.test.v31;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.wultra.app.enrollmentserver.api.model.request.*;
+import com.wultra.app.enrollmentserver.api.model.response.*;
+import com.wultra.app.enrollmentserver.model.enumeration.*;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.v3.ActivationStatus;
 import com.wultra.security.powerauth.client.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.v3.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.app.enrollmentserver.model.enumeration.*;
-import com.wultra.app.enrollmentserver.api.model.request.*;
-import com.wultra.app.enrollmentserver.api.model.response.*;
 import com.wultra.security.powerauth.model.request.OtpDetailRequest;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
@@ -43,6 +43,7 @@ import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -228,43 +229,47 @@ public class PowerAuthIdentityVerificationTest {
         assertNotNull(responseOtpOK.getMac());
 
         boolean documentVerificationPending = false;
-        for (StepItem item: stepLogger.getItems()) {
+        for (StepItem item : stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 String responseData = item.getObject().toString();
-                ObjectResponse<DocumentSubmitResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentSubmitResponse>>() {});
+                ObjectResponse<DocumentSubmitResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentSubmitResponse>>() {
+                });
                 DocumentSubmitResponse response = objectResponse.getResponseObject();
                 assertEquals(2, response.getDocuments().size());
-                assertNotNull(response.getDocuments().get(0).getId());
-                assertNotNull(response.getDocuments().get(1).getId());
-                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(0).getStatus());
-                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(1).getStatus());
-                documentVerificationPending = true;
+                DocumentSubmitResponse.DocumentMetadata doc1 = response.getDocuments().get(0);
+                DocumentSubmitResponse.DocumentMetadata doc2 = response.getDocuments().get(1);
+                assertNotNull(doc1.getId());
+                assertNotNull(doc2.getId());
+                if (config.isVerificationOnSubmitEnabled()) {
+                    assertEquals(DocumentStatus.UPLOAD_IN_PROGRESS, doc1.getStatus());
+                    assertEquals(DocumentStatus.UPLOAD_IN_PROGRESS, doc2.getStatus());
+                } else {
+                    assertEquals(DocumentStatus.VERIFICATION_PENDING, doc1.getStatus());
+                    assertEquals(DocumentStatus.VERIFICATION_PENDING, doc2.getStatus());
+                    documentVerificationPending = true;
+                }
                 break;
             }
         }
-        assertTrue(documentVerificationPending);
+        if (!config.isVerificationOnSubmitEnabled()) {
+            assertTrue(documentVerificationPending);
+        }
 
-        // Check status of submitted document
-        DocumentStatusRequest docStatusRequest = new DocumentStatusRequest();
-        docStatusRequest.setProcessId(processId);
-        stepLogger = new ObjectStepLogger(System.out);
-        tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(docStatusRequest)));
-        tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/status");
+        int assertCounter = 1;
+        int assertMaxRetries = config.isVerificationOnSubmitEnabled() ? config.getAssertMaxRetries() : 1;
 
-        new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
-
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
-                ObjectResponse<DocumentStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentStatusResponse>>() {});
-                DocumentStatusResponse response = objectResponse.getResponseObject();
-                assertEquals(2, response.getDocuments().size());
-                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(0).getStatus());
-                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(1).getStatus());
+        while(assertCounter <= assertMaxRetries) {
+            try {
+                assertStatusOfSubmittedDocs(processId);
                 break;
+            } catch (AssertionFailedError e) {
+                if (assertCounter >= assertMaxRetries) {
+                    throw e;
+                }
             }
+            stepLogger.writeItem("assert-submitted-doc-retry", "Assert failed this time", "Retrying document status assert " + assertCounter, "INFO", null);
+            assertCounter++;
+            Thread.sleep(config.getAssertRetryWaitPeriod().toMillis());
         }
 
         // Init presence check
@@ -362,6 +367,30 @@ public class PowerAuthIdentityVerificationTest {
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    private void assertStatusOfSubmittedDocs(String processId) throws Exception {
+        // Check status of submitted document
+        DocumentStatusRequest docStatusRequest = new DocumentStatusRequest();
+        docStatusRequest.setProcessId(processId);
+        stepLogger = new ObjectStepLogger(System.out);
+        tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(docStatusRequest)));
+        tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/status");
+
+        new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                String responseData = item.getObject().toString();
+                ObjectResponse<DocumentStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentStatusResponse>>() {});
+                DocumentStatusResponse response = objectResponse.getResponseObject();
+                assertEquals(2, response.getDocuments().size());
+                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(0).getStatus());
+                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(1).getStatus());
+            }
+        }
     }
 
     @Test
@@ -489,14 +518,21 @@ public class PowerAuthIdentityVerificationTest {
                 ObjectResponse<DocumentSubmitResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentSubmitResponse>>() {});
                 DocumentSubmitResponse response = objectResponse.getResponseObject();
                 assertEquals(2, response.getDocuments().size());
-                documentId = response.getDocuments().get(0).getId();
+                DocumentSubmitResponse.DocumentMetadata doc1 = response.getDocuments().get(0);
+                documentId = doc1.getId();
                 assertNotNull(documentId);
-                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(0).getStatus());
-                documentVerificationPending = true;
+                if (config.isVerificationOnSubmitEnabled()) {
+                    assertEquals(DocumentStatus.UPLOAD_IN_PROGRESS, doc1.getStatus());
+                } else {
+                    assertEquals(DocumentStatus.VERIFICATION_PENDING, doc1.getStatus());
+                    documentVerificationPending = true;
+                }
                 break;
             }
         }
-        assertTrue(documentVerificationPending);
+        if (!config.isVerificationOnSubmitEnabled()) {
+            assertTrue(documentVerificationPending);
+        }
         assertNotNull(documentId);
 
         // Remove activation
