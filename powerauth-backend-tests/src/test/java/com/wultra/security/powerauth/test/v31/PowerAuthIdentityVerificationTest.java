@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.test.v31;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.google.common.collect.ImmutableList;
 import com.wultra.app.enrollmentserver.api.model.request.*;
 import com.wultra.app.enrollmentserver.api.model.response.*;
 import com.wultra.app.enrollmentserver.model.enumeration.*;
@@ -39,6 +40,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.*;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.*;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
+import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -57,6 +59,7 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -158,239 +161,62 @@ public class PowerAuthIdentityVerificationTest {
         String activationId = context[0];
         String processId = context[1];
 
-        createToken();
+        initActivation(activationId, processId);
 
-        // Check activation flags
-        ListActivationFlagsResponse flagResponse = powerAuthClient.listActivationFlags(activationId);
-        assertEquals(Collections.singletonList("VERIFICATION_PENDING"), flagResponse.getActivationFlags());
+        List<FileSubmit> idCardSubmits = ImmutableList.of(
+                FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
+                FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
+        );
 
-        // Initialize identity verification request
-        IdentityVerificationInitRequest initRequest = new IdentityVerificationInitRequest();
-        initRequest.setProcessId(processId);
-        stepLogger = new ObjectStepLogger(System.out);
-        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(initRequest)));
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/init");
-        signatureModel.setResourceId("/api/identity/init");
+        DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idCardSubmits);
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        submitDocuments(idCardSubmitRequest, idCardSubmits);
 
-        // Check activation flags
-        ListActivationFlagsResponse flagResponse2 = powerAuthClient.listActivationFlags(activationId);
-        assertEquals(Collections.singletonList("VERIFICATION_IN_PROGRESS"), flagResponse2.getActivationFlags());
-
-        File imageFront = new ClassPathResource("images/id_card_mock_front.png").getFile();
-        File imageBack = new ClassPathResource("images/id_card_mock_back.png").getFile();
-
-        DocumentSubmitRequest submitRequest = new DocumentSubmitRequest();
-        submitRequest.setProcessId(processId);
-        DocumentSubmitRequest.DocumentMetadata metadata = new DocumentSubmitRequest.DocumentMetadata();
-        List<DocumentSubmitRequest.DocumentMetadata> allMetadata = new ArrayList<>();
-        metadata.setFilename("id_card_mock_front.png");
-        metadata.setSide(CardSide.FRONT);
-        metadata.setType(DocumentType.ID_CARD);
-        allMetadata.add(metadata);
-        metadata = new DocumentSubmitRequest.DocumentMetadata();
-        metadata.setFilename("id_card_mock_back.png");
-        metadata.setSide(CardSide.BACK);
-        metadata.setType(DocumentType.ID_CARD);
-        allMetadata.add(metadata);
-        submitRequest.setDocuments(allMetadata);
-        submitRequest.setResubmit(false);
-
-        // ZIP request data
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ZipOutputStream zos = new ZipOutputStream(baos);
-        ZipEntry entry = new ZipEntry(imageFront.getName());
-        byte[] data = Files.readAllBytes(imageFront.toPath());
-        zos.putNextEntry(entry);
-        zos.write(data, 0, data.length);
-        zos.closeEntry();
-        entry = new ZipEntry(imageBack.getName());
-        data = Files.readAllBytes(imageBack.toPath());
-        zos.putNextEntry(entry);
-        zos.write(data, 0, data.length);
-        zos.closeEntry();
-        baos.close();
-        submitRequest.setData(baos.toByteArray());
-
-        // Submit ID card
-        stepLogger = new ObjectStepLogger(System.out);
-        tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(submitRequest)));
-        tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/submit");
-
-        new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
-
-        EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
-        assertNotNull(responseOtpOK.getEncryptedData());
-        assertNotNull(responseOtpOK.getMac());
-
-        boolean documentVerificationPending = false;
-        for (StepItem item : stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
-                ObjectResponse<DocumentSubmitResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentSubmitResponse>>() {
-                });
-                DocumentSubmitResponse response = objectResponse.getResponseObject();
-                assertEquals(2, response.getDocuments().size());
-                DocumentSubmitResponse.DocumentMetadata doc1 = response.getDocuments().get(0);
-                DocumentSubmitResponse.DocumentMetadata doc2 = response.getDocuments().get(1);
-                assertNotNull(doc1.getId());
-                assertNotNull(doc2.getId());
-                if (config.isVerificationOnSubmitEnabled()) {
-                    assertEquals(DocumentStatus.UPLOAD_IN_PROGRESS, doc1.getStatus());
-                    assertEquals(DocumentStatus.UPLOAD_IN_PROGRESS, doc2.getStatus());
-                } else {
-                    assertEquals(DocumentStatus.VERIFICATION_PENDING, doc1.getStatus());
-                    assertEquals(DocumentStatus.VERIFICATION_PENDING, doc2.getStatus());
-                    documentVerificationPending = true;
-                }
-                break;
-            }
-        }
-        if (!config.isVerificationOnSubmitEnabled()) {
-            assertTrue(documentVerificationPending);
+        if (config.isVerificationOnSubmitEnabled()) {
+            assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size());
+        } else {
+            assertStatusOfSubmittedDocs(processId, idCardSubmits.size());
         }
 
-        int assertCounter = 1;
-        int assertMaxRetries = config.isVerificationOnSubmitEnabled() ? config.getAssertMaxRetries() : 1;
-
-        while(assertCounter <= assertMaxRetries) {
-            try {
-                assertStatusOfSubmittedDocs(processId);
-                break;
-            } catch (AssertionFailedError e) {
-                if (assertCounter >= assertMaxRetries) {
-                    throw e;
-                }
-            }
-            stepLogger.writeItem("assert-submitted-doc-retry", "Assert failed this time", "Retrying document status assert " + assertCounter, "INFO", null);
-            assertCounter++;
-            Thread.sleep(config.getAssertRetryWaitPeriod().toMillis());
-        }
-
-        // Init presence check
-        PresenceCheckInitRequest presenceCheckRequest = new PresenceCheckInitRequest();
-        presenceCheckRequest.setProcessId(processId);
-        stepLogger = new ObjectStepLogger(System.out);
-        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(presenceCheckRequest)));
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/presence-check/init");
-        signatureModel.setResourceId("/api/identity/presence-check/init");
-
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
-
-        // Presence check should succeed immediately in mock implementation, but in general this can take some time
-        if (!config.isSkipPresenceCheck()) {
-            boolean verificationComplete = false;
-            boolean otpVerified = false;
-            for (int i = 0; i < 10; i++) {
-                IdentityVerificationStatusRequest statusRequest = new IdentityVerificationStatusRequest();
-                stepLogger = new ObjectStepLogger(System.out);
-                tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(statusRequest)));
-                tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/status");
-
-                new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
-                assertTrue(stepLogger.getResult().isSuccess());
-                assertEquals(200, stepLogger.getResponse().getStatusCode());
-                IdentityVerificationStatus status = null;
-                for (StepItem item : stepLogger.getItems()) {
-                    if (item.getName().equals("Decrypted Response")) {
-                        String responseData = item.getObject().toString();
-                        ObjectResponse<IdentityVerificationStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<IdentityVerificationStatusResponse>>() {
-                        });
-                        IdentityVerificationStatusResponse response = objectResponse.getResponseObject();
-                        status = response.getIdentityVerificationStatus();
-                        break;
-                    }
-                }
-                if (!config.isSkipOtpVerification() && !otpVerified) {
-                    if (status == IdentityVerificationStatus.VERIFICATION_PENDING) {
-                        IdentityVerificationOtpSendRequest otpRequest = new IdentityVerificationOtpSendRequest();
-                        otpRequest.setProcessId(processId);
-                        stepLogger = new ObjectStepLogger(System.out);
-                        encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpRequest)));
-                        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/otp/send");
-                        encryptModel.setScope("activation");
-                        new EncryptStep().execute(stepLogger, encryptModel.toMap());
-                        assertTrue(stepLogger.getResult().isSuccess());
-                        assertEquals(200, stepLogger.getResponse().getStatusCode());
-
-                        String otpCode = getOtpCode(processId, OtpType.USER_VERIFICATION);
-
-                        IdentityVerificationOtpVerifyRequest otpVerifyRequest = new IdentityVerificationOtpVerifyRequest();
-                        otpVerifyRequest.setProcessId(processId);
-                        otpVerifyRequest.setOtpCode(otpCode);
-                        stepLogger = new ObjectStepLogger(System.out);
-                        encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpVerifyRequest)));
-                        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/otp/verify");
-                        encryptModel.setScope("activation");
-                        new EncryptStep().execute(stepLogger, encryptModel.toMap());
-                        assertTrue(stepLogger.getResult().isSuccess());
-                        assertEquals(200, stepLogger.getResponse().getStatusCode());
-
-                        for (StepItem item : stepLogger.getItems()) {
-                            if (item.getName().equals("Decrypted Response")) {
-                                String responseData = item.getObject().toString();
-                                ObjectResponse<OtpVerifyResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OtpVerifyResponse>>() {});
-                                OtpVerifyResponse response = objectResponse.getResponseObject();
-                                otpVerified = response.isVerified();
-                            }
-                        }
-                        if (otpVerified) {
-                            // Force status refresh
-                            continue;
-                        }
-                    } else {
-                        Thread.sleep(1000);
-                    }
-                } else {
-                    if (status == IdentityVerificationStatus.ACCEPTED) {
-                        verificationComplete = true;
-                        break;
-                    } else {
-                        Thread.sleep(1000);
-                    }
-                }
-            }
-
-            assertTrue(verificationComplete);
-
-            // Check activation flags
-            ListActivationFlagsResponse flagResponse3 = powerAuthClient.listActivationFlags(activationId);
-            assertTrue(flagResponse3.getActivationFlags().isEmpty());
-        }
+        initPresenceCheck(processId);
+        verifyPresenceCheck(activationId, processId);
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
     }
 
-    private void assertStatusOfSubmittedDocs(String processId) throws Exception {
-        // Check status of submitted document
-        DocumentStatusRequest docStatusRequest = new DocumentStatusRequest();
-        docStatusRequest.setProcessId(processId);
-        stepLogger = new ObjectStepLogger(System.out);
-        tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(docStatusRequest)));
-        tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/status");
+    @Test
+    public void testSuccessfulIdentityVerificationMultipleDocSubmits() throws Exception {
+        String[] context = prepareActivation();
+        String activationId = context[0];
+        String processId = context[1];
 
-        new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        initActivation(activationId, processId);
 
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
-                ObjectResponse<DocumentStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentStatusResponse>>() {});
-                DocumentStatusResponse response = objectResponse.getResponseObject();
-                assertEquals(2, response.getDocuments().size());
-                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(0).getStatus());
-                assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(1).getStatus());
-            }
+        List<FileSubmit> idCardSubmits = ImmutableList.of(
+                FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
+                FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
+        );
+        DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idCardSubmits);
+        submitDocuments(idCardSubmitRequest, idCardSubmits);
+
+        List<FileSubmit> drivingLicenseSubmits = ImmutableList.of(
+                FileSubmit.createFrom("images/driving_license_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
+        );
+        DocumentSubmitRequest driveLicenseSubmitRequest = createDocumentSubmitRequest(processId, drivingLicenseSubmits);
+        submitDocuments(driveLicenseSubmitRequest, drivingLicenseSubmits);
+
+        if (config.isVerificationOnSubmitEnabled()) {
+            assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size() + drivingLicenseSubmits.size());
+        } else {
+            assertStatusOfSubmittedDocs(processId, idCardSubmits.size() + drivingLicenseSubmits.size());
         }
+
+        initPresenceCheck(processId);
+        verifyPresenceCheck(activationId, processId);
+
+        // Remove activation
+        powerAuthClient.removeActivation(activationId, "test");
     }
 
     @Test
@@ -687,6 +513,276 @@ public class PowerAuthIdentityVerificationTest {
         assertTrue(responseOtpSuccessfullyDecrypted);
         assertNotNull(otpCode);
         return otpCode;
+    }
+
+    private void initActivation(String activationId, String processId) throws Exception {
+        createToken();
+
+        // Check activation flags
+        ListActivationFlagsResponse flagResponse = powerAuthClient.listActivationFlags(activationId);
+        assertEquals(Collections.singletonList("VERIFICATION_PENDING"), flagResponse.getActivationFlags());
+
+        // Initialize identity verification request
+        IdentityVerificationInitRequest initRequest = new IdentityVerificationInitRequest();
+        initRequest.setProcessId(processId);
+        stepLogger = new ObjectStepLogger(System.out);
+        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(initRequest)));
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/init");
+        signatureModel.setResourceId("/api/identity/init");
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        // Check activation flags
+        ListActivationFlagsResponse flagResponse2 = powerAuthClient.listActivationFlags(activationId);
+        assertEquals(Collections.singletonList("VERIFICATION_IN_PROGRESS"), flagResponse2.getActivationFlags());
+    }
+
+    private DocumentSubmitRequest createDocumentSubmitRequest(String processId, List<FileSubmit> fileSubmits)
+            throws IOException {
+        DocumentSubmitRequest submitRequest = new DocumentSubmitRequest();
+        submitRequest.setProcessId(processId);
+        List<DocumentSubmitRequest.DocumentMetadata> allMetadata = new ArrayList<>();
+        fileSubmits.forEach(fileSubmit -> {
+            DocumentSubmitRequest.DocumentMetadata metadata = new DocumentSubmitRequest.DocumentMetadata();
+            metadata.setFilename(fileSubmit.file.getName());
+            metadata.setSide(fileSubmit.getCardSide());
+            metadata.setType(fileSubmit.getDocumentType());
+            allMetadata.add(metadata);
+        });
+        submitRequest.setDocuments(allMetadata);
+        submitRequest.setResubmit(false);
+
+        // Add zipped request data
+        List<File> files = fileSubmits.stream().map(FileSubmit::getFile).collect(Collectors.toList());
+        byte[] zippedFiles = toZipBytes(files);
+        submitRequest.setData(zippedFiles);
+
+        return submitRequest;
+    }
+
+    private void submitDocuments(DocumentSubmitRequest submitRequest, List<FileSubmit> fileSubmits) throws Exception {
+        // Submit ID card
+        stepLogger = new ObjectStepLogger(System.out);
+        tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(submitRequest)));
+        tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/submit");
+
+        new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        assertNotNull(responseOtpOK.getEncryptedData());
+        assertNotNull(responseOtpOK.getMac());
+
+        DocumentStatus expectedStatus = config.isVerificationOnSubmitEnabled() ?
+                DocumentStatus.UPLOAD_IN_PROGRESS : DocumentStatus.VERIFICATION_PENDING;
+        boolean documentVerificationPending = false;
+        for (StepItem item : stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                String responseData = item.getObject().toString();
+                ObjectResponse<DocumentSubmitResponse> objectResponse =
+                        objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentSubmitResponse>>() { });
+                DocumentSubmitResponse response = objectResponse.getResponseObject();
+                assertEquals(fileSubmits.size(), response.getDocuments().size());
+                for (int i = 0; i < fileSubmits.size(); i++) {
+                    DocumentSubmitResponse.DocumentMetadata doc = response.getDocuments().get(i);
+                    assertNotNull(doc.getId());
+                    assertEquals(expectedStatus, doc.getStatus());
+                }
+                if (!config.isVerificationOnSubmitEnabled()) {
+                    documentVerificationPending = response.getDocuments().stream()
+                            .filter(doc -> DocumentStatus.VERIFICATION_PENDING == doc.getStatus())
+                            .count() == fileSubmits.size();
+                }
+                break;
+            }
+        }
+        if (!config.isVerificationOnSubmitEnabled()) {
+            assertTrue(documentVerificationPending);
+        }
+    }
+
+    private void assertStatusOfSubmittedDocsWithRetries(String processId, int expectedDocumentsCount) throws Exception {
+        int assertCounter = 1;
+        int assertMaxRetries = config.getAssertMaxRetries();
+
+        while(assertCounter <= assertMaxRetries) {
+            try {
+                assertStatusOfSubmittedDocs(processId, expectedDocumentsCount);
+                break;
+            } catch (AssertionFailedError e) {
+                if (assertCounter >= assertMaxRetries) {
+                    throw e;
+                }
+            }
+            stepLogger.writeItem("assert-submitted-doc-retry", "Assert failed this time", "Retrying document status assert " + assertCounter, "INFO", null);
+            assertCounter++;
+            Thread.sleep(config.getAssertRetryWaitPeriod().toMillis());
+        }
+    }
+
+    private void assertStatusOfSubmittedDocs(String processId, int expectedDocumentsCount) throws Exception {
+        // Check status of submitted document
+        DocumentStatusRequest docStatusRequest = new DocumentStatusRequest();
+        docStatusRequest.setProcessId(processId);
+        stepLogger = new ObjectStepLogger(System.out);
+        tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(docStatusRequest)));
+        tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/status");
+
+        new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        for (StepItem item: stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                String responseData = item.getObject().toString();
+                ObjectResponse<DocumentStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentStatusResponse>>() {});
+                DocumentStatusResponse response = objectResponse.getResponseObject();
+                assertEquals(expectedDocumentsCount, response.getDocuments().size());
+                for (int i = 0; i < expectedDocumentsCount; i++) {
+                    assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(i).getStatus());
+                }
+            }
+        }
+    }
+
+    private void initPresenceCheck(String processId) throws Exception {
+        // Init presence check
+        PresenceCheckInitRequest presenceCheckRequest = new PresenceCheckInitRequest();
+        presenceCheckRequest.setProcessId(processId);
+        stepLogger = new ObjectStepLogger(System.out);
+        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(presenceCheckRequest)));
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/presence-check/init");
+        signatureModel.setResourceId("/api/identity/presence-check/init");
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+    }
+
+    private void verifyPresenceCheck(String activationId, String processId) throws Exception {
+        // Presence check should succeed immediately in mock implementation, but in general this can take some time
+        if (!config.isSkipPresenceCheck()) {
+            boolean verificationComplete = false;
+            boolean otpVerified = false;
+            for (int i = 0; i < 10; i++) {
+                IdentityVerificationStatusRequest statusRequest = new IdentityVerificationStatusRequest();
+                stepLogger = new ObjectStepLogger(System.out);
+                tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(statusRequest)));
+                tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/status");
+
+                new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
+                assertTrue(stepLogger.getResult().isSuccess());
+                assertEquals(200, stepLogger.getResponse().getStatusCode());
+                IdentityVerificationStatus status = null;
+                for (StepItem item : stepLogger.getItems()) {
+                    if (item.getName().equals("Decrypted Response")) {
+                        String responseData = item.getObject().toString();
+                        ObjectResponse<IdentityVerificationStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<IdentityVerificationStatusResponse>>() {
+                        });
+                        IdentityVerificationStatusResponse response = objectResponse.getResponseObject();
+                        status = response.getIdentityVerificationStatus();
+                        break;
+                    }
+                }
+                if (!config.isSkipOtpVerification() && !otpVerified) {
+                    if (status == IdentityVerificationStatus.VERIFICATION_PENDING) {
+                        IdentityVerificationOtpSendRequest otpRequest = new IdentityVerificationOtpSendRequest();
+                        otpRequest.setProcessId(processId);
+                        stepLogger = new ObjectStepLogger(System.out);
+                        encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpRequest)));
+                        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/otp/send");
+                        encryptModel.setScope("activation");
+                        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+                        assertTrue(stepLogger.getResult().isSuccess());
+                        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+                        String otpCode = getOtpCode(processId, OtpType.USER_VERIFICATION);
+
+                        IdentityVerificationOtpVerifyRequest otpVerifyRequest = new IdentityVerificationOtpVerifyRequest();
+                        otpVerifyRequest.setProcessId(processId);
+                        otpVerifyRequest.setOtpCode(otpCode);
+                        stepLogger = new ObjectStepLogger(System.out);
+                        encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpVerifyRequest)));
+                        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/otp/verify");
+                        encryptModel.setScope("activation");
+                        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+                        assertTrue(stepLogger.getResult().isSuccess());
+                        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+                        for (StepItem item : stepLogger.getItems()) {
+                            if (item.getName().equals("Decrypted Response")) {
+                                String responseData = item.getObject().toString();
+                                ObjectResponse<OtpVerifyResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OtpVerifyResponse>>() {});
+                                OtpVerifyResponse response = objectResponse.getResponseObject();
+                                otpVerified = response.isVerified();
+                            }
+                        }
+                        if (otpVerified) {
+                            // Force status refresh
+                            continue;
+                        }
+                    } else {
+                        Thread.sleep(1000);
+                    }
+                } else {
+                    if (status == IdentityVerificationStatus.ACCEPTED) {
+                        verificationComplete = true;
+                        break;
+                    } else {
+                        Thread.sleep(1000);
+                    }
+                }
+            }
+
+            assertTrue(verificationComplete);
+
+            // Check activation flags
+            ListActivationFlagsResponse flagResponse3 = powerAuthClient.listActivationFlags(activationId);
+            assertTrue(flagResponse3.getActivationFlags().isEmpty());
+        }
+    }
+
+    /**
+     * @return Bytes of zipped files
+     */
+    private byte[] toZipBytes(List<File> files) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ZipOutputStream zos = new ZipOutputStream(baos);
+        for (File file : files) {
+            ZipEntry entry = new ZipEntry(file.getName());
+            byte[] data = Files.readAllBytes(file.toPath());
+            zos.putNextEntry(entry);
+            zos.write(data, 0, data.length);
+            zos.closeEntry();
+        }
+        baos.close();
+        return baos.toByteArray();
+    }
+
+    @Getter
+    static class FileSubmit {
+
+        private File file;
+
+        private DocumentType documentType;
+
+        private CardSide cardSide;
+
+        private FileSubmit(File file, DocumentType documentType, CardSide cardSide) {
+            this.file = file;
+            this.documentType = documentType;
+            this.cardSide = cardSide;
+        }
+
+        public static FileSubmit createFrom(String filePath, DocumentType documentType, CardSide cardSide)
+            throws IOException {
+            File file = new ClassPathResource(filePath).getFile();
+            return new FileSubmit(file, documentType, cardSide);
+        }
+
     }
 
 }
