@@ -179,7 +179,9 @@ public class PowerAuthIdentityVerificationTest {
         }
 
         initPresenceCheck(processId);
-        verifyPresenceCheck(activationId, processId);
+        verifyStatusBeforeOtp();
+        verifyOtpCheck(processId);
+        verifyProcessFinished(processId, activationId);
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
@@ -213,7 +215,9 @@ public class PowerAuthIdentityVerificationTest {
         }
 
         initPresenceCheck(processId);
-        verifyPresenceCheck(activationId, processId);
+        verifyStatusBeforeOtp();
+        verifyOtpCheck(processId);
+        verifyProcessFinished(processId, activationId);;
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
@@ -649,6 +653,9 @@ public class PowerAuthIdentityVerificationTest {
     }
 
     private void initPresenceCheck(String processId) throws Exception {
+        if (config.isSkipPresenceCheck()) {
+            return;
+        }
         // Init presence check
         PresenceCheckInitRequest presenceCheckRequest = new PresenceCheckInitRequest();
         presenceCheckRequest.setProcessId(processId);
@@ -662,87 +669,134 @@ public class PowerAuthIdentityVerificationTest {
         assertEquals(200, stepLogger.getResponse().getStatusCode());
     }
 
-    private void verifyPresenceCheck(String activationId, String processId) throws Exception {
+    private void verifyStatusBeforeOtp() throws Exception {
         // Presence check should succeed immediately in mock implementation, but in general this can take some time
-        if (!config.isSkipPresenceCheck()) {
-            boolean verificationComplete = false;
-            boolean otpVerified = false;
-            for (int i = 0; i < 10; i++) {
-                IdentityVerificationStatusRequest statusRequest = new IdentityVerificationStatusRequest();
-                stepLogger = new ObjectStepLogger(System.out);
-                tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(statusRequest)));
-                tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/status");
+        boolean verificationComplete = false;
+        for (int i = 0; i < 10; i++) {
+            IdentityVerificationStatus status = checkIdentityVerificationStatus();
+            if (config.isSkipOtpVerification() && status == IdentityVerificationStatus.ACCEPTED) {
+                verificationComplete = true;
+                break;
+            }
+            if (!config.isSkipOtpVerification() && status == IdentityVerificationStatus.OTP_VERIFICATION_PENDING) {
+                verificationComplete = true;
+                break;
+            } else {
+                Thread.sleep(1000);
+            }
+        }
+        assertTrue(verificationComplete);
+    }
 
-                new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
+    private IdentityVerificationStatus checkIdentityVerificationStatus() throws Exception {
+        IdentityVerificationStatusRequest statusRequest = new IdentityVerificationStatusRequest();
+        stepLogger = new ObjectStepLogger(System.out);
+        tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(statusRequest)));
+        tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/status");
+
+        new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        IdentityVerificationStatus status = null;
+        for (StepItem item : stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                String responseData = item.getObject().toString();
+                ObjectResponse<IdentityVerificationStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<IdentityVerificationStatusResponse>>() {});
+                IdentityVerificationStatusResponse response = objectResponse.getResponseObject();
+                status = response.getIdentityVerificationStatus();
+            }
+        }
+        assertNotNull(status);
+        return status;
+    }
+
+    private OnboardingStatus checkProcessStatus(String processId) throws Exception {
+        OnboardingStatusRequest statusRequest = new OnboardingStatusRequest();
+        statusRequest.setProcessId(processId);
+        stepLogger = new ObjectStepLogger(System.out);
+        encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(statusRequest)));
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/status");
+        encryptModel.setScope("application");
+
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        OnboardingStatus status = null;
+        for (StepItem item : stepLogger.getItems()) {
+            if (item.getName().equals("Decrypted Response")) {
+                String responseData = item.getObject().toString();
+                ObjectResponse<OnboardingStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OnboardingStatusResponse>>() {});
+                OnboardingStatusResponse response = objectResponse.getResponseObject();
+                status = response.getOnboardingStatus();
+            }
+        }
+        assertNotNull(status);
+        return status;
+    }
+
+    private void verifyOtpCheck(String processId) throws Exception {
+        if (config.isSkipOtpVerification()) {
+            return;
+        }
+        boolean otpVerified = false;
+        boolean verificationComplete = false;
+        for (int i = 0; i < 10; i++) {
+            IdentityVerificationStatus status = checkIdentityVerificationStatus();
+            if (status == IdentityVerificationStatus.OTP_VERIFICATION_PENDING) {
+                IdentityVerificationOtpSendRequest otpRequest = new IdentityVerificationOtpSendRequest();
+                otpRequest.setProcessId(processId);
+                stepLogger = new ObjectStepLogger(System.out);
+                encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpRequest)));
+                encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/otp/send");
+                encryptModel.setScope("activation");
+                new EncryptStep().execute(stepLogger, encryptModel.toMap());
                 assertTrue(stepLogger.getResult().isSuccess());
                 assertEquals(200, stepLogger.getResponse().getStatusCode());
-                IdentityVerificationStatus status = null;
+
+                String otpCode = getOtpCode(processId, OtpType.USER_VERIFICATION);
+
+                IdentityVerificationOtpVerifyRequest otpVerifyRequest = new IdentityVerificationOtpVerifyRequest();
+                otpVerifyRequest.setProcessId(processId);
+                otpVerifyRequest.setOtpCode(otpCode);
+                stepLogger = new ObjectStepLogger(System.out);
+                encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpVerifyRequest)));
+                encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/otp/verify");
+                encryptModel.setScope("activation");
+                new EncryptStep().execute(stepLogger, encryptModel.toMap());
+                assertTrue(stepLogger.getResult().isSuccess());
+                assertEquals(200, stepLogger.getResponse().getStatusCode());
+
                 for (StepItem item : stepLogger.getItems()) {
                     if (item.getName().equals("Decrypted Response")) {
                         String responseData = item.getObject().toString();
-                        ObjectResponse<IdentityVerificationStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<IdentityVerificationStatusResponse>>() {
-                        });
-                        IdentityVerificationStatusResponse response = objectResponse.getResponseObject();
-                        status = response.getIdentityVerificationStatus();
-                        break;
+                        ObjectResponse<OtpVerifyResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OtpVerifyResponse>>() {});
+                        OtpVerifyResponse response = objectResponse.getResponseObject();
+                        otpVerified = response.isVerified();
                     }
                 }
-                if (!config.isSkipOtpVerification() && !otpVerified) {
-                    if (status == IdentityVerificationStatus.VERIFICATION_PENDING) {
-                        IdentityVerificationOtpSendRequest otpRequest = new IdentityVerificationOtpSendRequest();
-                        otpRequest.setProcessId(processId);
-                        stepLogger = new ObjectStepLogger(System.out);
-                        encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpRequest)));
-                        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/otp/send");
-                        encryptModel.setScope("activation");
-                        new EncryptStep().execute(stepLogger, encryptModel.toMap());
-                        assertTrue(stepLogger.getResult().isSuccess());
-                        assertEquals(200, stepLogger.getResponse().getStatusCode());
-
-                        String otpCode = getOtpCode(processId, OtpType.USER_VERIFICATION);
-
-                        IdentityVerificationOtpVerifyRequest otpVerifyRequest = new IdentityVerificationOtpVerifyRequest();
-                        otpVerifyRequest.setProcessId(processId);
-                        otpVerifyRequest.setOtpCode(otpCode);
-                        stepLogger = new ObjectStepLogger(System.out);
-                        encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpVerifyRequest)));
-                        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/otp/verify");
-                        encryptModel.setScope("activation");
-                        new EncryptStep().execute(stepLogger, encryptModel.toMap());
-                        assertTrue(stepLogger.getResult().isSuccess());
-                        assertEquals(200, stepLogger.getResponse().getStatusCode());
-
-                        for (StepItem item : stepLogger.getItems()) {
-                            if (item.getName().equals("Decrypted Response")) {
-                                String responseData = item.getObject().toString();
-                                ObjectResponse<OtpVerifyResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OtpVerifyResponse>>() {});
-                                OtpVerifyResponse response = objectResponse.getResponseObject();
-                                otpVerified = response.isVerified();
-                            }
-                        }
-                        if (otpVerified) {
-                            // Force status refresh
-                            continue;
-                        }
-                    } else {
-                        Thread.sleep(1000);
-                    }
-                } else {
-                    if (status == IdentityVerificationStatus.ACCEPTED) {
-                        verificationComplete = true;
-                        break;
-                    } else {
-                        Thread.sleep(1000);
-                    }
+                if (otpVerified) {
+                    // Force status refresh
+                    continue;
                 }
             }
-
-            assertTrue(verificationComplete);
-
-            // Check activation flags
-            ListActivationFlagsResponse flagResponse3 = powerAuthClient.listActivationFlags(activationId);
-            assertTrue(flagResponse3.getActivationFlags().isEmpty());
+            if (status == IdentityVerificationStatus.ACCEPTED) {
+                verificationComplete = true;
+                break;
+            } else {
+                Thread.sleep(1000);
+            }
         }
+        assertTrue(verificationComplete);
+    }
+
+    public void verifyProcessFinished(String processId, String activationId) throws Exception {
+        // Check onboarding process status
+        OnboardingStatus status = checkProcessStatus(processId);
+        assertEquals(OnboardingStatus.FINISHED, status);
+
+        // Check activation flags
+        ListActivationFlagsResponse flagResponse3 = powerAuthClient.listActivationFlags(activationId);
+        assertTrue(flagResponse3.getActivationFlags().isEmpty());
     }
 
     /**
