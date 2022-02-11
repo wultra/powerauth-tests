@@ -96,6 +96,9 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.test.assertRetryWaitPeriod:PT1S}")
     private Duration assertRetryWaitPeriod;
 
+    @Value("${powerauth.test.db.concurrency.skip:true}")
+    private boolean skipDbConcurrencyTests;
+
     private String applicationVersionForTests;
     private String applicationKey;
     private String applicationSecret;
@@ -362,10 +365,6 @@ public class PowerAuthTestConfiguration {
         return skipPresenceCheck;
     }
 
-    public void setSkipPresenceCheck(boolean skipPresenceCheck) {
-        this.skipPresenceCheck = skipPresenceCheck;
-    }
-
     public boolean isSkipOtpVerification() {
         return skipOtpVerification;
     }
@@ -374,7 +373,7 @@ public class PowerAuthTestConfiguration {
         return verificationOnSubmitEnabled;
     }
 
-    public void setSkipOtpVerification(boolean skipOtpVerification) {
-        this.skipOtpVerification = skipOtpVerification;
+    public boolean isSkipDbConcurrencyTests() {
+        return skipDbConcurrencyTests;
     }
 }

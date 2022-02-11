@@ -57,6 +57,7 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
@@ -1035,6 +1036,7 @@ public class PowerAuthUpgradeTest {
 
     @Test
     public void upgradeConcurrencyTest() throws Exception {
+        assumeFalse(config.isSkipDbConcurrencyTests());
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
