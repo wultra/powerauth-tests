@@ -96,6 +96,9 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.test.assertRetryWaitPeriod:PT1S}")
     private Duration assertRetryWaitPeriod;
 
+    @Value("${powerauth.test.identity.result-verification.skip:false}")
+    private boolean skipResultVerification;
+
     @Value("${powerauth.test.db.concurrency.skip:true}")
     private boolean skipDbConcurrencyTests;
 
@@ -371,6 +374,10 @@ public class PowerAuthTestConfiguration {
 
     public boolean isVerificationOnSubmitEnabled() {
         return verificationOnSubmitEnabled;
+    }
+
+    public boolean isSkipResultVerification() {
+        return skipResultVerification;
     }
 
     public boolean isSkipDbConcurrencyTests() {

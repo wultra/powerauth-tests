@@ -179,9 +179,11 @@ public class PowerAuthIdentityVerificationTest {
         }
 
         initPresenceCheck(processId);
-        verifyStatusBeforeOtp();
-        verifyOtpCheck(processId);
-        verifyProcessFinished(processId, activationId);
+        if (!config.isSkipResultVerification()) {
+            verifyStatusBeforeOtp();
+            verifyOtpCheck(processId);
+            verifyProcessFinished(processId, activationId);
+        }
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
@@ -215,9 +217,11 @@ public class PowerAuthIdentityVerificationTest {
         }
 
         initPresenceCheck(processId);
-        verifyStatusBeforeOtp();
-        verifyOtpCheck(processId);
-        verifyProcessFinished(processId, activationId);;
+        if (!config.isSkipResultVerification()) {
+            verifyStatusBeforeOtp();
+            verifyOtpCheck(processId);
+            verifyProcessFinished(processId, activationId);
+        }
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
