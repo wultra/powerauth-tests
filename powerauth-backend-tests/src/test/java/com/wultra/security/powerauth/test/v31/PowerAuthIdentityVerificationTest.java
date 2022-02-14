@@ -747,16 +747,6 @@ public class PowerAuthIdentityVerificationTest {
         for (int i = 0; i < 10; i++) {
             IdentityVerificationStatus status = checkIdentityVerificationStatus();
             if (status == IdentityVerificationStatus.OTP_VERIFICATION_PENDING) {
-                IdentityVerificationOtpSendRequest otpRequest = new IdentityVerificationOtpSendRequest();
-                otpRequest.setProcessId(processId);
-                stepLogger = new ObjectStepLogger(System.out);
-                encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpRequest)));
-                encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/otp/send");
-                encryptModel.setScope("activation");
-                new EncryptStep().execute(stepLogger, encryptModel.toMap());
-                assertTrue(stepLogger.getResult().isSuccess());
-                assertEquals(200, stepLogger.getResponse().getStatusCode());
-
                 String otpCode = getOtpCode(processId, OtpType.USER_VERIFICATION);
 
                 IdentityVerificationOtpVerifyRequest otpVerifyRequest = new IdentityVerificationOtpVerifyRequest();
