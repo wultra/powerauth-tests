@@ -36,6 +36,7 @@ import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
+import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.*;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.*;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
@@ -221,6 +222,63 @@ public class PowerAuthIdentityVerificationTest {
             verifyStatusBeforeOtp();
             verifyOtpCheck(processId);
             verifyProcessFinished(processId, activationId);
+        }
+
+        // Remove activation
+        powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    @Test
+    public void testIdentityVerificationNotDocumentPhotos() throws Exception {
+        String[] context = prepareActivation();
+        String activationId = context[0];
+        String processId = context[1];
+
+        initActivation(activationId, processId);
+
+        List<FileSubmit> invalidDocSubmits = ImmutableList.of(
+                FileSubmit.createFrom("images/random_photo_1.png", DocumentType.ID_CARD, CardSide.FRONT),
+                FileSubmit.createFrom("images/random_photo_2.png", DocumentType.ID_CARD, CardSide.BACK)
+        );
+        DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, invalidDocSubmits);
+        submitDocuments(idCardSubmitRequest, invalidDocSubmits);
+
+        if (config.isVerificationOnSubmitEnabled()) {
+            assertStatusOfSubmittedDocsWithRetries(processId, invalidDocSubmits.size());
+        } else {
+            assertStatusOfSubmittedDocs(processId, invalidDocSubmits.size());
+        }
+
+        // Remove activation
+        powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    @Test
+    public void testIdentityVerificationCleanup() throws Exception {
+        String[] context = prepareActivation();
+        String activationId = context[0];
+        String processId = context[1];
+
+        initActivation(activationId, processId);
+
+        List<FileSubmit> idDocSubmits = ImmutableList.of(
+                FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
+                FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
+        );
+        DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idDocSubmits);
+        submitDocuments(idCardSubmitRequest, idDocSubmits);
+
+        cleanupIdentityVerification();
+
+        initActivation(activationId, processId);
+
+        idCardSubmitRequest = createDocumentSubmitRequest(processId, idDocSubmits);
+        submitDocuments(idCardSubmitRequest, idDocSubmits);
+
+        if (config.isVerificationOnSubmitEnabled()) {
+            assertStatusOfSubmittedDocsWithRetries(processId, idDocSubmits.size());
+        } else {
+            assertStatusOfSubmittedDocs(processId, idDocSubmits.size());
         }
 
         // Remove activation
@@ -783,7 +841,20 @@ public class PowerAuthIdentityVerificationTest {
         assertTrue(verificationComplete);
     }
 
-    public void verifyProcessFinished(String processId, String activationId) throws Exception {
+    private void cleanupIdentityVerification() throws Exception {
+        stepLogger = new ObjectStepLogger(System.out);
+        signatureModel.setData(new byte[]{1});
+        signatureModel.setHttpMethod("POST");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/cleanup");
+        signatureModel.setResourceId("/api/identity/cleanup");
+
+        // FIXME use SignAndEncryptStep with body cotaining processId
+        new VerifySignatureStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+    }
+
+    private void verifyProcessFinished(String processId, String activationId) throws Exception {
         // Check onboarding process status
         OnboardingStatus status = checkProcessStatus(processId);
         assertEquals(OnboardingStatus.FINISHED, status);
