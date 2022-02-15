@@ -173,9 +173,9 @@ public class PowerAuthIdentityVerificationTest {
         submitDocuments(idCardSubmitRequest, idCardSubmits);
 
         if (config.isVerificationOnSubmitEnabled()) {
-            assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size());
+            assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
         } else {
-            assertStatusOfSubmittedDocs(processId, idCardSubmits.size());
+            assertStatusOfSubmittedDocs(processId, idCardSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
         }
 
         initPresenceCheck(processId);
@@ -211,9 +211,9 @@ public class PowerAuthIdentityVerificationTest {
         submitDocuments(driveLicenseSubmitRequest, drivingLicenseSubmits);
 
         if (config.isVerificationOnSubmitEnabled()) {
-            assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size() + drivingLicenseSubmits.size());
+            assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size() + drivingLicenseSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
         } else {
-            assertStatusOfSubmittedDocs(processId, idCardSubmits.size() + drivingLicenseSubmits.size());
+            assertStatusOfSubmittedDocs(processId, idCardSubmits.size() + drivingLicenseSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
         }
 
         initPresenceCheck(processId);
@@ -221,6 +221,60 @@ public class PowerAuthIdentityVerificationTest {
             verifyStatusBeforeOtp();
             verifyOtpCheck(processId);
             verifyProcessFinished(processId, activationId);
+        }
+
+        // Remove activation
+        powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    @Test
+    public void testDocSubmitDifferentDocumentType() throws Exception {
+        if (!config.isAdditionalDocSubmitValidationsEnabled()) {
+            return;
+        }
+        String[] context = prepareActivation();
+        String activationId = context[0];
+        String processId = context[1];
+
+        initActivation(activationId, processId);
+
+        List<FileSubmit> docSubmits = ImmutableList.of(
+                FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
+        );
+        DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, docSubmits);
+        submitDocuments(idCardSubmitRequest, docSubmits);
+
+        if (config.isVerificationOnSubmitEnabled()) {
+            assertStatusOfSubmittedDocsWithRetries(processId, docSubmits.size(), DocumentStatus.REJECTED);
+        } else {
+            assertStatusOfSubmittedDocs(processId, docSubmits.size(), DocumentStatus.REJECTED);
+        }
+
+        // Remove activation
+        powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    @Test
+    public void testDocSubmitDifferentCardSide() throws Exception {
+        if (!config.isAdditionalDocSubmitValidationsEnabled()) {
+            return;
+        }
+        String[] context = prepareActivation();
+        String activationId = context[0];
+        String processId = context[1];
+
+        initActivation(activationId, processId);
+
+        List<FileSubmit> docSubmits = ImmutableList.of(
+                FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.BACK)
+        );
+        DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, docSubmits);
+        submitDocuments(idCardSubmitRequest, docSubmits);
+
+        if (config.isVerificationOnSubmitEnabled()) {
+            assertStatusOfSubmittedDocsWithRetries(processId, docSubmits.size(), DocumentStatus.REJECTED);
+        } else {
+            assertStatusOfSubmittedDocs(processId, docSubmits.size(), DocumentStatus.REJECTED);
         }
 
         // Remove activation
@@ -584,8 +638,8 @@ public class PowerAuthIdentityVerificationTest {
         assertNotNull(responseOtpOK.getEncryptedData());
         assertNotNull(responseOtpOK.getMac());
 
-        DocumentStatus expectedStatus = config.isVerificationOnSubmitEnabled() ?
-                DocumentStatus.UPLOAD_IN_PROGRESS : DocumentStatus.VERIFICATION_PENDING;
+        List<DocumentStatus> expectedStatuses = config.isVerificationOnSubmitEnabled() ?
+                ImmutableList.of(DocumentStatus.REJECTED, DocumentStatus.UPLOAD_IN_PROGRESS) : ImmutableList.of(DocumentStatus.VERIFICATION_PENDING);
         boolean documentVerificationPending = false;
         for (StepItem item : stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
@@ -597,7 +651,7 @@ public class PowerAuthIdentityVerificationTest {
                 for (int i = 0; i < fileSubmits.size(); i++) {
                     DocumentSubmitResponse.DocumentMetadata doc = response.getDocuments().get(i);
                     assertNotNull(doc.getId());
-                    assertEquals(expectedStatus, doc.getStatus());
+                    assertTrue(expectedStatuses.contains(doc.getStatus()));
                 }
                 if (!config.isVerificationOnSubmitEnabled()) {
                     documentVerificationPending = response.getDocuments().stream()
@@ -612,13 +666,13 @@ public class PowerAuthIdentityVerificationTest {
         }
     }
 
-    private void assertStatusOfSubmittedDocsWithRetries(String processId, int expectedDocumentsCount) throws Exception {
+    private void assertStatusOfSubmittedDocsWithRetries(String processId, int expectedDocumentsCount, DocumentStatus expectedStatus) throws Exception {
         int assertCounter = 1;
         int assertMaxRetries = config.getAssertMaxRetries();
 
         while(assertCounter <= assertMaxRetries) {
             try {
-                assertStatusOfSubmittedDocs(processId, expectedDocumentsCount);
+                assertStatusOfSubmittedDocs(processId, expectedDocumentsCount, expectedStatus);
                 break;
             } catch (AssertionFailedError e) {
                 if (assertCounter >= assertMaxRetries) {
@@ -631,7 +685,7 @@ public class PowerAuthIdentityVerificationTest {
         }
     }
 
-    private void assertStatusOfSubmittedDocs(String processId, int expectedDocumentsCount) throws Exception {
+    private void assertStatusOfSubmittedDocs(String processId, int expectedDocumentsCount, DocumentStatus expectedStatus) throws Exception {
         // Check status of submitted document
         DocumentStatusRequest docStatusRequest = new DocumentStatusRequest();
         docStatusRequest.setProcessId(processId);
@@ -650,7 +704,7 @@ public class PowerAuthIdentityVerificationTest {
                 DocumentStatusResponse response = objectResponse.getResponseObject();
                 assertEquals(expectedDocumentsCount, response.getDocuments().size());
                 for (int i = 0; i < expectedDocumentsCount; i++) {
-                    assertEquals(DocumentStatus.VERIFICATION_PENDING, response.getDocuments().get(i).getStatus());
+                    assertEquals(expectedStatus, response.getDocuments().get(i).getStatus());
                 }
             }
         }

@@ -81,6 +81,9 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.test.application.version:default}")
     private String applicationVersion;
 
+    @Value("${powerauth.test.identity.additionalDocSubmitValidationsEnabled:true}")
+    private boolean additionalDocSubmitValidationsEnabled;
+
     @Value("${powerauth.test.identity.presence-check.skip:true}")
     private boolean skipPresenceCheck;
 
@@ -362,6 +365,10 @@ public class PowerAuthTestConfiguration {
 
     public int getAssertMaxRetries() {
         return assertMaxRetries;
+    }
+
+    public boolean isAdditionalDocSubmitValidationsEnabled() {
+        return additionalDocSubmitValidationsEnabled;
     }
 
     public boolean isSkipPresenceCheck() {
