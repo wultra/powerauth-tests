@@ -80,6 +80,9 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.test.application.version:default}")
     private String applicationVersion;
 
+    @Value("${powerauth.test.db.concurrency.skip:true}")
+    private boolean skipDbConcurrencyTests;
+
     private String applicationVersionForTests;
     private String applicationKey;
     private String applicationSecret;
@@ -331,5 +334,9 @@ public class PowerAuthTestConfiguration {
             masterPublicKeyConverted = keyConvertor.convertBytesToPublicKey(masterKeyBytes);
         } catch (Exception ex) {
         }
+    }
+
+    public boolean isSkipDbConcurrencyTests() {
+        return skipDbConcurrencyTests;
     }
 }
