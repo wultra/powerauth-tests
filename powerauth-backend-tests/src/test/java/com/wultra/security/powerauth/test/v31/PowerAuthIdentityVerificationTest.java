@@ -36,7 +36,6 @@ import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
-import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.*;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.*;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
@@ -219,7 +218,7 @@ public class PowerAuthIdentityVerificationTest {
 
             if (i < 2) {
                 // Restart the identity verification in first two walkthroughs, the third walkthrough continues
-                cleanupIdentityVerification();
+                cleanupIdentityVerification(processId);
             }
         }
 
@@ -881,14 +880,15 @@ public class PowerAuthIdentityVerificationTest {
         assertTrue(verificationComplete);
     }
 
-    private void cleanupIdentityVerification() throws Exception {
+    private void cleanupIdentityVerification(String processId) throws Exception {
+        IdentityVerificationCleanupRequest cleanupRequest = new IdentityVerificationCleanupRequest();
+        cleanupRequest.setProcessId(processId);
         stepLogger = new ObjectStepLogger(System.out);
-        signatureModel.setData(new byte[]{0});
+        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(cleanupRequest)));
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/cleanup");
         signatureModel.setResourceId("/api/identity/cleanup");
 
-        // FIXME use SignAndEncryptStep with body containing processId
-        new VerifySignatureStep().execute(stepLogger, signatureModel.toMap());
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
     }
