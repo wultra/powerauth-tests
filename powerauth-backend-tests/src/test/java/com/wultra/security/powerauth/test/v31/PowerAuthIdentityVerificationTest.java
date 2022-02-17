@@ -162,7 +162,7 @@ public class PowerAuthIdentityVerificationTest {
         String activationId = context[0];
         String processId = context[1];
 
-        initActivation(activationId, processId);
+        initIdentityVerification(activationId, processId);
 
         List<FileSubmit> idCardSubmits = ImmutableList.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
@@ -191,12 +191,56 @@ public class PowerAuthIdentityVerificationTest {
     }
 
     @Test
+    public void testSuccessfulIdentityVerificationWithRestarts() throws Exception {
+        String[] context = prepareActivation();
+        String activationId = context[0];
+        String processId = context[1];
+
+        for (int i = 0; i < 3; i++) {
+            initIdentityVerification(activationId, processId);
+
+            List<FileSubmit> idCardSubmits = ImmutableList.of(
+                    FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
+                    FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
+            );
+
+            DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idCardSubmits);
+
+            submitDocuments(idCardSubmitRequest, idCardSubmits);
+
+            if (config.isVerificationOnSubmitEnabled()) {
+                assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
+            } else {
+                assertStatusOfSubmittedDocs(processId, idCardSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
+            }
+
+            IdentityVerificationStatus status = checkIdentityVerificationStatus();
+            assertEquals(IdentityVerificationStatus.VERIFICATION_PENDING, status);
+
+            if (i < 2) {
+                // Restart the identity verification in first two walkthroughs, the third walkthrough continues
+                cleanupIdentityVerification(processId);
+            }
+        }
+
+        initPresenceCheck(processId);
+        if (!config.isSkipResultVerification()) {
+            verifyStatusBeforeOtp();
+            verifyOtpCheck(processId);
+            verifyProcessFinished(processId, activationId);
+        }
+
+        // Remove activation
+        powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    @Test
     public void testSuccessfulIdentityVerificationMultipleDocSubmits() throws Exception {
         String[] context = prepareActivation();
         String activationId = context[0];
         String processId = context[1];
 
-        initActivation(activationId, processId);
+        initIdentityVerification(activationId, processId);
 
         List<FileSubmit> idCardSubmits = ImmutableList.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
@@ -237,7 +281,7 @@ public class PowerAuthIdentityVerificationTest {
         String activationId = context[0];
         String processId = context[1];
 
-        initActivation(activationId, processId);
+        initIdentityVerification(activationId, processId);
 
         List<FileSubmit> docSubmits = ImmutableList.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
@@ -264,7 +308,7 @@ public class PowerAuthIdentityVerificationTest {
         String activationId = context[0];
         String processId = context[1];
 
-        initActivation(activationId, processId);
+        initIdentityVerification(activationId, processId);
 
         List<FileSubmit> docSubmits = ImmutableList.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.BACK)
@@ -288,7 +332,7 @@ public class PowerAuthIdentityVerificationTest {
         String activationId = context[0];
         String processId = context[1];
 
-        initActivation(activationId, processId);
+        initIdentityVerification(activationId, processId);
 
         List<FileSubmit> invalidDocSubmits = ImmutableList.of(
                 FileSubmit.createFrom("images/random_photo_1.png", DocumentType.ID_CARD, CardSide.FRONT),
@@ -313,7 +357,7 @@ public class PowerAuthIdentityVerificationTest {
         String activationId = context[0];
         String processId = context[1];
 
-        initActivation(activationId, processId);
+        initIdentityVerification(activationId, processId);
 
         List<FileSubmit> idDocSubmits = ImmutableList.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
@@ -324,7 +368,7 @@ public class PowerAuthIdentityVerificationTest {
 
         cleanupIdentityVerification();
 
-        initActivation(activationId, processId);
+        initIdentityVerification(activationId, processId);
 
         idCardSubmitRequest = createDocumentSubmitRequest(processId, idDocSubmits);
         submitDocuments(idCardSubmitRequest, idDocSubmits);
@@ -489,6 +533,7 @@ public class PowerAuthIdentityVerificationTest {
         String clientId = generateRandomClientId();
         String processId = startOnboarding(clientId);
         String activationId = createCustomActivation(processId, getOtpCode(processId, OtpType.ACTIVATION), clientId);
+        createToken();
         return new String[]{activationId, processId};
     }
 
@@ -635,9 +680,7 @@ public class PowerAuthIdentityVerificationTest {
         return otpCode;
     }
 
-    private void initActivation(String activationId, String processId) throws Exception {
-        createToken();
-
+    private void initIdentityVerification(String activationId, String processId) throws Exception {
         // Check activation flags
         ListActivationFlagsResponse flagResponse = powerAuthClient.listActivationFlags(activationId);
         assertEquals(Collections.singletonList("VERIFICATION_PENDING"), flagResponse.getActivationFlags());
@@ -895,14 +938,14 @@ public class PowerAuthIdentityVerificationTest {
         assertTrue(verificationComplete);
     }
 
-    private void cleanupIdentityVerification() throws Exception {
+    private void cleanupIdentityVerification(String processId) throws Exception {
+        IdentityVerificationCleanupRequest cleanupRequest = new IdentityVerificationCleanupRequest();
+        cleanupRequest.setProcessId(processId);
         stepLogger = new ObjectStepLogger(System.out);
-        signatureModel.setData(new byte[]{1});
-        signatureModel.setHttpMethod("POST");
+        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(cleanupRequest)));
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/cleanup");
         signatureModel.setResourceId("/api/identity/cleanup");
 
-        // FIXME use SignAndEncryptStep with body cotaining processId
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
