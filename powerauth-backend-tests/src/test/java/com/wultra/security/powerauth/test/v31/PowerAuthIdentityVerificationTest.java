@@ -298,9 +298,9 @@ public class PowerAuthIdentityVerificationTest {
         submitDocuments(idCardSubmitRequest, invalidDocSubmits);
 
         if (config.isVerificationOnSubmitEnabled()) {
-            assertStatusOfSubmittedDocsWithRetries(processId, invalidDocSubmits.size());
+            assertStatusOfSubmittedDocsWithRetries(processId, invalidDocSubmits.size(), DocumentStatus.REJECTED);
         } else {
-            assertStatusOfSubmittedDocs(processId, invalidDocSubmits.size());
+            assertStatusOfSubmittedDocs(processId, invalidDocSubmits.size(), DocumentStatus.REJECTED);
         }
 
         // Remove activation
@@ -330,9 +330,9 @@ public class PowerAuthIdentityVerificationTest {
         submitDocuments(idCardSubmitRequest, idDocSubmits);
 
         if (config.isVerificationOnSubmitEnabled()) {
-            assertStatusOfSubmittedDocsWithRetries(processId, idDocSubmits.size());
+            assertStatusOfSubmittedDocsWithRetries(processId, idDocSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
         } else {
-            assertStatusOfSubmittedDocs(processId, idDocSubmits.size());
+            assertStatusOfSubmittedDocs(processId, idDocSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
         }
 
         // Remove activation
@@ -903,7 +903,7 @@ public class PowerAuthIdentityVerificationTest {
         signatureModel.setResourceId("/api/identity/cleanup");
 
         // FIXME use SignAndEncryptStep with body cotaining processId
-        new VerifySignatureStep().execute(stepLogger, signatureModel.toMap());
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
     }
