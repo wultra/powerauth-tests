@@ -93,7 +93,7 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.test.identity.verificationOnSubmitEnabled:true}")
     private boolean verificationOnSubmitEnabled;
 
-    @Value("${powerauth.test.assertMaxRetries:15}")
+    @Value("${powerauth.test.assertMaxRetries:20}")
     private int assertMaxRetries;
 
     @Value("${powerauth.test.assertRetryWaitPeriod:PT1S}")

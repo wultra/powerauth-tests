@@ -326,6 +326,52 @@ public class PowerAuthIdentityVerificationTest {
     }
 
     @Test
+    public void testIdentityVerificationNotDocumentPhotos() throws Exception {
+        String[] context = prepareActivation();
+        String activationId = context[0];
+        String processId = context[1];
+
+        initIdentityVerification(activationId, processId);
+
+        List<FileSubmit> invalidDocSubmits = ImmutableList.of(
+                FileSubmit.createFrom("images/random_photo_1.png", DocumentType.ID_CARD, CardSide.FRONT),
+                FileSubmit.createFrom("images/random_photo_2.png", DocumentType.ID_CARD, CardSide.BACK)
+        );
+        DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, invalidDocSubmits);
+        submitDocuments(idCardSubmitRequest, invalidDocSubmits);
+
+        if (config.isVerificationOnSubmitEnabled()) {
+            assertStatusOfSubmittedDocsWithRetries(processId, invalidDocSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
+        } else {
+            assertStatusOfSubmittedDocs(processId, invalidDocSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
+        }
+
+        // Remove activation
+        powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    @Test
+    public void testIdentityVerificationCleanup() throws Exception {
+        String[] context = prepareActivation();
+        String activationId = context[0];
+        String processId = context[1];
+
+        initIdentityVerification(activationId, processId);
+
+        List<FileSubmit> idDocSubmits = ImmutableList.of(
+                FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
+                FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
+        );
+        DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idDocSubmits);
+        submitDocuments(idCardSubmitRequest, idDocSubmits);
+
+        cleanupIdentityVerification(processId);
+
+        // Remove activation
+        powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    @Test
     public void largeUploadTest() throws Exception {
         String[] context = prepareActivation();
         String activationId = context[0];
