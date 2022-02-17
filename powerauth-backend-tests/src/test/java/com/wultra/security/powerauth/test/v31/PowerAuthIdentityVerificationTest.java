@@ -36,7 +36,6 @@ import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
-import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.*;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.*;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
@@ -342,9 +341,9 @@ public class PowerAuthIdentityVerificationTest {
         submitDocuments(idCardSubmitRequest, invalidDocSubmits);
 
         if (config.isVerificationOnSubmitEnabled()) {
-            assertStatusOfSubmittedDocsWithRetries(processId, invalidDocSubmits.size(), DocumentStatus.REJECTED);
+            assertStatusOfSubmittedDocsWithRetries(processId, invalidDocSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
         } else {
-            assertStatusOfSubmittedDocs(processId, invalidDocSubmits.size(), DocumentStatus.REJECTED);
+            assertStatusOfSubmittedDocs(processId, invalidDocSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
         }
 
         // Remove activation
@@ -366,18 +365,7 @@ public class PowerAuthIdentityVerificationTest {
         DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idDocSubmits);
         submitDocuments(idCardSubmitRequest, idDocSubmits);
 
-        cleanupIdentityVerification();
-
-        initIdentityVerification(activationId, processId);
-
-        idCardSubmitRequest = createDocumentSubmitRequest(processId, idDocSubmits);
-        submitDocuments(idCardSubmitRequest, idDocSubmits);
-
-        if (config.isVerificationOnSubmitEnabled()) {
-            assertStatusOfSubmittedDocsWithRetries(processId, idDocSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
-        } else {
-            assertStatusOfSubmittedDocs(processId, idDocSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
-        }
+        cleanupIdentityVerification(processId);
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
