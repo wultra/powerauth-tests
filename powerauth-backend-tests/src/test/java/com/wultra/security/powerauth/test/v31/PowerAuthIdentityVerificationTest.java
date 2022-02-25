@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableList;
 import com.wultra.app.enrollmentserver.api.model.request.*;
 import com.wultra.app.enrollmentserver.api.model.response.*;
+import com.wultra.app.enrollmentserver.api.model.response.data.DocumentMetadataResponseDto;
 import com.wultra.app.enrollmentserver.model.enumeration.*;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.v3.ActivationStatus;
@@ -496,7 +497,7 @@ public class PowerAuthIdentityVerificationTest {
                 ObjectResponse<DocumentSubmitResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentSubmitResponse>>() {});
                 DocumentSubmitResponse response = objectResponse.getResponseObject();
                 assertEquals(2, response.getDocuments().size());
-                DocumentSubmitResponse.DocumentMetadata doc1 = response.getDocuments().get(0);
+                DocumentMetadataResponseDto doc1 = response.getDocuments().get(0);
                 documentId = doc1.getId();
                 assertNotNull(documentId);
                 if (config.isVerificationOnSubmitEnabled()) {
@@ -738,7 +739,7 @@ public class PowerAuthIdentityVerificationTest {
                 DocumentSubmitResponse response = objectResponse.getResponseObject();
                 assertEquals(fileSubmits.size(), response.getDocuments().size());
                 for (int i = 0; i < fileSubmits.size(); i++) {
-                    DocumentSubmitResponse.DocumentMetadata doc = response.getDocuments().get(i);
+                    DocumentMetadataResponseDto doc = response.getDocuments().get(i);
                     assertNotNull(doc.getId());
                     assertTrue(expectedStatuses.contains(doc.getStatus()));
                 }
