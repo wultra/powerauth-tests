@@ -22,6 +22,7 @@ import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.app.testserver.config.TestServerConfiguration;
 import com.wultra.security.powerauth.app.testserver.database.TestConfigRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
+import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
@@ -86,7 +87,7 @@ public class ActivationService {
      */
     @Transactional
     @SuppressWarnings("unchecked")
-    public CreateActivationResponse createActivation(CreateActivationRequest request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException {
+    public CreateActivationResponse createActivation(CreateActivationRequest request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException, ActivationFailedException {
         // TODO - input validation
         final Long applicationId = request.getApplicationId();
         final Optional<TestConfigEntity> appConfigOptional = appConfigRepository.findById(applicationId);
@@ -138,6 +139,11 @@ public class ActivationService {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
             throw new RemoteExecutionException("Remote execution failed");
+        }
+
+        if (activationId == null) {
+            logger.warn("Activation failed");
+            throw new ActivationFailedException("Activation failed");
         }
 
         resultStatusUtil.persistResultStatus(resultStatusObject);

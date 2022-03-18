@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.app.testserver.controller;
 
+import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
@@ -59,9 +60,10 @@ public class ActivationController {
      * @throws AppConfigNotFoundException Thrown when application configuration is not found.
      * @throws GenericCryptographyException Thrown when cryptography computation fails.
      * @throws RemoteExecutionException Thrown when remote execution fails.
+     * @throws ActivationFailedException Thrown when activation fails.
      */
     @RequestMapping(value = "create", method = RequestMethod.POST)
-    public ObjectResponse<CreateActivationResponse> createActivation(@RequestBody ObjectRequest<CreateActivationRequest> request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException {
+    public ObjectResponse<CreateActivationResponse> createActivation(@RequestBody ObjectRequest<CreateActivationRequest> request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException, ActivationFailedException {
         // TODO - input validation
         final CreateActivationResponse response = activationService.createActivation(request.getRequestObject());
         return new ObjectResponse<>(response);

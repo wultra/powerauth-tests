@@ -85,4 +85,15 @@ public class DefaultExceptionHandler {
         return new ErrorResponse("REMOTE_EXECUTION_ERROR", "Remote execution error occurred.");
     }
 
+    /**
+     * Exception handler for activation failed execution.
+     * @param ex Exception.
+     * @return Response with error details.
+     */
+    @ExceptionHandler(ActivationFailedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public @ResponseBody ErrorResponse handleActivationFailedException(ActivationFailedException ex) {
+        logger.warn("Error occurred during activation.", ex);
+        return new ErrorResponse("ACTIVATION_FAILED", "Activation failed.");
+    }
 }
