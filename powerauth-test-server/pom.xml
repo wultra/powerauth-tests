@@ -98,7 +98,6 @@
             <groupId>org.apache.tomcat.embed</groupId>
             <scope>provided</scope>
         </dependency>
-        <!-- Version 1.4.200 is used intentionally for compatibility with Data Grip -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
