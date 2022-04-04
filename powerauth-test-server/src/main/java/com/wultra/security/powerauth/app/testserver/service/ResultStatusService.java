@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.app.testserver.util;
+package com.wultra.security.powerauth.app.testserver.service;
 
 import com.wultra.security.powerauth.app.testserver.database.TestStatusRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestStatusEntity;
@@ -32,7 +32,7 @@ import java.util.Optional;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service
-public class ResultStatusUtil {
+public class ResultStatusService {
 
     private final TestStatusRepository appStatusRepository;
 
@@ -41,7 +41,7 @@ public class ResultStatusUtil {
      * @param appStatusRepository Test application status repository.
      */
     @Autowired
-    public ResultStatusUtil(TestStatusRepository appStatusRepository) {
+    public ResultStatusService(TestStatusRepository appStatusRepository) {
         this.appStatusRepository = appStatusRepository;
     }
 

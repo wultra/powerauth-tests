@@ -28,7 +28,6 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptog
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
 import com.wultra.security.powerauth.app.testserver.model.request.CreateActivationRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.CreateActivationResponse;
-import com.wultra.security.powerauth.app.testserver.util.ResultStatusUtil;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
@@ -58,7 +57,7 @@ public class ActivationService {
 
     private final TestServerConfiguration config;
     private final TestConfigRepository appConfigRepository;
-    private final ResultStatusUtil resultStatusUtil;
+    private final ResultStatusService resultStatusUtil;
     private final PrepareActivationStep prepareActivationStep;
 
     private static final KeyConvertor keyConvertor = new KeyConvertor();
@@ -71,7 +70,7 @@ public class ActivationService {
      * @param prepareActivationStep Prepare activation step.
      */
     @Autowired
-    public ActivationService(TestServerConfiguration config, TestConfigRepository configRepository, ResultStatusUtil resultStatusUtil, PrepareActivationStep prepareActivationStep) {
+    public ActivationService(TestServerConfiguration config, TestConfigRepository configRepository, ResultStatusService resultStatusUtil, PrepareActivationStep prepareActivationStep) {
         this.config = config;
         this.appConfigRepository = configRepository;
         this.resultStatusUtil = resultStatusUtil;
@@ -90,24 +89,8 @@ public class ActivationService {
     public CreateActivationResponse createActivation(CreateActivationRequest request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException, ActivationFailedException {
         // TODO - input validation
         final Long applicationId = request.getApplicationId();
-        final Optional<TestConfigEntity> appConfigOptional = appConfigRepository.findById(applicationId);
-
-        if (appConfigOptional.isEmpty()) {
-            throw new AppConfigNotFoundException("Application configuration was not found for application ID: " + applicationId);
-        }
-
-        final TestConfigEntity appConfig = appConfigOptional.get();
-        final byte[] masterKeyBytes = BaseEncoding.base64().decode(appConfig.getMasterPublicKey());
-
-        final PublicKey publicKey;
-        try {
-            publicKey = keyConvertor.convertBytesToPublicKey(masterKeyBytes);
-        } catch (Exception ex) {
-            logger.warn("Key conversion failed, reason: {}", ex.getMessage());
-            logger.debug(ex.getMessage(), ex);
-            throw new GenericCryptographyException("Key conversion failed");
-        }
-
+        final TestConfigEntity appConfig = getTestAppConfig(applicationId);
+        final PublicKey publicKey = getMasterPublicKey(appConfig);
         final JSONObject resultStatusObject = new JSONObject();
 
         // Prepare activation
@@ -154,4 +137,37 @@ public class ActivationService {
         return response;
     }
 
+    /**
+     * Get test application configuration.
+     * @param applicationId Application identifier.
+     * @return Test application configuration.
+     * @throws AppConfigNotFoundException Thrown when application configuration is not found.
+     */
+    private TestConfigEntity getTestAppConfig(Long applicationId) throws AppConfigNotFoundException {
+        final Optional<TestConfigEntity> appConfigOptional = appConfigRepository.findById(applicationId);
+
+        if (appConfigOptional.isEmpty()) {
+            throw new AppConfigNotFoundException("Application configuration was not found for application ID: " + applicationId);
+        }
+
+        return appConfigOptional.get();
+    }
+
+    /**
+     * Get master public key from test application configuration.
+     * @param appConfig Test application configuration.
+     * @return Master public key.
+     * @throws GenericCryptographyException Thrown in case public key conversion fails.
+     */
+    private PublicKey getMasterPublicKey(TestConfigEntity appConfig) throws GenericCryptographyException {
+        final byte[] masterKeyBytes = BaseEncoding.base64().decode(appConfig.getMasterPublicKey());
+
+        try {
+            return keyConvertor.convertBytesToPublicKey(masterKeyBytes);
+        } catch (Exception ex) {
+            logger.warn("Key conversion failed, reason: {}", ex.getMessage());
+            logger.debug(ex.getMessage(), ex);
+            throw new GenericCryptographyException("Key conversion failed");
+        }
+    }
 }
