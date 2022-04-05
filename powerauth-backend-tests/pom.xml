@@ -9,7 +9,7 @@
 
     <groupId>com.wultra</groupId>
     <artifactId>powerauth-backend-tests</artifactId>
-    <version>1.2.0</version>
+    <version>1.2.5</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -54,12 +54,12 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-restful-model</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.5</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-nextstep-client</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.5</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
@@ -74,17 +74,17 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-cmd-lib</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.5</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-rest-client-spring</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.5</version>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-restful-security-spring</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.5</version>
         </dependency>
 
         <!-- Spring dependencies -->
