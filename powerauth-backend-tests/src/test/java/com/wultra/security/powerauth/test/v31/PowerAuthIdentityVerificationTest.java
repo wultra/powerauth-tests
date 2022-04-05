@@ -518,6 +518,29 @@ public class PowerAuthIdentityVerificationTest {
         powerAuthClient.removeActivation(activationId, "test");
     }
 
+    @Test
+    public void initDocumentVerificationSdkTest() throws Exception {
+        String[] context = prepareActivation();
+        String processId = context[1];
+
+        Map<String, String> attributes = new HashMap<>();
+        attributes.put("sdk-init-token", "value");
+
+        DocumentVerificationSdkInitRequest initRequest = new DocumentVerificationSdkInitRequest();
+        initRequest.setProcessId(processId);
+        initRequest.setAttributes(attributes);
+        stepLogger = new ObjectStepLogger(System.out);
+        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(initRequest)));
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document-verification/init-sdk");
+        signatureModel.setResourceId("/api/identity/document-verification/init-sdk");
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        DocumentVerificationSdkInitResponse response = ((DocumentVerificationSdkInitResponse) stepLogger.getResponse().getResponseObject());
+        assertTrue(response.getAttributes().size() > 0, "Missing SDK attributes");
+    }
+
     private String[] prepareActivation() throws Exception {
         String clientId = generateRandomClientId();
         String processId = startOnboarding(clientId);
