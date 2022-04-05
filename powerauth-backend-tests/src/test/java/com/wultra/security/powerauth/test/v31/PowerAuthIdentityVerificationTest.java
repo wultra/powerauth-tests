@@ -537,8 +537,9 @@ public class PowerAuthIdentityVerificationTest {
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
-        DocumentVerificationSdkInitResponse response = ((DocumentVerificationSdkInitResponse) stepLogger.getResponse().getResponseObject());
-        assertTrue(response.getAttributes().size() > 0, "Missing SDK attributes");
+        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        assertNotNull(responseOK.getEncryptedData());
+        assertNotNull(responseOK.getMac());
     }
 
     private String[] prepareActivation() throws Exception {
