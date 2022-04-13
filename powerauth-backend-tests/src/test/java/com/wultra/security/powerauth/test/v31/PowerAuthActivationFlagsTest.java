@@ -146,8 +146,6 @@ public class PowerAuthActivationFlagsTest {
 
     @Test
     public void activationFlagLookupTest() throws Exception {
-        GregorianCalendar beforeActivation = new GregorianCalendar();
-        beforeActivation.setTimeInMillis(System.currentTimeMillis() - 1000);
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -159,6 +157,10 @@ public class PowerAuthActivationFlagsTest {
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
 
+        // Obtain timestamp created
+        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GregorianCalendar timestampCreated = statusResponse.getTimestampCreated().toGregorianCalendar();
+
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
@@ -167,7 +169,7 @@ public class PowerAuthActivationFlagsTest {
         String activationId = initResponse.getActivationId();
         LookupActivationsRequest lookupRequest = new LookupActivationsRequest();
         lookupRequest.getUserIds().add(config.getUserV31());
-        lookupRequest.setTimestampLastUsedAfter(DatatypeFactory.newInstance().newXMLGregorianCalendar(beforeActivation));
+        lookupRequest.setTimestampLastUsedAfter(DatatypeFactory.newInstance().newXMLGregorianCalendar(timestampCreated));
         lookupRequest.getActivationFlags().add("FLAG1");
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupRequest);
         assertTrue(response.getActivations().isEmpty());

@@ -54,10 +54,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.Collections;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -243,10 +240,10 @@ public class PowerAuthActivationTest {
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV31());
-        // Expire activation with 1 second in the past
-        GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        gregorianCalendar.setTimeInMillis(System.currentTimeMillis() - 1000);
-        initRequest.setTimestampActivationExpire(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
+        // Expire activation with 1 hour in the past
+        GregorianCalendar expirationTime = new GregorianCalendar();
+        expirationTime.add(Calendar.HOUR, -1);
+        initRequest.setTimestampActivationExpire(DatatypeFactory.newInstance().newXMLGregorianCalendar(expirationTime));
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
@@ -507,10 +504,13 @@ public class PowerAuthActivationTest {
 
     @Test
     public void lookupActivationsTest() throws Exception {
-        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV31());
-        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
-        assertTrue(response.getActivations().size() >= 1);
+        InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
+        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
+        Calendar timestampCreated = statusResponse.getTimestampCreated().toGregorianCalendar();
+        assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
+        List<LookupActivationsResponse.Activations> activations = powerAuthClient.lookupActivations(Collections.singletonList(config.getUserV31()), Collections.singletonList(config.getApplicationId()),
+                null, timestampCreated.getTime(), ActivationStatus.CREATED, null);
+        assertTrue(activations.size() >= 1);
     }
 
     @Test
