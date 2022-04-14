@@ -103,7 +103,7 @@ public class PowerAuthApiTest {
     private final SignatureUtils signatureUtils = new SignatureUtils();
     private final ClientTokenGenerator tokenGenerator = new ClientTokenGenerator();
 
-    private static final int TIME_SYNCHRONIZATION_WINDOW_SECONDS = 10;
+    private static final int TIME_SYNCHRONIZATION_WINDOW_SECONDS = 60;
 
     @Autowired
     public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
@@ -245,14 +245,13 @@ public class PowerAuthApiTest {
 
     @Test
     public void lookupActivationsTest() throws PowerAuthClientException {
-        Calendar now = new GregorianCalendar();
-        now.add(Calendar.SECOND, -1);
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
+        Calendar timestampCreated = statusResponse.getTimestampCreated().toGregorianCalendar();
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
         List<LookupActivationsResponse.Activations> activations = powerAuthClient.lookupActivations(Collections.singletonList(config.getUserV31()), Collections.singletonList(config.getApplicationId()),
-                null, now.getTime(), ActivationStatus.CREATED, null);
-        assertEquals(1, activations.size());
+                null, timestampCreated.getTime(), ActivationStatus.CREATED, null);
+        assertTrue(activations.size() >= 1);
     }
 
     @Test
@@ -385,13 +384,13 @@ public class PowerAuthApiTest {
 
     @Test
     public void activationHistoryTest() throws PowerAuthClientException {
-        Calendar before = new GregorianCalendar();
-        before.add(Calendar.SECOND, -TIME_SYNCHRONIZATION_WINDOW_SECONDS);
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31() + "_history_test", config.getApplicationId());
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-        Calendar after = new GregorianCalendar();
-        after.add(Calendar.SECOND, TIME_SYNCHRONIZATION_WINDOW_SECONDS);
+        GregorianCalendar before = statusResponse.getTimestampCreated().toGregorianCalendar();
+        GregorianCalendar after = new GregorianCalendar();
+        after.setTime(after.getTime());
+        after.add(Calendar.SECOND, 1);
         List<ActivationHistoryResponse.Items> activationHistory = powerAuthClient.getActivationHistory(response.getActivationId(), before.getTime(), after.getTime());
         ActivationHistoryResponse.Items item = activationHistory.get(0);
         assertEquals(response.getActivationId(), item.getActivationId());
