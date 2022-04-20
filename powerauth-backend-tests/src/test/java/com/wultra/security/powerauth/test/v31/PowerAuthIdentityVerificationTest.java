@@ -41,6 +41,8 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.*;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.*;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
@@ -179,6 +181,10 @@ public class PowerAuthIdentityVerificationTest {
             assertStatusOfSubmittedDocs(processId, idCardSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
         }
 
+        IdentityVerificationState idState =
+                new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED);
+        assertIdentityVerificationStateWithRetries(idState);
+
         initPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
             verifyStatusBeforeOtp();
@@ -214,8 +220,9 @@ public class PowerAuthIdentityVerificationTest {
                 assertStatusOfSubmittedDocs(processId, idCardSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
             }
 
-            IdentityVerificationStatus status = checkIdentityVerificationStatus();
-            assertEquals(IdentityVerificationStatus.VERIFICATION_PENDING, status);
+            IdentityVerificationState idState =
+                    new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED);
+            assertIdentityVerificationStateWithRetries(idState);
 
             if (i < 2) {
                 // Restart the identity verification in first two walkthroughs, the third walkthrough continues
@@ -260,6 +267,10 @@ public class PowerAuthIdentityVerificationTest {
         } else {
             assertStatusOfSubmittedDocs(processId, idCardSubmits.size() + drivingLicenseSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
         }
+
+        IdentityVerificationState idState =
+                new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED);
+        assertIdentityVerificationStateWithRetries(idState);
 
         initPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
@@ -799,6 +810,26 @@ public class PowerAuthIdentityVerificationTest {
         }
     }
 
+    private void assertIdentityVerificationStateWithRetries(IdentityVerificationState state) throws Exception {
+        int assertCounter = 1;
+        int assertMaxRetries = config.getAssertMaxRetries();
+
+        while(assertCounter <= assertMaxRetries) {
+            try {
+                IdentityVerificationState idState = checkIdentityVerificationState();
+                assertEquals(state, idState);
+                break;
+            } catch (AssertionFailedError e) {
+                if (assertCounter >= assertMaxRetries) {
+                    throw e;
+                }
+            }
+            stepLogger.writeItem("assert-identity-verification-status-retry", "Assert failed this time", "Retrying identity verification status assert " + assertCounter, "INFO", null);
+            assertCounter++;
+            Thread.sleep(config.getAssertRetryWaitPeriod().toMillis());
+        }
+    }
+
     private void assertStatusOfSubmittedDocs(String processId, int expectedDocumentsCount, DocumentStatus expectedStatus) throws Exception {
         // Check status of submitted document
         DocumentStatusRequest docStatusRequest = new DocumentStatusRequest();
@@ -845,12 +876,12 @@ public class PowerAuthIdentityVerificationTest {
         // Presence check should succeed immediately in mock implementation, but in general this can take some time
         boolean verificationComplete = false;
         for (int i = 0; i < 10; i++) {
-            IdentityVerificationStatus status = checkIdentityVerificationStatus();
-            if (config.isSkipOtpVerification() && status == IdentityVerificationStatus.ACCEPTED) {
+            IdentityVerificationState idState = checkIdentityVerificationState();
+            if (config.isSkipOtpVerification() && idState.getStatus() == IdentityVerificationStatus.ACCEPTED) {
                 verificationComplete = true;
                 break;
             }
-            if (!config.isSkipOtpVerification() && status == IdentityVerificationStatus.OTP_VERIFICATION_PENDING) {
+            if (!config.isSkipOtpVerification() && idState.getStatus() == IdentityVerificationStatus.OTP_VERIFICATION_PENDING) {
                 verificationComplete = true;
                 break;
             } else {
@@ -860,7 +891,7 @@ public class PowerAuthIdentityVerificationTest {
         assertTrue(verificationComplete);
     }
 
-    private IdentityVerificationStatus checkIdentityVerificationStatus() throws Exception {
+    private IdentityVerificationState checkIdentityVerificationState() throws Exception {
         IdentityVerificationStatusRequest statusRequest = new IdentityVerificationStatusRequest();
         stepLogger = new ObjectStepLogger(System.out);
         tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(statusRequest)));
@@ -869,17 +900,21 @@ public class PowerAuthIdentityVerificationTest {
         new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
-        IdentityVerificationStatus status = null;
+        IdentityVerificationState idState = null;
         for (StepItem item : stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 String responseData = item.getObject().toString();
                 ObjectResponse<IdentityVerificationStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<IdentityVerificationStatusResponse>>() {});
                 IdentityVerificationStatusResponse response = objectResponse.getResponseObject();
-                status = response.getIdentityVerificationStatus();
+                idState = new IdentityVerificationState(
+                        response.getIdentityVerificationPhase(),
+                        response.getIdentityVerificationStatus()
+                );
             }
         }
-        assertNotNull(status);
-        return status;
+        assertNotNull(idState);
+        assertNotNull(idState.getStatus());
+        return idState;
     }
 
     private OnboardingStatus checkProcessStatus(String processId) throws Exception {
@@ -913,8 +948,8 @@ public class PowerAuthIdentityVerificationTest {
         boolean otpVerified = false;
         boolean verificationComplete = false;
         for (int i = 0; i < 10; i++) {
-            IdentityVerificationStatus status = checkIdentityVerificationStatus();
-            if (status == IdentityVerificationStatus.OTP_VERIFICATION_PENDING) {
+            IdentityVerificationState idState = checkIdentityVerificationState();
+            if (idState.getStatus() == IdentityVerificationStatus.OTP_VERIFICATION_PENDING) {
                 String otpCode = getOtpCode(processId, OtpType.USER_VERIFICATION);
 
                 IdentityVerificationOtpVerifyRequest otpVerifyRequest = new IdentityVerificationOtpVerifyRequest();
@@ -941,7 +976,7 @@ public class PowerAuthIdentityVerificationTest {
                     continue;
                 }
             }
-            if (status == IdentityVerificationStatus.ACCEPTED) {
+            if (idState.getStatus() == IdentityVerificationStatus.ACCEPTED) {
                 verificationComplete = true;
                 break;
             } else {
@@ -1011,6 +1046,17 @@ public class PowerAuthIdentityVerificationTest {
             File file = new ClassPathResource(filePath).getFile();
             return new FileSubmit(file, documentType, cardSide);
         }
+
+    }
+
+    @AllArgsConstructor
+    @EqualsAndHashCode
+    @Getter
+    static class IdentityVerificationState {
+
+        private IdentityVerificationPhase phase;
+
+        private IdentityVerificationStatus status;
 
     }
 
