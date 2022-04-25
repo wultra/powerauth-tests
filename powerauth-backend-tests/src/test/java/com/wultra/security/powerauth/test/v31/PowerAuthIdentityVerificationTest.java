@@ -41,9 +41,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.*;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.*;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.*;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1052,6 +1050,7 @@ public class PowerAuthIdentityVerificationTest {
     @AllArgsConstructor
     @EqualsAndHashCode
     @Getter
+    @ToString
     static class IdentityVerificationState {
 
         private IdentityVerificationPhase phase;
