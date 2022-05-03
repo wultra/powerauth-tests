@@ -389,7 +389,7 @@ public class PowerAuthApiTest {
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
         GregorianCalendar before = statusResponse.getTimestampCreated().toGregorianCalendar();
         GregorianCalendar after = new GregorianCalendar();
-        after.setTime(after.getTime());
+        after.setTime(before.getTime());
         after.add(Calendar.SECOND, 1);
         List<ActivationHistoryResponse.Items> activationHistory = powerAuthClient.getActivationHistory(response.getActivationId(), before.getTime(), after.getTime());
         ActivationHistoryResponse.Items item = activationHistory.get(0);
