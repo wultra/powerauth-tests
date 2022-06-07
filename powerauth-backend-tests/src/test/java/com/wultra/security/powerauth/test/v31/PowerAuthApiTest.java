@@ -421,7 +421,7 @@ public class PowerAuthApiTest {
         assertNotEquals(0, applications.size());
         boolean testApplicationFound = false;
         for (GetApplicationListResponse.Applications app: applications) {
-            if (app.getId() == config.getApplicationId()) {
+            if (app.getApplicationId() == config.getApplicationId()) {
                 testApplicationFound = true;
             }
         }
@@ -431,7 +431,7 @@ public class PowerAuthApiTest {
     @Test
     public void applicationDetailTest() throws PowerAuthClientException {
         GetApplicationDetailResponse response = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        assertEquals(config.getApplicationName(), response.getApplicationName());
+        assertEquals(config.getApplicationName(), response.getApplicationId());
         boolean testAppVersionFound = false;
         for (GetApplicationDetailResponse.Versions version: response.getVersions()) {
             if (version.getApplicationVersionId() == config.getApplicationVersionId()) {
@@ -451,9 +451,9 @@ public class PowerAuthApiTest {
 
     @Test
     public void applicationSupportTest() throws PowerAuthClientException {
-        UnsupportApplicationVersionResponse response = powerAuthClient.unsupportApplicationVersion(config.getApplicationVersionId());
+        UnsupportApplicationVersionResponse response = powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
         assertFalse(response.isSupported());
-        SupportApplicationVersionResponse response2 = powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
+        SupportApplicationVersionResponse response2 = powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
         assertTrue(response2.isSupported());
     }
 

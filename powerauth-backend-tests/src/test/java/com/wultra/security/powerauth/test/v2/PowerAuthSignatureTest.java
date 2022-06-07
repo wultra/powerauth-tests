@@ -289,7 +289,7 @@ public class PowerAuthSignatureTest {
 
     @Test
     public void signatureUnsupportedApplicationTest() throws Exception {
-        powerAuthClient.unsupportApplicationVersion(config.getApplicationVersionId());
+        powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new VerifySignatureStep().execute(stepLogger1, model.toMap());
@@ -301,7 +301,7 @@ public class PowerAuthSignatureTest {
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
 
-        powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
+        powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
         new VerifySignatureStep().execute(stepLogger2, model.toMap());

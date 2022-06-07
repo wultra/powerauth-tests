@@ -59,7 +59,7 @@ public class PowerAuthApplicationRolesTest {
     @Test
     public void applicationRolesCrudTest() throws Exception {
         // Test application roles CRUD
-        long applicationId = config.getApplicationId();
+        String applicationId = config.getApplicationId();
 
         // Remove all existing roles
         ListApplicationRolesResponse initResponse = powerAuthClient.listApplicationRoles(applicationId);

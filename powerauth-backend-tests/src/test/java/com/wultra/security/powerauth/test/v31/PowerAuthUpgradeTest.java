@@ -315,7 +315,7 @@ public class PowerAuthUpgradeTest {
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Unsupport application version
-        powerAuthClient.unsupportApplicationVersion(config.getApplicationVersionId());
+        powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         // Prepare start upgrade model
         StartUpgradeStepModel model1 = new StartUpgradeStepModel();
@@ -340,7 +340,7 @@ public class PowerAuthUpgradeTest {
         assertEquals("POWER_AUTH_UPGRADE_FAILED", errorResponse.getResponseObject().getMessage());
 
         // Support application version
-        powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
+        powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
