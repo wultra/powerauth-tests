@@ -187,12 +187,12 @@ public class PowerAuthActivationTest {
     @Test
     public void activationPrepareUnsupportedApplicationTest() throws Exception {
         // Unsupport application version
-        powerAuthClient.unsupportApplicationVersion(config.getApplicationVersionId());
+        powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         // Verify that application version is unsupported
         GetApplicationDetailResponse detailResponse = powerAuthClient.getApplicationDetail(config.getApplicationId());
         for (GetApplicationDetailResponse.Versions version: detailResponse.getVersions()) {
-            if (version.getApplicationVersionName().equals(config.getApplicationVersion())) {
+            if (version.getApplicationVersionId().equals(config.getApplicationVersion())) {
                 assertFalse(version.isSupported());
             }
         }
@@ -223,12 +223,12 @@ public class PowerAuthActivationTest {
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
 
         // Support application version
-        powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
+        powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         // Verify that application version is supported
         GetApplicationDetailResponse detailResponse2 = powerAuthClient.getApplicationDetail(config.getApplicationId());
         for (GetApplicationDetailResponse.Versions version: detailResponse2.getVersions()) {
-            if (version.getApplicationVersionName().equals(config.getApplicationVersion())) {
+            if (version.getApplicationVersionId().equals(config.getApplicationVersion())) {
                 assertTrue(version.isSupported());
             }
         }
@@ -534,7 +534,7 @@ public class PowerAuthActivationTest {
     public void lookupActivationsNonExistentApplicationTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         lookupActivationsRequest.getUserIds().add(config.getUserV31());
-        lookupActivationsRequest.getApplicationIds().add(10000000L);
+        lookupActivationsRequest.getApplicationIds().add("10000000");
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertEquals(0, response.getActivations().size());
     }

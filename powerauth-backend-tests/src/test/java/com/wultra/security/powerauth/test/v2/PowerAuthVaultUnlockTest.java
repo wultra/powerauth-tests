@@ -173,7 +173,7 @@ public class PowerAuthVaultUnlockTest {
 
     @Test
     public void vaultUnlockUnsupportedApplicationTest() throws Exception {
-        powerAuthClient.unsupportApplicationVersion(config.getApplicationVersionId());
+        powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new VaultUnlockStep().execute(stepLogger1, model.toMap());
@@ -185,7 +185,7 @@ public class PowerAuthVaultUnlockTest {
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
 
-        powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
+        powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
         new VaultUnlockStep().execute(stepLogger2, model.toMap());

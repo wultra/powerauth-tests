@@ -109,8 +109,8 @@ public class PowerAuthTestConfiguration {
     private String applicationKey;
     private String applicationSecret;
 
-    private Long applicationId;
-    private Long versionId;
+    private String applicationId;
+    private String versionId;
     private PublicKey masterPublicKeyConverted;
 
     private PowerAuthTestSetUp setUp;
@@ -241,19 +241,19 @@ public class PowerAuthTestConfiguration {
         return applicationVersionForTests;
     }
 
-    public Long getApplicationId() {
+    public String getApplicationId() {
         return applicationId;
     }
 
-    public void setApplicationId(Long applicationId) {
+    public void setApplicationId(String applicationId) {
         this.applicationId = applicationId;
     }
 
-    public Long getApplicationVersionId() {
+    public String getApplicationVersionId() {
         return versionId;
     }
 
-    public void setApplicationVersionId(Long versionId) {
+    public void setApplicationVersionId(String versionId) {
         this.versionId = versionId;
     }
 
