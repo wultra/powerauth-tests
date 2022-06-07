@@ -421,7 +421,7 @@ public class PowerAuthApiTest {
         assertNotEquals(0, applications.size());
         boolean testApplicationFound = false;
         for (GetApplicationListResponse.Applications app: applications) {
-            if (app.getApplicationId() == config.getApplicationId()) {
+            if (app.getApplicationId().equals(config.getApplicationId())) {
                 testApplicationFound = true;
             }
         }
@@ -434,7 +434,7 @@ public class PowerAuthApiTest {
         assertEquals(config.getApplicationName(), response.getApplicationId());
         boolean testAppVersionFound = false;
         for (GetApplicationDetailResponse.Versions version: response.getVersions()) {
-            if (version.getApplicationVersionId() == config.getApplicationVersionId()) {
+            if (version.getApplicationVersionId().equals(config.getApplicationVersionId())) {
                 testAppVersionFound = true;
             }
         }
