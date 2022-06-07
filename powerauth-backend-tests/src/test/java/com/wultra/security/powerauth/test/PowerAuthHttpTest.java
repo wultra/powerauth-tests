@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthHttpTest {
+class PowerAuthHttpTest {
 
     private PowerAuthTestConfiguration config;
 
@@ -54,7 +54,7 @@ public class PowerAuthHttpTest {
     }
 
     @Test
-    public void invalidSignatureHeaderTest() throws Exception {
+    void invalidSignatureHeaderTest() throws Exception {
         byte[] data = "test".getBytes(StandardCharsets.UTF_8);
         String signatureHeaderInvalid = "X-PowerAuth-Authorization: PowerAuth pa_activation_id=\"79b910a6-b058-49bd-a56d-d54b5aada048\" pa_application_key=\"4rVingHqXITsWvGj1K+EBQ==\" pa_nonce=\"inZWJ5hCFBk+nnZ1sYTnjg==\" pa_signature_type=\"possession_knowledge\" pa_signature=\"77419567-47712563\" pa_version=\"2.1\"";
 
@@ -80,7 +80,7 @@ public class PowerAuthHttpTest {
     }
 
     @Test
-    public void invalidTokenHeaderTest() throws Exception {
+    void invalidTokenHeaderTest() throws Exception {
         byte[] data = "test".getBytes(StandardCharsets.UTF_8);
         String tokenHeaderInvalid = "X-PowerAuth-Token: PowerAuth token_id=\"0f3da4d7-427d-4b54-8211-b1995214810b\" token_digest=\"rMYL7jvUhBqdGyNjiGJED+9cM0tAM9JhAhSdfbatPg4=\" nonce=\"jHaHL1mWWZoB/+QQbGTAwg==\" timestamp=\"1541000429960\" version=\"2.1\"";
 
@@ -108,7 +108,7 @@ public class PowerAuthHttpTest {
     }
 
     @Test
-    public void invalidEncryptionHeaderTest() throws Exception {
+    void invalidEncryptionHeaderTest() throws Exception {
         byte[] data = "{\"ephemeralPublicKey\":\"BHBy8Apj7BFxjGaiKs8nFRkD4rjlSuo1rguWnjlSChLKhRGUdooT0Geh8rE6u2QOnY2rBaIj+Stzqj6A/cs3WUY=\",\"encryptedData\":\"rZKU++q2HE3uwZRMLSlYfuUvHrKt9CVGYUGB21CjdaNyflyTOei7dvRAVACQRyJmcyWePAl0BQHRaN1trJyw8Ue1YzYVx7fGEQ9l9WtCJYeYBPS4krR7ZFo4ydmeFm/rhklClUVJZ2OSSt2Z/O9HctA8W/BlwAMSVDj496wdZ3ozxDLhDwd+sBx03Y3812GD0s3HbxK4wHN/OCj+jAczowI0FzI1cT5DA+M7e7Hc0golN1SExVqw1aMVAwA32gwjbc0nuqecXPB0op4AhGTAOZFQDtmQH/U1chcykTXso4Y7FF1fKjyeyZN73imO3lImhKETBc+2hg3/KEVjP43OqtB5DgaCatoWXjAVHJY/mSLWJd7WtfCAq1+xNSbwuhAEt8y2+/2BzvaRQFs8WuqAuBlTx/c1u2hddCpfQFRb0a3x2l7FYrBtYYfmQZb38s+zsix6Ju4esZ9HibmX8XvdMZB9F4E+tUfLrRwJmFpRm5dC6ufZp8+Qur8c+SM5aOVqLRWf/by6rC/6P+Pm35UNwAYA5sbrZU+0za4TlT7hNR4bkxkHStz5moBRyrwIYtJVMKDg3pXMzLW/j35lN9mnlQHEKPbt7ZlRjeKotXGAjrztXDOT3bOHBayMHm/fjCk+cHUIEYvR3jd4PvgG6YuU9W6F/jCxG8XnFumuBVJzRVnHYlCC+eZ2XxwLxSxTpO3D\",\"mac\":\"RLhrZebxh03EssLgC265flJ06Wp67QdOhkAeXxAMxSk=\"}".getBytes(StandardCharsets.UTF_8);
         String tokenHeaderInvalid = "X-PowerAuth-Encryption: PowerAuth application_key=\"4rVingHqXITsWvGj1K+EBQ==\" version=\"3.0\"";
 

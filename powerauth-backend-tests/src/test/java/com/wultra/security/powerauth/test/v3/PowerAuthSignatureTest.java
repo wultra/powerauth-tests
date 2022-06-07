@@ -97,7 +97,7 @@ public class PowerAuthSignatureTest {
     }
 
     @BeforeAll
-    public static void setUpBeforeClass() throws IOException {
+    static void setUpBeforeClass() throws IOException {
         dataFile = File.createTempFile("data", ".json");
         FileWriter fw = new FileWriter(dataFile);
         fw.write("All your base are belong to us!");
@@ -105,12 +105,12 @@ public class PowerAuthSignatureTest {
     }
 
     @AfterAll
-    public static void tearDownAfterClass() {
+    static void tearDownAfterClass() {
         assertTrue(dataFile.delete());
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         model = new VerifySignatureStepModel();
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
@@ -129,7 +129,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureValidTest() throws Exception {
+    void signatureValidTest() throws Exception {
         new VerifySignatureStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
@@ -139,7 +139,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureInvalidPasswordTest() throws Exception {
+    void signatureInvalidPasswordTest() throws Exception {
         model.setPassword("1111");
         new VerifySignatureStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().isSuccess());
@@ -152,7 +152,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureIncorrectPasswordFormatTest() throws Exception {
+    void signatureIncorrectPasswordFormatTest() throws Exception {
         model.setPassword("*");
         new VerifySignatureStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().isSuccess());
@@ -165,7 +165,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureCounterLookAheadTest() throws Exception {
+    void signatureCounterLookAheadTest() throws Exception {
         // Move counter by 1-4, next signature should succeed thanks to counter lookahead and it is still in max failure limit
         for (int i = 1; i < 4; i++) {
             for (int j=0; j < i; j++) {
@@ -189,7 +189,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureBlockedActivationTest() throws Exception {
+    void signatureBlockedActivationTest() throws Exception {
         powerAuthClient.blockActivation(config.getActivationIdV3(), "test", "test");
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
@@ -211,7 +211,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureSingleFactorTest() throws Exception {
+    void signatureSingleFactorTest() throws Exception {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
@@ -220,7 +220,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureBiometryTest() throws Exception {
+    void signatureBiometryTest() throws Exception {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_BIOMETRY);
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
@@ -229,7 +229,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureThreeFactorTest() throws Exception {
+    void signatureThreeFactorTest() throws Exception {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY);
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
@@ -238,7 +238,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureEmptyDataTest() throws Exception {
+    void signatureEmptyDataTest() throws Exception {
         File dataFile = File.createTempFile("data_empty_v3", ".json");
         dataFile.deleteOnExit();
         FileWriter fw = new FileWriter(dataFile);
@@ -254,7 +254,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureValidGetTest() throws Exception {
+    void signatureValidGetTest() throws Exception {
         model.setHttpMethod("GET");
         model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate?who=John_Tramonta&when=now");
         new VerifySignatureStep().execute(stepLogger, model.toMap());
@@ -266,7 +266,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureValidGetNoParamTest() throws Exception {
+    void signatureValidGetNoParamTest() throws Exception {
         model.setHttpMethod("GET");
         model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
         new VerifySignatureStep().execute(stepLogger, model.toMap());
@@ -278,7 +278,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureGetInvalidPasswordTest() throws Exception {
+    void signatureGetInvalidPasswordTest() throws Exception {
         model.setHttpMethod("GET");
         model.setPassword("0000");
         model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate?who=John_Tramonta&when=now");
@@ -293,7 +293,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureUnsupportedApplicationTest() throws Exception {
+    void signatureUnsupportedApplicationTest() throws Exception {
         powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
@@ -318,7 +318,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureMaxFailedAttemptsTest() throws Exception {
+    void signatureMaxFailedAttemptsTest() throws Exception {
         // Create temp status file
         File tempStatusFile = File.createTempFile("pa_status", ".json");
         tempStatusFile.deleteOnExit();
@@ -393,7 +393,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureLookAheadTest() throws Exception {
+    void signatureLookAheadTest() throws Exception {
         // Create temp status file
         File tempStatusFile = File.createTempFile("pa_status_lookahead", ".json");
         tempStatusFile.deleteOnExit();
@@ -472,7 +472,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureCounterIncrementTest() throws Exception {
+    void signatureCounterIncrementTest() throws Exception {
         byte[] ctrData = CounterUtil.getCtrData(model, stepLogger);
         HashBasedCounter counter = new HashBasedCounter();
         for (int i = 1; i <= 10; i++) {
@@ -488,7 +488,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureLargeDataTest() throws Exception {
+    void signatureLargeDataTest() throws Exception {
         SecureRandom secureRandom = new SecureRandom();
         File dataFileLarge = File.createTempFile("data_large_v3", ".dat");
         dataFileLarge.deleteOnExit();
@@ -509,7 +509,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureOfflinePersonalizedValidTest() throws Exception {
+    void signatureOfflinePersonalizedValidTest() throws Exception {
         CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(
                 config.getActivationIdV3(), offlineData);
         String nonce = offlineResponse.getNonce();
@@ -571,7 +571,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureOfflinePersonalizedInvalidTest() throws Exception {
+    void signatureOfflinePersonalizedInvalidTest() throws Exception {
 
         CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(
                 config.getActivationIdV3(), offlineData);
@@ -636,7 +636,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureOfflineNonPersonalizedValidTest() throws Exception {
+    void signatureOfflineNonPersonalizedValidTest() throws Exception {
         CreateNonPersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(
                 config.getApplicationId(), offlineData);
         String nonce = offlineResponse.getNonce();
@@ -696,7 +696,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureOfflineNonPersonalizedInvalidTest() throws Exception {
+    void signatureOfflineNonPersonalizedInvalidTest() throws Exception {
         CreateNonPersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(
                 config.getApplicationId(), offlineData);
         String nonce = offlineResponse.getNonce();
@@ -758,7 +758,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureSwappedKeyTest() throws Exception {
+    void signatureSwappedKeyTest() throws Exception {
         // Save biometry key
         String biometryKeyOrig = (String) model.getResultStatusObject().get("signatureBiometryKey");
         // Set possession key as biometry key
@@ -780,7 +780,7 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    public void signatureInvalidResourceIdTest() throws Exception {
+    void signatureInvalidResourceIdTest() throws Exception {
         // Set invalid resource ID
         model.setResourceId("/pa/signature/invalid");
 

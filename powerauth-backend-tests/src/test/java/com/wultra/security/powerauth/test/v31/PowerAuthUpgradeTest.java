@@ -62,7 +62,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthUpgradeTest {
+class PowerAuthUpgradeTest {
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -83,7 +83,7 @@ public class PowerAuthUpgradeTest {
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status", ".json");
 
@@ -95,13 +95,13 @@ public class PowerAuthUpgradeTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         assertTrue(tempStatusFile.delete());
         assertTrue(dataFile.delete());
     }
 
     @Test
-    public void upgradeValidTest() throws Exception {
+    void upgradeValidTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -279,7 +279,7 @@ public class PowerAuthUpgradeTest {
     }
 
     @Test
-    public void upgradeUnsupportedApplicationVersionTest() throws Exception {
+    void upgradeUnsupportedApplicationVersionTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -347,7 +347,7 @@ public class PowerAuthUpgradeTest {
     }
 
     @Test
-    public void upgradeInvalidActivationVersionTest() throws Exception {
+    void upgradeInvalidActivationVersionTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -422,7 +422,7 @@ public class PowerAuthUpgradeTest {
     }
 
     @Test
-    public void upgradeActivationRemovedTest() throws Exception {
+    void upgradeActivationRemovedTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -488,7 +488,7 @@ public class PowerAuthUpgradeTest {
     }
 
     @Test
-    public void upgradeActivationBlockedTest() throws Exception {
+    void upgradeActivationBlockedTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -587,7 +587,7 @@ public class PowerAuthUpgradeTest {
     }
 
     @Test
-    public void upgradeActivationNotCommittedTest() throws Exception {
+    void upgradeActivationNotCommittedTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -649,7 +649,7 @@ public class PowerAuthUpgradeTest {
     }
 
     @Test
-    public void upgradeDoubleCommitFailTest() throws Exception {
+    void upgradeDoubleCommitFailTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -751,7 +751,7 @@ public class PowerAuthUpgradeTest {
     }
 
     @Test
-    public void upgradeInvalidCommitSignatureTest() throws Exception {
+    void upgradeInvalidCommitSignatureTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -835,7 +835,7 @@ public class PowerAuthUpgradeTest {
     }
 
     @Test
-    public void upgradeStartSameCtrDataTest() throws Exception {
+    void upgradeStartSameCtrDataTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -905,7 +905,7 @@ public class PowerAuthUpgradeTest {
     }
 
     @Test
-    public void upgradeSignatureVerificationDuringUpgradeTest() throws Exception {
+    void upgradeSignatureVerificationDuringUpgradeTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -1035,7 +1035,7 @@ public class PowerAuthUpgradeTest {
     }
 
     @Test
-    public void upgradeConcurrencyTest() throws Exception {
+    void upgradeConcurrencyTest() throws Exception {
         assumeFalse(config.isSkipDbConcurrencyTests());
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();

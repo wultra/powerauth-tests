@@ -54,7 +54,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthEncryptionTest {
+class PowerAuthEncryptionTest {
 
     private PowerAuthTestConfiguration config;
     private static File dataFile;
@@ -74,7 +74,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @BeforeAll
-    public static void setUpBeforeClass() throws IOException {
+    static void setUpBeforeClass() throws IOException {
         dataFile = File.createTempFile("data", ".json");
         FileWriter fw = new FileWriter(dataFile);
         fw.write("{\"data\": \"hello\"}");
@@ -82,12 +82,12 @@ public class PowerAuthEncryptionTest {
     }
 
     @AfterAll
-    public static void tearDownAfterClass() {
+    static void tearDownAfterClass() {
         assertTrue(dataFile.delete());
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());
         encryptModel.setApplicationSecret(config.getApplicationSecret());
@@ -114,7 +114,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void encryptInActivationScopeTest() throws Exception {
+    void encryptInActivationScopeTest() throws Exception {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
         encryptModel.setScope("activation");
 
@@ -138,7 +138,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void encryptInApplicationScopeTest() throws Exception {
+    void encryptInApplicationScopeTest() throws Exception {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/application");
         encryptModel.setScope("application");
 
@@ -162,7 +162,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void encryptInInvalidScope1Test() throws Exception {
+    void encryptInInvalidScope1Test() throws Exception {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
         encryptModel.setScope("application");
 
@@ -172,7 +172,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void encryptInInvalidScope2Test() throws Exception {
+    void encryptInInvalidScope2Test() throws Exception {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/application");
         encryptModel.setScope("activation");
 
@@ -182,7 +182,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void encryptEmptyDataTest() throws Exception {
+    void encryptEmptyDataTest() throws Exception {
         File emptyDataFile = File.createTempFile("data_empty_signed", ".json");
         emptyDataFile.deleteOnExit();
         FileWriter fw = new FileWriter(emptyDataFile);
@@ -199,7 +199,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void encryptBlockedActivationTest() throws Exception {
+    void encryptBlockedActivationTest() throws Exception {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
         encryptModel.setScope("activation");
 
@@ -235,7 +235,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptTest() throws Exception {
+    void signAndEncryptTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
@@ -259,7 +259,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptWeakSignatureTypeTest() throws Exception {
+    void signAndEncryptWeakSignatureTypeTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
@@ -271,7 +271,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptInvalidPasswordTest() throws Exception {
+    void signAndEncryptInvalidPasswordTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         signatureModel.setPassword("0000");
@@ -282,7 +282,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptEmptyDataTest() throws Exception {
+    void signAndEncryptEmptyDataTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         File emptyDataFile = File.createTempFile("data_empty_signed", ".json");
@@ -299,7 +299,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptLargeDataTest() throws Exception {
+    void signAndEncryptLargeDataTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
@@ -324,7 +324,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptStringDataTest() throws Exception {
+    void signAndEncryptStringDataTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed/string");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed/string");
 
@@ -355,7 +355,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptRawDataTest() throws Exception {
+    void signAndEncryptRawDataTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed/raw");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed/raw");
 
@@ -385,7 +385,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptInvalidResourceIdTest() throws Exception {
+    void signAndEncryptInvalidResourceIdTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/invalid");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
@@ -395,7 +395,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptBlockedActivationTest() throws Exception {
+    void signAndEncryptBlockedActivationTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
@@ -429,7 +429,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptUnsupportedApplicationTest() throws Exception {
+    void signAndEncryptUnsupportedApplicationTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
@@ -467,7 +467,7 @@ public class PowerAuthEncryptionTest {
 
 
     @Test
-    public void signAndEncryptCounterIncrementTest() throws Exception {
+    void signAndEncryptCounterIncrementTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
@@ -486,7 +486,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptLookAheadTest() throws Exception {
+    void signAndEncryptLookAheadTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
@@ -509,7 +509,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptSingleFactorTest() throws Exception {
+    void signAndEncryptSingleFactorTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
@@ -524,7 +524,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptBiometryTest() throws Exception {
+    void signAndEncryptBiometryTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_BIOMETRY);
@@ -535,7 +535,7 @@ public class PowerAuthEncryptionTest {
     }
 
     @Test
-    public void signAndEncryptThreeFactorTest() throws Exception {
+    void signAndEncryptThreeFactorTest() throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY);

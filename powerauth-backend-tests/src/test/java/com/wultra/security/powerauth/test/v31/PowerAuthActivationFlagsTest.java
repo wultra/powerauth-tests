@@ -67,7 +67,7 @@ public class PowerAuthActivationFlagsTest {
     private int port;
 
     @Autowired
-    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
+    void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 
@@ -77,7 +77,7 @@ public class PowerAuthActivationFlagsTest {
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_v31", ".json");
 
@@ -97,12 +97,12 @@ public class PowerAuthActivationFlagsTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         assertTrue(tempStatusFile.delete());
     }
 
     @Test
-    public void activationFlagCrudTest() throws Exception {
+    void activationFlagCrudTest() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -145,7 +145,7 @@ public class PowerAuthActivationFlagsTest {
     }
 
     @Test
-    public void activationFlagLookupTest() throws Exception {
+    void activationFlagLookupTest() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -196,7 +196,7 @@ public class PowerAuthActivationFlagsTest {
     }
 
     @Test
-    public void activationProviderFlagTest() throws Exception {
+    void activationProviderFlagTest() throws Exception {
         // Create custom activation with test provider
         CreateActivationStepModel model = new CreateActivationStepModel();
         model.setActivationName("test v3.1");

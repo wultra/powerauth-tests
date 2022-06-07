@@ -57,7 +57,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
 @ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
-public class PowerAuthCustomActivationOtpTest {
+class PowerAuthCustomActivationOtpTest {
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -86,7 +86,7 @@ public class PowerAuthCustomActivationOtpTest {
     }
 
     @BeforeAll
-    public static void setUpBeforeClass() throws IOException {
+    static void setUpBeforeClass() throws IOException {
         dataFile = File.createTempFile("data", ".json");
         FileWriter fw = new FileWriter(dataFile);
         fw.write("All your base are belong to us!");
@@ -94,12 +94,12 @@ public class PowerAuthCustomActivationOtpTest {
     }
 
     @AfterAll
-    public static void tearDownAfterClass() {
+    static void tearDownAfterClass() {
         assertTrue(dataFile.delete());
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         // Create temp status files
         tempStatusFile = File.createTempFile("pa_status_v31", ".json");
 
@@ -141,7 +141,7 @@ public class PowerAuthCustomActivationOtpTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         assertTrue(tempStatusFile.delete());
     }
 
@@ -213,7 +213,7 @@ public class PowerAuthCustomActivationOtpTest {
     }
 
     @Test
-    public void customActivationOtpValidTest() throws Exception {
+    void customActivationOtpValidTest() throws Exception {
 
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_2_STATIC_NOCOMMIT_NOPROCESS");
@@ -298,7 +298,7 @@ public class PowerAuthCustomActivationOtpTest {
     }
 
     @Test
-    public void customActivationOtpInvalidTest() throws Exception {
+    void customActivationOtpInvalidTest() throws Exception {
 
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_2_STATIC_NOCOMMIT_NOPROCESS");
@@ -372,7 +372,7 @@ public class PowerAuthCustomActivationOtpTest {
     }
 
     @Test
-    public void activationRecoveryOtpValidTest() throws Exception {
+    void activationRecoveryOtpValidTest() throws Exception {
 
         ActivationRecovery activationRecovery = getRecoveryData();
 
@@ -444,7 +444,7 @@ public class PowerAuthCustomActivationOtpTest {
     }
 
     @Test
-    public void activationRecoveryOtpInvalidTest() throws Exception {
+    void activationRecoveryOtpInvalidTest() throws Exception {
 
         ActivationRecovery activationRecovery = getRecoveryData();
 

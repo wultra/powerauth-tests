@@ -67,7 +67,7 @@ public class PowerAuthActivationCodeTest {
     private final PowerAuthClientActivation clientActivation = new PowerAuthClientActivation();
 
     @Autowired
-    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
+    void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 
@@ -77,7 +77,7 @@ public class PowerAuthActivationCodeTest {
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_v31", ".json");
 
@@ -111,12 +111,12 @@ public class PowerAuthActivationCodeTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         assertTrue(tempStatusFile.delete());
     }
 
     @Test
-    public void activationUsingActivationCodeTest() throws Exception {
+    void activationUsingActivationCodeTest() throws Exception {
         // Run this test only in case Enrollment server is available
         assumeFalse(config.getEnrollmentServiceUrl().isEmpty());
 

@@ -49,7 +49,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
 @ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
-public class PowerAuthCallbackTest {
+class PowerAuthCallbackTest {
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -68,7 +68,7 @@ public class PowerAuthCallbackTest {
     }
 
     @AfterEach
-    public void tearDown() throws PowerAuthClientException {
+    void tearDown() throws PowerAuthClientException {
         // Remove all callbacks on test application, they slow down tests
         List<GetCallbackUrlListResponse.CallbackUrlList> callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
         for (GetCallbackUrlListResponse.CallbackUrlList callback: callbacks) {
@@ -77,7 +77,7 @@ public class PowerAuthCallbackTest {
     }
 
     @Test
-    public void callbackCreateDeleteTest() throws PowerAuthClientException {
+    void callbackCreateDeleteTest() throws PowerAuthClientException {
         String callbackName = UUID.randomUUID().toString();
         String callbackUrl = "http://test.test";
         powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrl, Collections.singletonList("activationId"), null);
@@ -99,7 +99,7 @@ public class PowerAuthCallbackTest {
     }
 
     @Test
-    public void callbackUpdateTest() throws PowerAuthClientException {
+    void callbackUpdateTest() throws PowerAuthClientException {
         String callbackName = UUID.randomUUID().toString();
         String callbackUrl = "http://test.test";
         powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrl, Collections.singletonList("activationId"), null);
@@ -140,7 +140,7 @@ public class PowerAuthCallbackTest {
     }
 
     @Test
-    public void callbackExecutionTest() throws PowerAuthClientException, RestClientException {
+    void callbackExecutionTest() throws PowerAuthClientException, RestClientException {
         // Skip test when the tested PA server is not running on localhost
         assumeTrue(config.getPowerAuthRestUrl().contains("localhost:8080"));
         String callbackName = UUID.randomUUID().toString();

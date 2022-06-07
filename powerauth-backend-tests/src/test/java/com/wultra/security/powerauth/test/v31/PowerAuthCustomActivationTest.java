@@ -60,7 +60,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
 @ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
-public class PowerAuthCustomActivationTest {
+class PowerAuthCustomActivationTest {
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -83,7 +83,7 @@ public class PowerAuthCustomActivationTest {
     }
 
     @BeforeAll
-    public static void setUpBeforeClass() throws IOException {
+    static void setUpBeforeClass() throws IOException {
         dataFile = File.createTempFile("data", ".json");
         FileWriter fw = new FileWriter(dataFile);
         fw.write("All your base are belong to us!");
@@ -91,12 +91,12 @@ public class PowerAuthCustomActivationTest {
     }
 
     @AfterAll
-    public static void tearDownAfterClass() {
+    static void tearDownAfterClass() {
         assertTrue(dataFile.delete());
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_v31", ".json");
 
@@ -119,12 +119,12 @@ public class PowerAuthCustomActivationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         assertTrue(tempStatusFile.delete());
     }
 
     @Test
-    public void customActivationValidTest() throws Exception {
+    void customActivationValidTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS");
         identityAttributes.put("username", "TestUser1");
@@ -172,7 +172,7 @@ public class PowerAuthCustomActivationTest {
     }
 
     @Test
-    public void customActivationValid2Test() throws Exception {
+    void customActivationValid2Test() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_2_STATIC_NOCOMMIT_NOPROCESS");
 
@@ -219,7 +219,7 @@ public class PowerAuthCustomActivationTest {
     }
 
     @Test
-    public void customActivationValid3Test() throws Exception {
+    void customActivationValid3Test() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS");
 
@@ -267,7 +267,7 @@ public class PowerAuthCustomActivationTest {
     }
 
     @Test
-    public void customActivationMissingUsernameTest() throws Exception {
+    void customActivationMissingUsernameTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_4_MISSING_USERNAME");
 
@@ -290,7 +290,7 @@ public class PowerAuthCustomActivationTest {
     }
 
     @Test
-    public void customActivationEmptyUsernameTest() throws Exception {
+    void customActivationEmptyUsernameTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_5_EMPTY_USERNAME");
         identityAttributes.put("username", "");
@@ -314,7 +314,7 @@ public class PowerAuthCustomActivationTest {
     }
 
     @Test
-    public void customActivationUsernameTooLongTest() throws Exception {
+    void customActivationUsernameTooLongTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_6_USERNAME_TOO_LONG");
         identityAttributes.put("username", "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
@@ -338,7 +338,7 @@ public class PowerAuthCustomActivationTest {
     }
 
     @Test
-    public void customActivationBadMasterPublicKeyTest() throws Exception {
+    void customActivationBadMasterPublicKeyTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_7_BAD_MASTER_PUBLIC_KEY");
         model.setIdentityAttributes(identityAttributes);
@@ -366,7 +366,7 @@ public class PowerAuthCustomActivationTest {
     }
 
     @Test
-    public void customActivationUnsupportedApplicationTest() throws Exception {
+    void customActivationUnsupportedApplicationTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_8_UNSUPPORTED_APP_VERSION");
         model.setIdentityAttributes(identityAttributes);
@@ -407,7 +407,7 @@ public class PowerAuthCustomActivationTest {
     }
 
     @Test
-    public void customActivationInvalidApplicationKeyTest() throws Exception {
+    void customActivationInvalidApplicationKeyTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_8_INVALID_APP_KEY");
         model.setIdentityAttributes(identityAttributes);
@@ -430,7 +430,7 @@ public class PowerAuthCustomActivationTest {
     }
 
     @Test
-    public void customActivationInvalidApplicationSecretTest() throws Exception {
+    void customActivationInvalidApplicationSecretTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_8_INVALID_APP_SECRET");
         model.setIdentityAttributes(identityAttributes);
@@ -453,7 +453,7 @@ public class PowerAuthCustomActivationTest {
     }
 
     @Test
-    public void customActivationDoubleCommitTest() throws Exception {
+    void customActivationDoubleCommitTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_9_DOUBLE_COMMIT");
         identityAttributes.put("username", "TestUser1");
@@ -498,7 +498,7 @@ public class PowerAuthCustomActivationTest {
     }
 
     @Test
-    public void customActivationSignatureMaxFailedTest() throws Exception {
+    void customActivationSignatureMaxFailedTest() throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_10_SIGNATURES_MAX_FAILED");
         identityAttributes.put("username", "TestUser1");
