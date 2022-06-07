@@ -67,7 +67,7 @@ public class PowerAuthActivationCodeTest {
     private final PowerAuthClientActivation clientActivation = new PowerAuthClientActivation();
 
     @Autowired
-    void setPowerAuthClient(PowerAuthClient powerAuthClient) {
+    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 

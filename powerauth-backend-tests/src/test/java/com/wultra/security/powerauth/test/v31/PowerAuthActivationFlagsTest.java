@@ -67,7 +67,7 @@ public class PowerAuthActivationFlagsTest {
     private int port;
 
     @Autowired
-    void setPowerAuthClient(PowerAuthClient powerAuthClient) {
+    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 
