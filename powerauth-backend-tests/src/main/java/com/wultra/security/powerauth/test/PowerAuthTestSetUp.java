@@ -65,15 +65,15 @@ public class PowerAuthTestSetUp {
         List<GetApplicationListResponse.Applications> applications = powerAuthClient.getApplicationList();
         boolean applicationExists = false;
         for (GetApplicationListResponse.Applications app: applications) {
-            if (app.getApplicationName().equals(config.getApplicationName())) {
+            if (app.getApplicationId().equals(config.getApplicationName())) {
                 applicationExists = true;
-                config.setApplicationId(app.getId());
+                config.setApplicationId(app.getApplicationId());
             }
         }
         if (!applicationExists) {
             CreateApplicationResponse response = powerAuthClient.createApplication(config.getApplicationName());
             assertNotEquals(0, response.getApplicationId());
-            assertEquals(config.getApplicationName(), response.getApplicationName());
+            assertEquals(config.getApplicationName(), response.getApplicationId());
             config.setApplicationId(response.getApplicationId());
         }
 
@@ -82,7 +82,7 @@ public class PowerAuthTestSetUp {
         GetApplicationDetailResponse detail = powerAuthClient.getApplicationDetail(config.getApplicationId());
         boolean versionExists = false;
         for (GetApplicationDetailResponse.Versions appVersion: detail.getVersions()) {
-            if (appVersion.getApplicationVersionName().equals(config.getApplicationVersion())) {
+            if (appVersion.getApplicationVersionId().equals(config.getApplicationVersion())) {
                 versionExists = true;
                 config.setApplicationVersionId(appVersion.getApplicationVersionId());
                 config.setApplicationKey(appVersion.getApplicationKey());
@@ -93,13 +93,13 @@ public class PowerAuthTestSetUp {
         if (!versionExists) {
             CreateApplicationVersionResponse versionResponse = powerAuthClient.createApplicationVersion(config.getApplicationId(), config.getApplicationVersion());
             assertNotEquals(0, versionResponse.getApplicationVersionId());
-            assertEquals(config.getApplicationVersion(), versionResponse.getApplicationVersionName());
+            assertEquals(config.getApplicationVersion(), versionResponse.getApplicationVersionId());
             config.setApplicationVersionId(versionResponse.getApplicationVersionId());
             config.setApplicationKey(versionResponse.getApplicationKey());
             config.setApplicationSecret(versionResponse.getApplicationSecret());
         } else {
             // Make sure application version is supported
-            powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
+            powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
         }
         // Set up activation recovery
         GetRecoveryConfigResponse recoveryResponse = powerAuthClient.getRecoveryConfig(config.getApplicationId());

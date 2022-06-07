@@ -61,7 +61,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public Map<String, Object> processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType, Map<String, Object> context) throws PowerAuthActivationException {
+    public Map<String, Object> processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) throws PowerAuthActivationException {
         Map<String, Object> processedCustomAttributes = new HashMap<>();
         if (customAttributes != null) {
             processedCustomAttributes.putAll(customAttributes);
@@ -84,7 +84,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType, Map<String, Object> context) throws PowerAuthActivationException {
+    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) throws PowerAuthActivationException {
         if (testId != null) {
             switch (testId) {
                 case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
@@ -108,7 +108,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public void activationWasCommitted(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType, Map<String, Object> context) throws PowerAuthActivationException {
+    public void activationWasCommitted(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) throws PowerAuthActivationException {
         // Ignore
     }
 
@@ -124,7 +124,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public List<String> getActivationFlags(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, Long appId, ActivationType activationType, Map<String, Object> context) {
+    public List<String> getActivationFlags(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) {
         return Collections.singletonList("TEST-PROVIDER");
     }
 }

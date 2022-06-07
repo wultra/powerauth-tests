@@ -433,7 +433,7 @@ public class PowerAuthEncryptionTest {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
-        powerAuthClient.unsupportApplicationVersion(config.getApplicationVersionId());
+        powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new SignAndEncryptStep().execute(stepLogger1, signatureModel.toMap());
@@ -443,7 +443,7 @@ public class PowerAuthEncryptionTest {
         ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().getResponseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
 
-        powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
+        powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
         new SignAndEncryptStep().execute(stepLogger2, signatureModel.toMap());
