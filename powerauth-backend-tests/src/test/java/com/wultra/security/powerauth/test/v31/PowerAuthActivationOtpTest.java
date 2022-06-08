@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthActivationOtpTest {
+class PowerAuthActivationOtpTest {
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -72,7 +72,7 @@ public class PowerAuthActivationOtpTest {
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_v31", ".json");
 
@@ -98,12 +98,12 @@ public class PowerAuthActivationOtpTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         assertTrue(tempStatusFile.delete());
     }
 
     @Test
-    public void validOtpOnKeysExchangeTest() throws Exception {
+    void validOtpOnKeysExchangeTest() throws Exception {
 
         JSONObject resultStatusObject = new JSONObject();
 
@@ -140,7 +140,7 @@ public class PowerAuthActivationOtpTest {
     }
 
     @Test
-    public void invalidOtpOnKeysExchangeTest() throws Exception {
+    void invalidOtpOnKeysExchangeTest() throws Exception {
 
         JSONObject resultStatusObject = new JSONObject();
 
@@ -173,7 +173,7 @@ public class PowerAuthActivationOtpTest {
     }
 
     @Test
-    public void validOtpOnCommitTest() throws Exception {
+    void validOtpOnCommitTest() throws Exception {
 
         JSONObject resultStatusObject = new JSONObject();
 
@@ -226,7 +226,7 @@ public class PowerAuthActivationOtpTest {
 
 
     @Test
-    public void invalidOtpOnCommitTest() throws Exception {
+    void invalidOtpOnCommitTest() throws Exception {
 
         JSONObject resultStatusObject = new JSONObject();
 
@@ -276,7 +276,7 @@ public class PowerAuthActivationOtpTest {
     }
 
     @Test
-    public void updateValidOtpOnCommitTest() throws Exception {
+    void updateValidOtpOnCommitTest() throws Exception {
 
         JSONObject resultStatusObject = new JSONObject();
 
@@ -341,7 +341,7 @@ public class PowerAuthActivationOtpTest {
     }
 
     @Test
-    public void updateInvalidOtpOnCommitTest() throws Exception {
+    void updateInvalidOtpOnCommitTest() throws Exception {
 
         JSONObject resultStatusObject = new JSONObject();
 
@@ -390,7 +390,7 @@ public class PowerAuthActivationOtpTest {
     }
 
     @Test
-    public void wrongActivationInitParamTest1() {
+    void wrongActivationInitParamTest1() {
         assertThrows(PowerAuthClientException.class, () -> {
             // Init activation
             InitActivationRequest initRequest = new InitActivationRequest();
@@ -404,7 +404,7 @@ public class PowerAuthActivationOtpTest {
     }
 
     @Test
-    public void wrongActivationInitParamTest2() {
+    void wrongActivationInitParamTest2() {
         assertThrows(PowerAuthClientException.class, () -> {
             // Init activation
             InitActivationRequest initRequest = new InitActivationRequest();
@@ -418,7 +418,7 @@ public class PowerAuthActivationOtpTest {
     }
 
     @Test
-    public void wrongActivationInitParamTest3() {
+    void wrongActivationInitParamTest3() {
         assertThrows(PowerAuthClientException.class, () -> {
             // Init activation
             InitActivationRequest initRequest = new InitActivationRequest();
@@ -432,7 +432,7 @@ public class PowerAuthActivationOtpTest {
     }
 
     @Test
-    public void wrongActivationInitParamTest4() {
+    void wrongActivationInitParamTest4() {
         assertThrows(PowerAuthClientException.class, () -> {
             // Init activation
             InitActivationRequest initRequest = new InitActivationRequest();
@@ -447,7 +447,7 @@ public class PowerAuthActivationOtpTest {
     }
 
     @Test
-    public void wrongActivationInitParamTest5() {
+    void wrongActivationInitParamTest5() {
         assertThrows(PowerAuthClientException.class, () -> {
             // Init activation
             InitActivationRequest initRequest = new InitActivationRequest();
@@ -462,7 +462,7 @@ public class PowerAuthActivationOtpTest {
     }
 
     @Test
-    public void missingOtpOnCommitTest() throws Exception {
+    void missingOtpOnCommitTest() throws Exception {
 
         JSONObject resultStatusObject = new JSONObject();
 
@@ -515,7 +515,7 @@ public class PowerAuthActivationOtpTest {
     }
 
     @Test
-    public void missingOtpOnKeysExchangeTest() throws Exception {
+    void missingOtpOnKeysExchangeTest() throws Exception {
 
         JSONObject resultStatusObject = new JSONObject();
 
