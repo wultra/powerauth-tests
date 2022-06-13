@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+
+    <!-- PowerAuth Enrollment Service Configuration -->
+    <Parameter name="powerauth.enrollment.service.url" value="${POWERAUTH_TEST_SERVER_ENROLLMENT_SERVER_URL}"/>
+
+    <!-- PowerAuth Protocol Version -->
+    <Parameter name="powerauth.version" value="${POWERAUTH_TEST_SERVER_POWERAUTH_VERSION}"/>
+
+    <!-- Result Status Persistence Type -->
+    <Parameter name="resultstatus.persistenceType" value="${POWERAUTH_TEST_SERVER_RESULT_STATUS_PERSISTENCE_TYPE}"/>
+
+    <!-- Datasource Configuration -->
+    <Parameter name="spring.datasource.url" value="${POWERAUTH_TEST_SERVER_DATASOURCE_URL}"/>
+    <Parameter name="spring.datasource.username" value="${POWERAUTH_TEST_SERVER_DATASOURCE_USERNAME}"/>
+    <Parameter name="spring.datasource.password" value="${POWERAUTH_TEST_SERVER_DATASOURCE_PASSWORD}"/>
+    <Parameter name="spring.datasource.driver-class-name" value="${POWERAUTH_TEST_SERVER_DATASOURCE_DRIVER}"/>
+    <Parameter name="spring.jpa.hibernate.ddl-auto" value="${POWERAUTH_TEST_SERVER_JPA_DDL_AUTO}"/>
+
+    <!-- Configuration of Database Charset -->
+    <Parameter name="spring.jpa.properties.hibernate.connection.CharSet" value="${POWERAUTH_TEST_SERVER_JPA_CHARSET}"/>
+    <Parameter name="spring.jpa.properties.hibernate.connection.characterEncoding" value="${POWERAUTH_TEST_SERVER_JPA_CHARACTER_ENCODING}"/>
+    <Parameter name="spring.jpa.properties.hibernate.connection.useUnicode" value="${POWERAUTH_TEST_SERVER_JPA_USE_UNICODE}"/>
+
+    <!-- Additional JPA Configuration -->
+    <Parameter name="spring.jpa.database-platform" value="${POWERAUTH_TEST_SERVER_JPA_DATABASE_PLATFORM}"/>
+
+</Context>
