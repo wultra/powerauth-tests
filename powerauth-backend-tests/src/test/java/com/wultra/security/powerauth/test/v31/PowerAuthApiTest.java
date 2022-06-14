@@ -160,7 +160,7 @@ class PowerAuthApiTest {
         encryptedRequestL2.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogramL2.getEncryptedData()));
         encryptedRequestL2.setMac(BaseEncoding.base64().encode(eciesCryptogramL2.getMac()));
         encryptedRequestL2.setNonce(BaseEncoding.base64().encode(eciesCryptogramL2.getNonce()));
-        PrepareActivationResponse prepareResponse = powerAuthClient.prepareActivation(activationCode, config.getApplicationKey(), encryptedRequestL2.getEphemeralPublicKey(), encryptedRequestL2.getEncryptedData(), encryptedRequestL2.getMac(), encryptedRequestL2.getNonce());
+        PrepareActivationResponse prepareResponse = powerAuthClient.prepareActivation(activationCode, config.getApplicationKey(), true, encryptedRequestL2.getEphemeralPublicKey(), encryptedRequestL2.getEncryptedData(), encryptedRequestL2.getMac(), encryptedRequestL2.getNonce());
         assertEquals(ActivationStatus.PENDING_COMMIT, prepareResponse.getActivationStatus());
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(activationId, config.getUserV31());
         assertTrue(commitResponse.isActivated());
@@ -215,7 +215,7 @@ class PowerAuthApiTest {
         encryptedRequestL2.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogramL2.getEncryptedData()));
         encryptedRequestL2.setMac(BaseEncoding.base64().encode(eciesCryptogramL2.getMac()));
         encryptedRequestL2.setNonce(BaseEncoding.base64().encode(eciesCryptogramL2.getNonce()));
-        PrepareActivationResponse prepareResponse = powerAuthClient.prepareActivation(activationCode, config.getApplicationKey(), encryptedRequestL2.getEphemeralPublicKey(), encryptedRequestL2.getEncryptedData(), encryptedRequestL2.getMac(), encryptedRequestL2.getNonce());
+        PrepareActivationResponse prepareResponse = powerAuthClient.prepareActivation(activationCode, config.getApplicationKey(), true, encryptedRequestL2.getEphemeralPublicKey(), encryptedRequestL2.getEncryptedData(), encryptedRequestL2.getMac(), encryptedRequestL2.getNonce());
         assertEquals(ActivationStatus.PENDING_COMMIT, prepareResponse.getActivationStatus());
         UpdateActivationOtpResponse otpResponse = powerAuthClient.updateActivationOtp(activationId, config.getUserV31(), "12345678");
         assertTrue(otpResponse.isUpdated());
