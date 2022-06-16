@@ -61,7 +61,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthActivationTest {
+class PowerAuthActivationTest {
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -81,7 +81,7 @@ public class PowerAuthActivationTest {
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_v31", ".json");
 
@@ -101,12 +101,12 @@ public class PowerAuthActivationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         assertTrue(tempStatusFile.delete());
     }
 
     @Test
-    public void activationPrepareTest() throws Exception {
+    void activationPrepareTest() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -178,14 +178,14 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationNonExistentTest() throws PowerAuthClientException {
+    void activationNonExistentTest() throws PowerAuthClientException {
         // Verify activation status
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus("AAAAA-BBBBB-CCCCC-DDDDD");
         assertEquals(ActivationStatus.REMOVED, statusResponse.getActivationStatus());
     }
 
     @Test
-    public void activationPrepareUnsupportedApplicationTest() throws Exception {
+    void activationPrepareUnsupportedApplicationTest() throws Exception {
         // Unsupport application version
         powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
@@ -235,7 +235,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationPrepareExpirationTest() throws Exception {
+    void activationPrepareExpirationTest() throws Exception {
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -264,7 +264,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationPrepareWithoutInitTest() throws Exception {
+    void activationPrepareWithoutInitTest() throws Exception {
         // Prepare non-existent activation
         model.setActivationCode("AAAAA-BBBBB-CCCCC-EEEEE");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
@@ -281,7 +281,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationPrepareBadMasterPublicKeyTest() throws Exception {
+    void activationPrepareBadMasterPublicKeyTest() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -315,7 +315,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationStatusTest() throws Exception {
+    void activationStatusTest() throws Exception {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
@@ -441,7 +441,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationInvalidApplicationKeyTest() throws Exception {
+    void activationInvalidApplicationKeyTest() throws Exception {
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -472,7 +472,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationInvalidApplicationSecretTest() throws Exception {
+    void activationInvalidApplicationSecretTest() throws Exception {
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -503,7 +503,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void lookupActivationsTest() throws Exception {
+    void lookupActivationsTest() throws Exception {
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
         Calendar timestampCreated = statusResponse.getTimestampCreated().toGregorianCalendar();
@@ -514,7 +514,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void lookupActivationsNonExistentUserTest() throws Exception {
+    void lookupActivationsNonExistentUserTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         lookupActivationsRequest.getUserIds().add("nonexistent");
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
@@ -522,7 +522,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void lookupActivationsApplicationTest() throws Exception {
+    void lookupActivationsApplicationTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         lookupActivationsRequest.getUserIds().add(config.getUserV31());
         lookupActivationsRequest.getApplicationIds().add(config.getApplicationId());
@@ -531,7 +531,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void lookupActivationsNonExistentApplicationTest() throws Exception {
+    void lookupActivationsNonExistentApplicationTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         lookupActivationsRequest.getUserIds().add(config.getUserV31());
         lookupActivationsRequest.getApplicationIds().add("10000000");
@@ -540,7 +540,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void lookupActivationsStatusTest() throws Exception {
+    void lookupActivationsStatusTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         lookupActivationsRequest.getUserIds().add(config.getUserV31());
         lookupActivationsRequest.setActivationStatus(ActivationStatus.ACTIVE);
@@ -549,7 +549,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void lookupActivationsInvalidStatusTest() throws Exception {
+    void lookupActivationsInvalidStatusTest() throws Exception {
         //
         // This test may fail in case that our battery of tests leaves some activation in the blocked state.
         // Try to re-run the test alone, or fix the new test case that collides with this one.
@@ -562,7 +562,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void lookupActivationsDateValidTest() throws Exception {
+    void lookupActivationsDateValidTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         lookupActivationsRequest.getUserIds().add(config.getUserV31());
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
@@ -573,7 +573,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void lookupActivationsDateInvalidTest() throws Exception {
+    void lookupActivationsDateInvalidTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         lookupActivationsRequest.getUserIds().add(config.getUserV31());
         GregorianCalendar gregorianCalendar = new GregorianCalendar();
@@ -584,7 +584,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void updateActivationStatusTest() throws Exception {
+    void updateActivationStatusTest() throws Exception {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation

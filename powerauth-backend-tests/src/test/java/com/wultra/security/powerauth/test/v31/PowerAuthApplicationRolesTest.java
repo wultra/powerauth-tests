@@ -41,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthApplicationRolesTest {
+class PowerAuthApplicationRolesTest {
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -57,7 +57,7 @@ public class PowerAuthApplicationRolesTest {
     }
 
     @Test
-    public void applicationRolesCrudTest() throws Exception {
+    void applicationRolesCrudTest() throws Exception {
         // Test application roles CRUD
         String applicationId = config.getApplicationId();
 

@@ -64,7 +64,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthRecoveryTest {
+class PowerAuthRecoveryTest {
 
     private static final String PRIVATE_KEY_RECOVERY_POSTCARD_BASE64 = "ALvtO6YEISVuCKugiltkUKgJaJbHRrdT77+9OhS79Gvm";
 
@@ -83,18 +83,18 @@ public class PowerAuthRecoveryTest {
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_recovery_v3", ".json");
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         assertTrue(tempStatusFile.delete());
     }
 
     @Test
-    public void activationRecoveryTest() throws Exception {
+    void activationRecoveryTest() throws Exception {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
@@ -252,7 +252,7 @@ public class PowerAuthRecoveryTest {
     }
 
     @Test
-    public void activationRecoveryInvalidPukTest() throws Exception {
+    void activationRecoveryInvalidPukTest() throws Exception {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
@@ -358,7 +358,7 @@ public class PowerAuthRecoveryTest {
     }
 
     @Test
-    public void recoveryPostcardTest() throws Exception {
+    void recoveryPostcardTest() throws Exception {
         JSONObject resultStatusObject = new JSONObject();
         String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
         String randomUserId = "TestUser_" + UUID.randomUUID().toString();
@@ -552,7 +552,7 @@ public class PowerAuthRecoveryTest {
     }
 
     @Test
-    public void recoveryPostcardInvalidPukIndexTest() throws Exception {
+    void recoveryPostcardInvalidPukIndexTest() throws Exception {
         JSONObject resultStatusObject = new JSONObject();
         String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
         String randomUserId = "TestUser_" + UUID.randomUUID().toString();

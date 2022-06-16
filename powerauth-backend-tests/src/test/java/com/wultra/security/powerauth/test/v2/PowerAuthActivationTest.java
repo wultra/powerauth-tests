@@ -60,7 +60,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthActivationTest {
+class PowerAuthActivationTest {
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -80,7 +80,7 @@ public class PowerAuthActivationTest {
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_v2", ".json");
 
@@ -99,12 +99,12 @@ public class PowerAuthActivationTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         assertTrue(tempStatusFile.delete());
     }
 
     @Test
-    public void activationPrepareTest() throws Exception {
+    void activationPrepareTest() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -170,14 +170,14 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationNonExistentTest() throws PowerAuthClientException {
+    void activationNonExistentTest() throws PowerAuthClientException {
         // Verify activation status
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus("AAAAA-BBBBB-CCCCC-DDDDD");
         assertEquals(ActivationStatus.REMOVED, statusResponse.getActivationStatus());
     }
 
     @Test
-    public void activationPrepareUnsupportedApplicationTest() throws Exception {
+    void activationPrepareUnsupportedApplicationTest() throws Exception {
         // Unsupport application version
         powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
@@ -227,7 +227,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationPrepareExpirationTest() throws Exception {
+    void activationPrepareExpirationTest() throws Exception {
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -256,7 +256,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationPrepareWithoutInitTest() throws Exception {
+    void activationPrepareWithoutInitTest() throws Exception {
         // Prepare non-existent activation
         model.setActivationCode("AAAAA-BBBBB-CCCCC-DDDDD");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
@@ -273,7 +273,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationPrepareBadMasterPublicKeyTest() throws Exception {
+    void activationPrepareBadMasterPublicKeyTest() throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -302,12 +302,12 @@ public class PowerAuthActivationTest {
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
 
-        // Revert master public key change
+        // Revert master key change
         model.setMasterPublicKey(originalKey);
     }
 
     @Test
-    public void activationStatusTest() throws Exception {
+    void activationStatusTest() throws Exception {
         // Use test specific result status object
         JSONObject resultStatusObject = new JSONObject();
 
@@ -418,7 +418,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationInvalidApplicationKeyTest() throws Exception {
+    void activationInvalidApplicationKeyTest() throws Exception {
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -449,7 +449,7 @@ public class PowerAuthActivationTest {
     }
 
     @Test
-    public void activationInvalidApplicationSecretTest() throws Exception {
+    void activationInvalidApplicationSecretTest() throws Exception {
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());

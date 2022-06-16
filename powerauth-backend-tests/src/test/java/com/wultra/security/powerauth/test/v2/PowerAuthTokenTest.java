@@ -56,7 +56,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthTokenTest {
+class PowerAuthTokenTest {
 
     private PowerAuthTestConfiguration config;
     private NextStepClient nextStepClient;
@@ -82,7 +82,7 @@ public class PowerAuthTokenTest {
     }
 
     @BeforeAll
-    public static void setUpBeforeClass() throws IOException {
+    static void setUpBeforeClass() throws IOException {
         dataFile = File.createTempFile("data", ".json");
         FileWriter fw = new FileWriter(dataFile);
         fw.write("All your base are belong to us!");
@@ -90,12 +90,12 @@ public class PowerAuthTokenTest {
     }
 
     @AfterAll
-    public static void tearDownAfterClass() {
+    static void tearDownAfterClass() {
         assertTrue(dataFile.delete());
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         model = new CreateTokenStepModel();
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
@@ -112,7 +112,7 @@ public class PowerAuthTokenTest {
     }
 
     @Test
-    public void tokenCreateAndVerifyTest() throws Exception {
+    void tokenCreateAndVerifyTest() throws Exception {
         ObjectStepLogger stepLogger1 = new ObjectStepLogger();
         new CreateTokenStep().execute(stepLogger1, model.toMap());
         assertTrue(stepLogger1.getResult().isSuccess());
@@ -159,7 +159,7 @@ public class PowerAuthTokenTest {
     }
 
     @Test
-    public void tokenCreateInvalidPasswordTest() throws Exception {
+    void tokenCreateInvalidPasswordTest() throws Exception {
         model.setPassword("1235");
 
         new CreateTokenStep().execute(stepLogger, model.toMap());
@@ -173,7 +173,7 @@ public class PowerAuthTokenTest {
     }
 
     @Test
-    public void tokenVerifyInvalidTokenTest() throws Exception {
+    void tokenVerifyInvalidTokenTest() throws Exception {
         VerifyTokenStepModel modelVerify = new VerifyTokenStepModel();
         modelVerify.setTokenId("test");
         modelVerify.setTokenSecret("test");
@@ -196,7 +196,7 @@ public class PowerAuthTokenTest {
     }
 
     @Test
-    public void tokenVerifyRemovedTokenTest() throws Exception {
+    void tokenVerifyRemovedTokenTest() throws Exception {
         ObjectStepLogger stepLogger1 = new ObjectStepLogger();
         new CreateTokenStep().execute(stepLogger1, model.toMap());
         assertTrue(stepLogger1.getResult().isSuccess());
@@ -247,7 +247,7 @@ public class PowerAuthTokenTest {
     }
 
     @Test
-    public void tokenCreateBlockedActivationTest() throws Exception {
+    void tokenCreateBlockedActivationTest() throws Exception {
         powerAuthClient.blockActivation(config.getActivationIdV2(), "test", "test");
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
@@ -269,7 +269,7 @@ public class PowerAuthTokenTest {
     }
 
     @Test
-    public void tokenUnsupportedApplicationTest() throws Exception {
+    void tokenUnsupportedApplicationTest() throws Exception {
         powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
@@ -294,7 +294,7 @@ public class PowerAuthTokenTest {
     }
 
     @Test
-    public void tokenCounterIncrementTest() throws Exception {
+    void tokenCounterIncrementTest() throws Exception {
         long counter = (long) model.getResultStatusObject().get("counter");
 
         new CreateTokenStep().execute(stepLogger, model.toMap());

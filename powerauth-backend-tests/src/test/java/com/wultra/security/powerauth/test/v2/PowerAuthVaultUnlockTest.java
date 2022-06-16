@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthVaultUnlockTest {
+class PowerAuthVaultUnlockTest {
 
     private PowerAuthTestConfiguration config;
     private PowerAuthClient powerAuthClient;
@@ -68,7 +68,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         model = new VaultUnlockStepModel();
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
@@ -85,7 +85,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    public void vaultUnlockTest() throws Exception {
+    void vaultUnlockTest() throws Exception {
         new VaultUnlockStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
@@ -102,7 +102,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    public void vaultUnlockInvalidPasswordTest() throws Exception {
+    void vaultUnlockInvalidPasswordTest() throws Exception {
         model.setPassword("1235");
 
         new VaultUnlockStep().execute(stepLogger, model.toMap());
@@ -116,7 +116,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    public void vaultUnlockSingleFactorTest() throws Exception {
+    void vaultUnlockSingleFactorTest() throws Exception {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
 
         new VaultUnlockStep().execute(stepLogger, model.toMap());
@@ -132,7 +132,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    public void vaultUnlockBiometryFactorTest() throws Exception {
+    void vaultUnlockBiometryFactorTest() throws Exception {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_BIOMETRY);
 
         new VaultUnlockStep().execute(stepLogger, model.toMap());
@@ -141,7 +141,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    public void vaultUnlockThreeFactorTest() throws Exception {
+    void vaultUnlockThreeFactorTest() throws Exception {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY);
 
         new VaultUnlockStep().execute(stepLogger, model.toMap());
@@ -150,7 +150,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    public void vaultUnlockBlockedActivationTest() throws Exception {
+    void vaultUnlockBlockedActivationTest() throws Exception {
         powerAuthClient.blockActivation(config.getActivationIdV2(), "test", "test");
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
@@ -172,7 +172,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    public void vaultUnlockUnsupportedApplicationTest() throws Exception {
+    void vaultUnlockUnsupportedApplicationTest() throws Exception {
         powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
@@ -197,7 +197,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    public void vaultUnlockCounterIncrementTest() throws Exception {
+    void vaultUnlockCounterIncrementTest() throws Exception {
         long counter = (long) model.getResultStatusObject().get("counter");
 
         new VaultUnlockStep().execute(stepLogger, model.toMap());
@@ -209,7 +209,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    public void vaultUnlockTooLongReasonTest() throws Exception {
+    void vaultUnlockTooLongReasonTest() throws Exception {
         model.setReason("vt39nW6ZM963PJ8qxiREICZqK5medvUN8YizLDaLYTlMUtXyvdkqG3fMda29eCRHwAeAUsB415HqUlYZoDeEkvCOQzhu8ZpTGahAZVROi0YcNNGizecpzLDQUzRPbzVbHfJRd5zUasU3npS7FE9WZSqVfpLEthrPRN40efWxmKHxTzCUbHkk11odipkavelkG64mUgrdX0STh22vL4hE8jMjOM86HIT0rZHx2EhC1muJvtdDxWK3pz3Z9s2GHKj0");
 
         new VaultUnlockStep().execute(stepLogger, model.toMap());
@@ -224,7 +224,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    public void vaultUnlockAndECDSASignatureValidTest() throws Exception {
+    void vaultUnlockAndECDSASignatureValidTest() throws Exception {
         byte[] dataBytes = "test_data".getBytes(StandardCharsets.UTF_8);
         String data = BaseEncoding.base64().encode(dataBytes);
 
@@ -254,7 +254,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    public void vaultUnlockAndECDSASignatureInvalidTest() throws Exception {
+    void vaultUnlockAndECDSASignatureInvalidTest() throws Exception {
         byte[] dataBytes = "test_data_v2".getBytes(StandardCharsets.UTF_8);
         String data = BaseEncoding.base64().encode(dataBytes);
 
@@ -284,7 +284,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    public void vaultUnlockAndECDSASignatureInvalidActivationTest() throws Exception {
+    void vaultUnlockAndECDSASignatureInvalidActivationTest() throws Exception {
         byte[] dataBytes = "test_data_v2".getBytes(StandardCharsets.UTF_8);
         String data = BaseEncoding.base64().encode(dataBytes);
 
@@ -314,7 +314,7 @@ public class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    public void vaultUnlockAndECDSASignatureNonExistentActivationTest() throws Exception {
+    void vaultUnlockAndECDSASignatureNonExistentActivationTest() throws Exception {
         byte[] dataBytes = "test_data_v2".getBytes(StandardCharsets.UTF_8);
         String data = BaseEncoding.base64().encode(dataBytes);
 
