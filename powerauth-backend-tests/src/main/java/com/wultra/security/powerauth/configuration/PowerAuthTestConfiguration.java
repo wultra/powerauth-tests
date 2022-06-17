@@ -69,6 +69,9 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.enrollment.service.url:http://localhost:8080/enrollment-server}")
     private String enrollmentServiceUrl;
 
+    @Value("${powerauth.enrollment-onboarding.service.url:http://localhost:8080/enrollment-server-onboarding}")
+    private String enrollmentOnboardingServiceUrl;
+
     @Value("${powerauth.service.security.clientToken:}")
     private String clientToken;
 
@@ -231,6 +234,10 @@ public class PowerAuthTestConfiguration {
 
     public String getEnrollmentServiceUrl() {
         return enrollmentServiceUrl;
+    }
+
+    public String getEnrollmentOnboardingServiceUrl() {
+        return enrollmentOnboardingServiceUrl;
     }
 
     public String getApplicationName() {

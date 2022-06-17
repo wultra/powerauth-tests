@@ -23,7 +23,6 @@ import com.wultra.app.enrollmentserver.api.model.request.OnboardingCleanupReques
 import com.wultra.app.enrollmentserver.api.model.request.OnboardingOtpResendRequest;
 import com.wultra.app.enrollmentserver.api.model.request.OnboardingStartRequest;
 import com.wultra.app.enrollmentserver.api.model.request.OnboardingStatusRequest;
-import com.wultra.app.enrollmentserver.api.model.request.OnboardingOtpResendRequest;
 import com.wultra.app.enrollmentserver.api.model.response.OnboardingStartResponse;
 import com.wultra.app.enrollmentserver.api.model.response.OnboardingStatusResponse;
 import com.wultra.app.enrollmentserver.model.enumeration.OnboardingStatus;
@@ -117,7 +116,7 @@ public class PowerAuthOnboardingTest {
         activationModel.setPassword(config.getPassword());
         activationModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         activationModel.setResultStatusObject(resultStatusObject);
-        activationModel.setUriString(config.getEnrollmentServiceUrl());
+        activationModel.setUriString(config.getEnrollmentOnboardingServiceUrl());
         activationModel.setVersion("3.1");
         activationModel.setDeviceInfo("backend-tests");
 
@@ -221,7 +220,7 @@ public class PowerAuthOnboardingTest {
 
         // Test failed OTP resend
         stepLogger = new ObjectStepLogger(System.out);
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/otp/resend");
+        encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/otp/resend");
         OnboardingOtpResendRequest requestResend = new OnboardingOtpResendRequest();
         requestResend.setProcessId(processId);
         ObjectRequest<Object> objectRequest = new ObjectRequest<>();
@@ -328,7 +327,7 @@ public class PowerAuthOnboardingTest {
 
     private String startOnboarding(String clientId) throws Exception {
         stepLogger = new ObjectStepLogger(System.out);
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/start");
+        encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
         Map<String, Object> identification = new LinkedHashMap<>();
         if (clientId == null) {
             clientId = generateRandomClientId();
@@ -376,7 +375,7 @@ public class PowerAuthOnboardingTest {
 
     private void onboardingCleanup(String processId) throws Exception {
         stepLogger = new ObjectStepLogger(System.out);
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/cleanup");
+        encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/cleanup");
         OnboardingCleanupRequest requestCleanup = new OnboardingCleanupRequest();
         requestCleanup.setProcessId(processId);
         executeRequest(requestCleanup);
@@ -385,7 +384,7 @@ public class PowerAuthOnboardingTest {
     private OnboardingStatus getProcessStatus(String processId) throws Exception {
         OnboardingStatus onboardingStatus = null;
         stepLogger = new ObjectStepLogger(System.out);
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/status");
+        encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/status");
         OnboardingStatusRequest requestStatus = new OnboardingStatusRequest();
         requestStatus.setProcessId(processId);
         executeRequest(requestStatus);
@@ -453,7 +452,7 @@ public class PowerAuthOnboardingTest {
 
     private String getOtpCode(String processId) throws Exception {
         stepLogger = new ObjectStepLogger(System.out);
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/otp/detail");
+        encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/otp/detail");
         OtpDetailRequest requestOtp = new OtpDetailRequest();
         requestOtp.setProcessId(processId);
         requestOtp.setOtpType(OtpType.ACTIVATION);

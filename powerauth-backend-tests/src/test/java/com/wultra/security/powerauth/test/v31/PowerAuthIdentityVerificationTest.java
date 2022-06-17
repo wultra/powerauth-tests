@@ -394,7 +394,7 @@ public class PowerAuthIdentityVerificationTest {
         initRequest.setProcessId(processId);
         stepLogger = new ObjectStepLogger(System.out);
         signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(initRequest)));
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/init");
+        signatureModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/init");
         signatureModel.setResourceId("/api/identity/init");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
@@ -417,7 +417,7 @@ public class PowerAuthIdentityVerificationTest {
         // Submit large image for front side
         stepLogger = new ObjectStepLogger(System.out);
         tokenAndEncryptModel.setData(imageZipped);
-        tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/upload");
+        tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/upload");
 
         new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
@@ -452,7 +452,7 @@ public class PowerAuthIdentityVerificationTest {
         // Submit large image for back side
         stepLogger = new ObjectStepLogger(System.out);
         tokenAndEncryptModel.setData(imageZipped);
-        tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/upload");
+        tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/upload");
 
         new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
@@ -492,7 +492,7 @@ public class PowerAuthIdentityVerificationTest {
         // Submit ID card
         stepLogger = new ObjectStepLogger(System.out);
         tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(submitRequest)));
-        tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/submit");
+        tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/submit");
 
         new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
@@ -540,7 +540,7 @@ public class PowerAuthIdentityVerificationTest {
         initRequest.setAttributes(attributes);
         stepLogger = new ObjectStepLogger(System.out);
         signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(initRequest)));
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document-verification/init-sdk");
+        signatureModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document-verification/init-sdk");
         signatureModel.setResourceId("/api/identity/document-verification/init-sdk");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
@@ -561,7 +561,7 @@ public class PowerAuthIdentityVerificationTest {
 
     private String startOnboarding(String clientId) throws Exception {
         stepLogger = new ObjectStepLogger(System.out);
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/start");
+        encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
         encryptModel.setScope("application");
         Map<String, Object> identification = new LinkedHashMap<>();
         if (clientId == null) {
@@ -674,7 +674,7 @@ public class PowerAuthIdentityVerificationTest {
 
     private String getOtpCode(String processId, OtpType otpType) throws Exception {
         stepLogger = new ObjectStepLogger(System.out);
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/otp/detail");
+        encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/otp/detail");
         encryptModel.setScope("application");
         OtpDetailRequest requestOtp = new OtpDetailRequest();
         requestOtp.setProcessId(processId);
@@ -712,7 +712,7 @@ public class PowerAuthIdentityVerificationTest {
         initRequest.setProcessId(processId);
         stepLogger = new ObjectStepLogger(System.out);
         signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(initRequest)));
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/init");
+        signatureModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/init");
         signatureModel.setResourceId("/api/identity/init");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
@@ -751,7 +751,7 @@ public class PowerAuthIdentityVerificationTest {
         // Submit ID card
         stepLogger = new ObjectStepLogger(System.out);
         tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(submitRequest)));
-        tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/submit");
+        tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/submit");
 
         new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
@@ -834,7 +834,7 @@ public class PowerAuthIdentityVerificationTest {
         docStatusRequest.setProcessId(processId);
         stepLogger = new ObjectStepLogger(System.out);
         tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(docStatusRequest)));
-        tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/document/status");
+        tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/status");
 
         new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
@@ -862,7 +862,7 @@ public class PowerAuthIdentityVerificationTest {
         presenceCheckRequest.setProcessId(processId);
         stepLogger = new ObjectStepLogger(System.out);
         signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(presenceCheckRequest)));
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/presence-check/init");
+        signatureModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/presence-check/init");
         signatureModel.setResourceId("/api/identity/presence-check/init");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
@@ -893,7 +893,7 @@ public class PowerAuthIdentityVerificationTest {
         IdentityVerificationStatusRequest statusRequest = new IdentityVerificationStatusRequest();
         stepLogger = new ObjectStepLogger(System.out);
         tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(statusRequest)));
-        tokenAndEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/status");
+        tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/status");
 
         new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
@@ -920,7 +920,7 @@ public class PowerAuthIdentityVerificationTest {
         statusRequest.setProcessId(processId);
         stepLogger = new ObjectStepLogger(System.out);
         encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(statusRequest)));
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/onboarding/status");
+        encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/status");
         encryptModel.setScope("application");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
@@ -955,7 +955,7 @@ public class PowerAuthIdentityVerificationTest {
                 otpVerifyRequest.setOtpCode(otpCode);
                 stepLogger = new ObjectStepLogger(System.out);
                 encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpVerifyRequest)));
-                encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/otp/verify");
+                encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/otp/verify");
                 encryptModel.setScope("activation");
                 new EncryptStep().execute(stepLogger, encryptModel.toMap());
                 assertTrue(stepLogger.getResult().isSuccess());
@@ -989,7 +989,7 @@ public class PowerAuthIdentityVerificationTest {
         cleanupRequest.setProcessId(processId);
         stepLogger = new ObjectStepLogger(System.out);
         signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(cleanupRequest)));
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/api/identity/cleanup");
+        signatureModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/cleanup");
         signatureModel.setResourceId("/api/identity/cleanup");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
