@@ -15,17 +15,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+package com.wultra.security.powerauth.app.testserver.model.request;
 
-package com.wultra.security.powerauth.app.testserver.database;
-
-import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
+import lombok.Data;
 
 /**
- * Repository for test application configuration.
+ * Request for approving an operation.
+ *
+ * @author Petr Dvorak, petr@wultra.com
  */
-@Repository
-public interface TestConfigRepository extends CrudRepository<TestConfigEntity, String> {
-
+@Data
+public class OperationApproveInternalRequest {
+    private String activationId;
+    private String applicationId;
+    private String password;
+    private String operationId;
+    private String operationData;
 }

@@ -1,10 +1,10 @@
 CREATE TABLE pa_test_config
 (
-    application_id     INTEGER NOT NULL PRIMARY KEY, -- Application identifier
-    application_name   VARCHAR(255) NOT NULL,        -- Application name
-    application_key    VARCHAR(255) NOT NULL,        -- Application key
-    application_secret VARCHAR(255) NOT NULL,        -- Application secret
-    master_public_key  VARCHAR(255) NOT NULL         -- Master public key in Base64 format
+    application_id     VARCHAR(255) NOT NULL PRIMARY KEY, -- Application identifier
+    application_name   VARCHAR(255) NOT NULL,             -- Application name
+    application_key    VARCHAR(255) NOT NULL,             -- Application key
+    application_secret VARCHAR(255) NOT NULL,             -- Application secret
+    master_public_key  VARCHAR(255) NOT NULL              -- Master public key in Base64 format
 );
 
 CREATE TABLE pa_test_status
