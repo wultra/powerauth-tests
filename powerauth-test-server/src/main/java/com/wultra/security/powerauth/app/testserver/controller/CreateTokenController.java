@@ -61,7 +61,7 @@ public class CreateTokenController {
      * @throws AppConfigNotFoundException In case app configuration is incorrect.
      * @throws ActivationFailedException In case activation is not found.
      */
-    @RequestMapping(value = "token/create", method = RequestMethod.POST)
+    @RequestMapping(value = "create", method = RequestMethod.POST)
     public ObjectResponse<CreateTokenResponse> createToken(@RequestBody ObjectRequest<CreateTokenRequest> request) throws GenericCryptographyException, RemoteExecutionException, AppConfigNotFoundException, ActivationFailedException {
         final CreateTokenResponse response = tokenService.createToken(request.getRequestObject());
         return new ObjectResponse<>(response);
