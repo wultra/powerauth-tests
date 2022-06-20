@@ -31,7 +31,6 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutio
 import com.wultra.security.powerauth.app.testserver.errorhandling.SignatureVerificationException;
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
-import com.wultra.security.powerauth.lib.mtoken.model.response.OperationListResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.core.rest.model.base.response.Response;
@@ -42,6 +41,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
+import io.getlime.security.powerauth.lib.mtoken.model.response.OperationListResponse;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -25,10 +25,10 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.SignatureVerif
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
 import com.wultra.security.powerauth.app.testserver.service.OperationsService;
-import com.wultra.security.powerauth.lib.mtoken.model.response.OperationListResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.core.rest.model.base.response.Response;
+import io.getlime.security.powerauth.lib.mtoken.model.response.OperationListResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
