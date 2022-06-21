@@ -28,7 +28,7 @@ import lombok.Data;
 @Data
 public class CreateActivationRequest {
 
-    private Long applicationId;
+    private String applicationId;
     private String activationName;
     private String password;
     private String activationCode;

@@ -47,7 +47,7 @@ public class TestConfigEntity implements Serializable {
 
     @Id
     @Column(name = "application_id", nullable = false)
-    private Long applicationId;
+    private String applicationId;
 
     @Column(name = "application_name", nullable = false)
     private String applicationName;

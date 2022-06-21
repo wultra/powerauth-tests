@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.app.testserver.service;
 
 import com.wultra.security.powerauth.app.testserver.database.TestStatusRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestStatusEntity;
+import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -76,6 +77,35 @@ public class ResultStatusService {
         statusEntity.setTransportMasterKey(transportMasterKey);
 
         appStatusRepository.save(statusEntity);
+    }
+
+    /**
+     * Deserialize the activation status back to JSON Object.
+     * @param activationId Activation ID to deserialize.
+     * @return Deserialized activation status object.
+     * @throws ActivationFailedException In case an activation with given ID does not exist.
+     */
+    public JSONObject getTestStatus(String activationId) throws ActivationFailedException {
+        final Optional<TestStatusEntity> statusOptional = appStatusRepository.findById(activationId);
+        if (statusOptional.isEmpty()) {
+            throw new ActivationFailedException("Activation with given ID not found: " + activationId);
+        }
+        final TestStatusEntity testStatusEntity = statusOptional.get();
+
+        final JSONObject result = new JSONObject();
+        result.put("activationId", testStatusEntity.getActivationId());
+        result.put("serverPublicKey", testStatusEntity.getServerPublicKey());
+        result.put("counter", testStatusEntity.getCounter());
+        result.put("ctrData", testStatusEntity.getCtrData());
+        result.put("encryptedDevicePrivateKey", testStatusEntity.getEncryptedDevicePrivateKey());
+        result.put("signatureBiometryKey", testStatusEntity.getSignatureBiometryKey());
+        result.put("signatureKnowledgeKeyEncrypted", testStatusEntity.getSignatureKnowledgeKeyEncrypted());
+        result.put("signatureKnowledgeKeySalt", testStatusEntity.getSignatureKnowledgeKeySalt());
+        result.put("signaturePossessionKey", testStatusEntity.getSignaturePossessionKey());
+        result.put("transportMasterKey", testStatusEntity.getTransportMasterKey());
+        result.put("version", 3L);
+
+        return result;
     }
 
     private String getStringValue(JSONObject resultStatusObject, String key) {
