@@ -106,7 +106,6 @@ public class OperationsService extends BaseService {
         model.setTokenSecret(request.getTokenSecret());
         model.setDryRun(true);
         model.setHttpMethod("POST");
-        model.setUriString("--DUMMY");
         model.setVersion(config.getVersion());
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatusObject(resultStatusObject);
