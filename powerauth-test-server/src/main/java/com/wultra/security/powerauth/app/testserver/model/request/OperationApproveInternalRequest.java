@@ -26,9 +26,11 @@ import lombok.Data;
  */
 @Data
 public class OperationApproveInternalRequest {
+
     private String activationId;
     private String applicationId;
     private String password;
     private String operationId;
     private String operationData;
+
 }

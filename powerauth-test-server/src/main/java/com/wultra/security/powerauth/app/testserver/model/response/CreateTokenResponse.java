@@ -26,6 +26,8 @@ import lombok.Data;
  */
 @Data
 public class CreateTokenResponse {
+
     private String tokenId;
     private String tokenSecret;
+    
 }

@@ -26,7 +26,9 @@ import lombok.Data;
  */
 @Data
 public class CreateTokenRequest {
+
     private String activationId;
     private String applicationId;
     private String password;
+
 }
