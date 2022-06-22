@@ -116,7 +116,7 @@ public class PowerAuthOnboardingTest {
         activationModel.setPassword(config.getPassword());
         activationModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         activationModel.setResultStatusObject(resultStatusObject);
-        activationModel.setUriString(config.getEnrollmentOnboardingServiceUrl());
+        activationModel.setUriString(config.getEnrollmentServiceUrl());
         activationModel.setVersion("3.1");
         activationModel.setDeviceInfo("backend-tests");
 
