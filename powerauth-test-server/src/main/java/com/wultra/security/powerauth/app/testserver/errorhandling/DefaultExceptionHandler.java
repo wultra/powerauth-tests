@@ -86,6 +86,18 @@ public class DefaultExceptionHandler {
     }
 
     /**
+     * Exception handler for signature verification exception.
+     * @param ex Exception.
+     * @return Response with error details.
+     */
+    @ExceptionHandler(SignatureVerificationException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public @ResponseBody ErrorResponse handleSignatureVerificationException(SignatureVerificationException ex) {
+        logger.warn("Signature verification failed.", ex);
+        return new ErrorResponse("SIGNATURE_VERIFICATION_EXCEPTION", "Signature verification failed.");
+    }
+
+    /**
      * Exception handler for activation failed execution.
      * @param ex Exception.
      * @return Response with error details.

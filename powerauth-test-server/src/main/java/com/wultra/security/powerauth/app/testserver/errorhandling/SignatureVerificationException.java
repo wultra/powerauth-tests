@@ -15,17 +15,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package com.wultra.security.powerauth.app.testserver.database;
-
-import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
-import org.springframework.data.repository.CrudRepository;
-import org.springframework.stereotype.Repository;
+package com.wultra.security.powerauth.app.testserver.errorhandling;
 
 /**
- * Repository for test application configuration.
+ * Exception thrown when verification of signature fails.
+ *
+ * @author Petr Dvorak, petr@wultra.com
  */
-@Repository
-public interface TestConfigRepository extends CrudRepository<TestConfigEntity, String> {
+public class SignatureVerificationException extends Exception {
 
+    /**
+     * Constructor with a message.
+     * @param message Message.
+     */
+    public SignatureVerificationException(String message) {
+        super(message);
+    }
 }

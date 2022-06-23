@@ -15,16 +15,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package com.wultra.security.powerauth.app.testserver.controller;
 
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
-import com.wultra.security.powerauth.app.testserver.model.request.CreateActivationRequest;
-import com.wultra.security.powerauth.app.testserver.model.response.CreateActivationResponse;
-import com.wultra.security.powerauth.app.testserver.service.ActivationService;
+import com.wultra.security.powerauth.app.testserver.model.request.CreateTokenRequest;
+import com.wultra.security.powerauth.app.testserver.model.response.CreateTokenResponse;
+import com.wultra.security.powerauth.app.testserver.service.CreateTokenService;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,38 +33,37 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Controller for activation actions.
+ * Controller for token related services.
  *
- * @author Roman Strobl, roman.strobl@wultra.com
+ * @author Petr Dvorak, petr@wultra.com
  */
 @RestController
-@RequestMapping("activation")
-public class ActivationController {
+@RequestMapping("token")
+public class CreateTokenController {
 
-    private final ActivationService activationService;
+    private final CreateTokenService tokenService;
 
     /**
-     * Controller constructor.
-     * @param activationService Activation service.
+     * Constructor with token service.
+     * @param tokenService Token service.
      */
     @Autowired
-    public ActivationController(ActivationService activationService) {
-        this.activationService = activationService;
+    public CreateTokenController(CreateTokenService tokenService) {
+        this.tokenService = tokenService;
     }
 
     /**
-     * Create an activation.
-     * @param request Create activation request.
-     * @return Create activation response.
-     * @throws AppConfigNotFoundException Thrown when application configuration is not found.
-     * @throws GenericCryptographyException Thrown when cryptography computation fails.
-     * @throws RemoteExecutionException Thrown when remote execution fails.
-     * @throws ActivationFailedException Thrown when activation fails.
+     * Call to create a new token.
+     * @param request Request for creating a new token.
+     * @return Response with token ID and secret.
+     * @throws GenericCryptographyException In case a crypto provider is not initialized properly.
+     * @throws RemoteExecutionException In case remote communication fails.
+     * @throws AppConfigNotFoundException In case app configuration is incorrect.
+     * @throws ActivationFailedException In case activation is not found.
      */
     @RequestMapping(value = "create", method = RequestMethod.POST)
-    public ObjectResponse<CreateActivationResponse> createActivation(@RequestBody ObjectRequest<CreateActivationRequest> request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException, ActivationFailedException {
-        // TODO - input validation
-        final CreateActivationResponse response = activationService.createActivation(request.getRequestObject());
+    public ObjectResponse<CreateTokenResponse> createToken(@RequestBody ObjectRequest<CreateTokenRequest> request) throws GenericCryptographyException, RemoteExecutionException, AppConfigNotFoundException, ActivationFailedException {
+        final CreateTokenResponse response = tokenService.createToken(request.getRequestObject());
         return new ObjectResponse<>(response);
     }
 
