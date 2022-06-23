@@ -19,11 +19,10 @@
  */
 package com.wultra.security.powerauth.webflow.configuration;
 
-import io.getlime.security.powerauth.rest.api.spring.annotation.PowerAuthAnnotationInterceptor;
-import io.getlime.security.powerauth.rest.api.spring.annotation.PowerAuthEncryptionArgumentResolver;
-import io.getlime.security.powerauth.rest.api.spring.annotation.PowerAuthWebArgumentResolver;
+import io.getlime.security.powerauth.rest.api.spring.annotation.support.PowerAuthAnnotationInterceptor;
+import io.getlime.security.powerauth.rest.api.spring.annotation.support.PowerAuthEncryptionArgumentResolver;
+import io.getlime.security.powerauth.rest.api.spring.annotation.support.PowerAuthWebArgumentResolver;
 import io.getlime.security.powerauth.rest.api.spring.filter.PowerAuthRequestFilter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -41,13 +40,6 @@ import java.util.List;
  */
 @Configuration
 public class WebApplicationConfiguration implements WebMvcConfigurer {
-
-    private final com.fasterxml.jackson.databind.ObjectMapper mapper;
-
-    @Autowired
-    public WebApplicationConfiguration(com.fasterxml.jackson.databind.ObjectMapper mapper) {
-        this.mapper = mapper;
-    }
 
     /**
      * Register a new @PowerAuth annotation interceptor.
@@ -81,7 +73,7 @@ public class WebApplicationConfiguration implements WebMvcConfigurer {
      * @return PowerAuthRequestFilter instance.
      */
     @Bean
-    public FilterRegistrationBean powerAuthFilterRegistration() {
+    public FilterRegistrationBean<?> powerAuthFilterRegistration() {
         FilterRegistrationBean<PowerAuthRequestFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new PowerAuthRequestFilter());
         registrationBean.setMatchAfter(true);

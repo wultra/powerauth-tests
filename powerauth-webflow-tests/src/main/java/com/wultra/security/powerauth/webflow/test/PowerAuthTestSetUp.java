@@ -17,28 +17,26 @@
  */
 package com.wultra.security.powerauth.webflow.test;
 
+import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.webflow.configuration.WebFlowTestConfiguration;
-import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
-import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.openqa.selenium.Capabilities;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.safari.SafariOptions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Global test setup.
@@ -47,11 +45,13 @@ import static org.junit.Assert.assertNotEquals;
  */
 public class PowerAuthTestSetUp {
 
-    private PowerAuthServiceClient powerAuthClient;
+    private static final String PUBLIC_KEY_RECOVERY_POSTCARD_BASE64 = "BABXgGoj4Lizl3GN0rjrtileEEwekFkpX1ERS9yyYjyuM1Iqdti3ihtATBxk5XGvjetPO1YC+qXciUYjIsETtbI=";
+
+    private PowerAuthClient powerAuthClient;
     private WebFlowTestConfiguration config;
 
     @Autowired
-    public void setPowerAuthServiceClient(PowerAuthServiceClient powerAuthClient) {
+    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 
@@ -68,13 +68,13 @@ public class PowerAuthTestSetUp {
 
     private void printTestConfiguration() {
         System.out.println("Test settings:");
-        System.out.println("powerauth.service.url=" + config.getPowerAuthServiceUrl());
+        System.out.println("powerauth.service.url=" + config.getPowerAuthRestUrl());
         System.out.println("powerauth.webflow.service.url=" + config.getPowerAuthWebFlowUrl());
         System.out.println("powerauth.nextstep.service.url=" + config.getNextStepServiceUrl());
         System.out.println("powerauth.webflow.client.url=" + config.getWebFlowClientUrl());
     }
 
-    private void createApplication() {
+    private void createApplication() throws PowerAuthClientException {
         // Create application if it does not exist
         List<GetApplicationListResponse.Applications> applications = powerAuthClient.getApplicationList();
         boolean applicationExists = false;
@@ -115,6 +115,17 @@ public class PowerAuthTestSetUp {
             // Make sure application version is supported
             powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
         }
+        // Set up activation recovery
+        GetRecoveryConfigResponse recoveryResponse = powerAuthClient.getRecoveryConfig(config.getApplicationId());
+        if (!recoveryResponse.isActivationRecoveryEnabled() || !recoveryResponse.isRecoveryPostcardEnabled() || recoveryResponse.getPostcardPublicKey() == null || recoveryResponse.getRemotePostcardPublicKey() == null) {
+            UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
+            request.setApplicationId(config.getApplicationId());
+            request.setActivationRecoveryEnabled(true);
+            request.setRecoveryPostcardEnabled(true);
+            request.setAllowMultipleRecoveryCodes(false);
+            request.setRemotePostcardPublicKey(PUBLIC_KEY_RECOVERY_POSTCARD_BASE64);
+            powerAuthClient.updateRecoveryConfig(request);
+        }
     }
 
     private void createActivation() throws Exception {
@@ -127,7 +138,7 @@ public class PowerAuthTestSetUp {
         // Prepare activation
         PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(initResponse.getActivationCode());
-        model.setActivationName("test webflow");
+        model.setActivationName("test v31");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
@@ -146,7 +157,6 @@ public class PowerAuthTestSetUp {
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
-        System.out.println("committed: "+initResponse.getActivationId());
 
         config.setActivationId(initResponse.getActivationId());
     }
