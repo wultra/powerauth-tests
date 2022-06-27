@@ -43,6 +43,7 @@ import javax.annotation.PreDestroy;
 import java.io.File;
 import java.security.PublicKey;
 import java.security.Security;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -68,6 +69,9 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.enrollment.service.url:http://localhost:8080/enrollment-server}")
     private String enrollmentServiceUrl;
 
+    @Value("${powerauth.enrollment-onboarding.service.url:http://localhost:8080/enrollment-server-onboarding}")
+    private String enrollmentOnboardingServiceUrl;
+
     @Value("${powerauth.service.security.clientToken:}")
     private String clientToken;
 
@@ -79,6 +83,27 @@ public class PowerAuthTestConfiguration {
 
     @Value("${powerauth.test.application.version:default}")
     private String applicationVersion;
+
+    @Value("${powerauth.test.identity.additionalDocSubmitValidationsEnabled:true}")
+    private boolean additionalDocSubmitValidationsEnabled;
+
+    @Value("${powerauth.test.identity.presence-check.skip:true}")
+    private boolean skipPresenceCheck;
+
+    @Value("${powerauth.test.identity.otp-verification.skip:true}")
+    private boolean skipOtpVerification;
+
+    @Value("${powerauth.test.identity.verificationOnSubmitEnabled:true}")
+    private boolean verificationOnSubmitEnabled;
+
+    @Value("${powerauth.test.assertMaxRetries:20}")
+    private int assertMaxRetries;
+
+    @Value("${powerauth.test.assertRetryWaitPeriod:PT1S}")
+    private Duration assertRetryWaitPeriod;
+
+    @Value("${powerauth.test.identity.result-verification.skip:false}")
+    private boolean skipResultVerification;
 
     @Value("${powerauth.test.db.concurrency.skip:true}")
     private boolean skipDbConcurrencyTests;
@@ -211,6 +236,10 @@ public class PowerAuthTestConfiguration {
         return enrollmentServiceUrl;
     }
 
+    public String getEnrollmentOnboardingServiceUrl() {
+        return enrollmentOnboardingServiceUrl;
+    }
+
     public String getApplicationName() {
         return applicationName;
     }
@@ -333,7 +362,36 @@ public class PowerAuthTestConfiguration {
         try {
             masterPublicKeyConverted = keyConvertor.convertBytesToPublicKey(masterKeyBytes);
         } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
         }
+    }
+
+    public Duration getAssertRetryWaitPeriod() {
+        return assertRetryWaitPeriod;
+    }
+
+    public int getAssertMaxRetries() {
+        return assertMaxRetries;
+    }
+
+    public boolean isAdditionalDocSubmitValidationsEnabled() {
+        return additionalDocSubmitValidationsEnabled;
+    }
+
+    public boolean isSkipPresenceCheck() {
+        return skipPresenceCheck;
+    }
+
+    public boolean isSkipOtpVerification() {
+        return skipOtpVerification;
+    }
+
+    public boolean isVerificationOnSubmitEnabled() {
+        return verificationOnSubmitEnabled;
+    }
+
+    public boolean isSkipResultVerification() {
+        return skipResultVerification;
     }
 
     public boolean isSkipDbConcurrencyTests() {

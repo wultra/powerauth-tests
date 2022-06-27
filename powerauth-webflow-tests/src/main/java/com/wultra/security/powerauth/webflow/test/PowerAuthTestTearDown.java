@@ -17,12 +17,12 @@
  */
 package com.wultra.security.powerauth.webflow.test;
 
+import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.webflow.configuration.WebFlowTestConfiguration;
-import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Global test teardown.
@@ -31,11 +31,11 @@ import static junit.framework.TestCase.assertTrue;
  */
 public class PowerAuthTestTearDown {
 
-    private PowerAuthServiceClient powerAuthClient;
+    private PowerAuthClient powerAuthClient;
     private WebFlowTestConfiguration config;
 
     @Autowired
-    public void setPowerAuthServiceClient(PowerAuthServiceClient powerAuthClient) {
+    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 
@@ -44,7 +44,7 @@ public class PowerAuthTestTearDown {
         this.config = config;
     }
 
-    public void execute() {
+    public void execute() throws PowerAuthClientException {
         powerAuthClient.removeActivation(config.getActivationId(), "test");
         assertTrue(config.getStatusFile().delete());
         try {
