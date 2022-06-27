@@ -29,5 +29,5 @@ public class CreateTokenResponse {
 
     private String tokenId;
     private String tokenSecret;
-    
+
 }
