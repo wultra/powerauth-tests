@@ -5,24 +5,24 @@
     <Parameter name="powerauth.enrollment.service.url" value="${POWERAUTH_TEST_SERVER_ENROLLMENT_SERVER_URL}"/>
 
     <!-- PowerAuth Protocol Version -->
-    <Parameter name="powerauth.version" value="${POWERAUTH_TEST_SERVER_POWERAUTH_VERSION}"/>
+    <Parameter name="powerauth.version" value="${POWERAUTH_TEST_SERVER_POWERAUTH_VERSION:3.1}"/>
 
     <!-- Result Status Persistence Type -->
-    <Parameter name="resultstatus.persistenceType" value="${POWERAUTH_TEST_SERVER_RESULT_STATUS_PERSISTENCE_TYPE}"/>
+    <Parameter name="resultstatus.persistenceType" value="${POWERAUTH_TEST_SERVER_RESULT_STATUS_PERSISTENCE_TYPE:memory}"/>
 
     <!-- Datasource Configuration -->
     <Parameter name="spring.datasource.url" value="${POWERAUTH_TEST_SERVER_DATASOURCE_URL}"/>
     <Parameter name="spring.datasource.username" value="${POWERAUTH_TEST_SERVER_DATASOURCE_USERNAME}"/>
     <Parameter name="spring.datasource.password" value="${POWERAUTH_TEST_SERVER_DATASOURCE_PASSWORD}"/>
-    <Parameter name="spring.datasource.driver-class-name" value="${POWERAUTH_TEST_SERVER_DATASOURCE_DRIVER}"/>
-    <Parameter name="spring.jpa.hibernate.ddl-auto" value="${POWERAUTH_TEST_SERVER_JPA_DDL_AUTO}"/>
+    <Parameter name="spring.datasource.driver-class-name" value="${POWERAUTH_TEST_SERVER_DATASOURCE_DRIVER:org.postgresql.Driver}"/>
+    <Parameter name="spring.jpa.hibernate.ddl-auto" value="${POWERAUTH_TEST_SERVER_JPA_DDL_AUTO:update}"/>
 
     <!-- Configuration of Database Charset -->
-    <Parameter name="spring.jpa.properties.hibernate.connection.CharSet" value="${POWERAUTH_TEST_SERVER_JPA_CHARSET}"/>
-    <Parameter name="spring.jpa.properties.hibernate.connection.characterEncoding" value="${POWERAUTH_TEST_SERVER_JPA_CHARACTER_ENCODING}"/>
-    <Parameter name="spring.jpa.properties.hibernate.connection.useUnicode" value="${POWERAUTH_TEST_SERVER_JPA_USE_UNICODE}"/>
+    <Parameter name="spring.jpa.properties.hibernate.connection.CharSet" value="${POWERAUTH_TEST_SERVER_JPA_CHARSET:UTF-8}"/>
+    <Parameter name="spring.jpa.properties.hibernate.connection.characterEncoding" value="${POWERAUTH_TEST_SERVER_JPA_CHARACTER_ENCODING:UTF-8}"/>
+    <Parameter name="spring.jpa.properties.hibernate.connection.useUnicode" value="${POWERAUTH_TEST_SERVER_JPA_USE_UNICODE:true}"/>
 
     <!-- Additional JPA Configuration -->
-    <Parameter name="spring.jpa.database-platform" value="${POWERAUTH_TEST_SERVER_JPA_DATABASE_PLATFORM}"/>
+    <Parameter name="spring.jpa.database-platform" value="${POWERAUTH_TEST_SERVER_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQL95Dialect}"/>
 
 </Context>
