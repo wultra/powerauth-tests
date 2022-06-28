@@ -19,12 +19,12 @@ package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.app.enrollmentserver.api.model.request.OnboardingCleanupRequest;
-import com.wultra.app.enrollmentserver.api.model.request.OnboardingOtpResendRequest;
-import com.wultra.app.enrollmentserver.api.model.request.OnboardingStartRequest;
-import com.wultra.app.enrollmentserver.api.model.request.OnboardingStatusRequest;
-import com.wultra.app.enrollmentserver.api.model.response.OnboardingStartResponse;
-import com.wultra.app.enrollmentserver.api.model.response.OnboardingStatusResponse;
+import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingCleanupRequest;
+import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingOtpResendRequest;
+import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingStartRequest;
+import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingStatusRequest;
+import com.wultra.app.enrollmentserver.api.model.onboarding.response.OnboardingStartResponse;
+import com.wultra.app.enrollmentserver.api.model.onboarding.response.OnboardingStatusResponse;
 import com.wultra.app.enrollmentserver.model.enumeration.OnboardingStatus;
 import com.wultra.app.enrollmentserver.model.enumeration.OtpType;
 import com.wultra.security.powerauth.client.PowerAuthClient;
