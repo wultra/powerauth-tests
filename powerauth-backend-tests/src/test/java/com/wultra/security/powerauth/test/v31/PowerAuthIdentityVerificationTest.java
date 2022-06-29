@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.test.v31;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -60,16 +61,19 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthIdentityVerificationTest {
+class PowerAuthIdentityVerificationTest {
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -93,7 +97,7 @@ public class PowerAuthIdentityVerificationTest {
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         // Create temp status file
         File tempStatusFile = File.createTempFile("pa_status_v31", ".json");
 
@@ -157,11 +161,12 @@ public class PowerAuthIdentityVerificationTest {
     }
 
     @Test
-    public void testSuccessfulIdentityVerification() throws Exception {
+    void testSuccessfulIdentityVerification() throws Exception {
         String[] context = prepareActivation();
         String activationId = context[0];
         String processId = context[1];
 
+        approveConsent(processId);
         initIdentityVerification(activationId, processId);
 
         List<FileSubmit> idCardSubmits = ImmutableList.of(
@@ -195,10 +200,12 @@ public class PowerAuthIdentityVerificationTest {
     }
 
     @Test
-    public void testSuccessfulIdentityVerificationWithRestarts() throws Exception {
+    void testSuccessfulIdentityVerificationWithRestarts() throws Exception {
         String[] context = prepareActivation();
         String activationId = context[0];
         String processId = context[1];
+
+        approveConsent(processId);
 
         for (int i = 0; i < 3; i++) {
             initIdentityVerification(activationId, processId);
@@ -240,11 +247,12 @@ public class PowerAuthIdentityVerificationTest {
     }
 
     @Test
-    public void testSuccessfulIdentityVerificationMultipleDocSubmits() throws Exception {
+    void testSuccessfulIdentityVerificationMultipleDocSubmits() throws Exception {
         String[] context = prepareActivation();
         String activationId = context[0];
         String processId = context[1];
 
+        approveConsent(processId);
         initIdentityVerification(activationId, processId);
 
         List<FileSubmit> idCardSubmits = ImmutableList.of(
@@ -282,7 +290,7 @@ public class PowerAuthIdentityVerificationTest {
     }
 
     @Test
-    public void testDocSubmitDifferentDocumentType() throws Exception {
+    void testDocSubmitDifferentDocumentType() throws Exception {
         if (!config.isAdditionalDocSubmitValidationsEnabled()) {
             return;
         }
@@ -290,6 +298,7 @@ public class PowerAuthIdentityVerificationTest {
         String activationId = context[0];
         String processId = context[1];
 
+        approveConsent(processId);
         initIdentityVerification(activationId, processId);
 
         List<FileSubmit> docSubmits = ImmutableList.of(
@@ -309,7 +318,7 @@ public class PowerAuthIdentityVerificationTest {
     }
 
     @Test
-    public void testDocSubmitDifferentCardSide() throws Exception {
+    void testDocSubmitDifferentCardSide() throws Exception {
         if (!config.isAdditionalDocSubmitValidationsEnabled()) {
             return;
         }
@@ -317,6 +326,7 @@ public class PowerAuthIdentityVerificationTest {
         String activationId = context[0];
         String processId = context[1];
 
+        approveConsent(processId);
         initIdentityVerification(activationId, processId);
 
         List<FileSubmit> docSubmits = ImmutableList.of(
@@ -336,11 +346,12 @@ public class PowerAuthIdentityVerificationTest {
     }
 
     @Test
-    public void testIdentityVerificationNotDocumentPhotos() throws Exception {
+    void testIdentityVerificationNotDocumentPhotos() throws Exception {
         String[] context = prepareActivation();
         String activationId = context[0];
         String processId = context[1];
 
+        approveConsent(processId);
         initIdentityVerification(activationId, processId);
 
         List<FileSubmit> invalidDocSubmits = ImmutableList.of(
@@ -361,11 +372,12 @@ public class PowerAuthIdentityVerificationTest {
     }
 
     @Test
-    public void testIdentityVerificationCleanup() throws Exception {
+    void testIdentityVerificationCleanup() throws Exception {
         String[] context = prepareActivation();
         String activationId = context[0];
         String processId = context[1];
 
+        approveConsent(processId);
         initIdentityVerification(activationId, processId);
 
         List<FileSubmit> idDocSubmits = ImmutableList.of(
@@ -382,7 +394,7 @@ public class PowerAuthIdentityVerificationTest {
     }
 
     @Test
-    public void largeUploadTest() throws Exception {
+    void largeUploadTest() throws Exception {
         String[] context = prepareActivation();
         String activationId = context[0];
         String processId = context[1];
@@ -528,7 +540,7 @@ public class PowerAuthIdentityVerificationTest {
     }
 
     @Test
-    public void initDocumentVerificationSdkTest() throws Exception {
+    void initDocumentVerificationSdkTest() throws Exception {
         String[] context = prepareActivation();
         String processId = context[1];
 
@@ -722,6 +734,61 @@ public class PowerAuthIdentityVerificationTest {
         // Check activation flags
         ListActivationFlagsResponse flagResponse2 = powerAuthClient.listActivationFlags(activationId);
         assertEquals(Collections.singletonList("VERIFICATION_IN_PROGRESS"), flagResponse2.getActivationFlags());
+    }
+
+    private void approveConsent(final String processId) throws Exception {
+        final OnboardingConsentTextRequest textRequest = new OnboardingConsentTextRequest();
+        textRequest.setProcessId(UUID.fromString(processId));
+        textRequest.setConsentType("GDPR");
+
+        stepLogger = new ObjectStepLogger(System.out);
+        encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(textRequest)));
+        encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/consent/text");
+        encryptModel.setScope("activation");
+
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+
+        final String consentText = stepLogger.getItems().stream()
+                .filter(isStepItemDecryptedResponse())
+                .map(StepItem::getObject)
+                .map(Object::toString)
+                .map(it -> safeReadValue(it, new TypeReference<ObjectResponse<OnboardingConsentTextResponse>>() { }))
+                .filter(Objects::nonNull)
+                .map(ObjectResponse::getResponseObject)
+                .map(OnboardingConsentTextResponse::getConsentText)
+                .findFirst()
+                .orElse("error - no consent found");
+
+        assertThat(consentText, startsWith("<html><body><h1>Lorem ipsum</h1>Lorem ipsum dolor sit amet"));
+
+        final OnboardingConsentApprovalRequest approvalRequest = new OnboardingConsentApprovalRequest();
+        approvalRequest.setProcessId(UUID.fromString(processId));
+        approvalRequest.setConsentType("GDPR");
+        approvalRequest.setApproved(true);
+
+        stepLogger = new ObjectStepLogger(System.out);
+        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(approvalRequest)));
+        signatureModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/consent/approve");
+        signatureModel.setResourceId("/api/identity/consent/approve");
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+    }
+
+    private Predicate<StepItem> isStepItemDecryptedResponse() {
+        return stepItem -> "Decrypted Response".equals(stepItem.getName());
+    }
+
+    private <T> T safeReadValue(final String value, final TypeReference<T> typeReference) {
+        try {
+            return objectMapper.readValue(value, typeReference);
+        } catch (JsonProcessingException e) {
+            fail("Unable to read json", e);
+            return null;
+        }
     }
 
     private DocumentSubmitRequest createDocumentSubmitRequest(String processId, List<FileSubmit> fileSubmits)
@@ -1039,7 +1106,7 @@ public class PowerAuthIdentityVerificationTest {
             this.cardSide = cardSide;
         }
 
-        public static FileSubmit createFrom(String filePath, DocumentType documentType, CardSide cardSide)
+        static FileSubmit createFrom(String filePath, DocumentType documentType, CardSide cardSide)
             throws IOException {
             File file = new ClassPathResource(filePath).getFile();
             return new FileSubmit(file, documentType, cardSide);
