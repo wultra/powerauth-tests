@@ -401,7 +401,6 @@ class PowerAuthIdentityVerificationTest {
 
         approveConsent(processId);
         for (int i = 0; i < 5; i++) {
-            System.out.println(i);
             initIdentityVerification(activationId, processId);
 
             List<FileSubmit> idDocSubmits = ImmutableList.of(
