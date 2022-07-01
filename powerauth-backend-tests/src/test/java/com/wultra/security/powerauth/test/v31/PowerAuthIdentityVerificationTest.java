@@ -394,6 +394,40 @@ class PowerAuthIdentityVerificationTest {
     }
 
     @Test
+    void testIdentityVerificationMaxAttemptLimit() throws Exception {
+        String[] context = prepareActivation();
+        String activationId = context[0];
+        String processId = context[1];
+
+        approveConsent(processId);
+        for (int i = 0; i < 5; i++) {
+            System.out.println(i);
+            initIdentityVerification(activationId, processId);
+
+            List<FileSubmit> idDocSubmits = ImmutableList.of(
+                    FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
+                    FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
+            );
+            DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idDocSubmits);
+            submitDocuments(idCardSubmitRequest, idDocSubmits);
+
+            if (i < 4) {
+                cleanupIdentityVerification(processId);
+            } else {
+                try {
+                    cleanupIdentityVerification(processId);
+                    fail("Max attempt limit for identity verification was not applied");
+                } catch (AssertionFailedError e) {
+                    // Expected state
+                }
+            }
+        }
+
+        // Remove activation
+        powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    @Test
     void largeUploadTest() throws Exception {
         String[] context = prepareActivation();
         String activationId = context[0];
