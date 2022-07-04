@@ -413,12 +413,8 @@ class PowerAuthIdentityVerificationTest {
             if (i < 4) {
                 cleanupIdentityVerification(processId);
             } else {
-                try {
-                    cleanupIdentityVerification(processId);
-                    fail("Max attempt limit for identity verification was not applied");
-                } catch (AssertionFailedError e) {
-                    // Expected state
-                }
+                // Check that cleanupIdentityVerification method fails due to non-200 response
+                assertThrows(AssertionError.class, () -> cleanupIdentityVerification(processId));
             }
         }
 
