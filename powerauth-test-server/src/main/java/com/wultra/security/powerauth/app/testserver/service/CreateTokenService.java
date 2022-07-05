@@ -103,11 +103,11 @@ public class CreateTokenService extends BaseService {
             final ObjectStepLogger stepLogger = new ObjectStepLogger();
             createTokenStep.execute(stepLogger, model.toMap());
             for (StepItem item: stepLogger.getItems()) {
+                logger.info("Log item with ID: {}, name: {}, description: {}, status: {}, object: {}", item.getId(), item.getName(), item.getDescription(), item.getStatus(), item.getObject());
                 if ("Token successfully obtained".equals(item.getName())) {
                     final Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
                     tokenId = (String) responseMap.get("tokenId");
                     tokenSecret = (String) responseMap.get("tokenSecret");
-                    break;
                 }
             }
         } catch (Exception ex) {
