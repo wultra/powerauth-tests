@@ -115,11 +115,11 @@ public class OperationsService extends BaseService {
             final ObjectStepLogger stepLogger = new ObjectStepLogger();
             verifyTokenStep.execute(stepLogger, model.toMap());
             for (StepItem item: stepLogger.getItems()) {
+                logger.info("Log item with ID: {}, name: {}, description: {}, status: {}, object: {}", item.getId(), item.getName(), item.getDescription(), item.getStatus(), item.getObject());
                 if ("Sending Request".equals(item.getName())) {
                     final Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
                     final Map<String, String> headerMap = (Map<String, String>) responseMap.get("requestHeaders");
                     header = headerMap.get("X-PowerAuth-Token");
-                    break;
                 }
             }
         } catch (Exception ex) {
@@ -189,9 +189,9 @@ public class OperationsService extends BaseService {
             final ObjectStepLogger stepLogger = new ObjectStepLogger();
             verifySignatureStep.execute(stepLogger, model.toMap());
             for (StepItem item: stepLogger.getItems()) {
+                logger.info("Log item with ID: {}, name: {}, description: {}, status: {}, object: {}", item.getId(), item.getName(), item.getDescription(), item.getStatus(), item.getObject());
                 if ("Signature verified".equals(item.getName())) {
                     success = true;
-                    break;
                 }
             }
         } catch (Exception ex) {
