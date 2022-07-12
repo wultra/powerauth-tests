@@ -27,6 +27,7 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptog
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
 import com.wultra.security.powerauth.app.testserver.model.request.CreateActivationRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.CreateActivationResponse;
+import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
@@ -106,7 +107,7 @@ public class ActivationService extends BaseService {
             final ObjectStepLogger stepLogger = new ObjectStepLogger();
             prepareActivationStep.execute(stepLogger, model.toMap());
             for (StepItem item: stepLogger.getItems()) {
-                logger.info("Log item with ID: {}, name: {}, description: {}, status: {}, object: {}", item.getId(), item.getName(), item.getDescription(), item.getStatus(), item.getObject());
+                StepItemLogger.log(logger, item);
                 if ("Activation Done".equals(item.getName())) {
                     final Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
                     activationId = (String) responseMap.get("activationId");

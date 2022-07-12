@@ -31,6 +31,7 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutio
 import com.wultra.security.powerauth.app.testserver.errorhandling.SignatureVerificationException;
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
+import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.core.rest.model.base.response.Response;
@@ -115,7 +116,7 @@ public class OperationsService extends BaseService {
             final ObjectStepLogger stepLogger = new ObjectStepLogger();
             verifyTokenStep.execute(stepLogger, model.toMap());
             for (StepItem item: stepLogger.getItems()) {
-                logger.info("Log item with ID: {}, name: {}, description: {}, status: {}, object: {}", item.getId(), item.getName(), item.getDescription(), item.getStatus(), item.getObject());
+                StepItemLogger.log(logger, item);
                 if ("Sending Request".equals(item.getName())) {
                     final Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
                     final Map<String, String> headerMap = (Map<String, String>) responseMap.get("requestHeaders");
@@ -189,7 +190,7 @@ public class OperationsService extends BaseService {
             final ObjectStepLogger stepLogger = new ObjectStepLogger();
             verifySignatureStep.execute(stepLogger, model.toMap());
             for (StepItem item: stepLogger.getItems()) {
-                logger.info("Log item with ID: {}, name: {}, description: {}, status: {}, object: {}", item.getId(), item.getName(), item.getDescription(), item.getStatus(), item.getObject());
+                StepItemLogger.log(logger, item);
                 if ("Signature verified".equals(item.getName())) {
                     success = true;
                 }

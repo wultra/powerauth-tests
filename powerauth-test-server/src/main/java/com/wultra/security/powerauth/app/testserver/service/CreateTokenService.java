@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptog
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
 import com.wultra.security.powerauth.app.testserver.model.request.CreateTokenRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.CreateTokenResponse;
+import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
@@ -103,7 +104,7 @@ public class CreateTokenService extends BaseService {
             final ObjectStepLogger stepLogger = new ObjectStepLogger();
             createTokenStep.execute(stepLogger, model.toMap());
             for (StepItem item: stepLogger.getItems()) {
-                logger.info("Log item with ID: {}, name: {}, description: {}, status: {}, object: {}", item.getId(), item.getName(), item.getDescription(), item.getStatus(), item.getObject());
+                StepItemLogger.log(logger, item);
                 if ("Token successfully obtained".equals(item.getName())) {
                     final Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
                     tokenId = (String) responseMap.get("tokenId");
