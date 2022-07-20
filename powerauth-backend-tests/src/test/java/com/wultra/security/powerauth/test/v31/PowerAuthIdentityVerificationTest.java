@@ -791,7 +791,6 @@ class PowerAuthIdentityVerificationTest {
                 .orElse("error - no consent found");
 
         assertThat(consentText, startsWith("<html>"));
-        assertThat(consentText, containsString("Souhlasím, aby Raiffeisenbank a.s. zpracovávala biometrické údaje"));
 
         final OnboardingConsentApprovalRequest approvalRequest = new OnboardingConsentApprovalRequest();
         approvalRequest.setProcessId(UUID.fromString(processId));
