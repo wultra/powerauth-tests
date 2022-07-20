@@ -67,7 +67,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.startsWith;
+import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
@@ -790,7 +790,7 @@ class PowerAuthIdentityVerificationTest {
                 .findFirst()
                 .orElse("error - no consent found");
 
-        assertThat(consentText, startsWith("<html><body><h1>Lorem ipsum</h1>Lorem ipsum dolor sit amet"));
+        assertThat(consentText, startsWith("<html>"));
 
         final OnboardingConsentApprovalRequest approvalRequest = new OnboardingConsentApprovalRequest();
         approvalRequest.setProcessId(UUID.fromString(processId));
