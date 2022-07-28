@@ -70,7 +70,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-public class PowerAuthOnboardingTest {
+class PowerAuthOnboardingTest {
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -92,7 +92,7 @@ public class PowerAuthOnboardingTest {
     }
 
     @BeforeEach
-    public void setUp() throws IOException {
+    void setUp() throws IOException {
         encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());
         encryptModel.setApplicationSecret(config.getApplicationSecret());
@@ -131,7 +131,7 @@ public class PowerAuthOnboardingTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testSuccessfulOnboarding() throws Exception {
+    void testSuccessfulOnboarding() throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
         String processId = startOnboarding(clientId);
@@ -163,7 +163,7 @@ public class PowerAuthOnboardingTest {
     }
 
     @Test
-    public void testInvalidOtp() throws Exception {
+    void testInvalidOtp() throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
         String processId = startOnboarding(clientId);
@@ -186,7 +186,7 @@ public class PowerAuthOnboardingTest {
     }
 
     @Test
-    public void testInvalidProcessId() throws Exception {
+    void testInvalidProcessId() throws Exception {
         // Activation with invalid OTP should fail
         boolean activationSucceeded = false;
         try {
@@ -199,7 +199,7 @@ public class PowerAuthOnboardingTest {
     }
 
     @Test
-    public void testOnboardingCleanup() throws Exception {
+    void testOnboardingCleanup() throws Exception {
         // Test onboarding start
         String processId = startOnboarding();
 
@@ -214,7 +214,7 @@ public class PowerAuthOnboardingTest {
     }
 
     @Test
-    public void testResendPeriod() throws Exception {
+    void testResendPeriod() throws Exception {
         // Test onboarding start
         String processId = startOnboarding();
 
@@ -236,7 +236,7 @@ public class PowerAuthOnboardingTest {
     }
 
     @Test
-    public void testMaxProcesses() throws Exception {
+    void testMaxProcesses() throws Exception {
         // Use same mock client ID suffix to make sure user ID is the same across all requests
         String clientId = generateRandomClientId();
         String processId = startOnboarding(clientId);
@@ -260,7 +260,7 @@ public class PowerAuthOnboardingTest {
     }
 
     @Test
-    public void testMaxAttemptsReached() throws Exception {
+    void testMaxAttemptsReached() throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
         String processId = startOnboarding(clientId);
@@ -293,7 +293,7 @@ public class PowerAuthOnboardingTest {
     }
 
     @Test
-    public void testMaxAttemptsNotReached() throws Exception {
+    void testMaxAttemptsNotReached() throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
         String processId = startOnboarding(clientId);
@@ -318,6 +318,14 @@ public class PowerAuthOnboardingTest {
         // Fifth attempt with correct OTP code should succeed
         String activationId = createCustomActivation(processId, otpCode, clientId);
         assertNotNull(activationId);
+    }
+
+    @Test
+    void testResumeProcesses() throws Exception {
+        final String clientId = generateRandomClientId();
+        final String processId1 = startOnboarding(clientId);
+        final String processId2 = startOnboarding(clientId);
+        assertEquals(processId1, processId2, "Process must resume for the given clientId");
     }
 
     // Shared test logic
