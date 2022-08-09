@@ -171,15 +171,9 @@ public class PowerAuthOnboardingTest {
         // Test onboarding status
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(processId));
 
-        // Activation with invalid OTP should fail
-        boolean activationSucceeded = false;
-        try {
-            createCustomActivation(processId, "0000000000", clientId);
-            activationSucceeded = true;
-        } catch (AssertionFailedError e) {
-            // Expected failed test
-        }
-        assertFalse(activationSucceeded);
+        assertThrows(AssertionFailedError.class, () ->
+                createCustomActivation(processId, "0000000000", clientId),
+                "Activation with invalid OTP should fail");
 
         // Test onboarding cleanup
         onboardingCleanup(processId);
@@ -187,15 +181,9 @@ public class PowerAuthOnboardingTest {
 
     @Test
     public void testInvalidProcessId() throws Exception {
-        // Activation with invalid OTP should fail
-        boolean activationSucceeded = false;
-        try {
-            createCustomActivation("8b2928d2-f7e7-489b-8ebc-76d4aad173a6", "0000000000", "12345678");
-            activationSucceeded = true;
-        } catch (AssertionFailedError e) {
-            // Expected failed test
-        }
-        assertFalse(activationSucceeded);
+        assertThrows(AssertionFailedError.class, () ->
+                createCustomActivation("8b2928d2-f7e7-489b-8ebc-76d4aad173a6", "0000000000", "12345678"),
+                "Activation with invalid OTP should fail");
     }
 
     @Test
@@ -271,25 +259,15 @@ public class PowerAuthOnboardingTest {
         // Obtain activation OTP from testing endpoint
         String otpCode = getOtpCode(processId);
 
-        // Create a new custom activation with invalid OTP code, repeat 5x
-        boolean activationSucceeded = false;
         for (int i = 0; i < 5; i++) {
-            try {
-                createCustomActivation(processId, "0000000000", clientId);
-                activationSucceeded = true;
-            } catch (AssertionFailedError e) {
-                // Expected failed test
-            }
+            assertThrows(AssertionFailedError.class, () ->
+                    createCustomActivation(processId, "0000000000", clientId),
+                    "Activation with invalid OTP should fail");
         }
-        assertFalse(activationSucceeded);
-        // Sixth attempt with correct OTP code should fail
-        try {
-            createCustomActivation(processId, otpCode, clientId);
-            activationSucceeded = true;
-        } catch (AssertionFailedError e) {
-            // Expected failed test
-        }
-        assertFalse(activationSucceeded);
+
+        assertThrows(AssertionFailedError.class, () ->
+                createCustomActivation(processId, otpCode, clientId),
+                "Sixth attempt with correct OTP code should fail");
     }
 
     @Test
@@ -304,20 +282,13 @@ public class PowerAuthOnboardingTest {
         // Obtain activation OTP from testing endpoint
         String otpCode = getOtpCode(processId);
 
-        // Create a new custom activation with invalid OTP code, repeat 5x
-        boolean activationSucceeded = false;
         for (int i = 0; i < 4; i++) {
-            try {
-                createCustomActivation(processId, "0000000000", clientId);
-                activationSucceeded = true;
-            } catch (AssertionFailedError e) {
-                // Expected failed test
-            }
+            assertThrows(AssertionFailedError.class, () ->
+                    createCustomActivation(processId, "0000000000", clientId),
+                    "A new custom activation with invalid OTP code should fail");
         }
-        assertFalse(activationSucceeded);
-        // Fifth attempt with correct OTP code should succeed
         String activationId = createCustomActivation(processId, otpCode, clientId);
-        assertNotNull(activationId);
+        assertNotNull(activationId, "Fifth attempt with correct OTP code should succeed");
     }
 
     // Shared test logic
