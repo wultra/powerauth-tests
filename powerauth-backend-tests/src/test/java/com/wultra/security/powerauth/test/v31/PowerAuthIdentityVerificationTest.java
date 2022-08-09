@@ -600,16 +600,12 @@ class PowerAuthIdentityVerificationTest {
         return new String[]{activationId, processId};
     }
 
-    private String startOnboarding(String clientId) throws Exception {
+    private String startOnboarding(final String clientId) throws Exception {
         stepLogger = new ObjectStepLogger(System.out);
         encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
         encryptModel.setScope("application");
         Map<String, Object> identification = new LinkedHashMap<>();
-        if (clientId == null) {
-            clientId = generateRandomClientId();
-            identification.put("clientId", clientId);
-        }
-        identification.put("clientId", clientId);
+        identification.put("clientNumber", clientId != null ? clientId : generateRandomClientId());
         identification.put("birthDate", "1970/03/21");
         OnboardingStartRequest request = new OnboardingStartRequest();
         request.setIdentification(identification);
