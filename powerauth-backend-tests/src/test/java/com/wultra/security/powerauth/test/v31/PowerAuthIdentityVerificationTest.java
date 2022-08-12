@@ -162,19 +162,35 @@ class PowerAuthIdentityVerificationTest {
 
     @Test
     void testSuccessfulIdentityVerification() throws Exception {
-        String[] context = prepareActivation();
-        String activationId = context[0];
-        String processId = context[1];
+        final TestContext context = prepareActivation();
+        final String activationId = context.activationId;
+        final String processId = context.processId;
+
+        processDocuments(context);
+
+        initPresenceCheck(processId);
+        if (!config.isSkipResultVerification()) {
+            verifyStatusBeforeOtp();
+            verifyOtpCheckSuccessful(processId);
+            verifyProcessFinished(processId, activationId);
+        }
+
+        powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    private void processDocuments(final TestContext context) throws Exception {
+        final String activationId = context.activationId;
+        final String processId = context.processId;
 
         approveConsent(processId);
         initIdentityVerification(activationId, processId);
 
-        List<FileSubmit> idCardSubmits = ImmutableList.of(
+        final List<FileSubmit> idCardSubmits = ImmutableList.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
                 FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
         );
 
-        DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idCardSubmits);
+        final DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idCardSubmits);
 
         submitDocuments(idCardSubmitRequest, idCardSubmits);
 
@@ -184,26 +200,56 @@ class PowerAuthIdentityVerificationTest {
             assertStatusOfSubmittedDocs(processId, idCardSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
         }
 
-        IdentityVerificationState idState =
-                new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED);
-        assertIdentityVerificationStateWithRetries(idState);
+        assertIdentityVerificationStateWithRetries(
+                new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED));
+    }
+
+    @Test
+    void testScaFailedPresenceCheck() throws Exception {
+        // instruction for WultraMockPresenceCheckProvider#getResult(OwnerId, SessionInfo) to fail
+        final TestContext context = prepareActivation("_PRESENCE_CHECK_REJECTED");
+        final String activationId = context.activationId;
+        final String processId = context.processId;
+
+        processDocuments(context);
 
         initPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
             verifyStatusBeforeOtp();
-            verifyOtpCheck(processId);
-            verifyProcessFinished(processId, activationId);
+            verifyOtpCheckFailed(processId);
+            assertIdentityVerificationStateWithRetries(
+                    new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED));
+            verifyProcessNotFinished(processId);
         }
 
-        // Remove activation
+        powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    @Test
+    void testScaFailedOtpCheck() throws Exception {
+        final TestContext context = prepareActivation();
+        final String activationId = context.activationId;
+        final String processId = context.processId;
+
+        processDocuments(context);
+
+        initPresenceCheck(processId);
+        if (!config.isSkipResultVerification()) {
+            verifyStatusBeforeOtp();
+            verifyOtpCheckFailedInvalidCode(processId);
+            assertIdentityVerificationStateWithRetries(
+                    new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED));
+            verifyProcessNotFinished(processId);
+        }
+
         powerAuthClient.removeActivation(activationId, "test");
     }
 
     @Test
     void testSuccessfulIdentityVerificationWithRestarts() throws Exception {
-        String[] context = prepareActivation();
-        String activationId = context[0];
-        String processId = context[1];
+        final TestContext context = prepareActivation();
+        final String activationId = context.activationId;
+        final String processId = context.processId;
 
         approveConsent(processId);
 
@@ -238,7 +284,7 @@ class PowerAuthIdentityVerificationTest {
         initPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
             verifyStatusBeforeOtp();
-            verifyOtpCheck(processId);
+            verifyOtpCheckSuccessful(processId);
             verifyProcessFinished(processId, activationId);
         }
 
@@ -248,9 +294,9 @@ class PowerAuthIdentityVerificationTest {
 
     @Test
     void testSuccessfulIdentityVerificationMultipleDocSubmits() throws Exception {
-        String[] context = prepareActivation();
-        String activationId = context[0];
-        String processId = context[1];
+        final TestContext context = prepareActivation();
+        final String activationId = context.activationId;
+        final String processId = context.processId;
 
         approveConsent(processId);
         initIdentityVerification(activationId, processId);
@@ -281,7 +327,7 @@ class PowerAuthIdentityVerificationTest {
         initPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
             verifyStatusBeforeOtp();
-            verifyOtpCheck(processId);
+            verifyOtpCheckSuccessful(processId);
             verifyProcessFinished(processId, activationId);
         }
 
@@ -294,9 +340,9 @@ class PowerAuthIdentityVerificationTest {
         if (!config.isAdditionalDocSubmitValidationsEnabled()) {
             return;
         }
-        String[] context = prepareActivation();
-        String activationId = context[0];
-        String processId = context[1];
+        final TestContext context = prepareActivation();
+        final String activationId = context.activationId;
+        final String processId = context.processId;
 
         approveConsent(processId);
         initIdentityVerification(activationId, processId);
@@ -322,9 +368,9 @@ class PowerAuthIdentityVerificationTest {
         if (!config.isAdditionalDocSubmitValidationsEnabled()) {
             return;
         }
-        String[] context = prepareActivation();
-        String activationId = context[0];
-        String processId = context[1];
+        final TestContext context = prepareActivation();
+        final String activationId = context.activationId;
+        final String processId = context.processId;
 
         approveConsent(processId);
         initIdentityVerification(activationId, processId);
@@ -347,9 +393,9 @@ class PowerAuthIdentityVerificationTest {
 
     @Test
     void testIdentityVerificationNotDocumentPhotos() throws Exception {
-        String[] context = prepareActivation();
-        String activationId = context[0];
-        String processId = context[1];
+        final TestContext context = prepareActivation();
+        final String activationId = context.activationId;
+        final String processId = context.processId;
 
         approveConsent(processId);
         initIdentityVerification(activationId, processId);
@@ -373,9 +419,9 @@ class PowerAuthIdentityVerificationTest {
 
     @Test
     void testIdentityVerificationCleanup() throws Exception {
-        String[] context = prepareActivation();
-        String activationId = context[0];
-        String processId = context[1];
+        final TestContext context = prepareActivation();
+        final String activationId = context.activationId;
+        final String processId = context.processId;
 
         approveConsent(processId);
         initIdentityVerification(activationId, processId);
@@ -395,9 +441,9 @@ class PowerAuthIdentityVerificationTest {
 
     @Test
     void testIdentityVerificationMaxAttemptLimit() throws Exception {
-        String[] context = prepareActivation();
-        String activationId = context[0];
-        String processId = context[1];
+        final TestContext context = prepareActivation();
+        final String activationId = context.activationId;
+        final String processId = context.processId;
 
         approveConsent(processId);
         for (int i = 0; i < 5; i++) {
@@ -424,9 +470,9 @@ class PowerAuthIdentityVerificationTest {
 
     @Test
     void largeUploadTest() throws Exception {
-        String[] context = prepareActivation();
-        String activationId = context[0];
-        String processId = context[1];
+        final TestContext context = prepareActivation();
+        final String activationId = context.activationId;
+        final String processId = context.processId;
 
         createToken();
 
@@ -570,8 +616,8 @@ class PowerAuthIdentityVerificationTest {
 
     @Test
     void initDocumentVerificationSdkTest() throws Exception {
-        String[] context = prepareActivation();
-        String processId = context[1];
+        final TestContext context = prepareActivation();
+        final String processId = context.processId;
 
         Map<String, String> attributes = new HashMap<>();
         attributes.put("sdk-init-token", "value");
@@ -592,24 +638,28 @@ class PowerAuthIdentityVerificationTest {
         assertNotNull(responseOK.getMac());
     }
 
-    private String[] prepareActivation() throws Exception {
-        String clientId = generateRandomClientId();
+    private TestContext prepareActivation() throws Exception {
+        return prepareActivation("");
+    }
+
+    private TestContext prepareActivation(final String clientIdPostfix) throws Exception {
+        String clientId = generateRandomClientId() + clientIdPostfix;
         String processId = startOnboarding(clientId);
         String activationId = createCustomActivation(processId, getOtpCode(processId, OtpType.ACTIVATION), clientId);
         createToken();
-        return new String[]{activationId, processId};
+
+        final TestContext testContext = new TestContext();
+        testContext.activationId = activationId;
+        testContext.processId = processId;
+        return testContext;
     }
 
-    private String startOnboarding(String clientId) throws Exception {
+    private String startOnboarding(final String clientId) throws Exception {
         stepLogger = new ObjectStepLogger(System.out);
         encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
         encryptModel.setScope("application");
         Map<String, Object> identification = new LinkedHashMap<>();
-        if (clientId == null) {
-            clientId = generateRandomClientId();
-            identification.put("clientId", clientId);
-        }
-        identification.put("clientId", clientId);
+        identification.put("clientNumber", clientId != null ? clientId : generateRandomClientId());
         identification.put("birthDate", "1970/03/21");
         OnboardingStartRequest request = new OnboardingStartRequest();
         request.setIdentification(identification);
@@ -1035,7 +1085,22 @@ class PowerAuthIdentityVerificationTest {
         return status;
     }
 
-    private void verifyOtpCheck(String processId) throws Exception {
+    private void verifyOtpCheckFailed(String processId) throws Exception {
+        final String otpCode = getOtpCode(processId, OtpType.USER_VERIFICATION);
+        verifyOtpCheck(processId, false, otpCode);
+    }
+
+    private void verifyOtpCheckFailedInvalidCode(String processId) throws Exception {
+        final String otpCode = "invalid";
+        verifyOtpCheck(processId, false, otpCode);
+    }
+
+    private void verifyOtpCheckSuccessful(String processId) throws Exception {
+        final String otpCode = getOtpCode(processId, OtpType.USER_VERIFICATION);
+        verifyOtpCheck(processId, true, otpCode);
+    }
+
+    private void verifyOtpCheck(final String processId, final boolean expectedResult, final String otpCode) throws Exception {
         if (config.isSkipOtpVerification()) {
             return;
         }
@@ -1044,8 +1109,6 @@ class PowerAuthIdentityVerificationTest {
         for (int i = 0; i < 10; i++) {
             IdentityVerificationState idState = checkIdentityVerificationState();
             if (idState.getStatus() == IdentityVerificationStatus.OTP_VERIFICATION_PENDING) {
-                String otpCode = getOtpCode(processId, OtpType.USER_VERIFICATION);
-
                 IdentityVerificationOtpVerifyRequest otpVerifyRequest = new IdentityVerificationOtpVerifyRequest();
                 otpVerifyRequest.setProcessId(processId);
                 otpVerifyRequest.setOtpCode(otpCode);
@@ -1057,14 +1120,17 @@ class PowerAuthIdentityVerificationTest {
                 assertTrue(stepLogger.getResult().isSuccess());
                 assertEquals(200, stepLogger.getResponse().getStatusCode());
 
-                for (StepItem item : stepLogger.getItems()) {
-                    if (item.getName().equals("Decrypted Response")) {
-                        String responseData = item.getObject().toString();
-                        ObjectResponse<OtpVerifyResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OtpVerifyResponse>>() {});
-                        OtpVerifyResponse response = objectResponse.getResponseObject();
-                        otpVerified = response.isVerified();
-                    }
-                }
+                otpVerified = stepLogger.getItems().stream()
+                        .filter(isStepItemDecryptedResponse())
+                        .map(StepItem::getObject)
+                        .map(Object::toString)
+                        .map(it -> safeReadValue(it, new TypeReference<ObjectResponse<OtpVerifyResponse>>() {}))
+                        .filter(Objects::nonNull)
+                        .map(ObjectResponse::getResponseObject)
+                        .map(OtpVerifyResponse::isVerified)
+                        .findFirst()
+                        .orElse(false);
+
                 if (otpVerified) {
                     // Force status refresh
                     continue;
@@ -1073,11 +1139,15 @@ class PowerAuthIdentityVerificationTest {
             if (idState.getStatus() == IdentityVerificationStatus.ACCEPTED) {
                 verificationComplete = true;
                 break;
+            } else if (idState.getPhase() == IdentityVerificationPhase.PRESENCE_CHECK) {
+                verificationComplete = true;
+                break;
             } else {
                 Thread.sleep(1000);
             }
         }
-        assertTrue(verificationComplete);
+        assertTrue(verificationComplete, "Verification should complete, either valid OTP or returning to PRESENCE_CHECK phase");
+        assertEquals(expectedResult, otpVerified);
     }
 
     private void cleanupIdentityVerification(String processId) throws Exception {
@@ -1103,6 +1173,11 @@ class PowerAuthIdentityVerificationTest {
         assertTrue(flagResponse3.getActivationFlags().isEmpty());
     }
 
+    private void verifyProcessNotFinished(final String processId) throws Exception {
+        final OnboardingStatus status = checkProcessStatus(processId);
+        assertNotEquals(OnboardingStatus.FINISHED, status, "Process must NOT be finished");
+    }
+
     /**
      * @return Bytes of zipped files
      */
@@ -1123,11 +1198,11 @@ class PowerAuthIdentityVerificationTest {
     @Getter
     static class FileSubmit {
 
-        private File file;
+        private final File file;
 
-        private DocumentType documentType;
+        private final DocumentType documentType;
 
-        private CardSide cardSide;
+        private final CardSide cardSide;
 
         private FileSubmit(File file, DocumentType documentType, CardSide cardSide) {
             this.file = file;
@@ -1153,6 +1228,11 @@ class PowerAuthIdentityVerificationTest {
 
         private IdentityVerificationStatus status;
 
+    }
+
+    private static class TestContext {
+        private String activationId;
+        private String processId;
     }
 
 }
