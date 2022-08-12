@@ -660,7 +660,7 @@ class PowerAuthIdentityVerificationTest {
         encryptModel.setScope("application");
         Map<String, Object> identification = new LinkedHashMap<>();
         identification.put("clientNumber", clientId != null ? clientId : generateRandomClientId());
-        identification.put("birthDate", "1970/03/21");
+        identification.put("birthDate", "1970-03-21");
         OnboardingStartRequest request = new OnboardingStartRequest();
         request.setIdentification(identification);
         executeRequest(request);
