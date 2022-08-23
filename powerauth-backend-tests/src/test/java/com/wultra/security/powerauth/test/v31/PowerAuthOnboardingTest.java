@@ -181,6 +181,20 @@ class PowerAuthOnboardingTest {
     }
 
     @Test
+    void testOtpForNonExistingUser() throws Exception {
+
+        final String clientId = generateRandomClientId();
+        final String processId = startOnboarding(clientId, true);
+
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(processId));
+
+        // assert that otp code has been generated although not sent
+        getOtpCode(processId);
+
+        onboardingCleanup(processId);
+    }
+
+    @Test
     void testInvalidProcessId() {
         assertThrows(AssertionFailedError.class, () ->
                 createCustomActivation("8b2928d2-f7e7-489b-8ebc-76d4aad173a6", "0000000000", "12345678"),
@@ -306,11 +320,17 @@ class PowerAuthOnboardingTest {
     }
 
     private String startOnboarding(final String clientId) throws Exception {
+        return startOnboarding(clientId, false);
+    }
+
+    private String startOnboarding(final String clientId, final boolean shouldUserLookupFail) throws Exception {
         stepLogger = new ObjectStepLogger(System.out);
         encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
         Map<String, Object> identification = new LinkedHashMap<>();
         identification.put("clientNumber", clientId != null ? clientId : generateRandomClientId());
         identification.put("birthDate", "1970-03-21");
+        // instruction for MockOnboardingProvider#lookupUser(LookupUserRequest) whether to fail
+        identification.put("shouldFail", shouldUserLookupFail);
         OnboardingStartRequest request = new OnboardingStartRequest();
         request.setIdentification(identification);
         executeRequest(request);
