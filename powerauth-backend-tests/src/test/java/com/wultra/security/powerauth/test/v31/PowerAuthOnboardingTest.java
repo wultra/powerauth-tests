@@ -158,8 +158,9 @@ class PowerAuthOnboardingTest {
         assertNotNull(customObject);
         assertEquals(Collections.singletonList("VERIFICATION_PENDING"), customObject.get("activationFlags"));
 
-        // Remove activation
-        powerAuthClient.removeActivation(activationId, "test");
+        onboardingCleanup(processId);
+        final GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(activationId);
+        assertEquals(ActivationStatus.REMOVED, activationStatusResponse.getActivationStatus(), "Cleanup should remove the activation");
     }
 
     @Test
@@ -180,7 +181,7 @@ class PowerAuthOnboardingTest {
     }
 
     @Test
-    public void testInvalidProcessId() throws Exception {
+    void testInvalidProcessId() {
         assertThrows(AssertionFailedError.class, () ->
                 createCustomActivation("8b2928d2-f7e7-489b-8ebc-76d4aad173a6", "0000000000", "12345678"),
                 "Activation with invalid OTP should fail");
