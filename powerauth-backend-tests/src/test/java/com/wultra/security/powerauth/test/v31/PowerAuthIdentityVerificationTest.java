@@ -216,7 +216,7 @@ class PowerAuthIdentityVerificationTest {
         initPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
             verifyStatusBeforeOtp();
-            verifyOtpCheckFailed(processId);
+            verifyOtpCheckFailed(processId, IdentityVerificationPhase.PRESENCE_CHECK);
             assertIdentityVerificationStateWithRetries(
                     new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED));
             verifyProcessNotFinished(processId);
@@ -236,9 +236,9 @@ class PowerAuthIdentityVerificationTest {
         initPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
             verifyStatusBeforeOtp();
-            verifyOtpCheckFailedInvalidCode(processId);
+            verifyOtpCheckFailedInvalidCode(processId, IdentityVerificationPhase.OTP_VERIFICATION);
             assertIdentityVerificationStateWithRetries(
-                    new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED));
+                    new IdentityVerificationState(IdentityVerificationPhase.OTP_VERIFICATION, IdentityVerificationStatus.OTP_VERIFICATION_PENDING));
             verifyProcessNotFinished(processId);
         }
 
@@ -636,6 +636,28 @@ class PowerAuthIdentityVerificationTest {
         EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
+    }
+
+    @Test
+    void testFailedScaOtpMaxFailedAttemptsIdentityRestart() throws Exception {
+        final TestContext context = prepareActivation();
+        final String activationId = context.activationId;
+        final String processId = context.processId;
+
+        processDocuments(context);
+
+        initPresenceCheck(processId);
+        if (!config.isSkipResultVerification()) {
+            for (int i = 0; i < 4; i++) {
+                verifyStatusBeforeOtp();
+                verifyOtpCheckFailedInvalidCode(processId, IdentityVerificationPhase.OTP_VERIFICATION);
+            }
+            // Verify restart of identity verification
+            verifyStatusBeforeOtp();
+            verifyOtpCheckFailedInvalidCode(processId, null);
+        }
+
+        powerAuthClient.removeActivation(activationId, "test");
     }
 
     private TestContext prepareActivation() throws Exception {
@@ -1085,68 +1107,60 @@ class PowerAuthIdentityVerificationTest {
         return status;
     }
 
-    private void verifyOtpCheckFailed(String processId) throws Exception {
+    private void verifyOtpCheckFailed(String processId, IdentityVerificationPhase allowedPhase) throws Exception {
         final String otpCode = getOtpCode(processId, OtpType.USER_VERIFICATION);
-        verifyOtpCheck(processId, false, otpCode);
+        verifyOtpCheck(processId, false, otpCode, allowedPhase);
     }
 
-    private void verifyOtpCheckFailedInvalidCode(String processId) throws Exception {
+    private void verifyOtpCheckFailedInvalidCode(String processId, IdentityVerificationPhase allowedPhase) throws Exception {
         final String otpCode = "invalid";
-        verifyOtpCheck(processId, false, otpCode);
+        verifyOtpCheck(processId, false, otpCode, allowedPhase);
     }
 
     private void verifyOtpCheckSuccessful(String processId) throws Exception {
         final String otpCode = getOtpCode(processId, OtpType.USER_VERIFICATION);
-        verifyOtpCheck(processId, true, otpCode);
+        verifyOtpCheck(processId, true, otpCode, IdentityVerificationPhase.COMPLETED);
     }
 
-    private void verifyOtpCheck(final String processId, final boolean expectedResult, final String otpCode) throws Exception {
+    private void verifyOtpCheck(final String processId, final boolean expectedResult, final String otpCode, IdentityVerificationPhase allowedPhase) throws Exception {
         if (config.isSkipOtpVerification()) {
             return;
         }
         boolean otpVerified = false;
         boolean verificationComplete = false;
-        for (int i = 0; i < 10; i++) {
-            IdentityVerificationState idState = checkIdentityVerificationState();
-            if (idState.getStatus() == IdentityVerificationStatus.OTP_VERIFICATION_PENDING) {
-                IdentityVerificationOtpVerifyRequest otpVerifyRequest = new IdentityVerificationOtpVerifyRequest();
-                otpVerifyRequest.setProcessId(processId);
-                otpVerifyRequest.setOtpCode(otpCode);
-                stepLogger = new ObjectStepLogger(System.out);
-                encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpVerifyRequest)));
-                encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/otp/verify");
-                encryptModel.setScope("activation");
-                new EncryptStep().execute(stepLogger, encryptModel.toMap());
-                assertTrue(stepLogger.getResult().isSuccess());
-                assertEquals(200, stepLogger.getResponse().getStatusCode());
+        IdentityVerificationState idState = checkIdentityVerificationState();
+        if (idState.getStatus() == IdentityVerificationStatus.OTP_VERIFICATION_PENDING) {
+            IdentityVerificationOtpVerifyRequest otpVerifyRequest = new IdentityVerificationOtpVerifyRequest();
+            otpVerifyRequest.setProcessId(processId);
+            otpVerifyRequest.setOtpCode(otpCode);
+            stepLogger = new ObjectStepLogger(System.out);
+            encryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(otpVerifyRequest)));
+            encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/otp/verify");
+            encryptModel.setScope("activation");
+            new EncryptStep().execute(stepLogger, encryptModel.toMap());
+            assertTrue(stepLogger.getResult().isSuccess());
+            assertEquals(200, stepLogger.getResponse().getStatusCode());
 
-                otpVerified = stepLogger.getItems().stream()
-                        .filter(isStepItemDecryptedResponse())
-                        .map(StepItem::getObject)
-                        .map(Object::toString)
-                        .map(it -> safeReadValue(it, new TypeReference<ObjectResponse<OtpVerifyResponse>>() {}))
-                        .filter(Objects::nonNull)
-                        .map(ObjectResponse::getResponseObject)
-                        .map(OtpVerifyResponse::isVerified)
-                        .findFirst()
-                        .orElse(false);
+            otpVerified = stepLogger.getItems().stream()
+                    .filter(isStepItemDecryptedResponse())
+                    .map(StepItem::getObject)
+                    .map(Object::toString)
+                    .map(it -> safeReadValue(it, new TypeReference<ObjectResponse<OtpVerifyResponse>>() {}))
+                    .filter(Objects::nonNull)
+                    .map(ObjectResponse::getResponseObject)
+                    .map(OtpVerifyResponse::isVerified)
+                    .findFirst()
+                    .orElse(false);
 
-                if (otpVerified) {
-                    // Force status refresh
-                    continue;
-                }
-            }
-            if (idState.getStatus() == IdentityVerificationStatus.ACCEPTED) {
-                verificationComplete = true;
-                break;
-            } else if (idState.getPhase() == IdentityVerificationPhase.PRESENCE_CHECK) {
-                verificationComplete = true;
-                break;
-            } else {
-                Thread.sleep(1000);
-            }
+            // Force status refresh
+            idState = checkIdentityVerificationState();
         }
-        assertTrue(verificationComplete, "Verification should complete, either valid OTP or returning to PRESENCE_CHECK phase");
+        if (idState.getStatus() == IdentityVerificationStatus.ACCEPTED) {
+            verificationComplete = true;
+        } else if (idState.getPhase() == allowedPhase) {
+            verificationComplete = true;
+        }
+        assertTrue(verificationComplete, "Verification should complete, either valid OTP or phase set to " + allowedPhase);
         assertEquals(expectedResult, otpVerified);
     }
 
