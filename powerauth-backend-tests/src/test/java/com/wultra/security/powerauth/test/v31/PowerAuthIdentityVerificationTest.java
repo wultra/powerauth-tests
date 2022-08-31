@@ -195,9 +195,9 @@ class PowerAuthIdentityVerificationTest {
         submitDocuments(idCardSubmitRequest, idCardSubmits);
 
         if (config.isVerificationOnSubmitEnabled()) {
-            assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
+            assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size(), DocumentStatus.ACCEPTED);
         } else {
-            assertStatusOfSubmittedDocs(processId, idCardSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
+            assertStatusOfSubmittedDocs(processId, idCardSubmits.size(), DocumentStatus.ACCEPTED);
         }
 
         assertIdentityVerificationStateWithRetries(
@@ -266,9 +266,9 @@ class PowerAuthIdentityVerificationTest {
             submitDocuments(idCardSubmitRequest, idCardSubmits);
 
             if (config.isVerificationOnSubmitEnabled()) {
-                assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
+                assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size(), DocumentStatus.ACCEPTED);
             } else {
-                assertStatusOfSubmittedDocs(processId, idCardSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
+                assertStatusOfSubmittedDocs(processId, idCardSubmits.size(), DocumentStatus.ACCEPTED);
             }
 
             IdentityVerificationState idState =
@@ -315,9 +315,9 @@ class PowerAuthIdentityVerificationTest {
         submitDocuments(driveLicenseSubmitRequest, drivingLicenseSubmits);
 
         if (config.isVerificationOnSubmitEnabled()) {
-            assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size() + drivingLicenseSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
+            assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size() + drivingLicenseSubmits.size(), DocumentStatus.ACCEPTED);
         } else {
-            assertStatusOfSubmittedDocs(processId, idCardSubmits.size() + drivingLicenseSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
+            assertStatusOfSubmittedDocs(processId, idCardSubmits.size() + drivingLicenseSubmits.size(), DocumentStatus.ACCEPTED);
         }
 
         IdentityVerificationState idState =
@@ -408,9 +408,9 @@ class PowerAuthIdentityVerificationTest {
         submitDocuments(idCardSubmitRequest, invalidDocSubmits);
 
         if (config.isVerificationOnSubmitEnabled()) {
-            assertStatusOfSubmittedDocsWithRetries(processId, invalidDocSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
+            assertStatusOfSubmittedDocsWithRetries(processId, invalidDocSubmits.size(), DocumentStatus.ACCEPTED);
         } else {
-            assertStatusOfSubmittedDocs(processId, invalidDocSubmits.size(), DocumentStatus.VERIFICATION_PENDING);
+            assertStatusOfSubmittedDocs(processId, invalidDocSubmits.size(), DocumentStatus.ACCEPTED);
         }
 
         // Remove activation
