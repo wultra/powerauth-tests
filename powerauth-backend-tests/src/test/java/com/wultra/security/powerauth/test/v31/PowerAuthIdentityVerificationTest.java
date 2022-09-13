@@ -201,6 +201,21 @@ class PowerAuthIdentityVerificationTest {
         }
 
         assertIdentityVerificationStateWithRetries(
+                new IdentityVerificationState(IdentityVerificationPhase.DOCUMENT_VERIFICATION, IdentityVerificationStatus.IN_PROGRESS));
+
+        final List<FileSubmit> drivingLicenseSubmits = ImmutableList.of(
+                FileSubmit.createFrom("images/driving_license_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
+        );
+        final DocumentSubmitRequest driveLicenseSubmitRequest = createDocumentSubmitRequest(processId, drivingLicenseSubmits);
+        submitDocuments(driveLicenseSubmitRequest, drivingLicenseSubmits);
+
+        if (config.isVerificationOnSubmitEnabled()) {
+            assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size() + drivingLicenseSubmits.size(), DocumentStatus.ACCEPTED);
+        } else {
+            assertStatusOfSubmittedDocs(processId, idCardSubmits.size() + drivingLicenseSubmits.size(), DocumentStatus.ACCEPTED);
+        }
+
+        assertIdentityVerificationStateWithRetries(
                 new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED));
     }
 
