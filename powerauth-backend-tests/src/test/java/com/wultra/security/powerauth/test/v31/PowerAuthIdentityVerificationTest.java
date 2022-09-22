@@ -763,6 +763,7 @@ class PowerAuthIdentityVerificationTest {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("processId", processId);
         identityAttributes.put("otpCode", otpCode);
+        identityAttributes.put("credentialsType", "ONBOARDING");
         activationModel.setIdentityAttributes(identityAttributes);
         new CreateActivationStep().execute(stepLogger, activationModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
