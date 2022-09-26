@@ -1078,8 +1078,7 @@ class PowerAuthIdentityVerificationTest {
         if (config.isSkipPresenceCheck()) {
             return;
         }
-        // TODO (racansky, 2022-09-26) change to PresenceCheckSubmitRequest
-        final PresenceCheckInitRequest presenceCheckRequest = new PresenceCheckInitRequest();
+        final PresenceCheckSubmitRequest presenceCheckRequest = new PresenceCheckSubmitRequest();
         presenceCheckRequest.setProcessId(processId);
         stepLogger = new ObjectStepLogger(System.out);
         signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(presenceCheckRequest)));
