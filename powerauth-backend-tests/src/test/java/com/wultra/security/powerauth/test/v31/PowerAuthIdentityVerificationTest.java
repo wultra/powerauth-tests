@@ -253,7 +253,7 @@ class PowerAuthIdentityVerificationTest {
             verifyStatusBeforeOtp();
             verifyOtpCheckFailedInvalidCode(processId, IdentityVerificationPhase.OTP_VERIFICATION);
             assertIdentityVerificationStateWithRetries(
-                    new IdentityVerificationState(IdentityVerificationPhase.OTP_VERIFICATION, IdentityVerificationStatus.OTP_VERIFICATION_PENDING));
+                    new IdentityVerificationState(IdentityVerificationPhase.OTP_VERIFICATION, IdentityVerificationStatus.VERIFICATION_PENDING));
             verifyProcessNotFinished(processId);
         }
 
@@ -1078,7 +1078,7 @@ class PowerAuthIdentityVerificationTest {
                 verificationComplete = true;
                 break;
             }
-            if (!config.isSkipOtpVerification() && idState.getStatus() == IdentityVerificationStatus.OTP_VERIFICATION_PENDING) {
+            if (!config.isSkipOtpVerification() && idState.getStatus() == IdentityVerificationStatus.VERIFICATION_PENDING) {
                 verificationComplete = true;
                 break;
             } else {
@@ -1160,7 +1160,7 @@ class PowerAuthIdentityVerificationTest {
         boolean otpVerified = false;
         boolean verificationComplete = false;
         IdentityVerificationState idState = checkIdentityVerificationState();
-        if (idState.getStatus() == IdentityVerificationStatus.OTP_VERIFICATION_PENDING) {
+        if (idState.getStatus() == IdentityVerificationStatus.VERIFICATION_PENDING) {
             IdentityVerificationOtpVerifyRequest otpVerifyRequest = new IdentityVerificationOtpVerifyRequest();
             otpVerifyRequest.setProcessId(processId);
             otpVerifyRequest.setOtpCode(otpCode);
