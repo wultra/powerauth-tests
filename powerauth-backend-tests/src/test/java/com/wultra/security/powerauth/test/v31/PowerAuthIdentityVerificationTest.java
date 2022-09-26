@@ -169,6 +169,7 @@ class PowerAuthIdentityVerificationTest {
         processDocuments(context);
 
         initPresenceCheck(processId);
+        submitPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
             verifyStatusBeforeOtp();
             verifyOtpCheckSuccessful(processId);
@@ -229,6 +230,7 @@ class PowerAuthIdentityVerificationTest {
         processDocuments(context);
 
         initPresenceCheck(processId);
+        submitPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
             verifyStatusBeforeOtp();
             verifyOtpCheckFailed(processId, IdentityVerificationPhase.PRESENCE_CHECK);
@@ -249,6 +251,7 @@ class PowerAuthIdentityVerificationTest {
         processDocuments(context);
 
         initPresenceCheck(processId);
+        submitPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
             verifyStatusBeforeOtp();
             verifyOtpCheckFailedInvalidCode(processId, IdentityVerificationPhase.OTP_VERIFICATION);
@@ -312,6 +315,7 @@ class PowerAuthIdentityVerificationTest {
         }
 
         initPresenceCheck(processId);
+        submitPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
             verifyStatusBeforeOtp();
             verifyOtpCheckSuccessful(processId);
@@ -355,6 +359,7 @@ class PowerAuthIdentityVerificationTest {
         assertIdentityVerificationStateWithRetries(idState);
 
         initPresenceCheck(processId);
+        submitPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
             verifyStatusBeforeOtp();
             verifyOtpCheckSuccessful(processId);
@@ -677,6 +682,7 @@ class PowerAuthIdentityVerificationTest {
         processDocuments(context);
 
         initPresenceCheck(processId);
+        submitPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
             for (int i = 0; i < 4; i++) {
                 verifyStatusBeforeOtp();
@@ -1056,13 +1062,28 @@ class PowerAuthIdentityVerificationTest {
         if (config.isSkipPresenceCheck()) {
             return;
         }
-        // Init presence check
         PresenceCheckInitRequest presenceCheckRequest = new PresenceCheckInitRequest();
         presenceCheckRequest.setProcessId(processId);
         stepLogger = new ObjectStepLogger(System.out);
         signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(presenceCheckRequest)));
         signatureModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/presence-check/init");
         signatureModel.setResourceId("/api/identity/presence-check/init");
+
+        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertTrue(stepLogger.getResult().isSuccess());
+        assertEquals(200, stepLogger.getResponse().getStatusCode());
+    }
+
+    private void submitPresenceCheck(final String processId) throws Exception {
+        if (config.isSkipPresenceCheck()) {
+            return;
+        }
+        final PresenceCheckSubmitRequest presenceCheckRequest = new PresenceCheckSubmitRequest();
+        presenceCheckRequest.setProcessId(processId);
+        stepLogger = new ObjectStepLogger(System.out);
+        signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(presenceCheckRequest)));
+        signatureModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/presence-check/submit");
+        signatureModel.setResourceId("/api/identity/presence-check/submit");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
