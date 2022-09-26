@@ -876,7 +876,7 @@ class PowerAuthIdentityVerificationTest {
 
     private void approveConsent(final String processId) throws Exception {
         final OnboardingConsentTextRequest textRequest = new OnboardingConsentTextRequest();
-        textRequest.setProcessId(UUID.fromString(processId));
+        textRequest.setProcessId(processId);
         textRequest.setConsentType("GDPR");
 
         stepLogger = new ObjectStepLogger(System.out);
@@ -902,7 +902,7 @@ class PowerAuthIdentityVerificationTest {
         assertThat(consentText, startsWith("<html>"));
 
         final OnboardingConsentApprovalRequest approvalRequest = new OnboardingConsentApprovalRequest();
-        approvalRequest.setProcessId(UUID.fromString(processId));
+        approvalRequest.setProcessId(processId);
         approvalRequest.setConsentType("GDPR");
         approvalRequest.setApproved(true);
 
