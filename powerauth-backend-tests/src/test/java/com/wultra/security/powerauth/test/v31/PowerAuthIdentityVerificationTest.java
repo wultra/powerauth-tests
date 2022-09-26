@@ -161,7 +161,7 @@ class PowerAuthIdentityVerificationTest {
     }
 
     @Test
-    void    testSuccessfulIdentityVerification() throws Exception {
+    void testSuccessfulIdentityVerification() throws Exception {
         final TestContext context = prepareActivation();
         final String activationId = context.activationId;
         final String processId = context.processId;
