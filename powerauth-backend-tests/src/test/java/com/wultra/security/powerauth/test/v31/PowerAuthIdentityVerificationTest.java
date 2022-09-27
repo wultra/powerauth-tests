@@ -1099,7 +1099,7 @@ class PowerAuthIdentityVerificationTest {
                 verificationComplete = true;
                 break;
             }
-            if (!config.isSkipOtpVerification() && idState.getStatus() == IdentityVerificationStatus.VERIFICATION_PENDING) {
+            if (!config.isSkipOtpVerification() && idState.phase == IdentityVerificationPhase.OTP_VERIFICATION && idState.getStatus() == IdentityVerificationStatus.VERIFICATION_PENDING) {
                 verificationComplete = true;
                 break;
             } else {
