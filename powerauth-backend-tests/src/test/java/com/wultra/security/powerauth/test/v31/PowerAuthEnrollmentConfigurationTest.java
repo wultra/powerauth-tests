@@ -68,7 +68,7 @@ class PowerAuthEnrollmentConfigurationTest {
     void testConfiguration() throws Exception {
         encryptModel.setData(objectMapper.writeValueAsBytes("{}"));
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/configuration");
-        encryptModel.setScope("activation");
+        encryptModel.setScope("application");
 
         final ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
