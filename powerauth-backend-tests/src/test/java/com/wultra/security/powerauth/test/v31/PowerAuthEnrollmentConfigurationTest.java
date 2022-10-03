@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.wultra.app.enrollmentserver.api.model.enrollment.response.ConfigurationResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -41,6 +42,7 @@ import java.util.function.Predicate;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -82,25 +84,20 @@ class PowerAuthEnrollmentConfigurationTest {
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
-        final Object response = stepLogger.getItems().stream()
+        final ConfigurationResponse response = stepLogger.getItems().stream()
                 .filter(isStepItemDecryptedResponse())
                 .map(StepItem::getObject)
                 .map(Object::toString)
-                // TODO Lubos replace by ConfigurationResponse class
-                .map(it -> safeReadValue(it, new TypeReference<ObjectResponse<Object>>() { }))
+                .map(it -> safeReadValue(it, new TypeReference<ObjectResponse<ConfigurationResponse>>() { }))
                 .filter(Objects::nonNull)
                 .map(ObjectResponse::getResponseObject)
                 .findFirst()
-                .orElseThrow(() -> new AssertionError("error - no consent found"));
+                .orElseThrow(() -> new AssertionError("error - no configuration found"));
 
-        // TODO Lubos replace assert
-        assertThat(response.toString(), equalTo("{mobileApplication={android={minimalVersion=1.4.0, currentVersion=1.5.4}, ios={minimalVersion=1.9.0, currentVersion=2.0.0}}}"));
-        /*
-        assertThat(response, hasProperty("mobileApplication.android.minimalVersion", equalTo("1")));
-        assertThat(response, hasProperty("mobileApplication.android.currentVersion", equalTo("1")));
-        assertThat(response, hasProperty("mobileApplication.ios.minimalVersion", equalTo("1")));
-        assertThat(response, hasProperty("mobileApplication.iso.currentVersion", equalTo("1")));
-         */
+        assertThat(response, hasProperty("mobileApplication.android.minimalVersion", equalTo("1.4.0")));
+        assertThat(response, hasProperty("mobileApplication.android.currentVersion", equalTo("1.5.4")));
+        assertThat(response, hasProperty("mobileApplication.ios.minimalVersion", equalTo("1.5.4")));
+        assertThat(response, hasProperty("mobileApplication.iso.currentVersion", equalTo("2.0.0")));
     }
 
     private Predicate<StepItem> isStepItemDecryptedResponse() {
