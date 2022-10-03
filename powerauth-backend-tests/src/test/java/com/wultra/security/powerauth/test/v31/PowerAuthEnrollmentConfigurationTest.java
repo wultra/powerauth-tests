@@ -17,10 +17,14 @@
  */
 package com.wultra.security.powerauth.test.v31;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
+import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,9 +36,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.HashMap;
+import java.util.Objects;
+import java.util.function.Predicate;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test for enrollment configuration endpoint.
@@ -75,7 +82,37 @@ class PowerAuthEnrollmentConfigurationTest {
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
-        final Object response = stepLogger.getResponse().getResponseObject();
-        // TODO Lubos
+        final Object response = stepLogger.getItems().stream()
+                .filter(isStepItemDecryptedResponse())
+                .map(StepItem::getObject)
+                .map(Object::toString)
+                // TODO Lubos replace by ConfigurationResponse class
+                .map(it -> safeReadValue(it, new TypeReference<ObjectResponse<Object>>() { }))
+                .filter(Objects::nonNull)
+                .map(ObjectResponse::getResponseObject)
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("error - no consent found"));
+
+        // TODO Lubos replace assert
+        assertThat(response.toString(), equalTo("{mobileApplication={android={minimalVersion=1.4.0, currentVersion=1.5.4}, ios={minimalVersion=1.9.0, currentVersion=2.0.0}}}"));
+        /*
+        assertThat(response, hasProperty("mobileApplication.android.minimalVersion", equalTo("1")));
+        assertThat(response, hasProperty("mobileApplication.android.currentVersion", equalTo("1")));
+        assertThat(response, hasProperty("mobileApplication.ios.minimalVersion", equalTo("1")));
+        assertThat(response, hasProperty("mobileApplication.iso.currentVersion", equalTo("1")));
+         */
+    }
+
+    private Predicate<StepItem> isStepItemDecryptedResponse() {
+        return stepItem -> "Decrypted Response".equals(stepItem.getName());
+    }
+
+    private <T> T safeReadValue(final String value, final TypeReference<T> typeReference) {
+        try {
+            return objectMapper.readValue(value, typeReference);
+        } catch (JsonProcessingException e) {
+            fail("Unable to read json", e);
+            return null;
+        }
     }
 }
