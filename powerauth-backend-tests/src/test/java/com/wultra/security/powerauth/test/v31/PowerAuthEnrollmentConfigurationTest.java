@@ -42,7 +42,6 @@ import java.util.function.Predicate;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasProperty;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -94,10 +93,10 @@ class PowerAuthEnrollmentConfigurationTest {
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("error - no configuration found"));
 
-        assertThat(response, hasProperty("mobileApplication.android.minimalVersion", equalTo("1.4.0")));
-        assertThat(response, hasProperty("mobileApplication.android.currentVersion", equalTo("1.5.4")));
-        assertThat(response, hasProperty("mobileApplication.ios.minimalVersion", equalTo("1.5.4")));
-        assertThat(response, hasProperty("mobileApplication.iso.currentVersion", equalTo("2.0.0")));
+        assertThat(response.getMobileApplication().getAndroid().getMinimalVersion(), equalTo("1.4.0"));
+        assertThat(response.getMobileApplication().getAndroid().getCurrentVersion(), equalTo("1.5.4"));
+        assertThat(response.getMobileApplication().getIOs().getMinimalVersion(), equalTo("1.5.4"));
+        assertThat(response.getMobileApplication().getIOs().getCurrentVersion(), equalTo("2.0.0"));
     }
 
     private Predicate<StepItem> isStepItemDecryptedResponse() {
