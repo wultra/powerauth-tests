@@ -25,6 +25,7 @@ import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingSt
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingStatusRequest;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.OnboardingStartResponse;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.OnboardingStatusResponse;
+import com.wultra.app.enrollmentserver.api.model.onboarding.response.error.ActivationOtpErrorResponse;
 import com.wultra.app.enrollmentserver.model.enumeration.OnboardingStatus;
 import com.wultra.app.enrollmentserver.model.enumeration.OtpType;
 import com.wultra.security.powerauth.client.PowerAuthClient;
@@ -66,6 +67,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
@@ -263,7 +265,7 @@ class PowerAuthOnboardingTest {
     }
 
     @Test
-    void testMaxAttemptsReached() throws Exception {
+    void testOtpMaxFailedAttemptsReached() throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
         String processId = startOnboarding(clientId);
@@ -274,15 +276,18 @@ class PowerAuthOnboardingTest {
         // Obtain activation OTP from testing endpoint
         String otpCode = getOtpCode(processId);
 
-        for (int i = 0; i < 5; i++) {
-            assertThrows(AssertionFailedError.class, () ->
-                    createCustomActivation(processId, "0000000000", clientId),
-                    "Activation with invalid OTP should fail");
+        for (int i = 4; i > 0; i--) {
+            assertEquals(i,
+                    createCustomActivationAssumeFailure(processId, "0000000000", clientId),
+                    "Activation with invalid OTP should fail and remaining attempt count should be valid");
         }
 
-        assertThrows(AssertionFailedError.class, () ->
-                createCustomActivation(processId, otpCode, clientId),
-                "Sixth attempt with correct OTP code should fail");
+        assertNull(createCustomActivationAssumeFailure(processId, "0000000000", clientId),
+                "Activation with invalid OTP should fail when all attempts were used");
+
+        assertNull(createCustomActivationAssumeFailure(processId, otpCode, clientId), "Sixth attempt with correct OTP code should fail");
+
+        assertEquals(OnboardingStatus.FAILED, getProcessStatus(processId));
     }
 
     @Test
@@ -445,6 +450,22 @@ class PowerAuthOnboardingTest {
 
         assertTrue(responseOk);
         return activationId;
+    }
+
+    private Integer createCustomActivationAssumeFailure(String processId, String otpCode, String clientId) throws Exception {
+        stepLogger = new ObjectStepLogger(System.out);
+        Map<String, String> identityAttributes = new HashMap<>();
+        identityAttributes.put("processId", processId);
+        identityAttributes.put("otpCode", otpCode);
+        identityAttributes.put("credentialsType", "ONBOARDING");
+        activationModel.setIdentityAttributes(identityAttributes);
+        new CreateActivationStep().execute(stepLogger, activationModel.toMap());
+        assertFalse(stepLogger.getResult().isSuccess());
+        assertEquals(400, stepLogger.getResponse().getStatusCode());
+
+        final String response = (String) stepLogger.getResponse().getResponseObject();
+        final ActivationOtpErrorResponse errorResponseOtp = objectMapper.readValue(response, ActivationOtpErrorResponse.class);
+        return errorResponseOtp.getRemainingAttempts();
     }
 
     private String getOtpCode(String processId) throws Exception {
