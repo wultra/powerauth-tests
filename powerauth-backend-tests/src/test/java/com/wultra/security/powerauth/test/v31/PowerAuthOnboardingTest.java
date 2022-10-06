@@ -276,8 +276,8 @@ class PowerAuthOnboardingTest {
         // Obtain activation OTP from testing endpoint
         String otpCode = getOtpCode(processId);
 
-        for (int i = 0; i < 4; i++) {
-            assertEquals(4 - i,
+        for (int i = 4; i > 0; i--) {
+            assertEquals(i,
                     createCustomActivationAssumeFailure(processId, "0000000000", clientId),
                     "Activation with invalid OTP should fail and remaining attempt count should be valid");
         }
