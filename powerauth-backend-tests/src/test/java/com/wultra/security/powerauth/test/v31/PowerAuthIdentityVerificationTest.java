@@ -654,6 +654,8 @@ class PowerAuthIdentityVerificationTest {
         final TestContext context = prepareActivation();
         final String processId = context.processId;
 
+        initIdentityVerification(context.activationId, processId);
+
         Map<String, String> attributes = new HashMap<>();
         attributes.put("sdk-init-token", "value");
 
