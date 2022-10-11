@@ -664,8 +664,8 @@ class PowerAuthIdentityVerificationTest {
         initRequest.setAttributes(attributes);
         stepLogger = new ObjectStepLogger(System.out);
         signatureModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(initRequest)));
-        signatureModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document-verification/init-sdk");
-        signatureModel.setResourceId("/api/identity/document-verification/init-sdk");
+        signatureModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/init-sdk");
+        signatureModel.setResourceId("/api/identity/document/init-sdk");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
