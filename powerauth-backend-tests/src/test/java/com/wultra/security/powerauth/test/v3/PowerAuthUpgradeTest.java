@@ -53,7 +53,6 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
@@ -1027,7 +1026,7 @@ class PowerAuthUpgradeTest {
     }
 
     @Test
-    @Disabled
+    @Disabled("The test is targeted for MySQL database")
     void upgradeConcurrencyTest() throws Exception {
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
