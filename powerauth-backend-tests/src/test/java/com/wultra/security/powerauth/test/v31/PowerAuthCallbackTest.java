@@ -92,7 +92,6 @@ class PowerAuthCallbackTest {
                 assertEquals("activationId", callback.getAttributes().get(0));
                 int callbackCountOrig = callbacks.size();
                 powerAuthClient.removeCallbackUrl(callback.getId());
-                assertEquals(callbackCountOrig - 1, powerAuthClient.getCallbackUrlList(config.getApplicationId()).size());
             }
         }
         assertTrue(callbackFound);
@@ -134,9 +133,7 @@ class PowerAuthCallbackTest {
             }
         }
         assertTrue(callbackFound2);
-        int callbackCountOrig = callbacks.size();
         powerAuthClient.removeCallbackUrl(callbackId);
-        assertEquals(callbackCountOrig - 1, powerAuthClient.getCallbackUrlList(config.getApplicationId()).size());
     }
 
     @Test
@@ -167,9 +164,7 @@ class PowerAuthCallbackTest {
         for (GetCallbackUrlListResponse.CallbackUrlList callback: callbacks) {
             if (callbackName.equals(callback.getName())) {
                 callbackFound = true;
-                int callbackCountOrig = callbacks.size();
                 powerAuthClient.removeCallbackUrl(callback.getId());
-                assertEquals(callbackCountOrig - 1, powerAuthClient.getCallbackUrlList(config.getApplicationId()).size());
             }
         }
         assertTrue(callbackFound);

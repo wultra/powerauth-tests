@@ -394,7 +394,4 @@ public class PowerAuthTestConfiguration {
         return skipResultVerification;
     }
 
-    public boolean isSkipDbConcurrencyTests() {
-        return skipDbConcurrencyTests;
-    }
 }

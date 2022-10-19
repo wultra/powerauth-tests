@@ -37,10 +37,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.CommitUpgradeStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.StartUpgradeStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
 import org.json.simple.JSONObject;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -56,7 +53,6 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
@@ -1030,8 +1026,8 @@ class PowerAuthUpgradeTest {
     }
 
     @Test
+    @Disabled("The test is targeted for MySQL database")
     void upgradeConcurrencyTest() throws Exception {
-        assumeFalse(config.isSkipDbConcurrencyTests());
         // Shared resultStatus object
         JSONObject resultStatusObject = new JSONObject();
 
