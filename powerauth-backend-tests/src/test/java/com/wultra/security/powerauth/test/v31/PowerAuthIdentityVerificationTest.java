@@ -42,7 +42,10 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.*;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.*;
 import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,12 +65,12 @@ import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
@@ -322,7 +325,6 @@ class PowerAuthIdentityVerificationTest {
             verifyProcessFinished(processId, activationId);
         }
 
-        // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
     }
 
@@ -366,7 +368,6 @@ class PowerAuthIdentityVerificationTest {
             verifyProcessFinished(processId, activationId);
         }
 
-        // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
     }
 
@@ -382,7 +383,7 @@ class PowerAuthIdentityVerificationTest {
         approveConsent(processId);
         initIdentityVerification(activationId, processId);
 
-        List<FileSubmit> docSubmits = ImmutableList.of(
+        final List<FileSubmit> docSubmits = ImmutableList.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
         );
         DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, docSubmits);
@@ -394,7 +395,6 @@ class PowerAuthIdentityVerificationTest {
             assertStatusOfSubmittedDocs(processId, docSubmits.size(), DocumentStatus.REJECTED);
         }
 
-        // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
     }
 
@@ -422,7 +422,42 @@ class PowerAuthIdentityVerificationTest {
             assertStatusOfSubmittedDocs(processId, docSubmits.size(), DocumentStatus.REJECTED);
         }
 
-        // Remove activation
+        powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    @Test
+    void testDocSubmitMaxAttemptsLimit() throws Exception {
+        if (!config.isAdditionalDocSubmitValidationsEnabled()) {
+            return;
+        }
+        final TestContext context = prepareActivation();
+        final String activationId = context.activationId;
+        final String processId = context.processId;
+
+        approveConsent(processId);
+        initIdentityVerification(activationId, processId);
+
+        final List<FileSubmit> docSubmits = ImmutableList.of(
+                FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
+        );
+
+        final DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, docSubmits);
+
+        for (int i = 0; i < 6; i++) {
+            submitDocuments(idCardSubmitRequest, docSubmits);
+            if (config.isVerificationOnSubmitEnabled()) {
+                assertStatusOfSubmittedDocsWithRetries(processId, i + 1, DocumentStatus.REJECTED);
+            } else {
+                assertStatusOfSubmittedDocs(processId, i + 1, DocumentStatus.REJECTED);
+            }
+            assertIdentityVerificationStateWithRetries(
+                    new IdentityVerificationState(IdentityVerificationPhase.DOCUMENT_UPLOAD, IdentityVerificationStatus.IN_PROGRESS));
+        }
+
+        assertThrows(AssertionError.class, () -> submitDocuments(idCardSubmitRequest, docSubmits));
+        assertIdentityVerificationStateWithRetries(
+                new IdentityVerificationState(IdentityVerificationPhase.DOCUMENT_UPLOAD, IdentityVerificationStatus.FAILED));
+
         powerAuthClient.removeActivation(activationId, "test");
     }
 
@@ -448,7 +483,6 @@ class PowerAuthIdentityVerificationTest {
             assertStatusOfSubmittedDocs(processId, invalidDocSubmits.size(), DocumentStatus.ACCEPTED);
         }
 
-        // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
     }
 
@@ -470,7 +504,6 @@ class PowerAuthIdentityVerificationTest {
 
         cleanupIdentityVerification(processId);
 
-        // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
     }
 
@@ -499,7 +532,6 @@ class PowerAuthIdentityVerificationTest {
             }
         }
 
-        // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
     }
 
@@ -645,7 +677,6 @@ class PowerAuthIdentityVerificationTest {
         }
         assertNotNull(documentId);
 
-        // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
     }
 
@@ -947,7 +978,9 @@ class PowerAuthIdentityVerificationTest {
         submitRequest.setResubmit(false);
 
         // Add zipped request data
-        List<File> files = fileSubmits.stream().map(FileSubmit::getFile).collect(Collectors.toList());
+        final List<File> files = fileSubmits.stream()
+                .map(FileSubmit::getFile)
+                .collect(toList());
         byte[] zippedFiles = toZipBytes(files);
         submitRequest.setData(zippedFiles);
 
