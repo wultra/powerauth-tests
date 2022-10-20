@@ -698,30 +698,14 @@ class PowerAuthIdentityVerificationTest {
         powerAuthClient.removeActivation(activationId, "test");
     }
 
-    @Test
-    void testFailedActivationOtpMaxFailedAttemptsFailProcess() throws Exception {
-        final String clientId = generateRandomClientId();
-        final String processId = startOnboarding(clientId);
-
-        for (int i = 0; i < 4; i++) {
-            createCustomActivationWrongOtp(processId, clientId);
-            final OnboardingStatus status = checkProcessStatus(processId);
-            assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, status);
-        }
-
-        createCustomActivationWrongOtp(processId, clientId);
-        final OnboardingStatus status = checkProcessStatus(processId);
-        assertEquals(OnboardingStatus.FAILED, status);
-    }
-
     private TestContext prepareActivation() throws Exception {
         return prepareActivation("");
     }
 
     private TestContext prepareActivation(final String clientIdPostfix) throws Exception {
-        final String clientId = generateRandomClientId() + clientIdPostfix;
-        final String processId = startOnboarding(clientId);
-        final String activationId = createCustomActivation(processId, getOtpCode(processId, OtpType.ACTIVATION), clientId);
+        String clientId = generateRandomClientId() + clientIdPostfix;
+        String processId = startOnboarding(clientId);
+        String activationId = createCustomActivation(processId, getOtpCode(processId, OtpType.ACTIVATION), clientId);
         createToken();
 
         final TestContext testContext = new TestContext();
@@ -783,27 +767,14 @@ class PowerAuthIdentityVerificationTest {
     }
 
     private String createCustomActivation(String processId, String otpCode, String clientId) throws Exception {
-        return createCustomActivation(processId, otpCode, clientId, true);
-    }
-
-    private void createCustomActivationWrongOtp(String processId, String clientId) throws Exception {
-        createCustomActivation(processId, "wrong otp", clientId, false);
-    }
-
-    private String createCustomActivation(String processId, String otpCode, String clientId, boolean expectedResult) throws Exception {
         stepLogger = new ObjectStepLogger(System.out);
-        final Map<String, String> identityAttributes = new HashMap<>();
+        Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("processId", processId);
         identityAttributes.put("otpCode", otpCode);
         identityAttributes.put("credentialsType", "ONBOARDING");
         activationModel.setIdentityAttributes(identityAttributes);
         new CreateActivationStep().execute(stepLogger, activationModel.toMap());
-        assertEquals(expectedResult, stepLogger.getResult().isSuccess());
-
-        if (!expectedResult) {
-            return null;
-        }
-
+        assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
         String activationId = null;
