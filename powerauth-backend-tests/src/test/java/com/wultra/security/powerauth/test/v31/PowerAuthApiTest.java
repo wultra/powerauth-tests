@@ -58,6 +58,7 @@ import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2
 import io.getlime.security.powerauth.rest.api.model.response.v3.ConfirmRecoveryResponsePayload;
 import io.getlime.security.powerauth.rest.api.model.response.v3.UpgradeResponsePayload;
 import io.getlime.security.powerauth.rest.api.model.response.v3.VaultUnlockResponsePayload;
+import lombok.Data;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -493,36 +494,44 @@ class PowerAuthApiTest {
     }
 
     @Test
-    void createValidateAndRemoveTokenTest() throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, IOException, EciesException, PowerAuthClientException {
-        byte[] transportMasterKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "transportMasterKey"));
-        byte[] serverPublicKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "serverPublicKey"));
-        final ECPublicKey serverPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(serverPublicKeyBytes);
-        final EciesEncryptor eciesEncryptor = eciesFactory.getEciesEncryptorForActivation(serverPublicKey, config.getApplicationSecret().getBytes(StandardCharsets.UTF_8),
-                transportMasterKeyBytes, EciesSharedInfo1.CREATE_TOKEN);
-        final EciesCryptogram eciesCryptogram = eciesEncryptor.encryptRequest("{}".getBytes(StandardCharsets.UTF_8), true);
-        EciesEncryptedRequest eciesRequest = new EciesEncryptedRequest();
-        eciesRequest.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogram.getEphemeralPublicKey()));
-        eciesRequest.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogram.getEncryptedData()));
-        eciesRequest.setMac(BaseEncoding.base64().encode(eciesCryptogram.getMac()));
-        eciesRequest.setNonce(BaseEncoding.base64().encode(eciesCryptogram.getNonce()));
-        CreateTokenResponse tokenResponse = powerAuthClient.createToken(config.getActivationIdV31(), config.getApplicationKey(), eciesRequest.getEphemeralPublicKey(), eciesRequest.getEncryptedData(),
-                eciesRequest.getMac(), eciesRequest.getNonce(), SignatureType.POSSESSION_KNOWLEDGE);
-        assertNotNull(tokenResponse.getEncryptedData());
-        assertNotNull(tokenResponse.getMac());
-        EciesCryptogram responseCryptogram = new EciesCryptogram(BaseEncoding.base64().decode(tokenResponse.getMac()), BaseEncoding.base64().decode(tokenResponse.getEncryptedData()));
-        byte[] decryptedData = eciesEncryptor.decryptResponse(responseCryptogram);
-        TokenResponsePayload response = objectMapper.readValue(decryptedData, TokenResponsePayload.class);
-        assertNotNull(response.getTokenId());
-        assertNotNull(response.getTokenSecret());
-        BaseStepModel model = new BaseStepModel();
-        model.setResultStatusObject(config.getResultStatusObjectV31());
-        CounterUtil.incrementCounter(model);
-        final byte[] tokenNonce = tokenGenerator.generateTokenNonce();
-        final byte[] tokenTimestamp = tokenGenerator.generateTokenTimestamp();
-        final byte[] tokenDigest = tokenGenerator.computeTokenDigest(tokenNonce, tokenTimestamp, BaseEncoding.base64().decode(response.getTokenSecret()));
-        ValidateTokenResponse validateResponse = powerAuthClient.validateToken(response.getTokenId(), BaseEncoding.base64().encode(tokenNonce), Long.parseLong(new String(tokenTimestamp)), BaseEncoding.base64().encode(tokenDigest));
+    void createValidateAndRemoveTokenTestActiveActivation() throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, IOException, EciesException, PowerAuthClientException {
+        final TokenInfo tokenInfo = createToken();
+
+        // Check successful token validation and activation status
+        final ValidateTokenResponse validateResponse = powerAuthClient.validateToken(tokenInfo.getTokenId(),
+                BaseEncoding.base64().encode(tokenInfo.getTokenNonce()),
+                Long.parseLong(new String(tokenInfo.getTokenTimestamp())),
+                BaseEncoding.base64().encode(tokenInfo.getTokenDigest()));
         assertTrue(validateResponse.isTokenValid());
-        RemoveTokenResponse removeResponse = powerAuthClient.removeToken(response.getTokenId(), config.getActivationIdV31());
+        assertEquals(ActivationStatus.ACTIVE, validateResponse.getActivationStatus());
+        assertNull(validateResponse.getBlockedReason());
+
+        RemoveTokenResponse removeResponse = powerAuthClient.removeToken(tokenInfo.getTokenId(), config.getActivationIdV31());
+        assertTrue(removeResponse.isRemoved());
+    }
+
+    @Test
+    void createValidateAndRemoveTokenTestBlockedActivation() throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, IOException, EciesException, PowerAuthClientException {
+        final TokenInfo tokenInfo = createToken();
+
+        // Block activation
+        final BlockActivationResponse blockResponse = powerAuthClient.blockActivation(config.getActivationIdV31(), "TEST", null);
+        assertEquals(ActivationStatus.BLOCKED, blockResponse.getActivationStatus());
+
+        // Check that token validation failed and activation status and blocked reason is available
+        final ValidateTokenResponse validateResponse = powerAuthClient.validateToken(tokenInfo.getTokenId(),
+                BaseEncoding.base64().encode(tokenInfo.getTokenNonce()),
+                Long.parseLong(new String(tokenInfo.getTokenTimestamp())),
+                BaseEncoding.base64().encode(tokenInfo.getTokenDigest()));
+        assertFalse(validateResponse.isTokenValid());
+        assertEquals(ActivationStatus.BLOCKED, validateResponse.getActivationStatus());
+        assertEquals("TEST", validateResponse.getBlockedReason());
+
+        // Unblock activation
+        final UnblockActivationResponse unblockResponse = powerAuthClient.unblockActivation(config.getActivationIdV31(), "TEST");
+        assertEquals(ActivationStatus.ACTIVE, unblockResponse.getActivationStatus());
+
+        final RemoveTokenResponse removeResponse = powerAuthClient.removeToken(tokenInfo.getTokenId(), config.getActivationIdV31());
         assertTrue(removeResponse.isRemoved());
     }
 
@@ -715,4 +724,48 @@ class PowerAuthApiTest {
     // Activation flags are tested using PowerAuthActivationFlagsTest
     // Application roles are tested using PowerAuthApplicationRolesTest
 
+    private TokenInfo createToken() throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, IOException, EciesException, PowerAuthClientException {
+        byte[] transportMasterKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "transportMasterKey"));
+        byte[] serverPublicKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "serverPublicKey"));
+        final ECPublicKey serverPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(serverPublicKeyBytes);
+        final EciesEncryptor eciesEncryptor = eciesFactory.getEciesEncryptorForActivation(serverPublicKey, config.getApplicationSecret().getBytes(StandardCharsets.UTF_8),
+                transportMasterKeyBytes, EciesSharedInfo1.CREATE_TOKEN);
+        final EciesCryptogram eciesCryptogram = eciesEncryptor.encryptRequest("{}".getBytes(StandardCharsets.UTF_8), true);
+        final EciesEncryptedRequest eciesRequest = new EciesEncryptedRequest();
+        eciesRequest.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogram.getEphemeralPublicKey()));
+        eciesRequest.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogram.getEncryptedData()));
+        eciesRequest.setMac(BaseEncoding.base64().encode(eciesCryptogram.getMac()));
+        eciesRequest.setNonce(BaseEncoding.base64().encode(eciesCryptogram.getNonce()));
+        final CreateTokenResponse tokenResponse = powerAuthClient.createToken(config.getActivationIdV31(), config.getApplicationKey(), eciesRequest.getEphemeralPublicKey(), eciesRequest.getEncryptedData(),
+                eciesRequest.getMac(), eciesRequest.getNonce(), SignatureType.POSSESSION_KNOWLEDGE);
+        assertNotNull(tokenResponse.getEncryptedData());
+        assertNotNull(tokenResponse.getMac());
+        final EciesCryptogram responseCryptogram = new EciesCryptogram(BaseEncoding.base64().decode(tokenResponse.getMac()), BaseEncoding.base64().decode(tokenResponse.getEncryptedData()));
+        final byte[] decryptedData = eciesEncryptor.decryptResponse(responseCryptogram);
+        final TokenResponsePayload response = objectMapper.readValue(decryptedData, TokenResponsePayload.class);
+        assertNotNull(response.getTokenId());
+        assertNotNull(response.getTokenSecret());
+        final BaseStepModel model = new BaseStepModel();
+        model.setResultStatusObject(config.getResultStatusObjectV31());
+        CounterUtil.incrementCounter(model);
+        final TokenInfo tokenInfo = new TokenInfo();
+        tokenInfo.setTokenId(response.getTokenId());
+        tokenInfo.setTokenSecret(response.getTokenSecret());
+        tokenInfo.setTokenNonce(tokenGenerator.generateTokenNonce());
+        tokenInfo.setTokenTimestamp(tokenGenerator.generateTokenTimestamp());
+        tokenInfo.setTokenDigest(tokenGenerator.computeTokenDigest(
+                tokenInfo.getTokenNonce(),
+                tokenInfo.getTokenTimestamp(),
+                BaseEncoding.base64().decode(response.getTokenSecret())));
+        return tokenInfo;
+    }
+
+    @Data
+    private static final class TokenInfo {
+        private String tokenId;
+        private String tokenSecret;
+        private byte[] tokenNonce;
+        private byte[] tokenTimestamp;
+        private byte[] tokenDigest;
+    }
 }
