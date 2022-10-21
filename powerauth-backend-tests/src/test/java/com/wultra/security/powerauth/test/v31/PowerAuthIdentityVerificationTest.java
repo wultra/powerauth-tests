@@ -456,7 +456,7 @@ class PowerAuthIdentityVerificationTest {
 
         assertThrows(AssertionError.class, () -> submitDocuments(idCardSubmitRequest, docSubmits));
         assertIdentityVerificationStateWithRetries(
-                new IdentityVerificationState(IdentityVerificationPhase.DOCUMENT_UPLOAD, IdentityVerificationStatus.FAILED));
+                new IdentityVerificationState(null, IdentityVerificationStatus.NOT_INITIALIZED));
 
         powerAuthClient.removeActivation(activationId, "test");
     }
