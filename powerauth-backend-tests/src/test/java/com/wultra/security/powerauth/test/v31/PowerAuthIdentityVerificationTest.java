@@ -48,6 +48,7 @@ import lombok.Getter;
 import lombok.ToString;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.opentest4j.AssertionFailedError;
@@ -712,6 +713,47 @@ class PowerAuthIdentityVerificationTest {
         final String activationId = context.activationId;
         final String processId = context.processId;
 
+        processDocuments(context);
+
+        initPresenceCheck(processId);
+        submitPresenceCheck(processId);
+        if (!config.isSkipResultVerification()) {
+            for (int i = 0; i < 4; i++) {
+                verifyStatusBeforeOtp();
+                verifyOtpCheckFailedInvalidCode(processId, IdentityVerificationPhase.OTP_VERIFICATION);
+            }
+            // Verify restart of identity verification
+            verifyStatusBeforeOtp();
+            verifyOtpCheckFailedInvalidCode(processId, null);
+        }
+
+        powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    @Disabled("enrollment-server/issues/475, OTP failed attempts are count for process, not identity verification")
+    @Test
+    void testErrorScoreLimit() throws Exception {
+        // 4 * invalid OTP (2) + reset(3) + TODO  = 16 > score limit(15)
+        final TestContext context = prepareActivation();
+        final String activationId = context.activationId;
+        final String processId = context.processId;
+
+        // 1st identity verification
+        processDocuments(context);
+
+        initPresenceCheck(processId);
+        submitPresenceCheck(processId);
+        if (!config.isSkipResultVerification()) {
+            for (int i = 0; i < 4; i++) {
+                verifyStatusBeforeOtp();
+                verifyOtpCheckFailedInvalidCode(processId, IdentityVerificationPhase.OTP_VERIFICATION);
+            }
+            // Verify restart of identity verification
+            verifyStatusBeforeOtp();
+            verifyOtpCheckFailedInvalidCode(processId, null);
+        }
+
+        // 2nd identity verification
         processDocuments(context);
 
         initPresenceCheck(processId);
