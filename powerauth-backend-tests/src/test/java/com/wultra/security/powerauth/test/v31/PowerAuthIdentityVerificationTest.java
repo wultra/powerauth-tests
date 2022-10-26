@@ -48,7 +48,6 @@ import lombok.Getter;
 import lombok.ToString;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.opentest4j.AssertionFailedError;
@@ -730,10 +729,9 @@ class PowerAuthIdentityVerificationTest {
         powerAuthClient.removeActivation(activationId, "test");
     }
 
-    @Disabled("enrollment-server/issues/475, OTP failed attempts are count for process, not identity verification")
     @Test
     void testErrorScoreLimit() throws Exception {
-        // 4 * invalid OTP (2) + reset(3) + TODO  = 16 > score limit(15)
+        // 4 * invalid OTP (2) + reset(3) + 3 * invalid OTP (2)  = 17 > score limit(15)
         final TestContext context = prepareActivation();
         final String activationId = context.activationId;
         final String processId = context.processId;
@@ -759,14 +757,15 @@ class PowerAuthIdentityVerificationTest {
         initPresenceCheck(processId);
         submitPresenceCheck(processId);
         if (!config.isSkipResultVerification()) {
-            for (int i = 0; i < 4; i++) {
+            for (int i = 0; i < 3; i++) {
                 verifyStatusBeforeOtp();
                 verifyOtpCheckFailedInvalidCode(processId, IdentityVerificationPhase.OTP_VERIFICATION);
             }
-            // Verify restart of identity verification
-            verifyStatusBeforeOtp();
-            verifyOtpCheckFailedInvalidCode(processId, null);
         }
+
+        // Verify failed because of error score
+        final OnboardingStatus status = checkProcessStatus(processId);
+        assertEquals(OnboardingStatus.FAILED, status);
 
         powerAuthClient.removeActivation(activationId, "test");
     }
