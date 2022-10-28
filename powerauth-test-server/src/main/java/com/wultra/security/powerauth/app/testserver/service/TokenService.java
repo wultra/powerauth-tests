@@ -24,13 +24,17 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFail
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
+import com.wultra.security.powerauth.app.testserver.model.request.ComputeTokenDigestRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.CreateTokenRequest;
+import com.wultra.security.powerauth.app.testserver.model.response.ComputeTokenDigestResponse;
 import com.wultra.security.powerauth.app.testserver.model.response.CreateTokenResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
+import io.getlime.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
+import io.getlime.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateTokenStep;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -43,31 +47,35 @@ import java.security.PublicKey;
 import java.util.Map;
 
 /**
- * Service for creating new tokens.
+ * Service for working with PowerAuth tokens.
  *
  * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service
-public class CreateTokenService extends BaseService {
+public class TokenService extends BaseService {
 
-    private final static Logger logger = LoggerFactory.getLogger(CreateTokenService.class);
+    private final static Logger logger = LoggerFactory.getLogger(TokenService.class);
 
     private final TestServerConfiguration config;
     private final ResultStatusService resultStatusUtil;
     private final CreateTokenStep createTokenStep;
+    private final VerifyTokenStep verifyTokenStep;
 
     /**
      * Service constructor.
      * @param config Test server configuration.
      * @param resultStatusUtil Result status utilities.
-     * @param createTokenStep Prepare token.
+     * @param createTokenStep Create token step.
+     * @param verifyTokenStep Verify token step.
      */
     @Autowired
-    public CreateTokenService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, CreateTokenStep createTokenStep) {
+    public TokenService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, CreateTokenStep createTokenStep, VerifyTokenStep verifyTokenStep) {
         super(appConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
         this.createTokenStep = createTokenStep;
+        this.verifyTokenStep = verifyTokenStep;
     }
 
     /**
@@ -125,4 +133,47 @@ public class CreateTokenService extends BaseService {
         return result;
     }
 
+    /**
+     * Compute a token digest.
+     * @param request Request for computing a token digest.
+     * @return Response for computing a token digest.
+     * @throws RemoteExecutionException In case remote communication fails.
+     * @throws ActivationFailedException In case activation is not found.
+     */
+    @SuppressWarnings("unchecked")
+    public ComputeTokenDigestResponse computeTokenDigest(ComputeTokenDigestRequest request) throws RemoteExecutionException, ActivationFailedException {
+
+        final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        final VerifyTokenStepModel model = new VerifyTokenStepModel();
+        model.setTokenId(request.getTokenId());
+        model.setTokenSecret(request.getTokenSecret());
+        model.setHttpMethod("POST");
+        model.setVersion(config.getVersion());
+        model.setUriString(config.getEnrollmentServiceUrl());
+        model.setResultStatusObject(resultStatusObject);
+        model.setDryRun(true);
+
+        String authHeader = null;
+        try {
+            final ObjectStepLogger stepLogger = new ObjectStepLogger();
+            verifyTokenStep.execute(stepLogger, model.toMap());
+            for (StepItem item: stepLogger.getItems()) {
+                StepItemLogger.log(logger, item);
+                if ("Sending Request".equals(item.getName())) {
+                    final Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+                    final Map<String, Object> requestHeadersMap = (Map<String, Object>) responseMap.get("requestHeaders");
+                    authHeader = requestHeadersMap.get("X-PowerAuth-Token").toString();
+                }
+            }
+        } catch (Exception ex) {
+            logger.warn("Remote execution failed, reason: {}", ex.getMessage());
+            logger.debug(ex.getMessage(), ex);
+            throw new RemoteExecutionException("Remote execution failed");
+        }
+
+        final ComputeTokenDigestResponse response = new ComputeTokenDigestResponse();
+        response.setAuthHeader(authHeader);
+        return response;
+    }
 }

@@ -21,9 +21,11 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFail
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
+import com.wultra.security.powerauth.app.testserver.model.request.ComputeTokenDigestRequest;
+import com.wultra.security.powerauth.app.testserver.model.response.ComputeTokenDigestResponse;
 import com.wultra.security.powerauth.app.testserver.model.request.CreateTokenRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.CreateTokenResponse;
-import com.wultra.security.powerauth.app.testserver.service.CreateTokenService;
+import com.wultra.security.powerauth.app.testserver.service.TokenService;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,16 +41,16 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping("token")
-public class CreateTokenController {
+public class TokenController {
 
-    private final CreateTokenService tokenService;
+    private final TokenService tokenService;
 
     /**
      * Constructor with token service.
      * @param tokenService Token service.
      */
     @Autowired
-    public CreateTokenController(CreateTokenService tokenService) {
+    public TokenController(TokenService tokenService) {
         this.tokenService = tokenService;
     }
 
@@ -64,6 +66,19 @@ public class CreateTokenController {
     @RequestMapping(value = "create", method = RequestMethod.POST)
     public ObjectResponse<CreateTokenResponse> createToken(@RequestBody ObjectRequest<CreateTokenRequest> request) throws GenericCryptographyException, RemoteExecutionException, AppConfigNotFoundException, ActivationFailedException {
         final CreateTokenResponse response = tokenService.createToken(request.getRequestObject());
+        return new ObjectResponse<>(response);
+    }
+
+    /**
+     * Compute a token digest.
+     * @param request Compute token digest request.
+     * @return Compute token digest response.
+     * @throws RemoteExecutionException In case remote communication fails.
+     * @throws ActivationFailedException In case activation is not found.
+     */
+    @RequestMapping(value = "compute-digest", method = RequestMethod.POST)
+    public ObjectResponse<ComputeTokenDigestResponse> computeTokenDigest(@RequestBody ObjectRequest<ComputeTokenDigestRequest> request) throws RemoteExecutionException, ActivationFailedException {
+        final ComputeTokenDigestResponse response = tokenService.computeTokenDigest(request.getRequestObject());
         return new ObjectResponse<>(response);
     }
 

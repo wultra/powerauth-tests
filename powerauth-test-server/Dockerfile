@@ -4,7 +4,7 @@ LABEL maintainer="roman.strobl@wultra.com"
 # Prepare environment variables
 ENV JAVA_HOME /opt/java/openjdk
 ENV TOMCAT_HOME /usr/local/tomcat
-ENV WAR_VERSION 1.4.1
+ENV WAR_VERSION 1.4.2-SNAPSHOT
 
 # Clear root context
 RUN rm -rf $TOMCAT_HOME/webapps/*
