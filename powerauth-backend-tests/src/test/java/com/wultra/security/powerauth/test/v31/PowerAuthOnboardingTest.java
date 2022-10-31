@@ -242,26 +242,16 @@ class PowerAuthOnboardingTest {
 
     @Test
     void testMaxProcesses() throws Exception {
-        // Use same mock client ID suffix to make sure user ID is the same across all requests
-        String clientId = generateRandomClientId();
-        String processId = startOnboarding(clientId);
-        onboardingCleanup(processId);
-        processId = startOnboarding(clientId);
-        onboardingCleanup(processId);
-        processId = startOnboarding(clientId);
-        onboardingCleanup(processId);
-        processId = startOnboarding(clientId);
-        onboardingCleanup(processId);
-        processId = startOnboarding(clientId);
-        onboardingCleanup(processId);
-        // Sixth attempt should fail
-        processId = null;
-        try {
-            processId = startOnboarding(clientId);
-        } catch (AssertionFailedError e) {
-            // Expected failure
+        // Use same client ID to make sure user ID is the same across all requests
+        final String clientId = generateRandomClientId();
+
+        for (int i = 0; i < 5; i++) {
+            final String processId = startOnboarding(clientId);
+            onboardingCleanup(processId);
         }
-        assertNull(processId);
+
+        // Sixth attempt should fail
+        assertThrows(AssertionError.class, () -> startOnboarding(clientId));
     }
 
     @Test
