@@ -60,7 +60,7 @@ public class SignatureController {
      * @throws AppConfigNotFoundException In case application configuration is not found.
      */
     @RequestMapping(value = "compute-online", method = RequestMethod.POST)
-    public ObjectResponse<ComputeOnlineSignatureResponse> computeTokenDigest(@RequestBody ObjectRequest<ComputeOnlineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
+    public ObjectResponse<ComputeOnlineSignatureResponse> computeOnlineSignature(@RequestBody ObjectRequest<ComputeOnlineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
         final ComputeOnlineSignatureResponse response = signatureService.computeOnlineSignature(request.getRequestObject());
         return new ObjectResponse<>(response);
     }
