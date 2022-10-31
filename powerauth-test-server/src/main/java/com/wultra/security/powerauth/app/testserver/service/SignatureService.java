@@ -108,6 +108,7 @@ public class SignatureService extends BaseService {
                     final Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
                     final Map<String, Object> requestHeadersMap = (Map<String, Object>) responseMap.get("requestHeaders");
                     authHeader = requestHeadersMap.get("X-PowerAuth-Authorization").toString();
+                    resultStatusUtil.incrementCounter(request.getActivationId());
                 }
             }
         } catch (Exception ex) {

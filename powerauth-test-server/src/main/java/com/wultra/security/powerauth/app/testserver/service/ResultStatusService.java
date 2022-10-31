@@ -18,9 +18,11 @@
 
 package com.wultra.security.powerauth.app.testserver.service;
 
+import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.app.testserver.database.TestStatusRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestStatusEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
+import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -86,11 +88,7 @@ public class ResultStatusService {
      * @throws ActivationFailedException In case an activation with given ID does not exist.
      */
     public JSONObject getTestStatus(String activationId) throws ActivationFailedException {
-        final Optional<TestStatusEntity> statusOptional = appStatusRepository.findById(activationId);
-        if (statusOptional.isEmpty()) {
-            throw new ActivationFailedException("Activation with given ID not found: " + activationId);
-        }
-        final TestStatusEntity testStatusEntity = statusOptional.get();
+        final TestStatusEntity testStatusEntity = fetchTestStatus(activationId);
 
         final JSONObject result = new JSONObject();
         result.put("activationId", testStatusEntity.getActivationId());
@@ -108,6 +106,25 @@ public class ResultStatusService {
         return result;
     }
 
+    public void incrementCounter(String activationId) throws ActivationFailedException {
+        final TestStatusEntity testStatusEntity = fetchTestStatus(activationId);
+
+        // Increment numeric counter
+        final Long counter = testStatusEntity.getCounter();
+        testStatusEntity.setCounter(counter + 1);
+
+        final String ctrDataBase64 = testStatusEntity.getCtrData();
+
+        // Increment hash-based counter
+        if (!ctrDataBase64.isEmpty()) {
+            byte[] ctrData = BaseEncoding.base64().decode(ctrDataBase64);
+            ctrData = new HashBasedCounter().next(ctrData);
+            testStatusEntity.setCtrData(BaseEncoding.base64().encode(ctrData));
+        }
+
+        appStatusRepository.save(testStatusEntity);
+    }
+
     private String getStringValue(JSONObject resultStatusObject, String key) {
         return (String) resultStatusObject.get(key);
     }
@@ -116,4 +133,11 @@ public class ResultStatusService {
         return (Long) resultStatusObject.get(key);
     }
 
+    private TestStatusEntity fetchTestStatus(String activationId) throws ActivationFailedException {
+        final Optional<TestStatusEntity> statusOptional = appStatusRepository.findById(activationId);
+        if (statusOptional.isEmpty()) {
+            throw new ActivationFailedException("Activation with given ID not found: " + activationId);
+        }
+        return statusOptional.get();
+    }
 }
