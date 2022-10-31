@@ -160,7 +160,7 @@ public class TokenService extends BaseService {
             verifyTokenStep.execute(stepLogger, model.toMap());
             for (StepItem item: stepLogger.getItems()) {
                 StepItemLogger.log(logger, item);
-                if ("Sending Request".equals(item.getName())) {
+                if ("token-validate-request-sent".equals(item.getId())) {
                     final Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
                     final Map<String, Object> requestHeadersMap = (Map<String, Object>) responseMap.get("requestHeaders");
                     authHeader = requestHeadersMap.get("X-PowerAuth-Token").toString();
