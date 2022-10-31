@@ -53,7 +53,7 @@ public class ApplicationController {
      * @param request Configure an application request.
      * @return Configure an application response.
      */
-    @RequestMapping(value = "create", method = RequestMethod.POST)
+    @RequestMapping(value = "config", method = RequestMethod.POST)
     public Response createActivation(@RequestBody ObjectRequest<ConfigureApplicationRequest> request) {
         return applicationService.configureApplication(request.getRequestObject());
     }
