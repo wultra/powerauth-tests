@@ -39,8 +39,8 @@ jobs:
       uses: docker/login-action@v1
       with:
         registry: https://powerauthextendedtest.azurecr.io/
-        username: ${{ secrets.AzureAppService_ContainerUsername }}
-        password: ${{ secrets.AzureAppService_ContainerPassword }}
+        username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME }}
+        password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD }}
 
     - name: Build and push container image to registry
       uses: docker/build-push-action@v2
