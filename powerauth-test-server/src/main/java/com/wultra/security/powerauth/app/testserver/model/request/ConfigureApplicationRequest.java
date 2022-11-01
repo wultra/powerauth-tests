@@ -15,20 +15,26 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.app.testserver.model.response;
 
+package com.wultra.security.powerauth.app.testserver.model.request;
+
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Response for computing a token digest.
+ * Request for configuring an application.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Getter
 @Setter
-public class ComputeTokenDigestResponse {
+public class ConfigureApplicationRequest {
 
-    private String authHeader;
+    private String applicationId;
+    private String applicationName;
+    private String applicationKey;
+    private String applicationSecret;
+    private String masterPublicKey;
 
 }

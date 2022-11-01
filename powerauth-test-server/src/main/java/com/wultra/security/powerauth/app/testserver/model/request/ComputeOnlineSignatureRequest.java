@@ -15,20 +15,26 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.app.testserver.model.response;
+package com.wultra.security.powerauth.app.testserver.model.request;
 
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Response for computing a token digest.
+ * Request for computing a PowerAuth signature.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Getter
 @Setter
-public class ComputeTokenDigestResponse {
+public class ComputeOnlineSignatureRequest {
 
-    private String authHeader;
+    private String activationId;
+    private String applicationId;
+    private String httpMethod;
+    private String resourceId;
+    private String signatureType;
+    private String requestBody;
+    private String password;
 
 }

@@ -17,14 +17,16 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.request;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Request for computing a token digest.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Data
+@Getter
+@Setter
 public class ComputeTokenDigestRequest {
 
     private String activationId;

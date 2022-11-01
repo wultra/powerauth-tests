@@ -29,10 +29,7 @@ import com.wultra.security.powerauth.app.testserver.service.TokenService;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Controller for token related services.
@@ -63,7 +60,7 @@ public class TokenController {
      * @throws AppConfigNotFoundException In case app configuration is incorrect.
      * @throws ActivationFailedException In case activation is not found.
      */
-    @RequestMapping(value = "create", method = RequestMethod.POST)
+    @PostMapping("create")
     public ObjectResponse<CreateTokenResponse> createToken(@RequestBody ObjectRequest<CreateTokenRequest> request) throws GenericCryptographyException, RemoteExecutionException, AppConfigNotFoundException, ActivationFailedException {
         final CreateTokenResponse response = tokenService.createToken(request.getRequestObject());
         return new ObjectResponse<>(response);
@@ -76,7 +73,7 @@ public class TokenController {
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
      */
-    @RequestMapping(value = "compute-digest", method = RequestMethod.POST)
+    @PostMapping("compute-digest")
     public ObjectResponse<ComputeTokenDigestResponse> computeTokenDigest(@RequestBody ObjectRequest<ComputeTokenDigestRequest> request) throws RemoteExecutionException, ActivationFailedException {
         final ComputeTokenDigestResponse response = tokenService.computeTokenDigest(request.getRequestObject());
         return new ObjectResponse<>(response);
