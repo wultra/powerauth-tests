@@ -47,8 +47,8 @@ jobs:
       with:
         push: true
         tags: powerauthextendedtest.azurecr.io/powerauth-test-server:${{ github.sha }}
-        file: ./Dockerfile
-        context: .
+        file: ./powerauth-test-server/Dockerfile
+        context: ./powerauth-test-server/
 
   deploy:
     runs-on: ubuntu-latest
