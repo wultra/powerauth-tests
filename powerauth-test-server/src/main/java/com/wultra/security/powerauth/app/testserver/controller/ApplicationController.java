@@ -23,10 +23,7 @@ import com.wultra.security.powerauth.app.testserver.service.ApplicationService;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.Response;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Controller for application actions.
@@ -53,7 +50,7 @@ public class ApplicationController {
      * @param request Configure an application request.
      * @return Configure an application response.
      */
-    @RequestMapping(value = "config", method = RequestMethod.POST)
+    @PostMapping("config")
     public Response createActivation(@RequestBody ObjectRequest<ConfigureApplicationRequest> request) {
         return applicationService.configureApplication(request.getRequestObject());
     }

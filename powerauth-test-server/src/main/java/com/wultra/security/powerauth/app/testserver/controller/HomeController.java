@@ -40,7 +40,7 @@ public class HomeController {
     }
 
     @SuppressWarnings("SameReturnValue")
-    @GetMapping(value = "/")
+    @GetMapping("/")
     public String home(Model model) {
         if (buildProperties != null) {
             model.addAttribute("version", buildProperties.getVersion());

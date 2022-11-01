@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEn
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.model.request.ConfigureApplicationRequest;
 import io.getlime.core.rest.model.base.response.Response;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +35,7 @@ import javax.transaction.Transactional;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service
+@Slf4j
 public class ApplicationService extends BaseService {
 
     /**
@@ -58,13 +60,7 @@ public class ApplicationService extends BaseService {
         final String applicationSecret = request.getApplicationSecret();
         final String masterPublicKey = request.getMasterPublicKey();
 
-        TestConfigEntity appConfig;
-        try {
-            appConfig = getTestAppConfig(applicationId);
-        } catch (AppConfigNotFoundException ex ) {
-            appConfig = new TestConfigEntity();
-            appConfig.setApplicationId(request.getApplicationId());
-        }
+        TestConfigEntity appConfig = getOrCreateTestAppConfig(applicationId);
 
         appConfig.setApplicationName(applicationName);
         appConfig.setApplicationKey(applicationKey);
@@ -74,6 +70,19 @@ public class ApplicationService extends BaseService {
         appConfigRepository.save(appConfig);
 
         return new Response();
+    }
+
+    private TestConfigEntity getOrCreateTestAppConfig(String applicationId) {
+        TestConfigEntity appConfig;
+        try {
+            appConfig = getTestAppConfig(applicationId);
+            logger.info("Test application will be updated: {}", applicationId);
+        } catch (AppConfigNotFoundException ex ) {
+            appConfig = new TestConfigEntity();
+            appConfig.setApplicationId(applicationId);
+            logger.info("Test application will be created: {}", applicationId);
+        }
+        return appConfig;
     }
 
 }

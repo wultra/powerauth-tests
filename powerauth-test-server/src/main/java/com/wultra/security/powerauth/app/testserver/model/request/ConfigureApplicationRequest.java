@@ -19,13 +19,16 @@
 package com.wultra.security.powerauth.app.testserver.model.request;
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Request for configuring an application.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Data
+@Getter
+@Setter
 public class ConfigureApplicationRequest {
 
     private String applicationId;
