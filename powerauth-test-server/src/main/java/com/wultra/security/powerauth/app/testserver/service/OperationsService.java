@@ -43,9 +43,8 @@ import io.getlime.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
 import io.getlime.security.powerauth.lib.mtoken.model.response.OperationListResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
@@ -63,9 +62,8 @@ import java.util.Map;
  * @author Petr Dvorak, petr@wultra.com
  */
 @Service
+@Slf4j
 public class OperationsService extends BaseService {
-
-    private final static Logger logger = LoggerFactory.getLogger(OperationsService.class);
 
     private final TestServerConfiguration config;
     private final ResultStatusService resultStatusUtil;
@@ -139,7 +137,7 @@ public class OperationsService extends BaseService {
         headers.put("X-PowerAuth-Token", Collections.singletonList(header));
 
         final RestClient restClient = new DefaultRestClient(config.getEnrollmentServiceUrl());
-        final ResponseEntity<ObjectResponse<OperationListResponse>> responseEntity = restClient.post("/api/auth/token/app/operation/list", null, null, headers, new ParameterizedTypeReference<ObjectResponse<OperationListResponse>>() {});
+        final ResponseEntity<ObjectResponse<OperationListResponse>> responseEntity = restClient.post("/api/auth/token/app/operation/list", null, null, headers, new ParameterizedTypeReference<>() {});
         final ObjectResponse<OperationListResponse> entityBody = responseEntity.getBody();
         if (entityBody == null) {
             throw new SignatureVerificationException("Unable to fetch pending operations");

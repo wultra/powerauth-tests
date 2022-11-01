@@ -17,14 +17,16 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.response;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Response with created token.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
-@Data
+@Getter
+@Setter
 public class CreateTokenResponse {
 
     private String tokenId;

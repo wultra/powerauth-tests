@@ -30,10 +30,7 @@ import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.core.rest.model.base.response.Response;
 import io.getlime.security.powerauth.lib.mtoken.model.response.OperationListResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Controller for operation specific services.
@@ -64,7 +61,7 @@ public class OperationsController {
      * @throws SignatureVerificationException In case signature verification fails.
      * @throws ActivationFailedException In case activation is not found.
      */
-    @RequestMapping(value = "pending", method = RequestMethod.POST)
+    @PostMapping(value = "pending")
     public ObjectResponse<OperationListResponse> fetchOperations(@RequestBody ObjectRequest<GetOperationsRequest> request) throws RemoteExecutionException, RestClientException, SignatureVerificationException, ActivationFailedException {
         final OperationListResponse response = operationsService.getOperations(request.getRequestObject());
         return new ObjectResponse<>(response);
@@ -79,7 +76,7 @@ public class OperationsController {
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case app configuration is not found.
      */
-    @RequestMapping(value = "approve", method = RequestMethod.POST)
+    @PostMapping(value = "approve")
     public Response approveOperations(@RequestBody ObjectRequest<OperationApproveInternalRequest> request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException {
         return operationsService.approveOperation(request.getRequestObject());
     }
