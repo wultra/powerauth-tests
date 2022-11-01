@@ -24,7 +24,9 @@ jobs:
         server-password: INTERNAL_PASSWORD
 
     - name: Package test server war
-      run: mvn package
+      run: |
+        cd powerauth-test-server
+        mvn package
       env:
         # those are not environmental secrect, but global secret - for readonly access to artifactory
         INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
