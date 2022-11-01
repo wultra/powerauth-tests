@@ -21,13 +21,13 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Response for computing a token digest.
+ * Response for computing a PowerAuth signature.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Getter
 @Setter
-public class ComputeTokenDigestResponse {
+public class ComputeOnlineSignatureResponse {
 
     private String authHeader;
 
