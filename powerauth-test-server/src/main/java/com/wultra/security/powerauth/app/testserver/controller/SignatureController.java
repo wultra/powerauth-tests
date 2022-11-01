@@ -56,7 +56,7 @@ public class SignatureController {
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case application configuration is not found.
      */
-    @PostMapping(value = "compute-online")
+    @PostMapping("compute-online")
     public ObjectResponse<ComputeOnlineSignatureResponse> computeOnlineSignature(@RequestBody ObjectRequest<ComputeOnlineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
         final ComputeOnlineSignatureResponse response = signatureService.computeOnlineSignature(request.getRequestObject());
         return new ObjectResponse<>(response);

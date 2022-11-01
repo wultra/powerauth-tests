@@ -61,7 +61,7 @@ public class OperationsController {
      * @throws SignatureVerificationException In case signature verification fails.
      * @throws ActivationFailedException In case activation is not found.
      */
-    @PostMapping(value = "pending")
+    @PostMapping("pending")
     public ObjectResponse<OperationListResponse> fetchOperations(@RequestBody ObjectRequest<GetOperationsRequest> request) throws RemoteExecutionException, RestClientException, SignatureVerificationException, ActivationFailedException {
         final OperationListResponse response = operationsService.getOperations(request.getRequestObject());
         return new ObjectResponse<>(response);
@@ -76,7 +76,7 @@ public class OperationsController {
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case app configuration is not found.
      */
-    @PostMapping(value = "approve")
+    @PostMapping("approve")
     public Response approveOperations(@RequestBody ObjectRequest<OperationApproveInternalRequest> request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException {
         return operationsService.approveOperation(request.getRequestObject());
     }

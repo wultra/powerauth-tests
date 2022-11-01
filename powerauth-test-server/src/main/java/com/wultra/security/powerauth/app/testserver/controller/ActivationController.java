@@ -59,7 +59,7 @@ public class ActivationController {
      * @throws RemoteExecutionException Thrown when remote execution fails.
      * @throws ActivationFailedException Thrown when activation fails.
      */
-    @PostMapping(value = "create")
+    @PostMapping("create")
     public ObjectResponse<CreateActivationResponse> createActivation(@RequestBody ObjectRequest<CreateActivationRequest> request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException, ActivationFailedException {
         // TODO - input validation
         final CreateActivationResponse response = activationService.createActivation(request.getRequestObject());
