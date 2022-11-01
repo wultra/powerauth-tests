@@ -17,14 +17,16 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.request;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Request for computing a PowerAuth signature.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Data
+@Getter
+@Setter
 public class ComputeOnlineSignatureRequest {
 
     private String activationId;

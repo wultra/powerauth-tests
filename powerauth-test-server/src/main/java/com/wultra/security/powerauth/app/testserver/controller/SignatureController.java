@@ -26,10 +26,7 @@ import com.wultra.security.powerauth.app.testserver.service.SignatureService;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * Controller for signature related services.
@@ -59,7 +56,7 @@ public class SignatureController {
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case application configuration is not found.
      */
-    @RequestMapping(value = "compute-online", method = RequestMethod.POST)
+    @PostMapping(value = "compute-online")
     public ObjectResponse<ComputeOnlineSignatureResponse> computeOnlineSignature(@RequestBody ObjectRequest<ComputeOnlineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
         final ComputeOnlineSignatureResponse response = signatureService.computeOnlineSignature(request.getRequestObject());
         return new ObjectResponse<>(response);

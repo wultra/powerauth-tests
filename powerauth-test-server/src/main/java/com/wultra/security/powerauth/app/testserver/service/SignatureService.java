@@ -32,9 +32,8 @@ import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -46,9 +45,8 @@ import java.util.Map;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service
+@Slf4j
 public class SignatureService extends BaseService {
-
-    private final static Logger logger = LoggerFactory.getLogger(SignatureService.class);
 
     private final TestServerConfiguration config;
     private final ResultStatusService resultStatusUtil;

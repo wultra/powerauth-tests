@@ -36,9 +36,8 @@ import io.getlime.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateTokenStep;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,9 +52,8 @@ import java.util.Map;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service
+@Slf4j
 public class TokenService extends BaseService {
-
-    private final static Logger logger = LoggerFactory.getLogger(TokenService.class);
 
     private final TestServerConfiguration config;
     private final ResultStatusService resultStatusUtil;

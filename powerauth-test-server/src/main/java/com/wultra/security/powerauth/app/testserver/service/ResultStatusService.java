@@ -134,10 +134,7 @@ public class ResultStatusService {
     }
 
     private TestStatusEntity fetchTestStatus(String activationId) throws ActivationFailedException {
-        final Optional<TestStatusEntity> statusOptional = appStatusRepository.findById(activationId);
-        if (statusOptional.isEmpty()) {
-            throw new ActivationFailedException("Activation with given ID not found: " + activationId);
-        }
-        return statusOptional.get();
+        return appStatusRepository.findById(activationId).orElseThrow(() ->
+                new ActivationFailedException("Activation with given ID not found: " + activationId));
     }
 }

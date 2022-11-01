@@ -23,8 +23,7 @@ import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEn
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import java.security.PublicKey;
 import java.util.Optional;
@@ -34,9 +33,8 @@ import java.util.Optional;
  *
  * @author Petr Dvorak, petr@wultra.com
  */
+@Slf4j
 public class BaseService {
-
-    private final static Logger logger = LoggerFactory.getLogger(BaseService.class);
 
     protected final TestConfigRepository appConfigRepository;
 
