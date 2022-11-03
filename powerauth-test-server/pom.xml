@@ -175,6 +175,16 @@
             <name>Wultra Artifactory-releases</name>
             <url>https://wultra.jfrog.io/artifactory/internal-maven-repository</url>
         </repository>
+        <repository>
+            <id>ossrh-snapshots</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
 </project>
