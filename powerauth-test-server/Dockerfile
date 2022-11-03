@@ -1,4 +1,4 @@
-FROM tomcat:jdk11-adoptopenjdk-openj9
+FROM --platform=linux/amd64 tomcat:jdk11-adoptopenjdk-openj9
 LABEL maintainer="roman.strobl@wultra.com"
 
 # Prepare environment variables
