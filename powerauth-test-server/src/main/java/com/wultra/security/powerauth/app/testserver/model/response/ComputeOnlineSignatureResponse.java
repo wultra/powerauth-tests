@@ -21,7 +21,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Response for computing a PowerAuth signature.
+ * Response for computing an online PowerAuth signature.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */

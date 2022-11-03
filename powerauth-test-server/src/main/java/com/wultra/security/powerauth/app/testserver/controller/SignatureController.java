@@ -20,7 +20,9 @@ package com.wultra.security.powerauth.app.testserver.controller;
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
+import com.wultra.security.powerauth.app.testserver.model.request.ComputeOfflineSignatureRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineSignatureRequest;
+import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineSignatureResponse;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnlineSignatureResponse;
 import com.wultra.security.powerauth.app.testserver.service.SignatureService;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
@@ -49,9 +51,9 @@ public class SignatureController {
     }
 
     /**
-     * Compute a PowerAuth signature.
-     * @param request Compute a PowerAuth signature request.
-     * @return Compute a PowerAuth signature response.
+     * Compute an online PowerAuth signature.
+     * @param request Compute an online PowerAuth signature request.
+     * @return Compute an online PowerAuth signature response.
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case application configuration is not found.
@@ -59,6 +61,19 @@ public class SignatureController {
     @PostMapping("compute-online")
     public ObjectResponse<ComputeOnlineSignatureResponse> computeOnlineSignature(@RequestBody ObjectRequest<ComputeOnlineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
         final ComputeOnlineSignatureResponse response = signatureService.computeOnlineSignature(request.getRequestObject());
+        return new ObjectResponse<>(response);
+    }
+
+    /**
+     * Compute an offline PowerAuth signature.
+     * @param request Compute an offline PowerAuth signature request.
+     * @return Compute an offline PowerAuth signature response.
+     * @throws RemoteExecutionException In case remote communication fails.
+     * @throws ActivationFailedException In case activation is not found.
+     */
+    @PostMapping("compute-offline")
+    public ObjectResponse<ComputeOfflineSignatureResponse> computeOfflineSignature(@RequestBody ObjectRequest<ComputeOfflineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException {
+        final ComputeOfflineSignatureResponse response = signatureService.computeOfflineSignature(request.getRequestObject());
         return new ObjectResponse<>(response);
     }
 
