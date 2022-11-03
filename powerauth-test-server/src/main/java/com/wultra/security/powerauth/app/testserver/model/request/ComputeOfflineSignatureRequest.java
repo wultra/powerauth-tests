@@ -21,20 +21,16 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Request for computing an online PowerAuth signature.
+ * Request for computing an offline PowerAuth signature.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Getter
 @Setter
-public class ComputeOnlineSignatureRequest {
+public class ComputeOfflineSignatureRequest {
 
     private String activationId;
-    private String applicationId;
-    private String httpMethod;
-    private String resourceId;
-    private String signatureType;
-    private String requestBody;
+    private String qrCodeData;
     private String password;
 
 }
