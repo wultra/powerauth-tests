@@ -169,4 +169,12 @@
         </plugins>
     </build>
 
+    <repositories>
+        <repository>
+            <id>jfrog-central</id>
+            <name>Wultra Artifactory-releases</name>
+            <url>https://wultra.jfrog.io/artifactory/internal-maven-repository</url>
+        </repository>
+    </repositories>
+
 </project>
