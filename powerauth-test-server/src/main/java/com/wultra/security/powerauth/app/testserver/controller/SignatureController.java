@@ -70,10 +70,9 @@ public class SignatureController {
      * @return Compute an offline PowerAuth signature response.
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
-     * @throws AppConfigNotFoundException In case application configuration is not found.
      */
     @PostMapping("compute-offline")
-    public ObjectResponse<ComputeOfflineSignatureResponse> computeOfflineSignature(@RequestBody ObjectRequest<ComputeOfflineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
+    public ObjectResponse<ComputeOfflineSignatureResponse> computeOfflineSignature(@RequestBody ObjectRequest<ComputeOfflineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException {
         final ComputeOfflineSignatureResponse response = signatureService.computeOfflineSignature(request.getRequestObject());
         return new ObjectResponse<>(response);
     }

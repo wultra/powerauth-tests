@@ -133,7 +133,6 @@ public class SignatureService extends BaseService {
      * @return Response for computing an offline signature.
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
-     * @throws AppConfigNotFoundException In case application configuration is not found.
      */
     @SuppressWarnings("unchecked")
     public ComputeOfflineSignatureResponse computeOfflineSignature(ComputeOfflineSignatureRequest request) throws RemoteExecutionException, ActivationFailedException {
