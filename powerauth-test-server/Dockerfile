@@ -4,7 +4,7 @@ LABEL maintainer="roman.strobl@wultra.com"
 # Prepare environment variables
 ENV JAVA_HOME /opt/java/openjdk
 ENV TOMCAT_HOME /usr/local/tomcat
-ENV WAR_VERSION 1.4.2-SNAPSHOT
+
 
 # Clear root context
 RUN rm -rf $TOMCAT_HOME/webapps/*
@@ -14,7 +14,7 @@ RUN sed -i 's/<\/Host>/<Valve className="org.apache.catalina.valves.RemoteIpValv
 
 # Deploy and run applications
 COPY docker/powerauth-test-server.xml $TOMCAT_HOME/conf/Catalina/localhost/
-COPY target/powerauth-test-server-$WAR_VERSION.war $TOMCAT_HOME/webapps/powerauth-test-server.war
+COPY target/powerauth-test-server-*.war $TOMCAT_HOME/webapps/powerauth-test-server.war
 
 # Create user tomcat and run Tomcat under this user
 RUN groupadd -r tomcat
