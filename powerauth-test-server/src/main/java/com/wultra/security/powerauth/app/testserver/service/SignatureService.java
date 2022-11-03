@@ -159,7 +159,6 @@ public class SignatureService extends BaseService {
                 }
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
             throw new RemoteExecutionException("Remote execution failed");
