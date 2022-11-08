@@ -4,6 +4,9 @@
 name: Build and deploy container app to Azure Web App - pa-test-internal-testserver-app
 
 on:
+  push:
+    branches:
+      - develop
   workflow_dispatch:
     branches:
       - develop
@@ -26,7 +29,7 @@ jobs:
     - name: Package test server war
       run: |
         cd powerauth-test-server
-        mvn package
+        mvn package -DuseInternalRepo=true
       env:
         # those are not environmental secrect, but global secret - for readonly access to artifactory
         INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
