@@ -93,7 +93,7 @@ public class PowerAuthTestConfiguration {
     @Value("${powerauth.test.identity.otp-verification.skip:true}")
     private boolean skipOtpVerification;
 
-    @Value("${powerauth.test.identity.verificationOnSubmitEnabled:true}")
+    @Value("${powerauth.test.identity.verificationOnSubmitEnabled:false}")
     private boolean verificationOnSubmitEnabled;
 
     @Value("${powerauth.test.assertMaxRetries:20}")
