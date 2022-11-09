@@ -16,6 +16,8 @@
     <Parameter name="spring.datasource.password" value="${POWERAUTH_TEST_SERVER_DATASOURCE_PASSWORD}"/>
     <Parameter name="spring.datasource.driver-class-name" value="${POWERAUTH_TEST_SERVER_DATASOURCE_DRIVER:org.postgresql.Driver}"/>
     <Parameter name="spring.jpa.hibernate.ddl-auto" value="${POWERAUTH_TEST_SERVER_JPA_DDL_AUTO:update}"/>
+    <Parameter name="spring.datasource.tomcat.max-active" value="${POWERAUTH_TEST_SERVER_DATASOURCE_POOL_SIZE:5}"/>
+    <Parameter name="spring.datasource.tomcat.max-age" value="${POWERAUTH_TEST_SERVER_DATASOURCE_MAX_AGE:2400000}"/>
 
     <!-- Configuration of Database Charset -->
     <Parameter name="spring.jpa.properties.hibernate.connection.CharSet" value="${POWERAUTH_TEST_SERVER_JPA_CHARSET:UTF-8}"/>
