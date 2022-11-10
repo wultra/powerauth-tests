@@ -293,7 +293,7 @@ class PowerAuthIdentityVerificationTest {
             }
 
             assertIdentityVerificationStateWithRetries(
-                    new IdentityVerificationState(IdentityVerificationPhase.DOCUMENT_VERIFICATION, IdentityVerificationStatus.IN_PROGRESS));
+                    new IdentityVerificationState(IdentityVerificationPhase.DOCUMENT_UPLOAD, IdentityVerificationStatus.IN_PROGRESS));
 
             final List<FileSubmit> drivingLicenseSubmits = ImmutableList.of(
                     FileSubmit.createFrom("images/driving_license_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
