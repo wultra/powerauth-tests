@@ -11,6 +11,8 @@ RUN rm -rf $TOMCAT_HOME/webapps/*
 
 # Add valve for proxy with SSL termination
 RUN sed -i 's/<\/Host>/<Valve className="org.apache.catalina.valves.RemoteIpValve" remoteIpHeader="X-Forwarded-For" protocolHeader="X-Forwarded-Proto"\/><\/Host>/' $TOMCAT_HOME/conf/server.xml
+# Add valve for health check
+RUN sed -i 's/<\/Host>/<Valve className="org.apache.catalina.valves.HealthCheckValve" \/><\/Host>/' $TOMCAT_HOME/conf/server.xml
 
 # Deploy and run applications
 COPY docker/powerauth-test-server.xml $TOMCAT_HOME/conf/Catalina/localhost/
