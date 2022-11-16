@@ -1232,7 +1232,7 @@ class PowerAuthIdentityVerificationTest {
         signatureModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/cleanup");
         signatureModel.setResourceId("/api/identity/cleanup");
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new VerifySignatureStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
     }
