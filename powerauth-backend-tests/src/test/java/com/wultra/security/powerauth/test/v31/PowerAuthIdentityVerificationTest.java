@@ -85,6 +85,7 @@ class PowerAuthIdentityVerificationTest {
     private EncryptStepModel encryptModel;
     private VerifySignatureStepModel signatureModel;
     private TokenAndEncryptStepModel tokenAndEncryptModel;
+    private VerifyTokenStepModel tokenModel;
     private CreateActivationStepModel activationModel;
     private CreateTokenStepModel createTokenModel;
     private ObjectStepLogger stepLogger;
@@ -135,6 +136,12 @@ class PowerAuthIdentityVerificationTest {
         tokenAndEncryptModel.setHttpMethod("POST");
         tokenAndEncryptModel.setResultStatusObject(resultStatusObject);
         tokenAndEncryptModel.setVersion("3.1");
+
+        tokenModel = new VerifyTokenStepModel();
+        tokenModel.setHeaders(new HashMap<>());
+        tokenModel.setResultStatusObject(resultStatusObject);
+        tokenModel.setHttpMethod("POST");
+        tokenModel.setVersion("3.1");
 
         // Model shared among tests
         activationModel = new CreateActivationStepModel();
@@ -851,8 +858,12 @@ class PowerAuthIdentityVerificationTest {
 
         assertNotNull(tokenId);
         assertNotNull(tokenSecret);
+
         tokenAndEncryptModel.setTokenId(tokenId);
         tokenAndEncryptModel.setTokenSecret(tokenSecret);
+
+        tokenModel.setTokenId(tokenId);
+        tokenModel.setTokenSecret(tokenSecret);
     }
 
     private String getOtpCode(String processId, OtpType otpType) throws Exception {
@@ -913,10 +924,10 @@ class PowerAuthIdentityVerificationTest {
         textRequest.setConsentType("GDPR");
 
         stepLogger = new ObjectStepLogger(System.out);
-        tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(textRequest)));
-        tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/consent/text");
+        tokenModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(textRequest)));
+        tokenModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/consent/text");
 
-        new VerifyTokenStep().execute(stepLogger, tokenAndEncryptModel.toMap());
+        new VerifyTokenStep().execute(stepLogger, tokenModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
@@ -1059,10 +1070,10 @@ class PowerAuthIdentityVerificationTest {
         DocumentStatusRequest docStatusRequest = new DocumentStatusRequest();
         docStatusRequest.setProcessId(processId);
         stepLogger = new ObjectStepLogger(System.out);
-        tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(docStatusRequest)));
-        tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/status");
+        tokenModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(docStatusRequest)));
+        tokenModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/status");
 
-        new VerifyTokenStep().execute(stepLogger, tokenAndEncryptModel.toMap());
+        new VerifyTokenStep().execute(stepLogger, tokenModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
@@ -1127,10 +1138,10 @@ class PowerAuthIdentityVerificationTest {
     private IdentityVerificationState checkIdentityVerificationState() throws Exception {
         IdentityVerificationStatusRequest statusRequest = new IdentityVerificationStatusRequest();
         stepLogger = new ObjectStepLogger(System.out);
-        tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(statusRequest)));
-        tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/status");
+        tokenModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(statusRequest)));
+        tokenModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/status");
 
-        new VerifyTokenStep().execute(stepLogger, tokenAndEncryptModel.toMap());
+        new VerifyTokenStep().execute(stepLogger, tokenModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
         final IdentityVerificationStatusResponse response = convertValue(stepLogger, new TypeReference<ObjectResponse<IdentityVerificationStatusResponse>>() {});
