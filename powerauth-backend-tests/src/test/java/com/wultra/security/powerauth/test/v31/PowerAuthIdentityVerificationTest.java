@@ -920,8 +920,7 @@ class PowerAuthIdentityVerificationTest {
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
-        final String consentText = objectMapper.convertValue(stepLogger.getResponse().getResponseObject(), new TypeReference<ObjectResponse<OnboardingConsentTextResponse>>() { })
-                .getResponseObject()
+        final String consentText = convertValue(stepLogger, new TypeReference<ObjectResponse<OnboardingConsentTextResponse>>() { })
                 .getConsentText();
         assertThat(consentText, startsWith("<html>"));
 
@@ -951,6 +950,11 @@ class PowerAuthIdentityVerificationTest {
             fail("Unable to read json", e);
             return null;
         }
+    }
+
+    private <T> T convertValue(final ObjectStepLogger stepLogger, final TypeReference<ObjectResponse<T>> typeReference) {
+        final Object value = stepLogger.getResponse().getResponseObject();
+        return objectMapper.convertValue(value, typeReference).getResponseObject();
     }
 
     private DocumentSubmitRequest createDocumentSubmitRequest(String processId, List<FileSubmit> fileSubmits)
@@ -1062,8 +1066,7 @@ class PowerAuthIdentityVerificationTest {
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
-        final DocumentStatusResponse response = objectMapper.convertValue(stepLogger.getResponse().getResponseObject(), new TypeReference<ObjectResponse<DocumentStatusResponse>>() { })
-                        .getResponseObject();
+        final DocumentStatusResponse response = convertValue(stepLogger, new TypeReference<ObjectResponse<DocumentStatusResponse>>() { });
         assertEquals(expectedDocumentsCount, response.getDocuments().size());
         for (int i = 0; i < expectedDocumentsCount; i++) {
             assertEquals(expectedStatus, response.getDocuments().get(i).getStatus());
@@ -1130,7 +1133,7 @@ class PowerAuthIdentityVerificationTest {
         new VerifyTokenStep().execute(stepLogger, tokenAndEncryptModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
-        final IdentityVerificationStatusResponse response = objectMapper.convertValue(stepLogger.getResponse().getResponseObject(), new TypeReference<ObjectResponse<IdentityVerificationStatusResponse>>() {}).getResponseObject();
+        final IdentityVerificationStatusResponse response = convertValue(stepLogger, new TypeReference<ObjectResponse<IdentityVerificationStatusResponse>>() {});
         final IdentityVerificationState idState = new IdentityVerificationState(
                 response.getIdentityVerificationPhase(),
                 response.getIdentityVerificationStatus());
