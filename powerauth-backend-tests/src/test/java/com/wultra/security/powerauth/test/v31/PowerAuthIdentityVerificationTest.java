@@ -453,7 +453,7 @@ class PowerAuthIdentityVerificationTest {
         DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, invalidDocSubmits);
         submitDocuments(idCardSubmitRequest, invalidDocSubmits);
 
-        assertStatusOfSubmittedDocsWithRetries(processId, invalidDocSubmits.size(), DocumentStatus.ACCEPTED);
+        assertStatusOfSubmittedDocsWithRetries(processId, invalidDocSubmits.size(), DocumentStatus.REJECTED);
 
         powerAuthClient.removeActivation(activationId, "test");
     }
