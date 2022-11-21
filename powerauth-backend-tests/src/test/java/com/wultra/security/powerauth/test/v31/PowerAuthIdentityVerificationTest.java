@@ -24,7 +24,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.google.common.collect.ImmutableList;
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.*;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.*;
-import com.wultra.app.enrollmentserver.api.model.onboarding.response.data.DocumentMetadataResponseDto;
 import com.wultra.app.enrollmentserver.model.enumeration.*;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.v3.ActivationStatus;
@@ -616,24 +615,6 @@ class PowerAuthIdentityVerificationTest {
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
-        String documentId = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
-                ObjectResponse<DocumentSubmitResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentSubmitResponse>>() {});
-                DocumentSubmitResponse response = objectResponse.getResponseObject();
-                assertEquals(2, response.getDocuments().size());
-                DocumentMetadataResponseDto doc1 = response.getDocuments().get(0);
-                documentId = doc1.getId();
-                assertNotNull(documentId);
-                // TODO - check that this state is correct, I would expect that submitted document is in VERIFICATION_PENDING
-                // state for synchronous processing, which is not sent at the moment
-                assertEquals(DocumentStatus.UPLOAD_IN_PROGRESS, doc1.getStatus());
-                break;
-            }
-        }
-        assertNotNull(documentId);
-
         powerAuthClient.removeActivation(activationId, "test");
     }
 
@@ -998,24 +979,6 @@ class PowerAuthIdentityVerificationTest {
         EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
         assertNotNull(responseOtpOK.getEncryptedData());
         assertNotNull(responseOtpOK.getMac());
-
-        // TODO - check that this state is correct, I would expect that submitted document is in VERIFICATION_PENDING
-        // state for synchronous processing, which is not sent at the moment
-        List<DocumentStatus> expectedStatuses = ImmutableList.of(DocumentStatus.UPLOAD_IN_PROGRESS);
-        for (StepItem item : stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
-                ObjectResponse<DocumentSubmitResponse> objectResponse =
-                        objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentSubmitResponse>>() { });
-                DocumentSubmitResponse response = objectResponse.getResponseObject();
-                assertEquals(fileSubmits.size(), response.getDocuments().size());
-                for (int i = 0; i < fileSubmits.size(); i++) {
-                    DocumentMetadataResponseDto doc = response.getDocuments().get(i);
-                    assertNotNull(doc.getId());
-                    assertTrue(expectedStatuses.contains(doc.getStatus()));
-                }
-            }
-        }
     }
 
     private void assertStatusOfSubmittedDocsWithRetries(String processId, int expectedDocumentsCount, DocumentStatus expectedStatus) throws Exception {
