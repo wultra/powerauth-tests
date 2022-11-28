@@ -204,7 +204,7 @@ class PowerAuthIdentityVerificationTest {
 
         final DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idCardSubmits);
 
-        submitDocuments(idCardSubmitRequest, idCardSubmits);
+        submitDocuments(idCardSubmitRequest);
 
         assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size(), DocumentStatus.ACCEPTED);
 
@@ -215,7 +215,7 @@ class PowerAuthIdentityVerificationTest {
                 FileSubmit.createFrom("images/driving_license_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
         );
         final DocumentSubmitRequest driveLicenseSubmitRequest = createDocumentSubmitRequest(processId, drivingLicenseSubmits);
-        submitDocuments(driveLicenseSubmitRequest, drivingLicenseSubmits);
+        submitDocuments(driveLicenseSubmitRequest);
 
         assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size() + drivingLicenseSubmits.size(), DocumentStatus.ACCEPTED);
 
@@ -284,7 +284,7 @@ class PowerAuthIdentityVerificationTest {
 
             DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idCardSubmits);
 
-            submitDocuments(idCardSubmitRequest, idCardSubmits);
+            submitDocuments(idCardSubmitRequest);
 
             assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size(), DocumentStatus.ACCEPTED);
 
@@ -295,7 +295,7 @@ class PowerAuthIdentityVerificationTest {
                     FileSubmit.createFrom("images/driving_license_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
             );
             final DocumentSubmitRequest driveLicenseSubmitRequest = createDocumentSubmitRequest(processId, drivingLicenseSubmits);
-            submitDocuments(driveLicenseSubmitRequest, drivingLicenseSubmits);
+            submitDocuments(driveLicenseSubmitRequest);
 
             assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size() + drivingLicenseSubmits.size(), DocumentStatus.ACCEPTED);
 
@@ -334,13 +334,13 @@ class PowerAuthIdentityVerificationTest {
                 FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
         );
         DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idCardSubmits);
-        submitDocuments(idCardSubmitRequest, idCardSubmits);
+        submitDocuments(idCardSubmitRequest);
 
         List<FileSubmit> drivingLicenseSubmits = ImmutableList.of(
                 FileSubmit.createFrom("images/driving_license_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
         );
         DocumentSubmitRequest driveLicenseSubmitRequest = createDocumentSubmitRequest(processId, drivingLicenseSubmits);
-        submitDocuments(driveLicenseSubmitRequest, drivingLicenseSubmits);
+        submitDocuments(driveLicenseSubmitRequest);
 
         assertStatusOfSubmittedDocsWithRetries(processId, idCardSubmits.size() + drivingLicenseSubmits.size(), DocumentStatus.ACCEPTED);
 
@@ -375,7 +375,7 @@ class PowerAuthIdentityVerificationTest {
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
         );
         DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, docSubmits);
-        submitDocuments(idCardSubmitRequest, docSubmits);
+        submitDocuments(idCardSubmitRequest);
 
         assertStatusOfSubmittedDocsWithRetries(processId, docSubmits.size(), DocumentStatus.REJECTED);
 
@@ -398,7 +398,7 @@ class PowerAuthIdentityVerificationTest {
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.BACK)
         );
         DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, docSubmits);
-        submitDocuments(idCardSubmitRequest, docSubmits);
+        submitDocuments(idCardSubmitRequest);
 
         assertStatusOfSubmittedDocsWithRetries(processId, docSubmits.size(), DocumentStatus.REJECTED);
 
@@ -424,13 +424,13 @@ class PowerAuthIdentityVerificationTest {
         final DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, docSubmits);
 
         for (int i = 0; i < 6; i++) {
-            submitDocuments(idCardSubmitRequest, docSubmits);
+            submitDocuments(idCardSubmitRequest);
             assertStatusOfSubmittedDocsWithRetries(processId, i + 1, DocumentStatus.REJECTED);
             assertIdentityVerificationStateWithRetries(
                     new IdentityVerificationState(IdentityVerificationPhase.DOCUMENT_UPLOAD, IdentityVerificationStatus.IN_PROGRESS));
         }
 
-        assertThrows(AssertionError.class, () -> submitDocuments(idCardSubmitRequest, docSubmits));
+        assertThrows(AssertionError.class, () -> submitDocuments(idCardSubmitRequest));
         assertIdentityVerificationStateWithRetries(
                 new IdentityVerificationState(null, IdentityVerificationStatus.NOT_INITIALIZED));
 
@@ -451,7 +451,7 @@ class PowerAuthIdentityVerificationTest {
                 FileSubmit.createFrom("images/random_photo_2.png", DocumentType.ID_CARD, CardSide.BACK)
         );
         DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, invalidDocSubmits);
-        submitDocuments(idCardSubmitRequest, invalidDocSubmits);
+        submitDocuments(idCardSubmitRequest);
 
         assertStatusOfSubmittedDocsWithRetries(processId, invalidDocSubmits.size(), DocumentStatus.REJECTED);
 
@@ -472,7 +472,7 @@ class PowerAuthIdentityVerificationTest {
                 FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
         );
         DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idDocSubmits);
-        submitDocuments(idCardSubmitRequest, idDocSubmits);
+        submitDocuments(idCardSubmitRequest);
 
         cleanupIdentityVerification(processId);
 
@@ -494,7 +494,7 @@ class PowerAuthIdentityVerificationTest {
                     FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
             );
             DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idDocSubmits);
-            submitDocuments(idCardSubmitRequest, idDocSubmits);
+            submitDocuments(idCardSubmitRequest);
 
             if (i < 4) {
                 cleanupIdentityVerification(processId);
@@ -974,8 +974,7 @@ class PowerAuthIdentityVerificationTest {
         return submitRequest;
     }
 
-    private void submitDocuments(DocumentSubmitRequest submitRequest, List<FileSubmit> fileSubmits) throws Exception {
-        // Submit ID card
+    private void submitDocuments(final DocumentSubmitRequest submitRequest) throws Exception {
         stepLogger = new ObjectStepLogger(System.out);
         tokenAndEncryptModel.setData(objectMapper.writeValueAsBytes(new ObjectRequest<>(submitRequest)));
         tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/submit");
@@ -984,9 +983,9 @@ class PowerAuthIdentityVerificationTest {
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
-        EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
-        assertNotNull(responseOtpOK.getEncryptedData());
-        assertNotNull(responseOtpOK.getMac());
+        final EciesEncryptedResponse response = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        assertNotNull(response.getEncryptedData());
+        assertNotNull(response.getMac());
     }
 
     private void assertStatusOfSubmittedDocsWithRetries(String processId, int expectedDocumentsCount, DocumentStatus expectedStatus) throws Exception {
