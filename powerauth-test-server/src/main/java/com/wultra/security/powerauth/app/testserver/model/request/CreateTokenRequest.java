@@ -30,5 +30,5 @@ public class CreateTokenRequest {
     private String activationId;
     private String applicationId;
     private String password;
-
+    private String signatureType;
 }
