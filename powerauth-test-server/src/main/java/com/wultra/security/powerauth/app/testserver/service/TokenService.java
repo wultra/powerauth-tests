@@ -93,13 +93,17 @@ public class TokenService extends BaseService {
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
         final PublicKey publicKey = getMasterPublicKey(appConfig);
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
-
+        PowerAuthSignatureTypes signatureType = PowerAuthSignatureTypes.getEnumFromString(request.getSignatureType());
+        if (signatureType == null) {
+            // Fallback to previous behavior when there was no signatureType property in the request.
+            signatureType = PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE;
+        }
         final CreateTokenStepModel model = new CreateTokenStepModel();
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
         model.setPassword(request.getPassword());
         model.setMasterPublicKey(publicKey);
-        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
+        model.setSignatureType(signatureType);
         model.setVersion(config.getVersion());
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatusObject(resultStatusObject);
