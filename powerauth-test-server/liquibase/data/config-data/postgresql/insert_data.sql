@@ -57,4 +57,4 @@ ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO pa_cloud_user_authority (id, user_id, authority)
 VALUES (nextval('pa_cloud_user_seq'), (SELECT id FROM pa_cloud_user WHERE username = '${POWERAUTH_CLOUD_ADMIN_USERNAME}'), 'ROLE_ADMIN')
-ON CONFLICT (user_id) do nothing;
+ON CONFLICT (user_id, authority) do nothing;
