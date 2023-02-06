@@ -29,4 +29,8 @@
     <!-- Additional JPA Configuration -->
     <Parameter name="spring.jpa.database-platform" value="${POWERAUTH_TEST_SERVER_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQL95Dialect}"/>
 
+    <!-- Liquibase Script Configuration -->
+    <Parameter name="spring.liquibase.enabled" value="${SPRING_LIQUIBASE_ENABLED}:true"/>
+
+
 </Context>
