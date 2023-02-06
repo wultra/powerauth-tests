@@ -1,6 +1,6 @@
 -- pa cloud property
 INSERT INTO pa_cloud_property (name, value)
-VALUES ('service.base.url', 'https://pa-test-internal-mtoken-app.azurewebsites.net/powerauth-cloud/');
+VALUES ('service.base.url', '${PA_CLOUD_SERVICE_BASE_URL}');
 ON CONFLICT (name) DO NOTHING;
 
 -- es operation templates
@@ -52,7 +52,7 @@ ON CONFLICT (placeholder, language) DO NOTHING;
 
 -- admin user
 INSERT INTO pa_cloud_user (id, username, password, enabled)
-VALUES (nextval('pa_cloud_user_seq'), '${POWERAUTH_CLOUD_ADMIN_USERNAME}', '$2y$12$9ZqXvNsrWTAYqTDMr2JfbOA2Z8G1UVMJIkL8n7eOv29TdZjzZ3gUa', true)
+VALUES (nextval('pa_cloud_user_seq'), '${POWERAUTH_CLOUD_ADMIN_USERNAME}', '${POWERAUTH_CLOUD_ADMIN_PASSWORD_ENCODED}', true)
 ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO pa_cloud_user_authority (id, user_id, authority)
