@@ -31,7 +31,7 @@
 
     <!-- Liquibase Script Configuration -->
     <Parameter name="spring.liquibase.enabled" value="${LIQUIBASE_ENABLED:true}"/>
-    <Parameter name="spring.liquibase.parameters.PA_CLOUD_SERVICE_BASE_URL" value="${POWERAUTH_CLOUD_SERVICE_BASE_URL}"/>
+    <Parameter name="spring.liquibase.parameters.pa-cloud-service-base-url" value="${POWERAUTH_CLOUD_SERVICE_BASE_URL}"/>
     <Parameter name="spring.liquibase.parameters.PA_CLOUD_ADMIN_USERNAME" value="${POWERAUTH_CLOUD_ADMIN_USERNAME}"/>
     <Parameter name="spring.liquibase.parameters.PA_CLOUD_ADMIN_PASSWORD_ENCODED" value="${POWERAUTH_CLOUD_ADMIN_PASSWORD_ENCODED}"/>
 
