@@ -28,7 +28,6 @@
 
     <artifactId>powerauth-test-server</artifactId>
     <groupId>io.getlime.security</groupId>
-    <version>1.5.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>powerauth-test-server</name>

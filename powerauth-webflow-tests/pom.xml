@@ -13,7 +13,6 @@
 
     <groupId>com.wultra</groupId>
     <artifactId>powerauth-webflow-tests</artifactId>
-    <version>1.5.0-SNAPSHOT</version>
 
     <description>End-to-end Tests for PowerAuth WebFlow</description>
 
