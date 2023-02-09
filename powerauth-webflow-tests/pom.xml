@@ -5,19 +5,17 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <description>End-to-end Tests for PowerAuth WebFlow</description>
+    <parent>
+        <groupId>com.wultra</groupId>
+        <artifactId>powerauth-backend-tests-parent</artifactId>
+        <version>1.5.0-SNAPSHOT</version>
+    </parent>
 
     <groupId>com.wultra</groupId>
     <artifactId>powerauth-webflow-tests</artifactId>
     <version>1.5.0-SNAPSHOT</version>
-    <packaging>jar</packaging>
 
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.6</version>
-        <relativePath /> <!-- lookup parent from repository -->
-    </parent>
+    <description>End-to-end Tests for PowerAuth WebFlow</description>
 
     <inceptionYear>2018</inceptionYear>
     <url>https://www.wultra.com</url>
@@ -43,12 +41,6 @@
             </roles>
         </developer>
     </developers>
-
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
 
     <dependencies>
         <dependency>
@@ -106,7 +98,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>2.6.6</version>
             <exclusions>
                 <!-- Avoid error Found multiple occurrences of org.json.JSONObject -->
                 <exclusion>
@@ -142,14 +133,5 @@
             </snapshots>
         </repository>
     </repositories>
-
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>2.22.2</version>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

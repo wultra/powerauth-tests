@@ -1,0 +1,41 @@
+on:
+  workflow_call:
+    inputs:
+      java_version:
+        type: string
+        description: set version of java used to run the maven
+        default: '17'
+      server-id:
+        type: string
+        description: server for reading the artifacts, should be always jfrog-central
+        default: jfrog-central
+        required: false
+      directory_path:
+        type: string
+        description: directory with pom.xml to be executed
+        default: .
+
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK ${{ inputs.java_version }}
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ inputs.java_version }}
+          distribution: 'temurin'
+          server-id: ${{inputs.server-id}} #server id has to be passed this way it will not work via env in the test step
+          server-username: INTERNAL_USERNAME
+          server-password: INTERNAL_PASSWORD
+          cache: maven
+      - name: Run Maven Test-Compile Step
+        run: |
+          mvn -B -U test-compile
+        env:
+          # those are not environmental secret, but global secret - for readonly access to artifactory, credentials has to be passed this way
+          INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
+          INTERNAL_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          BRANCH: ${{ github.ref_name }}
