@@ -65,7 +65,7 @@ jobs:
       id: deploy-to-webapp
       uses: azure/webapps-deploy@v2
       with:
-        app-name: 'pa-test-internal-testserver-app'
+        app-name: 'pa-dev-internal-testserver-app'
         slot-name: 'production'
-        publish-profile: ${{ secrets.AzureAppService_PublishProfile_f6e36b4b50bd4835a473961ea7b7878c }}
+        publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISH_PROFILE }}
         images: 'powerauthextendedtest.azurecr.io/powerauth-test-server:${{ github.sha }}'
