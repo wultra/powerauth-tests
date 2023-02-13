@@ -1,6 +1,6 @@
 -- pa cloud property
 INSERT INTO pa_cloud_property (name, value)
-    VALUES ('service.base.url', '${PA_CLOUD_SERVICE_BASE_URL}')
+    VALUES ('service.base.url', '${spring.liquibase.parameters.pa-cloud-service-base-url}')
     ON CONFLICT (name) DO NOTHING;
 
 -- es operation templates
