@@ -59,7 +59,7 @@
     </developers>
 
     <properties>
-        <maven-war-plugin.version>3.3.1</maven-war-plugin.version>
+        <maven-war-plugin.version>3.3.2</maven-war-plugin.version>
     </properties>
 
     <dependencies>
