@@ -104,7 +104,6 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.72</version>
         </dependency>
 
         <!-- For run at Apple M1 architecture -->

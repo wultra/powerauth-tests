@@ -46,6 +46,8 @@
 
     <properties>
         <java.version>11</java.version>
+
+        <bc.version>1.72</bc.version>
     </properties>
 
     <modules>
@@ -54,5 +56,15 @@
         <module>powerauth-test-server</module>
         <module>powerauth-webflow-tests</module>
     </modules>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bc.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
 </project>
