@@ -1,6 +1,6 @@
 -- pa cloud property
 INSERT INTO pa_cloud_property (name, value)
-    VALUES ('service.base.url', '${PA_CLOUD_SERVICE_BASE_URL}')
+    VALUES ('service.base.url', '${pa-cloud-service-base-url}')
     ON CONFLICT (name) DO NOTHING;
 
 -- es operation templates
@@ -54,11 +54,11 @@ INSERT INTO pa_cloud_localization (id, placeholder, language, title, summary)
 
 -- admin user
 INSERT INTO pa_cloud_user (id, username, password, enabled)
-    VALUES (nextval('pa_cloud_user_seq'), '${PA_CLOUD_ADMIN_USERNAME}',
-        '${PA_CLOUD_ADMIN_PASSWORD_ENCODED}', true)
+    VALUES (nextval('pa_cloud_user_seq'), '${pa-cloud-admin-username}',
+        '${pa-cloud-admin-password-encoded}', true)
     ON CONFLICT (username) DO NOTHING;
 
 INSERT INTO pa_cloud_user_authority (id, user_id, authority)
     VALUES (nextval('pa_cloud_user_seq'),
-        (SELECT id FROM pa_cloud_user WHERE username = '${PA_CLOUD_ADMIN_USERNAME}'), 'ROLE_ADMIN')
+        (SELECT id FROM pa_cloud_user WHERE username = '${pa-cloud-admin-username}'), 'ROLE_ADMIN')
     ON CONFLICT (user_id, authority) do nothing;
