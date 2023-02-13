@@ -32,6 +32,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.URL;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -168,7 +169,7 @@ public class PowerAuthTestSetUp {
             driver.manage().timeouts().implicitlyWait(10, TimeUnit.SECONDS);
             driver.manage().window().maximize();
             config.setWebDriver(driver);
-            WebDriverWait webDriverWait = new WebDriverWait(driver, 10);
+            WebDriverWait webDriverWait = new WebDriverWait(driver, Duration.ofSeconds(10));
             config.setWebDriverWait(webDriverWait);
         } catch (Exception ex) {
             ex.printStackTrace();

@@ -20,20 +20,18 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>com.wultra</groupId>
+        <artifactId>powerauth-backend-tests-parent</artifactId>
+        <version>1.5.0-SNAPSHOT</version>
+    </parent>
+
     <artifactId>powerauth-test-server</artifactId>
     <groupId>io.getlime.security</groupId>
-    <version>1.5.0-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>powerauth-test-server</name>
     <description>Test server which exposes REST API for easier testing of PowerAuth backends</description>
-
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.13</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
 
     <inceptionYear>2022</inceptionYear>
     <url>http://powerauth.com/</url>
@@ -61,9 +59,6 @@
     </developers>
 
     <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
         <maven-war-plugin.version>3.3.1</maven-war-plugin.version>
     </properties>
 
@@ -101,7 +96,6 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>2.1.214</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
