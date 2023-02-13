@@ -35,5 +35,4 @@
     <Parameter name="spring.liquibase.parameters.pa-cloud-admin-username" value="${POWERAUTH_CLOUD_ADMIN_USERNAME}"/>
     <Parameter name="spring.liquibase.parameters.pa-cloud-admin-password-encoded" value="${POWERAUTH_CLOUD_ADMIN_PASSWORD_ENCODED}"/>
 
-
 </Context>
