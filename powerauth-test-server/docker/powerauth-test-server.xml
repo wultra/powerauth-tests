@@ -29,4 +29,10 @@
     <!-- Additional JPA Configuration -->
     <Parameter name="spring.jpa.database-platform" value="${POWERAUTH_TEST_SERVER_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQL95Dialect}"/>
 
+    <!-- Liquibase Script Configuration -->
+    <Parameter name="spring.liquibase.enabled" value="${LIQUIBASE_ENABLED:false}"/>
+    <Parameter name="spring.liquibase.parameters.pa-cloud-service-base-url" value="${POWERAUTH_CLOUD_SERVICE_BASE_URL}"/>
+    <Parameter name="spring.liquibase.parameters.pa-cloud-admin-username" value="${POWERAUTH_CLOUD_ADMIN_USERNAME}"/>
+    <Parameter name="spring.liquibase.parameters.pa-cloud-admin-password-encoded" value="${POWERAUTH_CLOUD_ADMIN_PASSWORD_ENCODED}"/>
+
 </Context>
