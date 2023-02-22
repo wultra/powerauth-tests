@@ -30,7 +30,7 @@ jobs:
           cache: maven
       - name: Run Maven Test-Compile Step
         run: |
-          mvn -B -U test-compile
+          mvn -B -U test-compile -DuseInternalRepo=true
         env:
           # those are not environmental secret, but global secret - for readonly access to artifactory, credentials has to be passed this way
           INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
