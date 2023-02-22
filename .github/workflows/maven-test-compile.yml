@@ -2,15 +2,15 @@ name: Test Compile with Maven
 
 on:
   workflow_dispatch:
-    push:
-      branches:
-        - 'master'
-        - 'releases/**'
-    pull_request:
-      branches:
-        - 'develop'
-        - 'master'
-        - 'releases/**'
+  push:
+    branches:
+      - 'master'
+      - 'releases/**'
+  pull_request:
+    branches:
+      - 'develop'
+      - 'master'
+      - 'releases/**'
 
 
 jobs:
