@@ -47,6 +47,12 @@
     <properties>
         <java.version>11</java.version>
 
+        <enrollment-server.version>1.5.0-SNAPSHOT</enrollment-server.version>
+        <powerauth-cmd.version>1.5.0-SNAPSHOT</powerauth-cmd.version>
+        <powerauth-crypto.version>1.5.0-SNAPSHOT</powerauth-crypto.version>
+        <powerauth-restful-integration.version>1.5.0-SNAPSHOT</powerauth-restful-integration.version>
+        <powerauth-webflow.version>1.5.0-SNAPSHOT</powerauth-webflow.version>
+
         <bc.version>1.72</bc.version>
     </properties>
 
@@ -63,6 +69,71 @@
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk18on</artifactId>
                 <version>${bc.version}</version>
+            </dependency>
+
+            <!-- PowerAuth Webflow -->
+            <dependency>
+                <groupId>io.getlime.security</groupId>
+                <artifactId>powerauth-nextstep-client</artifactId>
+                <version>${powerauth-webflow.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.getlime.security</groupId>
+                <artifactId>powerauth-mtoken-model</artifactId>
+                <version>${powerauth-webflow.version}</version>
+            </dependency>
+
+            <!-- PowerAuth Crypto  -->
+            <dependency>
+                <groupId>io.getlime.security</groupId>
+                <artifactId>powerauth-java-crypto</artifactId>
+                <version>${powerauth-crypto.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.getlime.security</groupId>
+                <artifactId>powerauth-java-http</artifactId>
+                <version>${powerauth-crypto.version}</version>
+            </dependency>
+
+            <!-- PowerAuth CMD  -->
+            <dependency>
+                <groupId>io.getlime.security</groupId>
+                <artifactId>powerauth-java-cmd-lib</artifactId>
+                <version>${powerauth-cmd.version}</version>
+            </dependency>
+
+            <!-- PowerAuth Restful Integration  -->
+            <dependency>
+                <groupId>io.getlime.security</groupId>
+                <artifactId>powerauth-restful-model</artifactId>
+                <version>${powerauth-restful-integration.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.getlime.security</groupId>
+                <artifactId>powerauth-rest-client-spring</artifactId>
+                <version>${powerauth-restful-integration.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.getlime.security</groupId>
+                <artifactId>powerauth-restful-security-spring</artifactId>
+                <version>${powerauth-restful-integration.version}</version>
+            </dependency>
+
+            <!--  Enrollment Server  -->
+            <dependency>
+                <groupId>com.wultra.security</groupId>
+                <artifactId>enrollment-server-api-model</artifactId>
+                <version>${enrollment-server.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.wultra.security</groupId>
+                <artifactId>enrollment-server-onboarding-api-model</artifactId>
+                <version>${enrollment-server.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
