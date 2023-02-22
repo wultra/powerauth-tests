@@ -1,4 +1,14 @@
 on:
+  workflow_dispatch:
+    push:
+      branches:
+        - 'master'
+        - 'releases/**'
+    pull_request:
+      branches:
+        - 'develop'
+        - 'master'
+        - 'releases/**'
   workflow_call:
     inputs:
       java_version:
@@ -10,10 +20,6 @@ on:
         description: server for reading the artifacts, should be always jfrog-central
         default: jfrog-central
         required: false
-      directory_path:
-        type: string
-        description: directory with pom.xml to be executed
-        default: .
 
 
 jobs:
