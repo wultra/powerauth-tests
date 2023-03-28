@@ -18,7 +18,6 @@
 package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
@@ -148,7 +147,7 @@ class PowerAuthApiTest {
         String activationCode = response.getActivationCode();
         KeyPair deviceKeyPair = activation.generateDeviceKeyPair();
         byte[] devicePublicKeyBytes = keyConvertor.convertPublicKeyToBytes(deviceKeyPair.getPublic());
-        String devicePublicKeyBase64 = BaseEncoding.base64().encode(devicePublicKeyBytes);
+        String devicePublicKeyBase64 = Base64.getEncoder().encodeToString(devicePublicKeyBytes);
         ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setActivationName(activationName);
         requestL2.setDevicePublicKey(devicePublicKeyBase64);
@@ -157,10 +156,10 @@ class PowerAuthApiTest {
         objectMapper.writeValue(baosL2, requestL2);
         EciesCryptogram eciesCryptogramL2 = eciesEncryptorL2.encryptRequest(baosL2.toByteArray(), true);
         EciesEncryptedRequest encryptedRequestL2 = new EciesEncryptedRequest();
-        encryptedRequestL2.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogramL2.getEphemeralPublicKey()));
-        encryptedRequestL2.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogramL2.getEncryptedData()));
-        encryptedRequestL2.setMac(BaseEncoding.base64().encode(eciesCryptogramL2.getMac()));
-        encryptedRequestL2.setNonce(BaseEncoding.base64().encode(eciesCryptogramL2.getNonce()));
+        encryptedRequestL2.setEphemeralPublicKey(Base64.getEncoder().encodeToString(eciesCryptogramL2.getEphemeralPublicKey()));
+        encryptedRequestL2.setEncryptedData(Base64.getEncoder().encodeToString(eciesCryptogramL2.getEncryptedData()));
+        encryptedRequestL2.setMac(Base64.getEncoder().encodeToString(eciesCryptogramL2.getMac()));
+        encryptedRequestL2.setNonce(Base64.getEncoder().encodeToString(eciesCryptogramL2.getNonce()));
         PrepareActivationResponse prepareResponse = powerAuthClient.prepareActivation(activationCode, config.getApplicationKey(), true, encryptedRequestL2.getEphemeralPublicKey(), encryptedRequestL2.getEncryptedData(), encryptedRequestL2.getMac(), encryptedRequestL2.getNonce());
         assertEquals(ActivationStatus.PENDING_COMMIT, prepareResponse.getActivationStatus());
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(activationId, config.getUserV31());
@@ -172,7 +171,7 @@ class PowerAuthApiTest {
         String activationName = "test_create";
         KeyPair deviceKeyPair = activation.generateDeviceKeyPair();
         byte[] devicePublicKeyBytes = keyConvertor.convertPublicKeyToBytes(deviceKeyPair.getPublic());
-        String devicePublicKeyBase64 = BaseEncoding.base64().encode(devicePublicKeyBytes);
+        String devicePublicKeyBase64 = Base64.getEncoder().encodeToString(devicePublicKeyBytes);
         ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setActivationName(activationName);
         requestL2.setDevicePublicKey(devicePublicKeyBase64);
@@ -181,10 +180,10 @@ class PowerAuthApiTest {
         objectMapper.writeValue(baosL2, requestL2);
         EciesCryptogram eciesCryptogramL2 = eciesEncryptorL2.encryptRequest(baosL2.toByteArray(), true);
         EciesEncryptedRequest encryptedRequestL2 = new EciesEncryptedRequest();
-        encryptedRequestL2.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogramL2.getEphemeralPublicKey()));
-        encryptedRequestL2.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogramL2.getEncryptedData()));
-        encryptedRequestL2.setMac(BaseEncoding.base64().encode(eciesCryptogramL2.getMac()));
-        encryptedRequestL2.setNonce(BaseEncoding.base64().encode(eciesCryptogramL2.getNonce()));
+        encryptedRequestL2.setEphemeralPublicKey(Base64.getEncoder().encodeToString(eciesCryptogramL2.getEphemeralPublicKey()));
+        encryptedRequestL2.setEncryptedData(Base64.getEncoder().encodeToString(eciesCryptogramL2.getEncryptedData()));
+        encryptedRequestL2.setMac(Base64.getEncoder().encodeToString(eciesCryptogramL2.getMac()));
+        encryptedRequestL2.setNonce(Base64.getEncoder().encodeToString(eciesCryptogramL2.getNonce()));
         CreateActivationResponse createResponse = powerAuthClient.createActivation(config.getUserV31(), null,
                 null, config.getApplicationKey(), encryptedRequestL2.getEphemeralPublicKey(), encryptedRequestL2.getEncryptedData(), encryptedRequestL2.getMac(), encryptedRequestL2.getNonce());
         String activationId = createResponse.getActivationId();
@@ -203,7 +202,7 @@ class PowerAuthApiTest {
         String activationCode = response.getActivationCode();
         KeyPair deviceKeyPair = activation.generateDeviceKeyPair();
         byte[] devicePublicKeyBytes = keyConvertor.convertPublicKeyToBytes(deviceKeyPair.getPublic());
-        String devicePublicKeyBase64 = BaseEncoding.base64().encode(devicePublicKeyBytes);
+        String devicePublicKeyBase64 = Base64.getEncoder().encodeToString(devicePublicKeyBytes);
         ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setActivationName(activationName);
         requestL2.setDevicePublicKey(devicePublicKeyBase64);
@@ -212,10 +211,10 @@ class PowerAuthApiTest {
         objectMapper.writeValue(baosL2, requestL2);
         EciesCryptogram eciesCryptogramL2 = eciesEncryptorL2.encryptRequest(baosL2.toByteArray(), true);
         EciesEncryptedRequest encryptedRequestL2 = new EciesEncryptedRequest();
-        encryptedRequestL2.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogramL2.getEphemeralPublicKey()));
-        encryptedRequestL2.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogramL2.getEncryptedData()));
-        encryptedRequestL2.setMac(BaseEncoding.base64().encode(eciesCryptogramL2.getMac()));
-        encryptedRequestL2.setNonce(BaseEncoding.base64().encode(eciesCryptogramL2.getNonce()));
+        encryptedRequestL2.setEphemeralPublicKey(Base64.getEncoder().encodeToString(eciesCryptogramL2.getEphemeralPublicKey()));
+        encryptedRequestL2.setEncryptedData(Base64.getEncoder().encodeToString(eciesCryptogramL2.getEncryptedData()));
+        encryptedRequestL2.setMac(Base64.getEncoder().encodeToString(eciesCryptogramL2.getMac()));
+        encryptedRequestL2.setNonce(Base64.getEncoder().encodeToString(eciesCryptogramL2.getNonce()));
         PrepareActivationResponse prepareResponse = powerAuthClient.prepareActivation(activationCode, config.getApplicationKey(), true, encryptedRequestL2.getEphemeralPublicKey(), encryptedRequestL2.getEncryptedData(), encryptedRequestL2.getMac(), encryptedRequestL2.getNonce());
         assertEquals(ActivationStatus.PENDING_COMMIT, prepareResponse.getActivationStatus());
         UpdateActivationOtpResponse otpResponse = powerAuthClient.updateActivationOtp(activationId, config.getUserV31(), "12345678");
@@ -274,10 +273,10 @@ class PowerAuthApiTest {
         String data = "test_data";
         String normalizedData = PowerAuthHttpBody.getSignatureBaseString("POST", "/pa/signature/validate", nonceBytes, data.getBytes(StandardCharsets.UTF_8));
         String normalizedDataWithSecret = normalizedData + "&" + config.getApplicationSecret();
-        byte[] ctrData = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "ctrData"));
-        byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "signaturePossessionKey"));
-        byte[] signatureKnowledgeKeySalt = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "signatureKnowledgeKeySalt"));
-        byte[] signatureKnowledgeKeyEncryptedBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "signatureKnowledgeKeyEncrypted"));
+        byte[] ctrData = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "ctrData"));
+        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "signaturePossessionKey"));
+        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "signatureKnowledgeKeySalt"));
+        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "signatureKnowledgeKeyEncrypted"));
         SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, keyGenerator);
         SecretKey signaturePossessionKey = keyConvertor.convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
         String signatureValue = signature.signatureForData(normalizedDataWithSecret.getBytes(StandardCharsets.UTF_8), keyFactory.keysForSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE,
@@ -294,7 +293,7 @@ class PowerAuthApiTest {
         for (SignatureAuditResponse.Items item: auditItems) {
             if (signatureValue.equals(item.getSignature())) {
                 assertEquals(config.getActivationIdV31(), item.getActivationId());
-                assertEquals(normalizedDataWithSecret, new String(BaseEncoding.base64().decode(item.getDataBase64())));
+                assertEquals(normalizedDataWithSecret, new String(Base64.getDecoder().decode(item.getDataBase64())));
                 assertEquals(SignatureType.POSSESSION_KNOWLEDGE, item.getSignatureType());
                 assertEquals("3.1", item.getSignatureVersion());
                 assertEquals(ActivationStatus.ACTIVE, item.getActivationStatus());
@@ -332,9 +331,9 @@ class PowerAuthApiTest {
 
     @Test
     void unlockVaultAndECDSASignatureTest() throws GenericCryptoException, CryptoProviderException, InvalidKeySpecException, EciesException, IOException, InvalidKeyException, PowerAuthClientException {
-        byte[] transportMasterKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "transportMasterKey"));
-        byte[] serverPublicKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "serverPublicKey"));
-        byte[] encryptedDevicePrivateKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "encryptedDevicePrivateKey"));
+        byte[] transportMasterKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "transportMasterKey"));
+        byte[] serverPublicKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "serverPublicKey"));
+        byte[] encryptedDevicePrivateKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "encryptedDevicePrivateKey"));
         byte[] nonceBytes = keyGenerator.generateRandomBytes(16);
         final ECPublicKey serverPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(serverPublicKeyBytes);
         final EciesEncryptor eciesEncryptor = eciesFactory.getEciesEncryptorForActivation(serverPublicKey, config.getApplicationSecret().getBytes(StandardCharsets.UTF_8),
@@ -344,17 +343,17 @@ class PowerAuthApiTest {
         final byte[] requestBytesPayload = objectMapper.writeValueAsBytes(requestPayload);
         final EciesCryptogram eciesCryptogram = eciesEncryptor.encryptRequest(requestBytesPayload, true);
         EciesEncryptedRequest eciesRequest = new EciesEncryptedRequest();
-        eciesRequest.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogram.getEphemeralPublicKey()));
-        eciesRequest.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogram.getEncryptedData()));
-        eciesRequest.setMac(BaseEncoding.base64().encode(eciesCryptogram.getMac()));
-        eciesRequest.setNonce(BaseEncoding.base64().encode(eciesCryptogram.getNonce()));
+        eciesRequest.setEphemeralPublicKey(Base64.getEncoder().encodeToString(eciesCryptogram.getEphemeralPublicKey()));
+        eciesRequest.setEncryptedData(Base64.getEncoder().encodeToString(eciesCryptogram.getEncryptedData()));
+        eciesRequest.setMac(Base64.getEncoder().encodeToString(eciesCryptogram.getMac()));
+        eciesRequest.setNonce(Base64.getEncoder().encodeToString(eciesCryptogram.getNonce()));
         final byte[] requestBytes = objectMapper.writeValueAsBytes(eciesRequest);
         String normalizedData = PowerAuthHttpBody.getSignatureBaseString("POST", "/pa/signature/validate", nonceBytes, requestBytes);
         String normalizedDataWithSecret = normalizedData + "&" + config.getApplicationSecret();
-        byte[] ctrData = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "ctrData"));
-        byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "signaturePossessionKey"));
-        byte[] signatureKnowledgeKeySalt = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "signatureKnowledgeKeySalt"));
-        byte[] signatureKnowledgeKeyEncryptedBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "signatureKnowledgeKeyEncrypted"));
+        byte[] ctrData = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "ctrData"));
+        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "signaturePossessionKey"));
+        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "signatureKnowledgeKeySalt"));
+        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "signatureKnowledgeKeyEncrypted"));
         SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, keyGenerator);
         SecretKey signaturePossessionKey = keyConvertor.convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
         String signatureValue = signature.signatureForData(normalizedDataWithSecret.getBytes(StandardCharsets.UTF_8), keyFactory.keysForSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE,
@@ -364,11 +363,11 @@ class PowerAuthApiTest {
         assertTrue(unlockResponse.isSignatureValid());
         assertNotNull(unlockResponse.getEncryptedData());
         assertNotNull(unlockResponse.getMac());
-        EciesCryptogram responseCryptogram = new EciesCryptogram(BaseEncoding.base64().decode(unlockResponse.getMac()), BaseEncoding.base64().decode(unlockResponse.getEncryptedData()));
+        EciesCryptogram responseCryptogram = new EciesCryptogram(Base64.getDecoder().decode(unlockResponse.getMac()), Base64.getDecoder().decode(unlockResponse.getEncryptedData()));
         byte[] decryptedData = eciesEncryptor.decryptResponse(responseCryptogram);
         VaultUnlockResponsePayload response = objectMapper.readValue(decryptedData, VaultUnlockResponsePayload.class);
         assertNotNull(response.getEncryptedVaultEncryptionKey());
-        byte[] encryptedVaultEncryptionKey = BaseEncoding.base64().decode(response.getEncryptedVaultEncryptionKey());
+        byte[] encryptedVaultEncryptionKey = Base64.getDecoder().decode(response.getEncryptedVaultEncryptionKey());
         SecretKey transportMasterKey = keyConvertor.convertBytesToSharedSecretKey(transportMasterKeyBytes);
         SecretKey vaultEncryptionKey = vault.decryptVaultEncryptionKey(encryptedVaultEncryptionKey, transportMasterKey);
         PrivateKey devicePrivateKey = vault.decryptDevicePrivateKey(encryptedDevicePrivateKeyBytes, vaultEncryptionKey);
@@ -379,7 +378,7 @@ class PowerAuthApiTest {
         String testData = "test_data";
         byte[] ecdsaSignature = signatureUtils.computeECDSASignature(testData.getBytes(StandardCharsets.UTF_8), devicePrivateKey);
         VerifyECDSASignatureResponse ecdsaResponse = powerAuthClient.verifyECDSASignature(config.getActivationIdV31(),
-                BaseEncoding.base64().encode(testData.getBytes(StandardCharsets.UTF_8)), BaseEncoding.base64().encode(ecdsaSignature));
+                Base64.getEncoder().encodeToString(testData.getBytes(StandardCharsets.UTF_8)), Base64.getEncoder().encodeToString(ecdsaSignature));
         assertTrue(ecdsaResponse.isSignatureValid());
     }
 
@@ -499,9 +498,9 @@ class PowerAuthApiTest {
 
         // Check successful token validation and activation status
         final ValidateTokenResponse validateResponse = powerAuthClient.validateToken(tokenInfo.getTokenId(),
-                BaseEncoding.base64().encode(tokenInfo.getTokenNonce()),
+                Base64.getEncoder().encodeToString(tokenInfo.getTokenNonce()),
                 Long.parseLong(new String(tokenInfo.getTokenTimestamp())),
-                BaseEncoding.base64().encode(tokenInfo.getTokenDigest()));
+                Base64.getEncoder().encodeToString(tokenInfo.getTokenDigest()));
         assertTrue(validateResponse.isTokenValid());
         assertEquals(ActivationStatus.ACTIVE, validateResponse.getActivationStatus());
         assertNull(validateResponse.getBlockedReason());
@@ -520,9 +519,9 @@ class PowerAuthApiTest {
 
         // Check that token validation failed and activation status and blocked reason is available
         final ValidateTokenResponse validateResponse = powerAuthClient.validateToken(tokenInfo.getTokenId(),
-                BaseEncoding.base64().encode(tokenInfo.getTokenNonce()),
+                Base64.getEncoder().encodeToString(tokenInfo.getTokenNonce()),
                 Long.parseLong(new String(tokenInfo.getTokenTimestamp())),
-                BaseEncoding.base64().encode(tokenInfo.getTokenDigest()));
+                Base64.getEncoder().encodeToString(tokenInfo.getTokenDigest()));
         assertFalse(validateResponse.isTokenValid());
         assertEquals(ActivationStatus.BLOCKED, validateResponse.getActivationStatus());
         assertEquals("TEST", validateResponse.getBlockedReason());
@@ -541,10 +540,10 @@ class PowerAuthApiTest {
         EciesEncryptor eciesEncryptor = eciesFactory.getEciesEncryptorForApplication((ECPublicKey) config.getMasterPublicKey(), config.getApplicationSecret().getBytes(StandardCharsets.UTF_8), EciesSharedInfo1.APPLICATION_SCOPE_GENERIC);
         EciesCryptogram eciesCryptogram = eciesEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8), true);
         EciesEncryptedRequest encryptedRequest = new EciesEncryptedRequest();
-        encryptedRequest.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogram.getEphemeralPublicKey()));
-        encryptedRequest.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogram.getEncryptedData()));
-        encryptedRequest.setMac(BaseEncoding.base64().encode(eciesCryptogram.getMac()));
-        encryptedRequest.setNonce(BaseEncoding.base64().encode(eciesCryptogram.getNonce()));
+        encryptedRequest.setEphemeralPublicKey(Base64.getEncoder().encodeToString(eciesCryptogram.getEphemeralPublicKey()));
+        encryptedRequest.setEncryptedData(Base64.getEncoder().encodeToString(eciesCryptogram.getEncryptedData()));
+        encryptedRequest.setMac(Base64.getEncoder().encodeToString(eciesCryptogram.getMac()));
+        encryptedRequest.setNonce(Base64.getEncoder().encodeToString(eciesCryptogram.getNonce()));
         final byte[] ephemeralPublicKeyBytes = eciesCryptogram.getEphemeralPublicKey();
         final byte[] encryptedDataBytes = eciesCryptogram.getEncryptedData();
         final byte[] macBytes = eciesCryptogram.getMac();
@@ -552,11 +551,11 @@ class PowerAuthApiTest {
         GetEciesDecryptorRequest eciesDecryptorRequest = new GetEciesDecryptorRequest();
         eciesDecryptorRequest.setActivationId(null);
         eciesDecryptorRequest.setApplicationKey(config.getApplicationKey());
-        eciesDecryptorRequest.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogram.getEphemeralPublicKey()));
+        eciesDecryptorRequest.setEphemeralPublicKey(Base64.getEncoder().encodeToString(eciesCryptogram.getEphemeralPublicKey()));
         GetEciesDecryptorResponse eciesDecryptorResponse = powerAuthClient.getEciesDecryptor(eciesDecryptorRequest);
-        final byte[] secretKey = BaseEncoding.base64().decode(eciesDecryptorResponse.getSecretKey());
+        final byte[] secretKey = Base64.getDecoder().decode(eciesDecryptorResponse.getSecretKey());
         final EciesEnvelopeKey envelopeKey = new EciesEnvelopeKey(secretKey, ephemeralPublicKeyBytes);
-        final byte[] sharedInfo2 = BaseEncoding.base64().decode(eciesDecryptorResponse.getSharedInfo2());
+        final byte[] sharedInfo2 = Base64.getDecoder().decode(eciesDecryptorResponse.getSharedInfo2());
         final EciesDecryptor eciesDecryptor = eciesFactory.getEciesDecryptor(envelopeKey, sharedInfo2);
         EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes, nonceBytes);
         byte[] decryptedData = eciesDecryptor.decryptRequest(cryptogram);
@@ -572,18 +571,18 @@ class PowerAuthApiTest {
         byte[] nonceDeviceBytes = activation.generateActivationNonce();
         byte[] cDevicePublicKeyBytes = activation.encryptDevicePublicKey(deviceKeyPair.getPublic(), clientEphemeralKeyPair.getPrivate(), config.getMasterPublicKey(),
                 activationOTP, activationIdentity, nonceDeviceBytes);
-        byte[] signature = activation.computeApplicationSignature(activationIdentity, nonceDeviceBytes, cDevicePublicKeyBytes, BaseEncoding.base64().decode(config.getApplicationKey()),
-                BaseEncoding.base64().decode(config.getApplicationSecret()));
+        byte[] signature = activation.computeApplicationSignature(activationIdentity, nonceDeviceBytes, cDevicePublicKeyBytes, Base64.getDecoder().decode(config.getApplicationKey()),
+                Base64.getDecoder().decode(config.getApplicationSecret()));
         byte[] ephemeralPublicKeyBytes = keyConvertor.convertPublicKeyToBytes(clientEphemeralKeyPair.getPublic());
         com.wultra.security.powerauth.client.v2.CreateActivationResponse createResponse = powerAuthClient.v2().createActivation(config.getApplicationKey(), config.getUserV31(), activationIdentity,
-                "test_activation_v2", BaseEncoding.base64().encode(nonceDeviceBytes),
-                BaseEncoding.base64().encode(ephemeralPublicKeyBytes), BaseEncoding.base64().encode(cDevicePublicKeyBytes),
-                null, BaseEncoding.base64().encode(signature));
+                "test_activation_v2", Base64.getEncoder().encodeToString(nonceDeviceBytes),
+                Base64.getEncoder().encodeToString(ephemeralPublicKeyBytes), Base64.getEncoder().encodeToString(cDevicePublicKeyBytes),
+                null, Base64.getEncoder().encodeToString(signature));
         String activationId = createResponse.getActivationId();
         assertNotNull(activationId);
-        byte[] nonceServerBytes = BaseEncoding.base64().decode(createResponse.getActivationNonce());
-        byte[] cServerPubKeyBytes = BaseEncoding.base64().decode(createResponse.getEncryptedServerPublicKey());
-        byte[] ephemeralKeyBytes = BaseEncoding.base64().decode(createResponse.getEphemeralPublicKey());
+        byte[] nonceServerBytes = Base64.getDecoder().decode(createResponse.getActivationNonce());
+        byte[] cServerPubKeyBytes = Base64.getDecoder().decode(createResponse.getEncryptedServerPublicKey());
+        byte[] ephemeralKeyBytes = Base64.getDecoder().decode(createResponse.getEphemeralPublicKey());
         PublicKey ephemeralPubKey = keyConvertor.convertBytesToPublicKey(ephemeralKeyBytes);
         PublicKey serverPublicKey = activation.decryptServerPublicKey(cServerPubKeyBytes, deviceKeyPair.getPrivate(),
                 ephemeralPubKey, activationOTP, activationIdentity, nonceServerBytes);
@@ -594,13 +593,13 @@ class PowerAuthApiTest {
         EciesEncryptor eciesEncryptor = eciesFactory.getEciesEncryptorForActivation((ECPublicKey) serverPublicKey,
                 config.getApplicationSecret().getBytes(StandardCharsets.UTF_8), transportMasterKeyBytes, EciesSharedInfo1.UPGRADE);
         EciesCryptogram eciesCryptogram = eciesEncryptor.encryptRequest("{}".getBytes(StandardCharsets.UTF_8), true);
-        String ephemeralPublicKey = BaseEncoding.base64().encode(eciesCryptogram.getEphemeralPublicKey());
-        String encryptedData = BaseEncoding.base64().encode(eciesCryptogram.getEncryptedData());
-        String mac = BaseEncoding.base64().encode(eciesCryptogram.getMac());
-        String nonce = BaseEncoding.base64().encode(eciesCryptogram.getNonce());
+        String ephemeralPublicKey = Base64.getEncoder().encodeToString(eciesCryptogram.getEphemeralPublicKey());
+        String encryptedData = Base64.getEncoder().encodeToString(eciesCryptogram.getEncryptedData());
+        String mac = Base64.getEncoder().encodeToString(eciesCryptogram.getMac());
+        String nonce = Base64.getEncoder().encodeToString(eciesCryptogram.getNonce());
         StartUpgradeResponse startResponse = powerAuthClient.startUpgrade(activationId, config.getApplicationKey(), ephemeralPublicKey, encryptedData, mac, nonce);
-        byte[] macResponse = BaseEncoding.base64().decode(startResponse.getMac());
-        byte[] encryptedDataResponse = BaseEncoding.base64().decode(startResponse.getEncryptedData());
+        byte[] macResponse = Base64.getDecoder().decode(startResponse.getMac());
+        byte[] encryptedDataResponse = Base64.getDecoder().decode(startResponse.getEncryptedData());
         EciesCryptogram eciesCryptogramResponse = new EciesCryptogram(macResponse, encryptedDataResponse);
         byte[] decryptedBytes = eciesEncryptor.decryptResponse(eciesCryptogramResponse);
         UpgradeResponsePayload upgradeResponsePayload = objectMapper.readValue(decryptedBytes, UpgradeResponsePayload.class);
@@ -626,7 +625,7 @@ class PowerAuthApiTest {
         String activationName = "test_create_recovery";
         KeyPair deviceKeyPair = activation.generateDeviceKeyPair();
         byte[] devicePublicKeyBytes = keyConvertor.convertPublicKeyToBytes(deviceKeyPair.getPublic());
-        String devicePublicKeyBase64 = BaseEncoding.base64().encode(devicePublicKeyBytes);
+        String devicePublicKeyBase64 = Base64.getEncoder().encodeToString(devicePublicKeyBytes);
         ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setActivationName(activationName);
         requestL2.setDevicePublicKey(devicePublicKeyBase64);
@@ -635,21 +634,21 @@ class PowerAuthApiTest {
         objectMapper.writeValue(baosL2, requestL2);
         EciesCryptogram eciesCryptogramL2 = eciesEncryptorL2.encryptRequest(baosL2.toByteArray(), true);
         EciesEncryptedRequest encryptedRequestL2 = new EciesEncryptedRequest();
-        encryptedRequestL2.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogramL2.getEphemeralPublicKey()));
-        encryptedRequestL2.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogramL2.getEncryptedData()));
-        encryptedRequestL2.setMac(BaseEncoding.base64().encode(eciesCryptogramL2.getMac()));
-        encryptedRequestL2.setNonce(BaseEncoding.base64().encode(eciesCryptogramL2.getNonce()));
+        encryptedRequestL2.setEphemeralPublicKey(Base64.getEncoder().encodeToString(eciesCryptogramL2.getEphemeralPublicKey()));
+        encryptedRequestL2.setEncryptedData(Base64.getEncoder().encodeToString(eciesCryptogramL2.getEncryptedData()));
+        encryptedRequestL2.setMac(Base64.getEncoder().encodeToString(eciesCryptogramL2.getMac()));
+        encryptedRequestL2.setNonce(Base64.getEncoder().encodeToString(eciesCryptogramL2.getNonce()));
         CreateActivationResponse createResponse = powerAuthClient.createActivation(config.getUserV31(), null,
                 null, config.getApplicationKey(), encryptedRequestL2.getEphemeralPublicKey(),
                 encryptedRequestL2.getEncryptedData(), encryptedRequestL2.getMac(), encryptedRequestL2.getNonce());
         String activationId = createResponse.getActivationId();
         assertNotNull(activationId);
-        EciesCryptogram cryptogram = new EciesCryptogram(BaseEncoding.base64().decode(createResponse.getMac()), BaseEncoding.base64().decode(createResponse.getEncryptedData()));
+        EciesCryptogram cryptogram = new EciesCryptogram(Base64.getDecoder().decode(createResponse.getMac()), Base64.getDecoder().decode(createResponse.getEncryptedData()));
         byte[] responseRaw = eciesEncryptorL2.decryptResponse(cryptogram);
         ActivationLayer2Response responseL2 = objectMapper.readValue(responseRaw, ActivationLayer2Response.class);
         String recoveryCode = responseL2.getActivationRecovery().getRecoveryCode();
         String recoveryPuk = responseL2.getActivationRecovery().getPuk();
-        PublicKey serverPublicKey = keyConvertor.convertBytesToPublicKey(BaseEncoding.base64().decode(responseL2.getServerPublicKey()));
+        PublicKey serverPublicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(responseL2.getServerPublicKey()));
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(activationId);
         assertEquals(ActivationStatus.PENDING_COMMIT, statusResponse.getActivationStatus());
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(activationId, config.getUserV31());
@@ -663,20 +662,20 @@ class PowerAuthApiTest {
         confirmRequestPayload.setRecoveryCode(recoveryCode);
         EciesCryptogram confirmCryptogram = encryptor.encryptRequest(objectMapper.writeValueAsBytes(confirmRequestPayload), true);
         EciesEncryptedRequest encryptedRequestConfirm = new EciesEncryptedRequest();
-        encryptedRequestConfirm.setEphemeralPublicKey(BaseEncoding.base64().encode(confirmCryptogram.getEphemeralPublicKey()));
-        encryptedRequestConfirm.setEncryptedData(BaseEncoding.base64().encode(confirmCryptogram.getEncryptedData()));
-        encryptedRequestConfirm.setMac(BaseEncoding.base64().encode(confirmCryptogram.getMac()));
-        encryptedRequestConfirm.setNonce(BaseEncoding.base64().encode(confirmCryptogram.getNonce()));
+        encryptedRequestConfirm.setEphemeralPublicKey(Base64.getEncoder().encodeToString(confirmCryptogram.getEphemeralPublicKey()));
+        encryptedRequestConfirm.setEncryptedData(Base64.getEncoder().encodeToString(confirmCryptogram.getEncryptedData()));
+        encryptedRequestConfirm.setMac(Base64.getEncoder().encodeToString(confirmCryptogram.getMac()));
+        encryptedRequestConfirm.setNonce(Base64.getEncoder().encodeToString(confirmCryptogram.getNonce()));
         ConfirmRecoveryCodeResponse confirmResponse = powerAuthClient.confirmRecoveryCode(activationId, config.getApplicationKey(), encryptedRequestConfirm.getEphemeralPublicKey(),
                 encryptedRequestConfirm.getEncryptedData(), encryptedRequestConfirm.getMac(), encryptedRequestConfirm.getNonce());
-        EciesCryptogram confirmResponseCryptogram = new EciesCryptogram(BaseEncoding.base64().decode(confirmResponse.getMac()),
-                BaseEncoding.base64().decode(confirmResponse.getEncryptedData()));
+        EciesCryptogram confirmResponseCryptogram = new EciesCryptogram(Base64.getDecoder().decode(confirmResponse.getMac()),
+                Base64.getDecoder().decode(confirmResponse.getEncryptedData()));
         byte[] confirmResponseRaw = encryptor.decryptResponse(confirmResponseCryptogram);
         ConfirmRecoveryResponsePayload confirmResponsePayload = RestClientConfiguration.defaultMapper().readValue(confirmResponseRaw, ConfirmRecoveryResponsePayload.class);
         assertTrue(confirmResponsePayload.getAlreadyConfirmed());
         KeyPair deviceKeyPairR = activation.generateDeviceKeyPair();
         byte[] devicePublicKeyBytesR = keyConvertor.convertPublicKeyToBytes(deviceKeyPairR.getPublic());
-        String devicePublicKeyBase64R = BaseEncoding.base64().encode(devicePublicKeyBytesR);
+        String devicePublicKeyBase64R = Base64.getEncoder().encodeToString(devicePublicKeyBytesR);
         ActivationLayer2Request requestL2R = new ActivationLayer2Request();
         requestL2.setActivationName(activationName + "_2");
         requestL2.setDevicePublicKey(devicePublicKeyBase64R);
@@ -685,10 +684,10 @@ class PowerAuthApiTest {
         objectMapper.writeValue(baosL2R, requestL2R);
         EciesCryptogram eciesCryptogramL2R = eciesEncryptorL2R.encryptRequest(baosL2R.toByteArray(), true);
         EciesEncryptedRequest encryptedRequestL2R = new EciesEncryptedRequest();
-        encryptedRequestL2R.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogramL2R.getEphemeralPublicKey()));
-        encryptedRequestL2R.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogramL2R.getEncryptedData()));
-        encryptedRequestL2R.setMac(BaseEncoding.base64().encode(eciesCryptogramL2R.getMac()));
-        encryptedRequestL2R.setNonce(BaseEncoding.base64().encode(eciesCryptogramL2R.getNonce()));
+        encryptedRequestL2R.setEphemeralPublicKey(Base64.getEncoder().encodeToString(eciesCryptogramL2R.getEphemeralPublicKey()));
+        encryptedRequestL2R.setEncryptedData(Base64.getEncoder().encodeToString(eciesCryptogramL2R.getEncryptedData()));
+        encryptedRequestL2R.setMac(Base64.getEncoder().encodeToString(eciesCryptogramL2R.getMac()));
+        encryptedRequestL2R.setNonce(Base64.getEncoder().encodeToString(eciesCryptogramL2R.getNonce()));
         RecoveryCodeActivationResponse createResponseR = powerAuthClient.createActivationUsingRecoveryCode(recoveryCode, recoveryPuk,
                 config.getApplicationKey(), null, encryptedRequestL2.getEphemeralPublicKey(),
                 encryptedRequestL2.getEncryptedData(), encryptedRequestL2.getMac(), encryptedRequestL2.getNonce());
@@ -725,22 +724,22 @@ class PowerAuthApiTest {
     // Application roles are tested using PowerAuthApplicationRolesTest
 
     private TokenInfo createToken() throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, IOException, EciesException, PowerAuthClientException {
-        byte[] transportMasterKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "transportMasterKey"));
-        byte[] serverPublicKeyBytes = BaseEncoding.base64().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "serverPublicKey"));
+        byte[] transportMasterKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "transportMasterKey"));
+        byte[] serverPublicKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObjectV31(), "serverPublicKey"));
         final ECPublicKey serverPublicKey = (ECPublicKey) keyConvertor.convertBytesToPublicKey(serverPublicKeyBytes);
         final EciesEncryptor eciesEncryptor = eciesFactory.getEciesEncryptorForActivation(serverPublicKey, config.getApplicationSecret().getBytes(StandardCharsets.UTF_8),
                 transportMasterKeyBytes, EciesSharedInfo1.CREATE_TOKEN);
         final EciesCryptogram eciesCryptogram = eciesEncryptor.encryptRequest("{}".getBytes(StandardCharsets.UTF_8), true);
         final EciesEncryptedRequest eciesRequest = new EciesEncryptedRequest();
-        eciesRequest.setEphemeralPublicKey(BaseEncoding.base64().encode(eciesCryptogram.getEphemeralPublicKey()));
-        eciesRequest.setEncryptedData(BaseEncoding.base64().encode(eciesCryptogram.getEncryptedData()));
-        eciesRequest.setMac(BaseEncoding.base64().encode(eciesCryptogram.getMac()));
-        eciesRequest.setNonce(BaseEncoding.base64().encode(eciesCryptogram.getNonce()));
+        eciesRequest.setEphemeralPublicKey(Base64.getEncoder().encodeToString(eciesCryptogram.getEphemeralPublicKey()));
+        eciesRequest.setEncryptedData(Base64.getEncoder().encodeToString(eciesCryptogram.getEncryptedData()));
+        eciesRequest.setMac(Base64.getEncoder().encodeToString(eciesCryptogram.getMac()));
+        eciesRequest.setNonce(Base64.getEncoder().encodeToString(eciesCryptogram.getNonce()));
         final CreateTokenResponse tokenResponse = powerAuthClient.createToken(config.getActivationIdV31(), config.getApplicationKey(), eciesRequest.getEphemeralPublicKey(), eciesRequest.getEncryptedData(),
                 eciesRequest.getMac(), eciesRequest.getNonce(), SignatureType.POSSESSION_KNOWLEDGE);
         assertNotNull(tokenResponse.getEncryptedData());
         assertNotNull(tokenResponse.getMac());
-        final EciesCryptogram responseCryptogram = new EciesCryptogram(BaseEncoding.base64().decode(tokenResponse.getMac()), BaseEncoding.base64().decode(tokenResponse.getEncryptedData()));
+        final EciesCryptogram responseCryptogram = new EciesCryptogram(Base64.getDecoder().decode(tokenResponse.getMac()), Base64.getDecoder().decode(tokenResponse.getEncryptedData()));
         final byte[] decryptedData = eciesEncryptor.decryptResponse(responseCryptogram);
         final TokenResponsePayload response = objectMapper.readValue(decryptedData, TokenResponsePayload.class);
         assertNotNull(response.getTokenId());
@@ -756,7 +755,7 @@ class PowerAuthApiTest {
         tokenInfo.setTokenDigest(tokenGenerator.computeTokenDigest(
                 tokenInfo.getTokenNonce(),
                 tokenInfo.getTokenTimestamp(),
-                BaseEncoding.base64().decode(response.getTokenSecret())));
+                Base64.getDecoder().decode(response.getTokenSecret())));
         return tokenInfo;
     }
 

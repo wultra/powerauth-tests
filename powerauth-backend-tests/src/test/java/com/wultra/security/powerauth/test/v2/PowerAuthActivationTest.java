@@ -18,7 +18,6 @@
 package com.wultra.security.powerauth.test.v2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.v3.*;
@@ -51,6 +50,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.Base64;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
@@ -346,10 +346,10 @@ class PowerAuthActivationTest {
 
         // Get transport key
         String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");
-        SecretKey transportMasterKey = config.getKeyConvertor().convertBytesToSharedSecretKey(BaseEncoding.base64().decode(transportMasterKeyBase64));
+        SecretKey transportMasterKey = config.getKeyConvertor().convertBytesToSharedSecretKey(Base64.getDecoder().decode(transportMasterKeyBase64));
 
         // Verify activation status blob
-        byte[] cStatusBlob = BaseEncoding.base64().decode(response.getEncryptedStatusBlob());
+        byte[] cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
         ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x2, statusBlob.getActivationStatus());
@@ -373,7 +373,7 @@ class PowerAuthActivationTest {
         assertEquals(initResponse.getActivationId(), response.getActivationId());
 
         // Verify activation status blob
-        cStatusBlob = BaseEncoding.base64().decode(response.getEncryptedStatusBlob());
+        cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
         statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x3, statusBlob.getActivationStatus());
@@ -393,7 +393,7 @@ class PowerAuthActivationTest {
         assertEquals(initResponse.getActivationId(), response.getActivationId());
 
         // Verify activation status blob
-        cStatusBlob = BaseEncoding.base64().decode(response.getEncryptedStatusBlob());
+        cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
         statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x4, statusBlob.getActivationStatus());
@@ -411,7 +411,7 @@ class PowerAuthActivationTest {
         assertEquals(initResponse.getActivationId(), response.getActivationId());
 
         // Verify activation status blob
-        cStatusBlob = BaseEncoding.base64().decode(response.getEncryptedStatusBlob());
+        cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
         statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x5, statusBlob.getActivationStatus());

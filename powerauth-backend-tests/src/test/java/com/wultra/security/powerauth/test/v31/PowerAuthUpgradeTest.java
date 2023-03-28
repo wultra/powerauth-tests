@@ -18,7 +18,6 @@
 package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -146,10 +145,10 @@ class PowerAuthUpgradeTest {
 
         // Get transport key
         String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");
-        SecretKey transportMasterKey = config.getKeyConvertor().convertBytesToSharedSecretKey(BaseEncoding.base64().decode(transportMasterKeyBase64));
+        SecretKey transportMasterKey = config.getKeyConvertor().convertBytesToSharedSecretKey(Base64.getDecoder().decode(transportMasterKeyBase64));
 
         // Verify activation status blob
-        byte[] cStatusBlob = BaseEncoding.base64().decode(statusResponseActive.getEncryptedStatusBlob());
+        byte[] cStatusBlob = Base64.getDecoder().decode(statusResponseActive.getEncryptedStatusBlob());
         ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x3, statusBlob.getActivationStatus());
@@ -234,18 +233,18 @@ class PowerAuthUpgradeTest {
         long counter3 = (long) model.getResultStatusObject().get("counter");
         String ctrData3 = (String) model.getResultStatusObject().get("ctrData");
         assertEquals(2, counter3);
-        assertArrayEquals(new HashBasedCounter().next(BaseEncoding.base64().decode(ctrData2)), BaseEncoding.base64().decode(ctrData3));
+        assertArrayEquals(new HashBasedCounter().next(Base64.getDecoder().decode(ctrData2)), Base64.getDecoder().decode(ctrData3));
 
         // Verify activation status and version
         byte[] statusChallenge = keyGenerator.generateRandomBytes(16);
-        GetActivationStatusResponse statusResponseMigrated = powerAuthClient.getActivationStatusWithEncryptedStatusBlob(initResponse.getActivationId(), BaseEncoding.base64().encode(statusChallenge));
+        GetActivationStatusResponse statusResponseMigrated = powerAuthClient.getActivationStatusWithEncryptedStatusBlob(initResponse.getActivationId(), Base64.getEncoder().encodeToString(statusChallenge));
         assertEquals(ActivationStatus.ACTIVE, statusResponseMigrated.getActivationStatus());
         assertNotNull(statusResponseMigrated.getEncryptedStatusBlobNonce());
         assertEquals(3, statusResponseMigrated.getVersion());
-        byte[] statusNonce = BaseEncoding.base64().decode(statusResponseMigrated.getEncryptedStatusBlobNonce());
+        byte[] statusNonce = Base64.getDecoder().decode(statusResponseMigrated.getEncryptedStatusBlobNonce());
 
         // Verify activation status blob
-        cStatusBlob = BaseEncoding.base64().decode(statusResponseMigrated.getEncryptedStatusBlob());
+        cStatusBlob = Base64.getDecoder().decode(statusResponseMigrated.getEncryptedStatusBlob());
         statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, statusChallenge,  statusNonce, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x3, statusBlob.getActivationStatus());
@@ -268,7 +267,7 @@ class PowerAuthUpgradeTest {
         long counter4 = (long) model.getResultStatusObject().get("counter");
         String ctrData4 = (String) model.getResultStatusObject().get("ctrData");
         assertEquals(3, counter4);
-        assertArrayEquals(new HashBasedCounter().next(BaseEncoding.base64().decode(ctrData3)), BaseEncoding.base64().decode(ctrData4));
+        assertArrayEquals(new HashBasedCounter().next(Base64.getDecoder().decode(ctrData3)), Base64.getDecoder().decode(ctrData4));
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
@@ -1010,7 +1009,7 @@ class PowerAuthUpgradeTest {
         long counter3 = (long) model.getResultStatusObject().get("counter");
         String ctrData3 = (String) model.getResultStatusObject().get("ctrData");
         assertEquals(2, counter3);
-        assertArrayEquals(new HashBasedCounter().next(BaseEncoding.base64().decode(ctrData2)), BaseEncoding.base64().decode(ctrData3));
+        assertArrayEquals(new HashBasedCounter().next(Base64.getDecoder().decode(ctrData2)), Base64.getDecoder().decode(ctrData3));
 
         // Verify version 3.1 signature
         modelSig.setVersion("3.1");
@@ -1024,7 +1023,7 @@ class PowerAuthUpgradeTest {
         long counter4 = (long) model.getResultStatusObject().get("counter");
         String ctrData4 = (String) model.getResultStatusObject().get("ctrData");
         assertEquals(3, counter4);
-        assertArrayEquals(new HashBasedCounter().next(BaseEncoding.base64().decode(ctrData3)), BaseEncoding.base64().decode(ctrData4));
+        assertArrayEquals(new HashBasedCounter().next(Base64.getDecoder().decode(ctrData3)), Base64.getDecoder().decode(ctrData4));
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
@@ -1085,7 +1084,7 @@ class PowerAuthUpgradeTest {
                 assertTrue(stepLogger1.getResult().isSuccess());
                 assertEquals(200, stepLogger1.getResponse().getStatusCode());
                 byte[] ctrData = CounterUtil.getCtrData(model1, stepLogger1);
-                allCtrData.add(BaseEncoding.base64().encode(ctrData));
+                allCtrData.add(Base64.getEncoder().encodeToString(ctrData));
             } catch (Exception e) {
                 Assertions.fail();
             }

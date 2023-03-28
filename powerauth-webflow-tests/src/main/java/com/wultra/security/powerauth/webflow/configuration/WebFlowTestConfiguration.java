@@ -18,7 +18,6 @@
 package com.wultra.security.powerauth.webflow.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
@@ -44,6 +43,7 @@ import javax.annotation.PreDestroy;
 import java.io.File;
 import java.security.PublicKey;
 import java.security.Security;
+import java.util.Base64;
 import java.util.UUID;
 
 /**
@@ -267,7 +267,7 @@ public class WebFlowTestConfiguration {
 
     public void setMasterPublicKey(String masterPublicKey) {
         // Convert master public key
-        byte[] masterKeyBytes = BaseEncoding.base64().decode(masterPublicKey);
+        byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKey);
         try {
             masterPublicKeyConverted = keyConvertor.convertBytesToPublicKey(masterKeyBytes);
         } catch (Exception ex) {

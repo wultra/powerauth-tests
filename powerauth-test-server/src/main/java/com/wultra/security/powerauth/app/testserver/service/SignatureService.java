@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.app.testserver.service;
 
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.app.testserver.config.TestServerConfiguration;
 import com.wultra.security.powerauth.app.testserver.database.TestConfigRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
@@ -41,6 +40,7 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Base64;
 import java.util.Map;
 
 /**
@@ -93,7 +93,7 @@ public class SignatureService extends BaseService {
         model.setResourceId(request.getResourceId());
         model.setSignatureType(PowerAuthSignatureTypes.getEnumFromString(request.getSignatureType()));
         if (request.getRequestBody() != null) {
-            model.setData(BaseEncoding.base64().decode(request.getRequestBody()));
+            model.setData(Base64.getDecoder().decode(request.getRequestBody()));
         }
         model.setPassword(request.getPassword());
         model.setVersion(config.getVersion());

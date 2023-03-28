@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.app.testserver.service;
 
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.app.testserver.database.TestConfigRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
@@ -26,6 +25,7 @@ import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.PublicKey;
+import java.util.Base64;
 import java.util.Optional;
 
 /**
@@ -67,7 +67,7 @@ public class BaseService {
      * @throws GenericCryptographyException Thrown in case public key conversion fails.
      */
     protected PublicKey getMasterPublicKey(TestConfigEntity appConfig) throws GenericCryptographyException {
-        final byte[] masterKeyBytes = BaseEncoding.base64().decode(appConfig.getMasterPublicKey());
+        final byte[] masterKeyBytes = Base64.getDecoder().decode(appConfig.getMasterPublicKey());
 
         try {
             return keyConvertor.convertBytesToPublicKey(masterKeyBytes);

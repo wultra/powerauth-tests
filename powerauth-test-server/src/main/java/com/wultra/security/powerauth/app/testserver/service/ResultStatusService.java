@@ -18,7 +18,6 @@
 
 package com.wultra.security.powerauth.app.testserver.service;
 
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.app.testserver.database.TestStatusRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestStatusEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
@@ -27,6 +26,7 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Base64;
 import java.util.Optional;
 
 /**
@@ -117,9 +117,9 @@ public class ResultStatusService {
 
         // Increment hash-based counter
         if (!ctrDataBase64.isEmpty()) {
-            byte[] ctrData = BaseEncoding.base64().decode(ctrDataBase64);
+            byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
             ctrData = new HashBasedCounter().next(ctrData);
-            testStatusEntity.setCtrData(BaseEncoding.base64().encode(ctrData));
+            testStatusEntity.setCtrData(Base64.getEncoder().encodeToString(ctrData));
         }
 
         appStatusRepository.save(testStatusEntity);

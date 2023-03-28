@@ -19,7 +19,6 @@ package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
@@ -166,7 +165,7 @@ public class PowerAuthActivationCodeTest {
         assertNotNull(activationCode);
         assertNotNull(activationSignature);
 
-        byte[] activationSignatureBytes = BaseEncoding.base64().decode(activationSignature);
+        byte[] activationSignatureBytes = Base64.getDecoder().decode(activationSignature);
 
         // Verify activation signature
         try {
