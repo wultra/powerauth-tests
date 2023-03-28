@@ -18,7 +18,6 @@
 package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
@@ -47,6 +46,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -312,7 +312,7 @@ class PowerAuthEncryptionTest {
         for (int i = 0; i < 5000; i++) {
             baos.write(secureRandom.nextInt());
         }
-        fw.write(BaseEncoding.base64().encode(baos.toByteArray()));
+        fw.write(Base64.getEncoder().encodeToString(baos.toByteArray()));
         fw.write("\"}");
         fw.close();
 
@@ -332,7 +332,7 @@ class PowerAuthEncryptionTest {
         dataFile.deleteOnExit();
         BufferedWriter out = Files.newBufferedWriter(dataFile.toPath(), StandardCharsets.UTF_8);
 
-        String requestData = BaseEncoding.base64().encode(generateRandomString().getBytes(StandardCharsets.UTF_8));
+        String requestData = Base64.getEncoder().encodeToString(generateRandomString().getBytes(StandardCharsets.UTF_8));
         // JSON Strings need to be enclosed in double quotes
         out.write("\"" + requestData + "\"");
         out.close();

@@ -18,7 +18,6 @@
 package com.wultra.security.powerauth.test.v2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -59,6 +58,7 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.security.interfaces.ECPublicKey;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 
@@ -523,22 +523,22 @@ class PowerAuthSignatureTest {
 
         // The remainder of last line is Base64 encoded ECDSA signature
         String ecdsaSignature = lastLine.substring(1);
-        final byte[] serverPublicKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("serverPublicKey"));
+        final byte[] serverPublicKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("serverPublicKey"));
         final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(serverPublicKeyBytes);
 
         // Prepare offline data without signature
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), BaseEncoding.base64().decode(ecdsaSignature), serverPublicKey));
+        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
+        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
-        byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
-        byte[] signatureKnowledgeKeySalt = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
-        byte[] signatureKnowledgeKeyEncryptedBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
+        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
+        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
+        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
 
         // Get the signature keys
         SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
@@ -587,22 +587,22 @@ class PowerAuthSignatureTest {
 
         // The remainder of last line is Base64 encoded ECDSA signature
         String ecdsaSignature = lastLine.substring(1);
-        final byte[] serverPublicKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("serverPublicKey"));
+        final byte[] serverPublicKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("serverPublicKey"));
         final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(serverPublicKeyBytes);
 
         // Prepare offline data without signature
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), BaseEncoding.base64().decode(ecdsaSignature), serverPublicKey));
+        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
+        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
-        byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
-        byte[] signatureKnowledgeKeySalt = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
-        byte[] signatureKnowledgeKeyEncryptedBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
+        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
+        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
+        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
 
         // Get the signature keys
         SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
@@ -658,15 +658,15 @@ class PowerAuthSignatureTest {
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), BaseEncoding.base64().decode(ecdsaSignature), config.getMasterPublicKey()));
+        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKey()));
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
+        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
-        byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
-        byte[] signatureKnowledgeKeySalt = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
-        byte[] signatureKnowledgeKeyEncryptedBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
+        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
+        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
+        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
 
         // Get the signature keys
         SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
@@ -720,15 +720,15 @@ class PowerAuthSignatureTest {
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), BaseEncoding.base64().decode(ecdsaSignature), config.getMasterPublicKey()));
+        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKey()));
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", BaseEncoding.base64().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
+        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), data.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
-        byte[] signaturePossessionKeyBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
-        byte[] signatureKnowledgeKeySalt = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
-        byte[] signatureKnowledgeKeyEncryptedBytes = BaseEncoding.base64().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
+        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
+        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
+        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
 
         // Get the signature keys
         SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);

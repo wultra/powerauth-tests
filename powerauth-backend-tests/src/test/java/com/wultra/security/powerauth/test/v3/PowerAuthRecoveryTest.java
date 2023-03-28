@@ -18,7 +18,6 @@
 package com.wultra.security.powerauth.test.v3;
 
 import com.fasterxml.jackson.databind.JavaType;
-import com.google.common.io.BaseEncoding;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.v3.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -55,6 +54,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -376,13 +376,13 @@ class PowerAuthRecoveryTest {
         KeyGenerator keyGenerator = new KeyGenerator();
         IdentifierGenerator identifierGenerator = new IdentifierGenerator();
         KeyConvertor keyConvertor = config.getKeyConvertor();
-        PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(BaseEncoding.base64().decode(PRIVATE_KEY_RECOVERY_POSTCARD_BASE64));
-        PublicKey publicKey = keyConvertor.convertBytesToPublicKey(BaseEncoding.base64().decode(publicKeyServerBase64));
+        PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(PRIVATE_KEY_RECOVERY_POSTCARD_BASE64));
+        PublicKey publicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(publicKeyServerBase64));
 
         SecretKey secretKey = keyGenerator.computeSharedKey(privateKey, publicKey, true);
 
         RecoverySeed recoverySeed = new RecoverySeed();
-        recoverySeed.setNonce(BaseEncoding.base64().decode(response.getNonce()));
+        recoverySeed.setNonce(Base64.getDecoder().decode(response.getNonce()));
         Map<Integer, Long> pukDerivationIndexes = new HashMap<>();
         for (CreateRecoveryCodeResponse.Puks puk : response.getPuks()) {
             pukDerivationIndexes.put((int) puk.getPukIndex(), puk.getPukDerivationIndex());
@@ -562,12 +562,12 @@ class PowerAuthRecoveryTest {
         KeyGenerator keyGenerator = new KeyGenerator();
         IdentifierGenerator identifierGenerator = new IdentifierGenerator();
         KeyConvertor keyConvertor = config.getKeyConvertor();
-        PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(BaseEncoding.base64().decode(PRIVATE_KEY_RECOVERY_POSTCARD_BASE64));
-        PublicKey publicKey = keyConvertor.convertBytesToPublicKey(BaseEncoding.base64().decode(publicKeyServerBase64));
+        PrivateKey privateKey = keyConvertor.convertBytesToPrivateKey(Base64.getDecoder().decode(PRIVATE_KEY_RECOVERY_POSTCARD_BASE64));
+        PublicKey publicKey = keyConvertor.convertBytesToPublicKey(Base64.getDecoder().decode(publicKeyServerBase64));
         SecretKey secretKey = keyGenerator.computeSharedKey(privateKey, publicKey, true);
 
         RecoverySeed recoverySeed = new RecoverySeed();
-        recoverySeed.setNonce(BaseEncoding.base64().decode(response.getNonce()));
+        recoverySeed.setNonce(Base64.getDecoder().decode(response.getNonce()));
         Map<Integer, Long> pukDerivationIndexes = new HashMap<>();
         for (CreateRecoveryCodeResponse.Puks puk : response.getPuks()) {
             pukDerivationIndexes.put((int) puk.getPukIndex(), puk.getPukDerivationIndex());
