@@ -50,14 +50,11 @@ public class PowerAuthConfigurationTest {
         assertNotEquals("", config.getApplicationKey());
         assertNotNull(config.getApplicationSecret());
         assertNotEquals("", config.getApplicationSecret());
-        assertNotNull(config.getActivationIdV2());
         assertNotNull(config.getActivationIdV3());
     }
 
     @Test
     public void activationSetUpTest() {
-        assertNotNull(config.getStatusFileV2());
-        assertNotNull(config.getResultStatusObjectV2());
         assertNotNull(config.getStatusFileV3());
         assertNotNull(config.getResultStatusObjectV3());
     }

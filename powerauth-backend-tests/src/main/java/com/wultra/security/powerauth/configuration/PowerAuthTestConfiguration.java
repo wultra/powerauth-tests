@@ -134,12 +134,6 @@ public class PowerAuthTestConfiguration {
     private String activationIdV3;
     private String userV3;
 
-    // Version 2.1 temporary storage
-    private File statusFileV2;
-    private JSONObject resultStatusObjectV2 = new JSONObject();
-    private String activationIdV2;
-    private String userV2;
-
     private String password = "1234";
 
     @Autowired
@@ -208,10 +202,6 @@ public class PowerAuthTestConfiguration {
         // Create status file and user for version 3.0
         statusFileV3 = File.createTempFile("pa_status_v3", ".json");
         userV3 = "TestUserV3_" + userId;
-
-        // Create status file and user for version 2.1
-        statusFileV2 = File.createTempFile("pa_status_v2", ".json");
-        userV2 = "TestUserV2_" + userId;
 
         // Random application name
         applicationVersionForTests = applicationVersion + "_" + System.currentTimeMillis();
@@ -296,14 +286,6 @@ public class PowerAuthTestConfiguration {
         return resultStatusObjectV3;
     }
 
-    public File getStatusFileV2() {
-        return statusFileV2;
-    }
-
-    public JSONObject getResultStatusObjectV2() {
-        return resultStatusObjectV2;
-    }
-
     public String getActivationIdV31() {
         return activationIdV31;
     }
@@ -320,24 +302,12 @@ public class PowerAuthTestConfiguration {
         this.activationIdV3 = activationIdV3;
     }
 
-    public String getActivationIdV2() {
-        return activationIdV2;
-    }
-
-    public void setActivationIdV2(String activationIdV2) {
-        this.activationIdV2 = activationIdV2;
-    }
-
     public String getPassword() {
         return password;
     }
 
     public ObjectMapper getObjectMapper() {
         return objectMapper;
-    }
-
-    public String getUserV2() {
-        return userV2;
     }
 
     public String getUserV3() {

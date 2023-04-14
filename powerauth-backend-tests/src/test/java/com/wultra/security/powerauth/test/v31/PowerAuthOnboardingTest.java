@@ -29,8 +29,8 @@ import com.wultra.app.enrollmentserver.api.model.onboarding.response.error.Activ
 import com.wultra.app.enrollmentserver.model.enumeration.OnboardingStatus;
 import com.wultra.app.enrollmentserver.model.enumeration.OtpType;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.v3.ActivationStatus;
-import com.wultra.security.powerauth.client.v3.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.model.request.OtpDetailRequest;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
@@ -44,9 +44,9 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
-import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
+import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer2Response;
+import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusResponse;
+import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,7 +67,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)

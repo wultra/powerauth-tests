@@ -27,7 +27,7 @@ You can obtain all the other values from PowerAuth Admin application.
 The activation needs to be at first initialized using one of the possible ways:
 - creating the activation in PowerAuth Admin in the `Activations` tab
 - calling the PowerAuth server POST `/rest/v3/activation/init` endpoint
-- calling the PowerAuth cloud POST `/registration` or POST `/v2/registrations` endpoint
+- calling the PowerAuth cloud POST `/registration` endpoint
 
 Once the activation is initialized, you can create the activation using following REST API call.
 
@@ -68,7 +68,7 @@ The response contains the `activationId` parameter which is the activation ident
 In order for the activation to become `ACTIVE`, the activation needs to be committed, unless auto-commit mode is enabled using one of the possible ways:
 - committing the activation in PowerAuth Admin in the `Activations` tab
 - calling the PowerAuth server POST `/rest/v3/activation/commit` endpoint
-- calling the PowerAuth cloud POST `/registration` or POST `/v2/registrations` endpoint
+- calling the PowerAuth cloud POST `/registration` endpoint
 
 # License
 

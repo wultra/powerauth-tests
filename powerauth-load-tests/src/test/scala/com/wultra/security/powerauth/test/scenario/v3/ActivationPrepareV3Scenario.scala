@@ -24,7 +24,7 @@ import io.getlime.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVer
 import io.getlime.security.powerauth.lib.cmd.steps.context.StepContext
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep
-import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse
+import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse
 
 import java.util.Collections
 

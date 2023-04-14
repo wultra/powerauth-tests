@@ -45,9 +45,7 @@ public class PowerAuthTestTearDown {
     }
 
     public void execute() throws PowerAuthClientException {
-        powerAuthClient.removeActivation(config.getActivationIdV2(), "test");
         powerAuthClient.removeActivation(config.getActivationIdV3(), "test");
         assertTrue(config.getStatusFileV3().delete());
-        assertTrue(config.getStatusFileV2().delete());
     }
 }

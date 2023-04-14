@@ -18,8 +18,8 @@
 package com.wultra.security.powerauth.test.v31;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.v3.GetApplicationDetailResponse;
-import com.wultra.security.powerauth.client.v3.ListApplicationRolesResponse;
+import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.ListApplicationRolesResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,14 +62,14 @@ class PowerAuthApplicationRolesTest {
         String applicationId = config.getApplicationId();
 
         // Remove all existing roles
-        ListApplicationRolesResponse initResponse = powerAuthClient.listApplicationRoles(applicationId);
+        final ListApplicationRolesResponse initResponse = powerAuthClient.listApplicationRoles(applicationId);
         if (!initResponse.getApplicationRoles().isEmpty()) {
             powerAuthClient.removeApplicationRoles(applicationId, initResponse.getApplicationRoles());
         }
 
         powerAuthClient.addApplicationRoles(applicationId, Arrays.asList("ROLE1", "ROLE2"));
 
-        GetApplicationDetailResponse response = powerAuthClient.getApplicationDetail(applicationId);
+        final GetApplicationDetailResponse response = powerAuthClient.getApplicationDetail(applicationId);
         assertEquals(Arrays.asList("ROLE1", "ROLE2"), response.getApplicationRoles());
 
         ListApplicationRolesResponse listResponse = powerAuthClient.listApplicationRoles(applicationId);
