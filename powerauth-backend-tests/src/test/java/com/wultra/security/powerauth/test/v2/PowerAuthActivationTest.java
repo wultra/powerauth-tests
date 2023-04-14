@@ -35,7 +35,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v2.GetStatusStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v2.PrepareActivationStep;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
+import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusResponse;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

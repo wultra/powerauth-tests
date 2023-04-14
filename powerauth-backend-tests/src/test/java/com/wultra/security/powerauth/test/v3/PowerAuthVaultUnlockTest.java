@@ -30,7 +30,7 @@ import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.VaultUnlockStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
-import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
+import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

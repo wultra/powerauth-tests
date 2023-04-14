@@ -39,9 +39,9 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepMo
 import io.getlime.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
-import io.getlime.security.powerauth.rest.api.model.request.v3.ActivationStatusRequest;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
-import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
+import io.getlime.security.powerauth.rest.api.model.request.ActivationStatusRequest;
+import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusResponse;
+import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
