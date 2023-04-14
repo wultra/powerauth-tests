@@ -18,8 +18,12 @@
 package com.wultra.security.powerauth.test;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.entity.Application;
+import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.UpdateRecoveryConfigRequest;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
@@ -27,7 +31,6 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.HashMap;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -62,16 +65,16 @@ public class PowerAuthTestSetUp {
 
     private void createApplication() throws PowerAuthClientException {
         // Create application if it does not exist
-        List<GetApplicationListResponse.Applications> applications = powerAuthClient.getApplicationList();
+        final GetApplicationListResponse applicationsListResponse = powerAuthClient.getApplicationList();
         boolean applicationExists = false;
-        for (GetApplicationListResponse.Applications app: applications) {
+        for (Application app: applicationsListResponse.getApplications()) {
             if (app.getApplicationId().equals(config.getApplicationName())) {
                 applicationExists = true;
                 config.setApplicationId(app.getApplicationId());
             }
         }
         if (!applicationExists) {
-            CreateApplicationResponse response = powerAuthClient.createApplication(config.getApplicationName());
+            final CreateApplicationResponse response = powerAuthClient.createApplication(config.getApplicationName());
             assertNotEquals(0, response.getApplicationId());
             assertEquals(config.getApplicationName(), response.getApplicationId());
             config.setApplicationId(response.getApplicationId());
@@ -79,9 +82,9 @@ public class PowerAuthTestSetUp {
 
 
         // Create application version if it does not exist
-        GetApplicationDetailResponse detail = powerAuthClient.getApplicationDetail(config.getApplicationId());
+        final GetApplicationDetailResponse detail = powerAuthClient.getApplicationDetail(config.getApplicationId());
         boolean versionExists = false;
-        for (GetApplicationDetailResponse.Versions appVersion: detail.getVersions()) {
+        for (ApplicationVersion appVersion: detail.getVersions()) {
             if (appVersion.getApplicationVersionId().equals(config.getApplicationVersion())) {
                 versionExists = true;
                 config.setApplicationVersionId(appVersion.getApplicationVersionId());
@@ -91,7 +94,7 @@ public class PowerAuthTestSetUp {
         }
         config.setMasterPublicKey(detail.getMasterPublicKey());
         if (!versionExists) {
-            CreateApplicationVersionResponse versionResponse = powerAuthClient.createApplicationVersion(config.getApplicationId(), config.getApplicationVersion());
+            final CreateApplicationVersionResponse versionResponse = powerAuthClient.createApplicationVersion(config.getApplicationId(), config.getApplicationVersion());
             assertNotEquals(0, versionResponse.getApplicationVersionId());
             assertEquals(config.getApplicationVersion(), versionResponse.getApplicationVersionId());
             config.setApplicationVersionId(versionResponse.getApplicationVersionId());
@@ -102,9 +105,9 @@ public class PowerAuthTestSetUp {
             powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
         }
         // Set up activation recovery
-        GetRecoveryConfigResponse recoveryResponse = powerAuthClient.getRecoveryConfig(config.getApplicationId());
+        final GetRecoveryConfigResponse recoveryResponse = powerAuthClient.getRecoveryConfig(config.getApplicationId());
         if (!recoveryResponse.isActivationRecoveryEnabled() || !recoveryResponse.isRecoveryPostcardEnabled() || recoveryResponse.getPostcardPublicKey() == null || recoveryResponse.getRemotePostcardPublicKey() == null) {
-            UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
+            final UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
             request.setApplicationId(config.getApplicationId());
             request.setActivationRecoveryEnabled(true);
             request.setRecoveryPostcardEnabled(true);
@@ -116,10 +119,10 @@ public class PowerAuthTestSetUp {
 
     private void createActivationV31() throws Exception {
         // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
+        final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV31());
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
         PrepareActivationStepModel model = new PrepareActivationStepModel();

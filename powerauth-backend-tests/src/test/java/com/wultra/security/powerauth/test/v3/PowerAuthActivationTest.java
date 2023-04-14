@@ -19,8 +19,13 @@ package com.wultra.security.powerauth.test.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.entity.Activation;
+import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.LookupActivationsRequest;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
@@ -46,11 +51,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.crypto.SecretKey;
-import javax.xml.datatype.DatatypeFactory;
 import java.io.File;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -105,13 +111,13 @@ class PowerAuthActivationTest {
     @Test
     void activationPrepareTest() throws Exception {
         // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
+        final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV3());
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        final GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
         // Prepare activation
@@ -142,7 +148,7 @@ class PowerAuthActivationTest {
         assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseOtpUsed.getActivationStatus());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Verify activation status
@@ -188,7 +194,7 @@ class PowerAuthActivationTest {
 
         // Verify that application version is unsupported
         GetApplicationDetailResponse detailResponse = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        for (GetApplicationDetailResponse.Versions version : detailResponse.getVersions()) {
+        for (ApplicationVersion version : detailResponse.getVersions()) {
             if (version.getApplicationVersionId().equals(config.getApplicationVersion())) {
                 assertFalse(version.isSupported());
             }
@@ -224,7 +230,7 @@ class PowerAuthActivationTest {
 
         // Verify that application version is supported
         GetApplicationDetailResponse detailResponse2 = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        for (GetApplicationDetailResponse.Versions version : detailResponse2.getVersions()) {
+        for (ApplicationVersion version : detailResponse2.getVersions()) {
             if (version.getApplicationVersionId().equals(config.getApplicationVersion())) {
                 assertTrue(version.isSupported());
             }
@@ -238,9 +244,8 @@ class PowerAuthActivationTest {
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV3());
         // Expire activation with 1 hour in the past
-        GregorianCalendar expirationTime = new GregorianCalendar();
-        expirationTime.add(Calendar.HOUR, -1);
-        initRequest.setTimestampActivationExpire(DatatypeFactory.newInstance().newXMLGregorianCalendar(expirationTime));
+        final Date expirationTime = Date.from(Instant.now().minus(Duration.ofHours(1)));
+        initRequest.setTimestampActivationExpire(expirationTime);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
@@ -385,7 +390,7 @@ class PowerAuthActivationTest {
         assertEquals(0x3, statusBlob.getActivationStatus());
 
         // Block activation
-        BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
+        final BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
         assertEquals(initResponse.getActivationId(), blockResponse.getActivationId());
         assertEquals("test", blockResponse.getBlockedReason());
 
@@ -489,10 +494,10 @@ class PowerAuthActivationTest {
     void lookupActivationsTest() throws Exception {
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV3(), config.getApplicationId());
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
-        Calendar timestampCreated = statusResponse.getTimestampCreated().toGregorianCalendar();
+        final Date timestampCreated = statusResponse.getTimestampCreated();
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-        List<LookupActivationsResponse.Activations> activations = powerAuthClient.lookupActivations(Collections.singletonList(config.getUserV3()), Collections.singletonList(config.getApplicationId()),
-                null, timestampCreated.getTime(), ActivationStatus.CREATED, null);
+        List<Activation> activations = powerAuthClient.lookupActivations(Collections.singletonList(config.getUserV3()), Collections.singletonList(config.getApplicationId()),
+                null, timestampCreated, ActivationStatus.CREATED, null);
         assertTrue(activations.size() >= 1);
     }
 
@@ -506,7 +511,7 @@ class PowerAuthActivationTest {
 
     @Test
     void lookupActivationsApplicationTest() throws Exception {
-        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        final LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         lookupActivationsRequest.getUserIds().add(config.getUserV3());
         lookupActivationsRequest.getApplicationIds().add(config.getApplicationId());
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
@@ -548,9 +553,8 @@ class PowerAuthActivationTest {
     void lookupActivationsDateValidTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         lookupActivationsRequest.getUserIds().add(config.getUserV3());
-        GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        gregorianCalendar.setTimeInMillis(System.currentTimeMillis() - 60000);
-        lookupActivationsRequest.setTimestampLastUsedAfter(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
+        final Date timestampLastUsedAfter = Date.from(Instant.now().minus(Duration.ofMinutes(1)));
+        lookupActivationsRequest.setTimestampLastUsedAfter(timestampLastUsedAfter);
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertTrue(response.getActivations().size() >= 1);
     }
@@ -559,9 +563,8 @@ class PowerAuthActivationTest {
     void lookupActivationsDateInvalidTest() throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         lookupActivationsRequest.getUserIds().add(config.getUserV3());
-        GregorianCalendar gregorianCalendar = new GregorianCalendar();
-        gregorianCalendar.setTimeInMillis(System.currentTimeMillis() + 60000);
-        lookupActivationsRequest.setTimestampLastUsedAfter(DatatypeFactory.newInstance().newXMLGregorianCalendar(gregorianCalendar));
+        final Date timestampLastUsedAfter = Date.from(Instant.now().plus(Duration.ofMinutes(1)));
+        lookupActivationsRequest.setTimestampLastUsedAfter(timestampLastUsedAfter);
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertEquals(0, response.getActivations().size());
     }

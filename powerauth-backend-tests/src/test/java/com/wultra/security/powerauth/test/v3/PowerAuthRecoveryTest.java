@@ -19,7 +19,11 @@ package com.wultra.security.powerauth.test.v3;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.RecoveryCodeStatus;
+import com.wultra.security.powerauth.client.model.enumeration.RecoveryPukStatus;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.crypto.lib.generator.IdentifierGenerator;
@@ -98,10 +102,10 @@ class PowerAuthRecoveryTest {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
+        final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV3());
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation, assume recovery is enabled on server
         PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
@@ -148,11 +152,11 @@ class PowerAuthRecoveryTest {
         assertNotNull(activationRecovery.getPuk());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
 
         // Verify that recovery code is already confirmed
@@ -236,7 +240,7 @@ class PowerAuthRecoveryTest {
         assertEquals(ActivationStatus.REMOVED, statusResponseRemoved.getActivationStatus());
 
         // Verify original recovery code and PUK status
-        LookupRecoveryCodesResponse response1 = powerAuthClient.lookupRecoveryCodes(initResponse.getUserId(), activationId, config.getApplicationId(), null, null);
+        final LookupRecoveryCodesResponse response1 = powerAuthClient.lookupRecoveryCodes(initResponse.getUserId(), activationId, config.getApplicationId(), null, null);
         assertEquals(1, response1.getRecoveryCodes().size());
         assertEquals(RecoveryCodeStatus.REVOKED, response1.getRecoveryCodes().get(0).getStatus());
         assertEquals(1, response1.getRecoveryCodes().get(0).getPuks().size());
@@ -362,7 +366,7 @@ class PowerAuthRecoveryTest {
         JSONObject resultStatusObject = new JSONObject();
         String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
         String randomUserId = "TestUser_" + UUID.randomUUID().toString();
-        CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L);
+        final CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L);
 
         // Verify response
         assertNotNull(response);

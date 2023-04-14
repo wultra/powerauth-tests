@@ -19,8 +19,11 @@ package com.wultra.security.powerauth.test.v2;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
@@ -32,8 +35,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v2.GetStatusStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v2.PrepareActivationStep;
-import io.getlime.security.powerauth.rest.api.model.response.v2.ActivationCreateResponse;
-import io.getlime.security.powerauth.rest.api.model.response.v2.ActivationStatusResponse;
+import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,15 +47,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.crypto.SecretKey;
-import javax.xml.datatype.DatatypeFactory;
 import java.io.File;
 import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.Base64;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -122,16 +122,6 @@ class PowerAuthActivationTest {
         assertTrue(stepLoggerPrepare.getResult().isSuccess());
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
-        ObjectResponse<ActivationCreateResponse> objectResponse = (ObjectResponse<ActivationCreateResponse>) stepLoggerPrepare.getResponse().getResponseObject();
-        assertEquals("OK", objectResponse.getStatus());
-        ActivationCreateResponse response = objectResponse.getResponseObject();
-        assertEquals(initResponse.getActivationId(), response.getActivationId());
-        assertNull(response.getCustomAttributes());
-        assertNotNull(response.getActivationNonce());
-        assertNotNull(response.getEncryptedServerPublicKey());
-        assertNotNull(response.getEncryptedServerPublicKeySignature());
-        assertNotNull(response.getEphemeralPublicKey());
-
         // Verify activation status
         GetActivationStatusResponse statusResponseOtpUsed = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseOtpUsed.getActivationStatus());
@@ -182,8 +172,8 @@ class PowerAuthActivationTest {
         powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         // Verify that application version is unsupported
-        GetApplicationDetailResponse detailResponse = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        for (GetApplicationDetailResponse.Versions version: detailResponse.getVersions()) {
+        final GetApplicationDetailResponse detailResponse = powerAuthClient.getApplicationDetail(config.getApplicationId());
+        for (ApplicationVersion version: detailResponse.getVersions()) {
             if (version.getApplicationVersionId().equals(config.getApplicationVersion())) {
                 assertFalse(version.isSupported());
             }
@@ -219,7 +209,7 @@ class PowerAuthActivationTest {
 
         // Verify that application version is supported
         GetApplicationDetailResponse detailResponse2 = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        for (GetApplicationDetailResponse.Versions version: detailResponse2.getVersions()) {
+        for (ApplicationVersion version: detailResponse2.getVersions()) {
             if (version.getApplicationVersionId().equals(config.getApplicationVersion())) {
                 assertTrue(version.isSupported());
             }
@@ -233,9 +223,8 @@ class PowerAuthActivationTest {
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV2());
         // Expire activation with 1 hour in the past
-        GregorianCalendar expirationTime = new GregorianCalendar();
-        expirationTime.add(Calendar.HOUR, -1);
-        initRequest.setTimestampActivationExpire(DatatypeFactory.newInstance().newXMLGregorianCalendar(expirationTime));
+        final Date expirationTime = Date.from(Instant.now().minus(Duration.ofHours(1)));
+        initRequest.setTimestampActivationExpire(expirationTime);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
@@ -312,11 +301,11 @@ class PowerAuthActivationTest {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
+        final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV2());
         initRequest.setMaxFailureCount(10L);
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
@@ -360,7 +349,7 @@ class PowerAuthActivationTest {
         // Do not verify counter data, it is valid only for v3
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Get status
@@ -379,7 +368,7 @@ class PowerAuthActivationTest {
         assertEquals(0x3, statusBlob.getActivationStatus());
 
         // Block activation
-        BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
+        final BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
         assertEquals(initResponse.getActivationId(), blockResponse.getActivationId());
         assertEquals("test", blockResponse.getBlockedReason());
 
@@ -426,7 +415,7 @@ class PowerAuthActivationTest {
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        final GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
         // PrepareActivation should fail

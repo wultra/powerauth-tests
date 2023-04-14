@@ -18,7 +18,12 @@
 package com.wultra.security.powerauth.test.v31;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.request.CommitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.response.CommitActivationResponse;
+import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.provider.CustomActivationProviderForTests;
 import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
@@ -41,7 +46,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -156,10 +161,10 @@ class PowerAuthCustomActivationOtpTest {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
+        final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV31());
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation, assume recovery is enabled on server
         PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
@@ -240,7 +245,7 @@ class PowerAuthCustomActivationOtpTest {
                 assertNotNull(layer2Response.getCtrData());
                 assertNotNull(layer2Response.getServerPublicKey());
                 // Verify activation status - activation was not automatically committed
-                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+                final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
                 assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseActive.getActivationStatus());
                 assertEquals("static_username", statusResponseActive.getUserId());
                 layer2ResponseOk = true;
@@ -266,10 +271,10 @@ class PowerAuthCustomActivationOtpTest {
             boolean lastIteration = iteration == maxIterations;
             boolean isActivated;
             try {
-                CommitActivationRequest commitRequest = new CommitActivationRequest();
+                final CommitActivationRequest commitRequest = new CommitActivationRequest();
                 commitRequest.setActivationId(activationId);
                 commitRequest.setActivationOtp(lastIteration ? validOtpValue : invalidOtpValue);
-                CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
+                final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
                 isActivated = commitResponse.isActivated();
             } catch (Throwable t) {
                 isActivated = false;

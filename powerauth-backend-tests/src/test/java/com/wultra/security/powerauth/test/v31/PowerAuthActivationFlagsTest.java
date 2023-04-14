@@ -18,7 +18,9 @@
 package com.wultra.security.powerauth.test.v31;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.LookupActivationsRequest;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
@@ -35,11 +37,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import javax.xml.datatype.DatatypeFactory;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
@@ -104,10 +105,10 @@ public class PowerAuthActivationFlagsTest {
     @Test
     void activationFlagCrudTest() throws Exception {
         // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
+        final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV31());
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
@@ -115,17 +116,17 @@ public class PowerAuthActivationFlagsTest {
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Test flags CRUD
         String activationId = initResponse.getActivationId();
         powerAuthClient.addActivationFlags(activationId, Arrays.asList("FLAG1", "FLAG2"));
 
-        GetActivationStatusResponse status = powerAuthClient.getActivationStatus(activationId);
+        final GetActivationStatusResponse status = powerAuthClient.getActivationStatus(activationId);
         assertEquals(Arrays.asList("FLAG1", "FLAG2"), status.getActivationFlags());
 
-        ListActivationFlagsResponse listResponse = powerAuthClient.listActivationFlags(activationId);
+        final ListActivationFlagsResponse listResponse = powerAuthClient.listActivationFlags(activationId);
         assertEquals(Arrays.asList("FLAG1", "FLAG2"), listResponse.getActivationFlags());
 
         powerAuthClient.updateActivationFlags(activationId, Arrays.asList("FLAG3", "FLAG4"));
@@ -159,7 +160,7 @@ public class PowerAuthActivationFlagsTest {
 
         // Obtain timestamp created
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
-        GregorianCalendar timestampCreated = statusResponse.getTimestampCreated().toGregorianCalendar();
+        final Date timestampCreated = statusResponse.getTimestampCreated();
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
@@ -167,11 +168,11 @@ public class PowerAuthActivationFlagsTest {
 
         // Test flag lookup
         String activationId = initResponse.getActivationId();
-        LookupActivationsRequest lookupRequest = new LookupActivationsRequest();
+        final LookupActivationsRequest lookupRequest = new LookupActivationsRequest();
         lookupRequest.getUserIds().add(config.getUserV31());
-        lookupRequest.setTimestampLastUsedAfter(DatatypeFactory.newInstance().newXMLGregorianCalendar(timestampCreated));
+        lookupRequest.setTimestampLastUsedAfter(timestampCreated);
         lookupRequest.getActivationFlags().add("FLAG1");
-        LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupRequest);
+        final LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupRequest);
         assertTrue(response.getActivations().isEmpty());
 
         powerAuthClient.addActivationFlags(activationId, Arrays.asList("FLAG1", "FLAG2"));
