@@ -19,7 +19,11 @@ package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.response.CommitActivationResponse;
+import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
@@ -101,13 +105,13 @@ class PowerAuthUpgradeTest {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
+        final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV2());
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        final GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
         // Prepare activation model
@@ -306,7 +310,7 @@ class PowerAuthUpgradeTest {
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Unsupport application version

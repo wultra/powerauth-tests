@@ -19,7 +19,10 @@ package com.wultra.security.powerauth.test.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.core.rest.model.base.response.Response;
@@ -326,11 +329,11 @@ public class PowerAuthSignatureTest {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
+        final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV3());
         initRequest.setMaxFailureCount(3L);
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
         PrepareActivationStepModel modelPrepare = new PrepareActivationStepModel();
@@ -353,7 +356,7 @@ public class PowerAuthSignatureTest {
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -385,7 +388,7 @@ public class PowerAuthSignatureTest {
         }
 
         // Activation should be blocked
-        GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        final GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.BLOCKED, statusResponseBlocked.getActivationStatus());
 
         // Remove activation
@@ -510,7 +513,7 @@ public class PowerAuthSignatureTest {
 
     @Test
     void signatureOfflinePersonalizedValidTest() throws Exception {
-        CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(
+        final CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(
                 config.getActivationIdV3(), offlineData);
         String nonce = offlineResponse.getNonce();
         String offlineData = offlineResponse.getOfflineData();
@@ -558,7 +561,7 @@ public class PowerAuthSignatureTest {
         // Calculate signature of normalized signature base string with 'offline' as application secret
         String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), SignatureConfiguration.decimal());
 
-        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV3(), signatureBaseString, signature, true);
+        final VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV3(), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
         assertEquals(config.getActivationIdV3(), signatureResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, signatureResponse.getActivationStatus());

@@ -20,9 +20,7 @@ package com.wultra.security.powerauth.test.v31;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.*;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
 import com.wultra.security.powerauth.client.model.response.*;
@@ -79,6 +77,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Duration;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -392,10 +391,8 @@ class PowerAuthApiTest {
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
         final Date before = statusResponse.getTimestampCreated();
-        GregorianCalendar after = new GregorianCalendar();
-        after.setTime(before.getTime());
-        after.add(Calendar.SECOND, 1);
-        final List<ActivationHistoryItem> activationHistory = powerAuthClient.getActivationHistory(response.getActivationId(), before.getTime(), after.getTime());
+        final Date after = Date.from(before.toInstant().plus(Duration.ofSeconds(1)));
+        final List<ActivationHistoryItem> activationHistory = powerAuthClient.getActivationHistory(response.getActivationId(), before, after);
         final ActivationHistoryItem item = activationHistory.get(0);
         assertEquals(response.getActivationId(), item.getActivationId());
         assertEquals(ActivationStatus.CREATED, item.getActivationStatus());
@@ -437,7 +434,7 @@ class PowerAuthApiTest {
         GetApplicationDetailResponse response = powerAuthClient.getApplicationDetail(config.getApplicationId());
         assertEquals(config.getApplicationName(), response.getApplicationId());
         boolean testAppVersionFound = false;
-        for (GetApplicationDetailResponse.Versions version: response.getVersions()) {
+        for (ApplicationVersion version: response.getVersions()) {
             if (version.getApplicationVersionId().equals(config.getApplicationVersionId())) {
                 testAppVersionFound = true;
             }
@@ -582,7 +579,7 @@ class PowerAuthApiTest {
                 "test_activation_v2", Base64.getEncoder().encodeToString(nonceDeviceBytes),
                 Base64.getEncoder().encodeToString(ephemeralPublicKeyBytes), Base64.getEncoder().encodeToString(cDevicePublicKeyBytes),
                 null, Base64.getEncoder().encodeToString(signature));
-        String activationId = createResponse.getActivationId();
+        final String activationId = createResponse.getActivationId();
         assertNotNull(activationId);
         byte[] nonceServerBytes = Base64.getDecoder().decode(createResponse.getActivationNonce());
         byte[] cServerPubKeyBytes = Base64.getDecoder().decode(createResponse.getEncryptedServerPublicKey());

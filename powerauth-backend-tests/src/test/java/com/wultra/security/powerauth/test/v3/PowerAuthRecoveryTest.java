@@ -19,6 +19,8 @@ package com.wultra.security.powerauth.test.v3;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.entity.RecoveryCode;
+import com.wultra.security.powerauth.client.model.entity.RecoveryCodePuk;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.RecoveryCodeStatus;
 import com.wultra.security.powerauth.client.model.enumeration.RecoveryPukStatus;
@@ -388,7 +390,7 @@ class PowerAuthRecoveryTest {
         RecoverySeed recoverySeed = new RecoverySeed();
         recoverySeed.setNonce(Base64.getDecoder().decode(response.getNonce()));
         Map<Integer, Long> pukDerivationIndexes = new HashMap<>();
-        for (CreateRecoveryCodeResponse.Puks puk : response.getPuks()) {
+        for (RecoveryCodePuk puk : response.getPuks()) {
             pukDerivationIndexes.put((int) puk.getPukIndex(), puk.getPukDerivationIndex());
         }
         recoverySeed.setPukDerivationIndexes(pukDerivationIndexes);
@@ -528,7 +530,7 @@ class PowerAuthRecoveryTest {
         LookupRecoveryCodesResponse responsePostcard = powerAuthClient.lookupRecoveryCodes(initResponse.getUserId(), null, config.getApplicationId(), null, null);
         assertEquals(3, responsePostcard.getRecoveryCodes().size());
         for (int i = 0; i < 3; i++) {
-            LookupRecoveryCodesResponse.RecoveryCodes postcardRecoveryCode = responsePostcard.getRecoveryCodes().get(i);
+            final RecoveryCode postcardRecoveryCode = responsePostcard.getRecoveryCodes().get(i);
             if (postcardRecoveryCode.getActivationId() != null) {
                 continue;
             }
@@ -573,7 +575,7 @@ class PowerAuthRecoveryTest {
         RecoverySeed recoverySeed = new RecoverySeed();
         recoverySeed.setNonce(Base64.getDecoder().decode(response.getNonce()));
         Map<Integer, Long> pukDerivationIndexes = new HashMap<>();
-        for (CreateRecoveryCodeResponse.Puks puk : response.getPuks()) {
+        for (RecoveryCodePuk puk : response.getPuks()) {
             pukDerivationIndexes.put((int) puk.getPukIndex(), puk.getPukDerivationIndex());
         }
         recoverySeed.setPukDerivationIndexes(pukDerivationIndexes);
@@ -697,7 +699,7 @@ class PowerAuthRecoveryTest {
         LookupRecoveryCodesResponse responseCode = powerAuthClient.lookupRecoveryCodes(initResponse.getUserId(), null, config.getApplicationId(), null, null);
         assertEquals(4, responseCode.getRecoveryCodes().size());
         for (int i = 0; i < 4; i++) {
-            LookupRecoveryCodesResponse.RecoveryCodes postcardRecoveryCode = responseCode.getRecoveryCodes().get(i);
+            final RecoveryCode postcardRecoveryCode = responseCode.getRecoveryCodes().get(i);
             if (postcardRecoveryCode.getActivationId() != null) {
                 continue;
             }
