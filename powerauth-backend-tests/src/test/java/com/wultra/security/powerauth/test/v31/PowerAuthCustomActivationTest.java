@@ -19,10 +19,11 @@ package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.v3.ActivationStatus;
-import com.wultra.security.powerauth.client.v3.GetActivationStatusResponse;
-import com.wultra.security.powerauth.client.v3.GetApplicationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
@@ -33,8 +34,8 @@ import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
+import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer1Response;
+import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer2Response;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -151,7 +152,7 @@ class PowerAuthCustomActivationTest {
                 assertNotNull(layer2Response.getCtrData());
                 assertNotNull(layer2Response.getServerPublicKey());
                 // Verify activation status - activation was automatically committed
-                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+                final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
                 assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
                 assertEquals("TestUser1", statusResponseActive.getUserId());
                 layer2ResponseOk = true;
@@ -375,8 +376,8 @@ class PowerAuthCustomActivationTest {
         powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         // Verify that application version is unsupported
-        GetApplicationDetailResponse detailResponse = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        for (GetApplicationDetailResponse.Versions version: detailResponse.getVersions()) {
+        final GetApplicationDetailResponse detailResponse = powerAuthClient.getApplicationDetail(config.getApplicationId());
+        for (ApplicationVersion version: detailResponse.getVersions()) {
             if (version.getApplicationVersionId().equals(config.getApplicationVersion())) {
                 assertFalse(version.isSupported());
             }
@@ -399,7 +400,7 @@ class PowerAuthCustomActivationTest {
 
         // Verify that application version is supported
         GetApplicationDetailResponse detailResponse2 = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        for (GetApplicationDetailResponse.Versions version: detailResponse2.getVersions()) {
+        for (ApplicationVersion version: detailResponse2.getVersions()) {
             if (version.getApplicationVersionId().equals(config.getApplicationVersion())) {
                 assertTrue(version.isSupported());
             }

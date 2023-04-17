@@ -26,9 +26,9 @@ import com.wultra.app.enrollmentserver.api.model.onboarding.request.*;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.*;
 import com.wultra.app.enrollmentserver.model.enumeration.*;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.v3.ActivationStatus;
-import com.wultra.security.powerauth.client.v3.GetActivationStatusResponse;
-import com.wultra.security.powerauth.client.v3.ListActivationFlagsResponse;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.model.request.OtpDetailRequest;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
@@ -41,8 +41,8 @@ import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.*;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.*;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
-import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
+import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer2Response;
+import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -807,7 +807,7 @@ class PowerAuthIdentityVerificationTest {
                 assertNotNull(layer2Response.getCtrData());
                 assertNotNull(layer2Response.getServerPublicKey());
                 // Verify activation status - activation was automatically committed
-                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+                final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
                 assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
                 assertEquals("mockuser_" + clientId, statusResponseActive.getUserId());
                 assertEquals(Collections.singletonList("VERIFICATION_PENDING"), statusResponseActive.getActivationFlags());
@@ -879,7 +879,7 @@ class PowerAuthIdentityVerificationTest {
 
     private void initIdentityVerification(String activationId, String processId) throws Exception {
         // Check activation flags
-        ListActivationFlagsResponse flagResponse = powerAuthClient.listActivationFlags(activationId);
+        final ListActivationFlagsResponse flagResponse = powerAuthClient.listActivationFlags(activationId);
         assertEquals(Collections.singletonList("VERIFICATION_PENDING"), flagResponse.getActivationFlags());
 
         // Initialize identity verification request

@@ -30,7 +30,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepMode
 import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.SignAndEncryptStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
-import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
+import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;

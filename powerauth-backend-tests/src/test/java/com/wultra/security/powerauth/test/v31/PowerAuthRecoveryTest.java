@@ -19,7 +19,13 @@ package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.entity.RecoveryCode;
+import com.wultra.security.powerauth.client.model.entity.RecoveryCodePuk;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.RecoveryCodeStatus;
+import com.wultra.security.powerauth.client.model.enumeration.RecoveryPukStatus;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.crypto.lib.generator.IdentifierGenerator;
@@ -37,8 +43,8 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.ConfirmRecoveryCodeStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import io.getlime.security.powerauth.rest.api.model.entity.ActivationRecovery;
 import io.getlime.security.powerauth.rest.api.model.exception.RecoveryError;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
-import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
+import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer2Response;
+import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -98,10 +104,10 @@ class PowerAuthRecoveryTest {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
+        final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV31());
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation, assume recovery is enabled on server
         PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
@@ -148,11 +154,11 @@ class PowerAuthRecoveryTest {
         assertNotNull(activationRecovery.getPuk());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
 
         // Verify that recovery code is already confirmed
@@ -235,7 +241,7 @@ class PowerAuthRecoveryTest {
         assertEquals(ActivationStatus.REMOVED, statusResponseRemoved.getActivationStatus());
 
         // Verify original recovery code and PUK status
-        LookupRecoveryCodesResponse response1 = powerAuthClient.lookupRecoveryCodes(initResponse.getUserId(), activationId, config.getApplicationId(), null, null);
+        final LookupRecoveryCodesResponse response1 = powerAuthClient.lookupRecoveryCodes(initResponse.getUserId(), activationId, config.getApplicationId(), null, null);
         assertEquals(1, response1.getRecoveryCodes().size());
         assertEquals(RecoveryCodeStatus.REVOKED, response1.getRecoveryCodes().get(0).getStatus());
         assertEquals(1, response1.getRecoveryCodes().get(0).getPuks().size());
@@ -326,7 +332,7 @@ class PowerAuthRecoveryTest {
             assertEquals(RecoveryPukStatus.VALID, response1.getRecoveryCodes().get(0).getPuks().get(0).getStatus());
 
             // Remove activation
-            RemoveActivationResponse removeResponse = powerAuthClient.removeActivation(activationId, null, revokeRecoveryCode);
+            final RemoveActivationResponse removeResponse = powerAuthClient.removeActivation(activationId, null, revokeRecoveryCode);
             assertTrue(removeResponse.isRemoved());
 
             // Verify recovery code and PUK status after activation remove
@@ -471,7 +477,7 @@ class PowerAuthRecoveryTest {
         RecoverySeed recoverySeed = new RecoverySeed();
         recoverySeed.setNonce(Base64.getDecoder().decode(response.getNonce()));
         Map<Integer, Long> pukDerivationIndexes = new HashMap<>();
-        for (CreateRecoveryCodeResponse.Puks puk : response.getPuks()) {
+        for (RecoveryCodePuk puk : response.getPuks()) {
             pukDerivationIndexes.put((int) puk.getPukIndex(), puk.getPukDerivationIndex());
         }
         recoverySeed.setPukDerivationIndexes(pukDerivationIndexes);
@@ -611,7 +617,7 @@ class PowerAuthRecoveryTest {
         LookupRecoveryCodesResponse responsePostcard = powerAuthClient.lookupRecoveryCodes(initResponse.getUserId(), null, config.getApplicationId(), null, null);
         assertEquals(3, responsePostcard.getRecoveryCodes().size());
         for (int i = 0; i < 3; i++) {
-            LookupRecoveryCodesResponse.RecoveryCodes postcardRecoveryCode = responsePostcard.getRecoveryCodes().get(i);
+            final RecoveryCode postcardRecoveryCode = responsePostcard.getRecoveryCodes().get(i);
             if (postcardRecoveryCode.getActivationId() != null) {
                 continue;
             }
@@ -656,7 +662,7 @@ class PowerAuthRecoveryTest {
         RecoverySeed recoverySeed = new RecoverySeed();
         recoverySeed.setNonce(Base64.getDecoder().decode(response.getNonce()));
         Map<Integer, Long> pukDerivationIndexes = new HashMap<>();
-        for (CreateRecoveryCodeResponse.Puks puk : response.getPuks()) {
+        for (RecoveryCodePuk puk : response.getPuks()) {
             pukDerivationIndexes.put((int) puk.getPukIndex(), puk.getPukDerivationIndex());
         }
         recoverySeed.setPukDerivationIndexes(pukDerivationIndexes);
@@ -780,7 +786,7 @@ class PowerAuthRecoveryTest {
         LookupRecoveryCodesResponse responseCode = powerAuthClient.lookupRecoveryCodes(initResponse.getUserId(), null, config.getApplicationId(), null, null);
         assertEquals(4, responseCode.getRecoveryCodes().size());
         for (int i = 0; i < 4; i++) {
-            LookupRecoveryCodesResponse.RecoveryCodes postcardRecoveryCode = responseCode.getRecoveryCodes().get(i);
+            final RecoveryCode postcardRecoveryCode = responseCode.getRecoveryCodes().get(i);
             if (postcardRecoveryCode.getActivationId() != null) {
                 continue;
             }

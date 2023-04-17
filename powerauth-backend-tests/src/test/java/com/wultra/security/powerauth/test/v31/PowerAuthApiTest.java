@@ -19,9 +19,11 @@ package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
+import com.wultra.security.powerauth.client.model.entity.*;
+import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.crypto.client.keyfactory.PowerAuthClientKeyFactory;
@@ -49,14 +51,13 @@ import io.getlime.security.powerauth.lib.cmd.util.EncryptedStorageUtil;
 import io.getlime.security.powerauth.lib.cmd.util.JsonUtil;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientConfiguration;
 import io.getlime.security.powerauth.rest.api.model.entity.TokenResponsePayload;
-import io.getlime.security.powerauth.rest.api.model.request.v3.ActivationLayer2Request;
-import io.getlime.security.powerauth.rest.api.model.request.v3.ConfirmRecoveryRequestPayload;
-import io.getlime.security.powerauth.rest.api.model.request.v3.EciesEncryptedRequest;
-import io.getlime.security.powerauth.rest.api.model.request.v3.VaultUnlockRequestPayload;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
-import io.getlime.security.powerauth.rest.api.model.response.v3.ConfirmRecoveryResponsePayload;
-import io.getlime.security.powerauth.rest.api.model.response.v3.UpgradeResponsePayload;
-import io.getlime.security.powerauth.rest.api.model.response.v3.VaultUnlockResponsePayload;
+import io.getlime.security.powerauth.rest.api.model.request.ActivationLayer2Request;
+import io.getlime.security.powerauth.rest.api.model.request.ConfirmRecoveryRequestPayload;
+import io.getlime.security.powerauth.rest.api.model.request.EciesEncryptedRequest;
+import io.getlime.security.powerauth.rest.api.model.request.VaultUnlockRequestPayload;
+import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer2Response;
+import io.getlime.security.powerauth.rest.api.model.response.ConfirmRecoveryResponsePayload;
+import io.getlime.security.powerauth.rest.api.model.response.VaultUnlockResponsePayload;
 import lombok.Data;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -75,6 +76,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.time.Duration;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -117,25 +119,25 @@ class PowerAuthApiTest {
 
     @Test
     void systemStatusTest() throws PowerAuthClientException {
-        GetSystemStatusResponse response = powerAuthClient.getSystemStatus();
+        final GetSystemStatusResponse response = powerAuthClient.getSystemStatus();
         assertEquals("OK", response.getStatus());
     }
 
     @Test
     void errorListTest() throws PowerAuthClientException {
-        GetErrorCodeListResponse response = powerAuthClient.getErrorList(Locale.ENGLISH.getLanguage());
+        final GetErrorCodeListResponse response = powerAuthClient.getErrorList(Locale.ENGLISH.getLanguage());
         assertTrue(response.getErrors().size() > 32);
     }
 
     @Test
     void initActivationTest() throws PowerAuthClientException {
-        InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
+        final InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
         assertNotNull(response.getActivationId());
         assertNotNull(response.getActivationCode());
         assertNotNull(response.getActivationSignature());
         assertEquals(config.getUserV31(), response.getUserId());
         assertEquals(config.getApplicationId(), response.getApplicationId());
-        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
+        final GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
     }
 
@@ -239,7 +241,7 @@ class PowerAuthApiTest {
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-        List<GetActivationListForUserResponse.Activations> listResponse = powerAuthClient.getActivationListForUser(config.getUserV31());
+        final List<Activation> listResponse = powerAuthClient.getActivationListForUser(config.getUserV31());
         assertNotEquals(0, listResponse.size());
     }
 
@@ -247,10 +249,10 @@ class PowerAuthApiTest {
     void lookupActivationsTest() throws PowerAuthClientException {
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31(), config.getApplicationId());
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
-        Calendar timestampCreated = statusResponse.getTimestampCreated().toGregorianCalendar();
+        final Date timestampCreated = statusResponse.getTimestampCreated();
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-        List<LookupActivationsResponse.Activations> activations = powerAuthClient.lookupActivations(Collections.singletonList(config.getUserV31()), Collections.singletonList(config.getApplicationId()),
-                null, timestampCreated.getTime(), ActivationStatus.CREATED, null);
+        List<Activation> activations = powerAuthClient.lookupActivations(Collections.singletonList(config.getUserV31()), Collections.singletonList(config.getApplicationId()),
+                null, timestampCreated, ActivationStatus.CREATED, null);
         assertTrue(activations.size() >= 1);
     }
 
@@ -288,9 +290,9 @@ class PowerAuthApiTest {
         CounterUtil.incrementCounter(model);
         Calendar after = new GregorianCalendar();
         after.add(Calendar.SECOND, TIME_SYNCHRONIZATION_WINDOW_SECONDS);
-        List<SignatureAuditResponse.Items> auditItems = powerAuthClient.getSignatureAuditLog(config.getUserV31(), config.getApplicationId(), before.getTime(), after.getTime());
+        List<SignatureAuditItem> auditItems = powerAuthClient.getSignatureAuditLog(config.getUserV31(), config.getApplicationId(), before.getTime(), after.getTime());
         boolean signatureFound = false;
-        for (SignatureAuditResponse.Items item: auditItems) {
+        for (SignatureAuditItem item: auditItems) {
             if (signatureValue.equals(item.getSignature())) {
                 assertEquals(config.getActivationIdV31(), item.getActivationId());
                 assertEquals(normalizedDataWithSecret, new String(Base64.getDecoder().decode(item.getDataBase64())));
@@ -387,12 +389,10 @@ class PowerAuthApiTest {
         InitActivationResponse response = powerAuthClient.initActivation(config.getUserV31() + "_history_test", config.getApplicationId());
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-        GregorianCalendar before = statusResponse.getTimestampCreated().toGregorianCalendar();
-        GregorianCalendar after = new GregorianCalendar();
-        after.setTime(before.getTime());
-        after.add(Calendar.SECOND, 1);
-        List<ActivationHistoryResponse.Items> activationHistory = powerAuthClient.getActivationHistory(response.getActivationId(), before.getTime(), after.getTime());
-        ActivationHistoryResponse.Items item = activationHistory.get(0);
+        final Date before = statusResponse.getTimestampCreated();
+        final Date after = Date.from(before.toInstant().plus(Duration.ofSeconds(1)));
+        final List<ActivationHistoryItem> activationHistory = powerAuthClient.getActivationHistory(response.getActivationId(), before, after);
+        final ActivationHistoryItem item = activationHistory.get(0);
         assertEquals(response.getActivationId(), item.getActivationId());
         assertEquals(ActivationStatus.CREATED, item.getActivationStatus());
     }
@@ -417,10 +417,10 @@ class PowerAuthApiTest {
 
     @Test
     void applicationListTest() throws PowerAuthClientException {
-        List<GetApplicationListResponse.Applications> applications = powerAuthClient.getApplicationList();
-        assertNotEquals(0, applications.size());
+        final GetApplicationListResponse applications = powerAuthClient.getApplicationList();
+        assertNotEquals(0, applications.getApplications().size());
         boolean testApplicationFound = false;
-        for (GetApplicationListResponse.Applications app: applications) {
+        for (Application app: applications.getApplications()) {
             if (app.getApplicationId().equals(config.getApplicationId())) {
                 testApplicationFound = true;
             }
@@ -433,7 +433,7 @@ class PowerAuthApiTest {
         GetApplicationDetailResponse response = powerAuthClient.getApplicationDetail(config.getApplicationId());
         assertEquals(config.getApplicationName(), response.getApplicationId());
         boolean testAppVersionFound = false;
-        for (GetApplicationDetailResponse.Versions version: response.getVersions()) {
+        for (ApplicationVersion version: response.getVersions()) {
             if (version.getApplicationVersionId().equals(config.getApplicationVersionId())) {
                 testAppVersionFound = true;
             }
@@ -462,9 +462,9 @@ class PowerAuthApiTest {
         String integrationName = UUID.randomUUID().toString();
         CreateIntegrationResponse response = powerAuthClient.createIntegration(integrationName);
         assertEquals(integrationName, response.getName());
-        List<GetIntegrationListResponse.Items> items = powerAuthClient.getIntegrationList();
+        final GetIntegrationListResponse items = powerAuthClient.getIntegrationList();
         boolean integrationFound = false;
-        for (GetIntegrationListResponse.Items integration: items) {
+        for (Integration integration: items.getItems()) {
             if (integration.getName().equals(integrationName)) {
                 integrationFound = true;
             }
@@ -480,9 +480,9 @@ class PowerAuthApiTest {
         String url = "http://test.wultra.com/";
         CreateCallbackUrlResponse response = powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, url, Collections.emptyList(), null);
         assertEquals(callbackName, response.getName());
-        List<GetCallbackUrlListResponse.CallbackUrlList> items = powerAuthClient.getCallbackUrlList(config.getApplicationId());
+        final GetCallbackUrlListResponse items = powerAuthClient.getCallbackUrlList(config.getApplicationId());
         boolean callbackFound = false;
-        for (GetCallbackUrlListResponse.CallbackUrlList callback: items) {
+        for (CallbackUrl callback: items.getCallbackUrlList()) {
             if (callback.getName().equals(callbackName)) {
                 callbackFound = true;
             }
@@ -548,7 +548,7 @@ class PowerAuthApiTest {
         final byte[] encryptedDataBytes = eciesCryptogram.getEncryptedData();
         final byte[] macBytes = eciesCryptogram.getMac();
         final byte[] nonceBytes = eciesCryptogram.getNonce();
-        GetEciesDecryptorRequest eciesDecryptorRequest = new GetEciesDecryptorRequest();
+        final GetEciesDecryptorRequest eciesDecryptorRequest = new GetEciesDecryptorRequest();
         eciesDecryptorRequest.setActivationId(null);
         eciesDecryptorRequest.setApplicationKey(config.getApplicationKey());
         eciesDecryptorRequest.setEphemeralPublicKey(Base64.getEncoder().encodeToString(eciesCryptogram.getEphemeralPublicKey()));
@@ -560,52 +560,6 @@ class PowerAuthApiTest {
         EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes, nonceBytes);
         byte[] decryptedData = eciesDecryptor.decryptRequest(cryptogram);
         assertArrayEquals(requestData.getBytes(StandardCharsets.UTF_8), decryptedData);
-    }
-
-    @Test
-    void upgradeTest() throws CryptoProviderException, GenericCryptoException, InvalidKeyException, InvalidKeySpecException, EciesException, IOException, PowerAuthClientException {
-        KeyPair clientEphemeralKeyPair = keyGenerator.generateKeyPair();
-        KeyPair deviceKeyPair = activation.generateDeviceKeyPair();
-        String activationIdentity = UUID.randomUUID().toString();
-        String activationOTP = "00000-00000";
-        byte[] nonceDeviceBytes = activation.generateActivationNonce();
-        byte[] cDevicePublicKeyBytes = activation.encryptDevicePublicKey(deviceKeyPair.getPublic(), clientEphemeralKeyPair.getPrivate(), config.getMasterPublicKey(),
-                activationOTP, activationIdentity, nonceDeviceBytes);
-        byte[] signature = activation.computeApplicationSignature(activationIdentity, nonceDeviceBytes, cDevicePublicKeyBytes, Base64.getDecoder().decode(config.getApplicationKey()),
-                Base64.getDecoder().decode(config.getApplicationSecret()));
-        byte[] ephemeralPublicKeyBytes = keyConvertor.convertPublicKeyToBytes(clientEphemeralKeyPair.getPublic());
-        com.wultra.security.powerauth.client.v2.CreateActivationResponse createResponse = powerAuthClient.v2().createActivation(config.getApplicationKey(), config.getUserV31(), activationIdentity,
-                "test_activation_v2", Base64.getEncoder().encodeToString(nonceDeviceBytes),
-                Base64.getEncoder().encodeToString(ephemeralPublicKeyBytes), Base64.getEncoder().encodeToString(cDevicePublicKeyBytes),
-                null, Base64.getEncoder().encodeToString(signature));
-        String activationId = createResponse.getActivationId();
-        assertNotNull(activationId);
-        byte[] nonceServerBytes = Base64.getDecoder().decode(createResponse.getActivationNonce());
-        byte[] cServerPubKeyBytes = Base64.getDecoder().decode(createResponse.getEncryptedServerPublicKey());
-        byte[] ephemeralKeyBytes = Base64.getDecoder().decode(createResponse.getEphemeralPublicKey());
-        PublicKey ephemeralPubKey = keyConvertor.convertBytesToPublicKey(ephemeralKeyBytes);
-        PublicKey serverPublicKey = activation.decryptServerPublicKey(cServerPubKeyBytes, deviceKeyPair.getPrivate(),
-                ephemeralPubKey, activationOTP, activationIdentity, nonceServerBytes);
-        SecretKey masterSecretKey = keyFactory.generateClientMasterSecretKey(deviceKeyPair.getPrivate(), serverPublicKey);
-        SecretKey transportMasterKey = keyFactory.generateServerTransportKey(masterSecretKey);
-        powerAuthClient.commitActivation(activationId, null);
-        byte[] transportMasterKeyBytes = keyConvertor.convertSharedSecretKeyToBytes(transportMasterKey);
-        EciesEncryptor eciesEncryptor = eciesFactory.getEciesEncryptorForActivation((ECPublicKey) serverPublicKey,
-                config.getApplicationSecret().getBytes(StandardCharsets.UTF_8), transportMasterKeyBytes, EciesSharedInfo1.UPGRADE);
-        EciesCryptogram eciesCryptogram = eciesEncryptor.encryptRequest("{}".getBytes(StandardCharsets.UTF_8), true);
-        String ephemeralPublicKey = Base64.getEncoder().encodeToString(eciesCryptogram.getEphemeralPublicKey());
-        String encryptedData = Base64.getEncoder().encodeToString(eciesCryptogram.getEncryptedData());
-        String mac = Base64.getEncoder().encodeToString(eciesCryptogram.getMac());
-        String nonce = Base64.getEncoder().encodeToString(eciesCryptogram.getNonce());
-        StartUpgradeResponse startResponse = powerAuthClient.startUpgrade(activationId, config.getApplicationKey(), ephemeralPublicKey, encryptedData, mac, nonce);
-        byte[] macResponse = Base64.getDecoder().decode(startResponse.getMac());
-        byte[] encryptedDataResponse = Base64.getDecoder().decode(startResponse.getEncryptedData());
-        EciesCryptogram eciesCryptogramResponse = new EciesCryptogram(macResponse, encryptedDataResponse);
-        byte[] decryptedBytes = eciesEncryptor.decryptResponse(eciesCryptogramResponse);
-        UpgradeResponsePayload upgradeResponsePayload = objectMapper.readValue(decryptedBytes, UpgradeResponsePayload.class);
-        assertNotNull(upgradeResponsePayload.getCtrData());
-        CommitUpgradeResponse commitResponse = powerAuthClient.commitUpgrade(activationId, config.getApplicationKey());
-        assertTrue(commitResponse.isCommitted());
     }
 
     @Test

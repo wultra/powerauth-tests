@@ -18,8 +18,16 @@
 package com.wultra.security.powerauth.test.v31;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.RecoveryCodeStatus;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.v3.*;
+import com.wultra.security.powerauth.client.model.request.CommitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.response.CommitActivationResponse;
+import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
+import com.wultra.security.powerauth.client.model.response.LookupRecoveryCodesResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
@@ -108,13 +116,13 @@ class PowerAuthActivationOtpTest {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
+        final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
         initRequest.setUserId(config.getUserV31());
         initRequest.setMaxFailureCount(5L);
         initRequest.setActivationOtpValidation(ActivationOtpValidation.ON_KEY_EXCHANGE);
         initRequest.setActivationOtp(validOtpValue);
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
@@ -126,12 +134,12 @@ class PowerAuthActivationOtpTest {
         assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
 
         // Verify activation status
-        GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        final GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertNotNull(activationStatusResponse);
         assertEquals(ActivationStatus.ACTIVE, activationStatusResponse.getActivationStatus());
 
         // Verify associated recovery code
-        LookupRecoveryCodesResponse recoveryCodes = powerAuthClient.lookupRecoveryCodes(config.getUserV31(), initResponse.getActivationId(), config.getApplicationId(), null, null);
+        final LookupRecoveryCodesResponse recoveryCodes = powerAuthClient.lookupRecoveryCodes(config.getUserV31(), initResponse.getActivationId(), config.getApplicationId(), null, null);
         assertEquals(1, recoveryCodes.getRecoveryCodes().size());
         assertEquals(RecoveryCodeStatus.ACTIVE, recoveryCodes.getRecoveryCodes().get(0).getStatus());
 
@@ -202,13 +210,13 @@ class PowerAuthActivationOtpTest {
         // Try commit activation with wrong OTP. Last attempt is valid.
         for (int iteration = 1; iteration <= 5; iteration++) {
             boolean lastIteration = iteration == 5;
-            CommitActivationRequest commitRequest = new CommitActivationRequest();
+            final CommitActivationRequest commitRequest = new CommitActivationRequest();
             commitRequest.setActivationId(initResponse.getActivationId());
             commitRequest.setActivationOtp(lastIteration ? validOtpValue : invalidOtpValue);
 
             boolean isActivated;
             try {
-                CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
+                final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
                 isActivated = commitResponse.isActivated();
             } catch (Throwable t) {
                 isActivated = false;

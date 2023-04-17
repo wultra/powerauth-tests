@@ -19,9 +19,10 @@ package com.wultra.security.powerauth.test.v31;
 
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.v3.GetCallbackUrlListResponse;
+import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientFactory;
 import org.junit.jupiter.api.AfterEach;
@@ -70,8 +71,8 @@ class PowerAuthCallbackTest {
     @AfterEach
     void tearDown() throws PowerAuthClientException {
         // Remove all callbacks on test application, they slow down tests
-        List<GetCallbackUrlListResponse.CallbackUrlList> callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
-        for (GetCallbackUrlListResponse.CallbackUrlList callback: callbacks) {
+        final GetCallbackUrlListResponse callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
+        for (CallbackUrl callback: callbacks.getCallbackUrlList()) {
             powerAuthClient.removeCallbackUrl(callback.getId());
         }
     }
@@ -81,16 +82,16 @@ class PowerAuthCallbackTest {
         String callbackName = UUID.randomUUID().toString();
         String callbackUrl = "http://test.test";
         powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrl, Collections.singletonList("activationId"), null);
-        List<GetCallbackUrlListResponse.CallbackUrlList> callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
+        final GetCallbackUrlListResponse callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
         boolean callbackFound = false;
-        for (GetCallbackUrlListResponse.CallbackUrlList callback: callbacks) {
+        for (CallbackUrl callback: callbacks.getCallbackUrlList()) {
             if (callbackName.equals(callback.getName())) {
                 callbackFound = true;
                 assertEquals(callbackUrl, callback.getCallbackUrl());
                 assertEquals(config.getApplicationId(), callback.getApplicationId());
                 assertEquals(1, callback.getAttributes().size());
                 assertEquals("activationId", callback.getAttributes().get(0));
-                int callbackCountOrig = callbacks.size();
+                int callbackCountOrig = callbacks.getCallbackUrlList().size();
                 powerAuthClient.removeCallbackUrl(callback.getId());
             }
         }
@@ -102,10 +103,10 @@ class PowerAuthCallbackTest {
         String callbackName = UUID.randomUUID().toString();
         String callbackUrl = "http://test.test";
         powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrl, Collections.singletonList("activationId"), null);
-        List<GetCallbackUrlListResponse.CallbackUrlList> callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
+        final GetCallbackUrlListResponse callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
         boolean callbackFound = false;
         String callbackId = null;
-        for (GetCallbackUrlListResponse.CallbackUrlList callback: callbacks) {
+        for (CallbackUrl callback: callbacks.getCallbackUrlList()) {
             if (callbackName.equals(callback.getName())) {
                 callbackFound = true;
                 callbackId = callback.getId();
@@ -120,9 +121,9 @@ class PowerAuthCallbackTest {
         String callbackName2 = UUID.randomUUID().toString();
         String callbackUrl2 = "http://test2.test2";
         powerAuthClient.updateCallbackUrl(callbackId, config.getApplicationId(), callbackName2, callbackUrl2, Arrays.asList("activationId", "userId", "deviceInfo", "platform"), null);
-        List<GetCallbackUrlListResponse.CallbackUrlList> callbacks2 = powerAuthClient.getCallbackUrlList(config.getApplicationId());
+        final GetCallbackUrlListResponse callbacks2 = powerAuthClient.getCallbackUrlList(config.getApplicationId());
         boolean callbackFound2 = false;
-        for (GetCallbackUrlListResponse.CallbackUrlList callback: callbacks2) {
+        for (CallbackUrl callback: callbacks2.getCallbackUrlList()) {
             if (callbackName2.equals(callback.getName())) {
                 callbackFound2 = true;
                 callbackId = callback.getId();
@@ -143,7 +144,7 @@ class PowerAuthCallbackTest {
         String callbackName = UUID.randomUUID().toString();
         String callbackUrlPost = "http://localhost:" + port + "/callback/post";
         powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrlPost, Arrays.asList("activationId", "userId", "activationName", "deviceInfo", "platform", "activationFlags", "activationStatus", "blockedReason", "applicationId"), null);
-        List<GetCallbackUrlListResponse.CallbackUrlList> callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
+        final GetCallbackUrlListResponse callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
         // Update activation status
         powerAuthClient.blockActivation(config.getActivationIdV31(), "TEST_CALLBACK", config.getUserV31());
         String callbackUrlVerify = "http://localhost:" + port + "/callback/verify";
@@ -161,7 +162,7 @@ class PowerAuthCallbackTest {
         RestClientFactory.getRestClient().post(callbackUrlVerify, request, new ParameterizedTypeReference<String>() {});
         powerAuthClient.unblockActivation(config.getActivationIdV31(), config.getUserV31());
         boolean callbackFound = false;
-        for (GetCallbackUrlListResponse.CallbackUrlList callback: callbacks) {
+        for (CallbackUrl callback: callbacks.getCallbackUrlList()) {
             if (callbackName.equals(callback.getName())) {
                 callbackFound = true;
                 powerAuthClient.removeCallbackUrl(callback.getId());

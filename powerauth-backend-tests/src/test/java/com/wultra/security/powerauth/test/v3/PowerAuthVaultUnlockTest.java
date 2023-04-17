@@ -19,7 +19,7 @@ package com.wultra.security.powerauth.test.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.v3.VerifyECDSASignatureResponse;
+import com.wultra.security.powerauth.client.model.response.VerifyECDSASignatureResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
@@ -30,7 +30,7 @@ import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.VaultUnlockStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
-import io.getlime.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse;
+import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -252,7 +252,7 @@ class PowerAuthVaultUnlockTest {
 
         byte[] signature = signatureUtils.computeECDSASignature(dataBytes, devicePrivateKey);
 
-        VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(config.getActivationIdV3(), data, Base64.getEncoder().encodeToString(signature));
+        final VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(config.getActivationIdV3(), data, Base64.getEncoder().encodeToString(signature));
         assertTrue(verifyResponse.isSignatureValid());
     }
 
@@ -312,7 +312,7 @@ class PowerAuthVaultUnlockTest {
 
         byte[] signature = signatureUtils.computeECDSASignature(dataBytes, devicePrivateKey);
 
-        VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(config.getActivationIdV2(), data, Base64.getEncoder().encodeToString(signature));
+        VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(config.getActivationIdV31(), data, Base64.getEncoder().encodeToString(signature));
         assertFalse(verifyResponse.isSignatureValid());
     }
 
