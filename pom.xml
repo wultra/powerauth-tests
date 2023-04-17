@@ -52,7 +52,7 @@
         <powerauth-webflow.version>1.5.0-SNAPSHOT</powerauth-webflow.version>
         <wultra-core.version>1.7.0-SNAPSHOT</wultra-core.version>
 
-        <bc.version>1.72</bc.version>
+        <bc.version>1.73</bc.version>
     </properties>
 
     <modules>
