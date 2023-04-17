@@ -12,7 +12,7 @@ _Note: most of the above listed components contain unit tests, however such low 
 
 ## Supported Java Versions
 
-We recommend to use one of the LTS releases of Java for running the tests: 8, 11, or 17.
+We recommend to use one of the LTS releases of Java for running the tests: 17.
 
 ## Building a Release Version of PowerAuth Backends
 
