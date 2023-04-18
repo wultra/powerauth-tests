@@ -38,8 +38,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
@@ -54,29 +53,29 @@ class PowerAuthHttpTest {
     }
 
     @Test
-    void invalidSignatureHeaderTest() throws Exception {
-        byte[] data = "test".getBytes(StandardCharsets.UTF_8);
-        String signatureHeaderInvalid = "X-PowerAuth-Authorization: PowerAuth pa_activation_id=\"79b910a6-b058-49bd-a56d-d54b5aada048\" pa_application_key=\"4rVingHqXITsWvGj1K+EBQ==\" pa_nonce=\"inZWJ5hCFBk+nnZ1sYTnjg==\" pa_signature_type=\"possession_knowledge\" pa_signature=\"77419567-47712563\" pa_version=\"2.1\"";
+    void invalidSignatureHeaderTest() {
+        final byte[] data = "test".getBytes(StandardCharsets.UTF_8);
+        final String signatureHeaderInvalid = "X-PowerAuth-Authorization: PowerAuth pa_activation_id=\"79b910a6-b058-49bd-a56d-d54b5aada048\" pa_application_key=\"4rVingHqXITsWvGj1K+EBQ==\" pa_nonce=\"inZWJ5hCFBk+nnZ1sYTnjg==\" pa_signature_type=\"possession_knowledge\" pa_signature=\"77419567-47712563\" pa_version=\"2.1\"";
 
-        Map<String, String> headers = new HashMap<>();
-        headers.put("Accept", "application/json");
-        headers.put("Content-Type", "application/json");
-        headers.put(PowerAuthSignatureHttpHeader.HEADER_NAME, signatureHeaderInvalid);
+        final Map<String, String> headers = Map.of(
+                "Accept", "application/json",
+                "Content-Type", "application/json",
+                PowerAuthSignatureHttpHeader.HEADER_NAME, signatureHeaderInvalid);
 
-        try {
-            RestClientFactory.getRestClient().post(
-                    config.getPowerAuthIntegrationUrl() + "/pa/signature/validate",
-                    data,
-                    null,
-                    MapUtil.toMultiValueMap(headers),
-                    new ParameterizedTypeReference<Response>() {}
-            );
-        } catch (RestClientException ex) {
-            assertEquals(401, ex.getStatusCode().value());
-            ErrorResponse errorResponse = Objects.requireNonNull(ex.getErrorResponse());
-            assertEquals("ERROR", errorResponse.getStatus());
-            checkSignatureError(errorResponse);
-        }
+        final RestClientException exception = assertThrows(RestClientException.class, () ->
+                RestClientFactory.getRestClient().post(
+                        config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate",
+                        data,
+                        null,
+                        MapUtil.toMultiValueMap(headers),
+                        new ParameterizedTypeReference<Response>() {}
+                ));
+
+        assertEquals(401, exception.getStatusCode().value());
+        assertNotNull(exception.getErrorResponse());
+        final ErrorResponse errorResponse = exception.getErrorResponse();
+        assertEquals("ERROR", errorResponse.getStatus());
+        checkSignatureError(errorResponse);
     }
 
     @Test
