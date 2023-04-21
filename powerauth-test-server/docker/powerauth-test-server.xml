@@ -2,7 +2,7 @@
 <Context>
 
     <!-- PowerAuth Enrollment Service Configuration -->
-    <Parameter name="powerauth.enrollment.service.url" value="${POWERAUTH_TEST_SERVER_ENROLLMENT_SERVER_URL}"/>
+    <Parameter name="powerauth.enrollment.service.url" value="${POWERAUTH_TEST_SERVER_ENROLLMENT_SERVER_URL:http://localhost:8080/enrollment-server}"/>
 
     <!-- PowerAuth Protocol Version -->
     <Parameter name="powerauth.version" value="${POWERAUTH_TEST_SERVER_POWERAUTH_VERSION:3.1}"/>
@@ -11,9 +11,9 @@
     <Parameter name="resultstatus.persistenceType" value="${POWERAUTH_TEST_SERVER_RESULT_STATUS_PERSISTENCE_TYPE:memory}"/>
 
     <!-- Datasource Configuration -->
-    <Parameter name="spring.datasource.url" value="${POWERAUTH_TEST_SERVER_DATASOURCE_URL}"/>
-    <Parameter name="spring.datasource.username" value="${POWERAUTH_TEST_SERVER_DATASOURCE_USERNAME}"/>
-    <Parameter name="spring.datasource.password" value="${POWERAUTH_TEST_SERVER_DATASOURCE_PASSWORD}"/>
+    <Parameter name="spring.datasource.url" value="${POWERAUTH_TEST_SERVER_DATASOURCE_URL:jdbc:postgresql://host.docker.internal:5432/powerauth}"/>
+    <Parameter name="spring.datasource.username" value="${POWERAUTH_TEST_SERVER_DATASOURCE_USERNAME:powerauth}"/>
+    <Parameter name="spring.datasource.password" value="${POWERAUTH_TEST_SERVER_DATASOURCE_PASSWORD:}"/>
     <Parameter name="spring.datasource.driver-class-name" value="${POWERAUTH_TEST_SERVER_DATASOURCE_DRIVER:org.postgresql.Driver}"/>
     <Parameter name="spring.jpa.hibernate.ddl-auto" value="${POWERAUTH_TEST_SERVER_JPA_DDL_AUTO:update}"/>
     <Parameter name="spring.datasource.hikari.maximumPoolSize" value="${POWERAUTH_TEST_SERVER_DATASOURCE_POOL_SIZE:5}"/>
@@ -27,12 +27,12 @@
     <Parameter name="spring.jpa.properties.hibernate.connection.useUnicode" value="${POWERAUTH_TEST_SERVER_JPA_USE_UNICODE:true}"/>
 
     <!-- Additional JPA Configuration -->
-    <Parameter name="spring.jpa.database-platform" value="${POWERAUTH_TEST_SERVER_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQL95Dialect}"/>
+    <Parameter name="spring.jpa.database-platform" value="${POWERAUTH_TEST_SERVER_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}"/>
 
     <!-- Liquibase Script Configuration -->
     <Parameter name="spring.liquibase.enabled" value="${LIQUIBASE_ENABLED:false}"/>
-    <Parameter name="spring.liquibase.parameters.pa-cloud-service-base-url" value="${POWERAUTH_CLOUD_SERVICE_BASE_URL}"/>
-    <Parameter name="spring.liquibase.parameters.pa-cloud-admin-username" value="${POWERAUTH_CLOUD_ADMIN_USERNAME}"/>
-    <Parameter name="spring.liquibase.parameters.pa-cloud-admin-password-encoded" value="${POWERAUTH_CLOUD_ADMIN_PASSWORD_ENCODED}"/>
+    <Parameter name="spring.liquibase.parameters.pa-cloud-service-base-url" value="${POWERAUTH_CLOUD_SERVICE_BASE_URL:}"/>
+    <Parameter name="spring.liquibase.parameters.pa-cloud-admin-username" value="${POWERAUTH_CLOUD_ADMIN_USERNAME:}"/>
+    <Parameter name="spring.liquibase.parameters.pa-cloud-admin-password-encoded" value="${POWERAUTH_CLOUD_ADMIN_PASSWORD_ENCODED:}"/>
 
 </Context>
