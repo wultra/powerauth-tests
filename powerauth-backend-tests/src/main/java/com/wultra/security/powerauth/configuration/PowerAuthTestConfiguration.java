@@ -116,6 +116,9 @@ public class PowerAuthTestConfiguration {
     private String versionId;
     private PublicKey masterPublicKeyConverted;
 
+    private Long loginOperationTemplateId;
+    private String loginOperationTemplateName;
+
     private PowerAuthTestSetUp setUp;
     private PowerAuthTestTearDown tearDown;
 
@@ -364,4 +367,19 @@ public class PowerAuthTestConfiguration {
         return skipResultVerification;
     }
 
+    public Long getLoginOperationTemplateId() {
+        return loginOperationTemplateId;
+    }
+
+    public void setLoginOperationTemplateId(Long loginOperationTemplateId) {
+        this.loginOperationTemplateId = loginOperationTemplateId;
+    }
+
+    public String getLoginOperationTemplateName() {
+        return loginOperationTemplateName;
+    }
+
+    public void setLoginOperationTemplateName(String loginOperationTemplateName) {
+        this.loginOperationTemplateName = loginOperationTemplateName;
+    }
 }

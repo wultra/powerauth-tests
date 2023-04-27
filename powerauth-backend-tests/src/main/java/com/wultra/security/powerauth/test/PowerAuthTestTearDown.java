@@ -19,6 +19,7 @@ package com.wultra.security.powerauth.test;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.model.request.OperationTemplateDeleteRequest;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -47,5 +48,13 @@ public class PowerAuthTestTearDown {
     public void execute() throws PowerAuthClientException {
         powerAuthClient.removeActivation(config.getActivationIdV3(), "test");
         assertTrue(config.getStatusFileV3().delete());
+
+        removeOperationTemplates();
+    }
+
+    private void removeOperationTemplates() throws PowerAuthClientException {
+        final OperationTemplateDeleteRequest request = new OperationTemplateDeleteRequest();
+        request.setId(config.getLoginOperationTemplateId());
+        powerAuthClient.removeOperationTemplate(request);
     }
 }

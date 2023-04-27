@@ -20,13 +20,12 @@ package com.wultra.security.powerauth.test.v31;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.OperationApproveRequest;
+import com.wultra.security.powerauth.client.model.request.OperationCreateRequest;
+import com.wultra.security.powerauth.client.model.request.OperationDetailRequest;
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
-import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +33,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
 
 import static com.wultra.security.powerauth.client.model.enumeration.UserActionResult.APPROVAL_FAILED;
 import static com.wultra.security.powerauth.client.model.enumeration.UserActionResult.APPROVED;
@@ -53,35 +50,11 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @EnableConfigurationProperties
 class PowerAuthOperationTest {
 
-    private static final String TEMPLATE_NAME = UUID.randomUUID().toString();
-
-    private Long operationId;
-
     @Autowired
     private PowerAuthClient powerAuthClient;
 
     @Autowired
     private PowerAuthTestConfiguration config;
-
-    @BeforeEach
-    void setUp() throws Exception {
-        final OperationTemplateCreateRequest request = new OperationTemplateCreateRequest();
-        request.setTemplateName(TEMPLATE_NAME);
-        request.setOperationType("login");
-        request.getSignatureType().addAll(Arrays.asList(SignatureType.values()));
-        request.setDataTemplate("A2");
-        request.setExpiration(300L);
-        request.setMaxFailureCount(5L);
-        final OperationTemplateDetailResponse operationTemplate = powerAuthClient.createOperationTemplate(request);
-        operationId = operationTemplate.getId();
-    }
-
-    @AfterEach
-    void tearDown() throws Exception {
-        final OperationTemplateDeleteRequest request = new OperationTemplateDeleteRequest();
-        request.setId(operationId);
-        powerAuthClient.removeOperationTemplate(request);
-    }
 
     @Test
     void testOperationApprove() throws Exception {
@@ -148,7 +121,7 @@ class PowerAuthOperationTest {
         final OperationCreateRequest createRequest = new OperationCreateRequest();
         createRequest.setApplications(List.of(config.getApplicationName()));
         createRequest.setUserId(config.getUserV31());
-        createRequest.setTemplateName(TEMPLATE_NAME);
+        createRequest.setTemplateName(config.getLoginOperationTemplateName());
         createRequest.setProximityCheckEnabled(proximityCheckEnabled);
 
         return powerAuthClient.createOperation(createRequest);
