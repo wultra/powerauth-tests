@@ -74,7 +74,7 @@ class PowerAuthOperationTest {
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         detailRequest.setOperationId(operation.getId());
 
-        final String totp = powerAuthClient.operationDetail(detailRequest).getTotp();
+        final String totp = powerAuthClient.operationDetail(detailRequest).getProximityOtp();
         assertNotNull(totp);
 
         final OperationApproveRequest approveRequest = createOperationApproveRequest(operation.getId());
@@ -92,7 +92,7 @@ class PowerAuthOperationTest {
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         detailRequest.setOperationId(operation.getId());
 
-        final String totp = powerAuthClient.operationDetail(detailRequest).getTotp();
+        final String totp = powerAuthClient.operationDetail(detailRequest).getProximityOtp();
         assertNotNull(totp);
 
         final OperationApproveRequest approveRequest = createOperationApproveRequest(operation.getId());
