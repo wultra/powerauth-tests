@@ -20,8 +20,10 @@ package com.wultra.security.powerauth.test;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.Application;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
 import com.wultra.security.powerauth.client.model.request.UpdateRecoveryConfigRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -30,7 +32,9 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepMo
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -60,6 +64,25 @@ public class PowerAuthTestSetUp {
         createApplication();
         createActivationV31();
         createActivationV3();
+        createOperationTemplates();
+    }
+
+    private void createOperationTemplates() throws Exception {
+        createLoginOperationTemplate();
+    }
+
+    private void createLoginOperationTemplate() throws Exception {
+        final OperationTemplateCreateRequest request = new OperationTemplateCreateRequest();
+        request.setTemplateName(UUID.randomUUID().toString());
+        request.setOperationType("login");
+        request.getSignatureType().addAll(Arrays.asList(SignatureType.values()));
+        request.setDataTemplate("A2");
+        request.setExpiration(300L);
+        request.setMaxFailureCount(5L);
+
+        final OperationTemplateDetailResponse operationTemplate = powerAuthClient.createOperationTemplate(request);
+        config.setLoginOperationTemplateName(operationTemplate.getTemplateName());
+        config.setLoginOperationTemplateId(operationTemplate.getId());
     }
 
     private void createApplication() throws PowerAuthClientException {
