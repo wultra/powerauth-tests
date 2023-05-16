@@ -80,16 +80,16 @@ class PowerAuthUserInfoTest {
 
         final ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
-        final EciesEncryptedResponse response = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        final EciesEncryptedResponse response = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(response.getEncryptedData());
         assertNotNull(response.getMac());
 
         final Map<String, Object> decryptedData = stepLogger.getItems().stream()
                 .filter(isStepItemDecryptedResponse())
-                .map(StepItem::getObject)
+                .map(StepItem::object)
                 .map(Object::toString)
                 .map(it -> safeReadValue(it, new TypeReference<Map<String, Object>>() {}))
                 .filter(Objects::nonNull)
@@ -102,7 +102,7 @@ class PowerAuthUserInfoTest {
     }
 
     private static Predicate<StepItem> isStepItemDecryptedResponse() {
-        return stepItem -> "Decrypted Response".equals(stepItem.getName());
+        return stepItem -> "Decrypted Response".equals(stepItem.name());
     }
 
     private <T> T safeReadValue(final String value, final TypeReference<T> typeReference) {

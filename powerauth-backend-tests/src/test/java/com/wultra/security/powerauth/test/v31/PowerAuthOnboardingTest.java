@@ -152,9 +152,9 @@ class PowerAuthOnboardingTest {
         // Verify activation flags using custom object in status
         ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-        assertTrue(stepLoggerStatus.getResult().isSuccess());
-        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
-        ObjectResponse<ActivationStatusResponse> objectResponse = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().getResponseObject();
+        assertTrue(stepLoggerStatus.getResult().success());
+        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        final ObjectResponse<ActivationStatusResponse> objectResponse = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
         Map<String, Object> customObject = objectResponse.getResponseObject().getCustomObject();
         assertNotNull(customObject);
         assertEquals(Collections.singletonList("VERIFICATION_PENDING"), customObject.get("activationFlags"));
@@ -232,8 +232,8 @@ class PowerAuthOnboardingTest {
         byte[] data = objectMapper.writeValueAsBytes(objectRequest);
         encryptModel.setData(data);
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
 
         // Test onboarding cleanup
         onboardingCleanup(processId);
@@ -329,7 +329,7 @@ class PowerAuthOnboardingTest {
         request.setIdentification(identification);
         executeRequest(request);
 
-        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
@@ -337,8 +337,8 @@ class PowerAuthOnboardingTest {
         String processId = null;
         OnboardingStatus onboardingStatus = null;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
+            if (item.name().equals("Decrypted Response")) {
+                final String responseData = item.object().toString();
                 final ObjectResponse<OnboardingStartResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 OnboardingStartResponse response = objectResponse.getResponseObject();
                 processId = response.getProcessId();
@@ -359,8 +359,8 @@ class PowerAuthOnboardingTest {
         byte[] data = objectMapper.writeValueAsBytes(objectRequest);
         encryptModel.setData(data);
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     private void onboardingCleanup(String processId) throws Exception {
@@ -379,14 +379,14 @@ class PowerAuthOnboardingTest {
         requestStatus.setProcessId(processId);
         executeRequest(requestStatus);
 
-        EciesEncryptedResponse responseStatusOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        final EciesEncryptedResponse responseStatusOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseStatusOK.getEncryptedData());
         assertNotNull(responseStatusOK.getMac());
 
         boolean responseStatusSuccessfullyDecrypted = false;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
+            if (item.name().equals("Decrypted Response")) {
+                final String responseData = item.object().toString();
                 final ObjectResponse<OnboardingStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 OnboardingStatusResponse response = objectResponse.getResponseObject();
                 processId = response.getProcessId();
@@ -415,15 +415,15 @@ class PowerAuthOnboardingTest {
         identityAttributes.put("credentialsType", "ONBOARDING");
         activationModel.setIdentityAttributes(identityAttributes);
         new CreateActivationStep().execute(stepLogger, activationModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         String activationId = null;
         boolean responseOk = false;
         // Verify decrypted responses
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
                 activationId = layer2Response.getActivationId();
                 assertNotNull(activationId);
                 assertNotNull(layer2Response.getCtrData());
@@ -449,10 +449,10 @@ class PowerAuthOnboardingTest {
         identityAttributes.put("credentialsType", "ONBOARDING");
         activationModel.setIdentityAttributes(identityAttributes);
         new CreateActivationStep().execute(stepLogger, activationModel.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
 
-        final String response = (String) stepLogger.getResponse().getResponseObject();
+        final String response = (String) stepLogger.getResponse().responseObject();
         final ActivationOtpErrorResponse errorResponseOtp = objectMapper.readValue(response, ActivationOtpErrorResponse.class);
         return errorResponseOtp.getRemainingAttempts();
     }
@@ -465,15 +465,15 @@ class PowerAuthOnboardingTest {
         requestOtp.setOtpType(OtpType.ACTIVATION);
         executeRequest(requestOtp);
 
-        EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        final EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseOtpOK.getEncryptedData());
         assertNotNull(responseOtpOK.getMac());
 
         boolean responseOtpSuccessfullyDecrypted = false;
         String otpCode = null;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
+            if (item.name().equals("Decrypted Response")) {
+                final String responseData = item.object().toString();
                 final ObjectResponse<OtpDetailResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 OtpDetailResponse response = objectResponse.getResponseObject();
                 otpCode = response.getOtpCode();

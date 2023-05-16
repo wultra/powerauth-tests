@@ -222,14 +222,14 @@ public class PowerAuthActivationFlagsTest {
         ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new CreateActivationStep().execute(stepLogger, model.toMap());
 
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         String activationId = null;
         // Verify decrypted responses
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
                 activationId = layer2Response.getActivationId();
                 break;
             }

@@ -124,18 +124,18 @@ class PowerAuthActivationTest {
         model.setActivationCode(initResponse.getActivationCode());
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
-        EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().getResponseObject();
+        final EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().responseObject();
         assertNotNull(eciesResponse.getEncryptedData());
         assertNotNull(eciesResponse.getMac());
 
         // Verify decrypted activationId
         String activationIdPrepareResponse = null;
         for (StepItem item : stepLoggerPrepare.getItems()) {
-            if (item.getName().equals("Activation Done")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Activation Done")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 activationIdPrepareResponse = (String) responseMap.get("activationId");
                 break;
             }
@@ -214,13 +214,13 @@ class PowerAuthActivationTest {
         model.setActivationCode(initResponse.getActivationCode());
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertFalse(stepLoggerPrepare.getResult().isSuccess());
+        assertFalse(stepLoggerPrepare.getResult().success());
         // Verify BAD_REQUEST status code
-        assertEquals(400, stepLoggerPrepare.getResponse().getStatusCode());
+        assertEquals(400, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify error response
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
@@ -254,12 +254,12 @@ class PowerAuthActivationTest {
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
         // Verify BAD_REQUEST status code
-        assertFalse(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(400, stepLoggerPrepare.getResponse().getStatusCode());
+        assertFalse(stepLoggerPrepare.getResult().success());
+        assertEquals(400, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify error response
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
@@ -271,12 +271,12 @@ class PowerAuthActivationTest {
         model.setActivationCode("AAAAA-BBBBB-CCCCC-EEEEE");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertFalse(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(400, stepLoggerPrepare.getResponse().getStatusCode());
+        assertFalse(stepLoggerPrepare.getResult().success());
+        assertEquals(400, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify error response
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
@@ -302,12 +302,12 @@ class PowerAuthActivationTest {
         model.setMasterPublicKey(keyPair.getPublic());
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertFalse(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(400, stepLoggerPrepare.getResponse().getStatusCode());
+        assertFalse(stepLoggerPrepare.getResult().success());
+        assertEquals(400, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify error response
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
@@ -332,10 +332,10 @@ class PowerAuthActivationTest {
         model.setResultStatusObject(resultStatusObject);
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
-        EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().getResponseObject();
+        final EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().responseObject();
         assertNotNull(eciesResponse.getEncryptedData());
         assertNotNull(eciesResponse.getMac());
 
@@ -348,9 +348,9 @@ class PowerAuthActivationTest {
 
         ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-        assertTrue(stepLoggerStatus.getResult().isSuccess());
-        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
-        ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().getResponseObject();
+        assertTrue(stepLoggerStatus.getResult().success());
+        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
         ActivationStatusResponse response = responseObject.getResponseObject();
         assertEquals(initResponse.getActivationId(), response.getActivationId());
 
@@ -377,9 +377,9 @@ class PowerAuthActivationTest {
         // Get status
         stepLoggerStatus = new ObjectStepLogger(System.out);
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-        assertTrue(stepLoggerStatus.getResult().isSuccess());
-        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
-        responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().getResponseObject();
+        assertTrue(stepLoggerStatus.getResult().success());
+        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
         response = responseObject.getResponseObject();
         assertEquals(initResponse.getActivationId(), response.getActivationId());
 
@@ -397,9 +397,9 @@ class PowerAuthActivationTest {
         // Get status
         stepLoggerStatus = new ObjectStepLogger(System.out);
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-        assertTrue(stepLoggerStatus.getResult().isSuccess());
-        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
-        responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().getResponseObject();
+        assertTrue(stepLoggerStatus.getResult().success());
+        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
         response = responseObject.getResponseObject();
         assertEquals(initResponse.getActivationId(), response.getActivationId());
 
@@ -415,9 +415,9 @@ class PowerAuthActivationTest {
         // Get status
         stepLoggerStatus = new ObjectStepLogger(System.out);
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-        assertTrue(stepLoggerStatus.getResult().isSuccess());
-        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
-        responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().getResponseObject();
+        assertTrue(stepLoggerStatus.getResult().success());
+        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
         response = responseObject.getResponseObject();
         assertEquals(initResponse.getActivationId(), response.getActivationId());
 
@@ -447,13 +447,13 @@ class PowerAuthActivationTest {
         // Verify that PrepareActivation fails
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertFalse(stepLoggerPrepare.getResult().isSuccess());
+        assertFalse(stepLoggerPrepare.getResult().success());
         // Verify BAD_REQUEST status code
-        assertEquals(400, stepLoggerPrepare.getResponse().getStatusCode());
+        assertEquals(400, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify error response
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
@@ -478,13 +478,13 @@ class PowerAuthActivationTest {
         // Verify that PrepareActivation fails
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertFalse(stepLoggerPrepare.getResult().isSuccess());
+        assertFalse(stepLoggerPrepare.getResult().success());
         // Verify BAD_REQUEST status code
-        assertEquals(400, stepLoggerPrepare.getResponse().getStatusCode());
+        assertEquals(400, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify error response
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
@@ -585,10 +585,10 @@ class PowerAuthActivationTest {
         model.setResultStatusObject(resultStatusObject);
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
-        EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().getResponseObject();
+        final EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().responseObject();
         assertNotNull(eciesResponse.getEncryptedData());
         assertNotNull(eciesResponse.getMac());
 
@@ -601,9 +601,9 @@ class PowerAuthActivationTest {
 
         ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-        assertTrue(stepLoggerStatus.getResult().isSuccess());
-        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
-        ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().getResponseObject();
+        assertTrue(stepLoggerStatus.getResult().success());
+        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        final ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
         ActivationStatusResponse response = responseObject.getResponseObject();
         assertEquals(initResponse.getActivationId(), response.getActivationId());
 

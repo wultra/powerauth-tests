@@ -130,8 +130,8 @@ class PowerAuthActivationOtpTest {
         model.setAdditionalActivationOtp(validOtpValue);
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify activation status
         final GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
@@ -169,8 +169,8 @@ class PowerAuthActivationOtpTest {
             model.setAdditionalActivationOtp(invalidOtpValue);
             ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
             new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-            assertFalse(stepLoggerPrepare.getResult().isSuccess());
-            assertEquals(400, stepLoggerPrepare.getResponse().getStatusCode());
+            assertFalse(stepLoggerPrepare.getResult().success());
+            assertEquals(400, stepLoggerPrepare.getResponse().statusCode());
 
             // Verify activation status
             ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.CREATED;
@@ -199,8 +199,8 @@ class PowerAuthActivationOtpTest {
         model.setResultStatusObject(resultStatusObject);
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify activation status
         GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
@@ -252,8 +252,8 @@ class PowerAuthActivationOtpTest {
         model.setResultStatusObject(resultStatusObject);
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify activation status
         GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
@@ -300,8 +300,8 @@ class PowerAuthActivationOtpTest {
         model.setResultStatusObject(resultStatusObject);
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify activation status
         GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
@@ -335,11 +335,11 @@ class PowerAuthActivationOtpTest {
         ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
         statusModel.setResultStatusObject(resultStatusObject);
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-        assertTrue(stepLoggerStatus.getResult().isSuccess());
-        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
+        assertTrue(stepLoggerStatus.getResult().success());
+        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
 
         // Validate failed and max failed attempts.
-        Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("activation-status-obtained").getObject();
+        final Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("activation-status-obtained").object();
         ActivationStatusBlobInfo statusBlobInfo = (ActivationStatusBlobInfo) statusResponseMap.get("statusBlob");
         assertEquals(5L, statusBlobInfo.getMaxFailedAttempts());
         assertEquals(0L, statusBlobInfo.getFailedAttempts());
@@ -365,8 +365,8 @@ class PowerAuthActivationOtpTest {
         model.setResultStatusObject(resultStatusObject);
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify activation status
         GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
@@ -488,8 +488,8 @@ class PowerAuthActivationOtpTest {
         model.setResultStatusObject(resultStatusObject);
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify activation status
         GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
@@ -542,7 +542,7 @@ class PowerAuthActivationOtpTest {
         model.setAdditionalActivationOtp(null);
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertFalse(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(400, stepLoggerPrepare.getResponse().getStatusCode());
+        assertFalse(stepLoggerPrepare.getResult().success());
+        assertEquals(400, stepLoggerPrepare.getResponse().statusCode());
     }
 }

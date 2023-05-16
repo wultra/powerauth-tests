@@ -184,20 +184,20 @@ class PowerAuthCustomActivationOtpTest {
 
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify decrypted activationId
         String activationId = null;
         ActivationRecovery activationRecovery = null;
         for (StepItem item: stepLoggerPrepare.getItems()) {
-            if (item.getName().equals("Activation Done")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Activation Done")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 activationId = (String) responseMap.get("activationId");
                 break;
             }
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                activationRecovery = ((ActivationLayer2Response)item.getObject()).getActivationRecovery();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                activationRecovery = ((ActivationLayer2Response)item.object()).getActivationRecovery();
             }
         }
 
@@ -230,16 +230,16 @@ class PowerAuthCustomActivationOtpTest {
         createModel.setCustomAttributes(customAttributes);
 
         new CreateActivationStep().execute(stepLogger, createModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         String activationId = null;
         boolean layer2ResponseOk = false;
         boolean layer1ResponseOk = false;
         // Verify decrypted responses
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
                 activationId = layer2Response.getActivationId();
                 assertNotNull(activationId);
                 assertNotNull(layer2Response.getCtrData());
@@ -251,8 +251,8 @@ class PowerAuthCustomActivationOtpTest {
                 layer2ResponseOk = true;
                 continue;
             }
-            if (item.getName().equals("Decrypted Layer 1 Response")) {
-                ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 1 Response")) {
+                final ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.object();
                 // Verify custom attributes, there should be no change
                 assertEquals("value", layer1Response.getCustomAttributes().get("key"));
                 layer1ResponseOk = true;
@@ -290,11 +290,11 @@ class PowerAuthCustomActivationOtpTest {
         // Try to get activation status via RESTful API
         ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-        assertTrue(stepLoggerStatus.getResult().isSuccess());
-        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
+        assertTrue(stepLoggerStatus.getResult().success());
+        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
 
         // Validate failed attempts counter.
-        Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("activation-status-obtained").getObject();
+        final Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("activation-status-obtained").object();
         ActivationStatusBlobInfo statusBlobInfo = (ActivationStatusBlobInfo) statusResponseMap.get("statusBlob");
         assertEquals(0L, statusBlobInfo.getFailedAttempts());
 
@@ -315,16 +315,16 @@ class PowerAuthCustomActivationOtpTest {
         createModel.setCustomAttributes(customAttributes);
 
         new CreateActivationStep().execute(stepLogger, createModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         String activationId = null;
         boolean layer2ResponseOk = false;
         boolean layer1ResponseOk = false;
         // Verify decrypted responses
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
                 activationId = layer2Response.getActivationId();
                 assertNotNull(activationId);
                 assertNotNull(layer2Response.getCtrData());
@@ -336,8 +336,8 @@ class PowerAuthCustomActivationOtpTest {
                 layer2ResponseOk = true;
                 continue;
             }
-            if (item.getName().equals("Decrypted Layer 1 Response")) {
-                ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 1 Response")) {
+                final ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.object();
                 // Verify custom attributes, there should be no change
                 assertEquals("value", layer1Response.getCustomAttributes().get("key"));
                 layer1ResponseOk = true;
@@ -394,15 +394,15 @@ class PowerAuthCustomActivationOtpTest {
         ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
 
         new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
-        assertTrue(stepLoggerRecovery.getResult().isSuccess());
-        assertEquals(200, stepLoggerRecovery.getResponse().getStatusCode());
+        assertTrue(stepLoggerRecovery.getResult().success());
+        assertEquals(200, stepLoggerRecovery.getResponse().statusCode());
 
         // Extract activation ID
         String activationId = null;
         ActivationRecovery activationRecoveryNew = null;
         for (StepItem item: stepLoggerRecovery.getItems()) {
-            if (item.getName().equals("Activation Done")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Activation Done")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 activationId = (String) responseMap.get("activationId");
                 break;
             }
@@ -436,11 +436,11 @@ class PowerAuthCustomActivationOtpTest {
         // Try to get activation status via RESTful API
         ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-        assertTrue(stepLoggerStatus.getResult().isSuccess());
-        assertEquals(200, stepLoggerStatus.getResponse().getStatusCode());
+        assertTrue(stepLoggerStatus.getResult().success());
+        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
 
         // Validate failed attempts counter.
-        Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("activation-status-obtained").getObject();
+        final Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("activation-status-obtained").object();
         ActivationStatusBlobInfo statusBlobInfo = (ActivationStatusBlobInfo) statusResponseMap.get("statusBlob");
         assertEquals(0L, statusBlobInfo.getFailedAttempts());
 
@@ -466,15 +466,15 @@ class PowerAuthCustomActivationOtpTest {
         ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
 
         new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
-        assertTrue(stepLoggerRecovery.getResult().isSuccess());
-        assertEquals(200, stepLoggerRecovery.getResponse().getStatusCode());
+        assertTrue(stepLoggerRecovery.getResult().success());
+        assertEquals(200, stepLoggerRecovery.getResponse().statusCode());
 
         // Extract activation ID
         String activationId = null;
         ActivationRecovery activationRecoveryNew = null;
         for (StepItem item: stepLoggerRecovery.getItems()) {
-            if (item.getName().equals("Activation Done")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Activation Done")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 activationId = (String) responseMap.get("activationId");
                 break;
             }

@@ -125,11 +125,11 @@ class PowerAuthRecoveryTest {
         prepareModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Extract recovery data
-        EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().getResponseObject();
+        final EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().responseObject();
         assertNotNull(eciesResponse.getEncryptedData());
         assertNotNull(eciesResponse.getMac());
 
@@ -137,13 +137,13 @@ class PowerAuthRecoveryTest {
         String activationId = null;
         ActivationRecovery activationRecovery = null;
         for (StepItem item: stepLoggerPrepare.getItems()) {
-            if (item.getName().equals("Activation Done")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Activation Done")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 activationId = (String) responseMap.get("activationId");
                 break;
             }
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                activationRecovery = ((ActivationLayer2Response)item.getObject()).getActivationRecovery();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                activationRecovery = ((ActivationLayer2Response)item.object()).getActivationRecovery();
             }
         }
 
@@ -176,13 +176,13 @@ class PowerAuthRecoveryTest {
 
         ObjectStepLogger stepLoggerConfirm = new ObjectStepLogger(System.out);
         new ConfirmRecoveryCodeStep().execute(stepLoggerConfirm, confirmModel.toMap());
-        assertTrue(stepLoggerConfirm.getResult().isSuccess());
-        assertEquals(200, stepLoggerConfirm.getResponse().getStatusCode());
+        assertTrue(stepLoggerConfirm.getResult().success());
+        assertEquals(200, stepLoggerConfirm.getResponse().statusCode());
 
         boolean alreadyConfirmed = false;
         for (StepItem item: stepLoggerConfirm.getItems()) {
-            if (item.getName().equals("Recovery Code Confirmed")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Recovery Code Confirmed")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 alreadyConfirmed = (boolean) responseMap.get("alreadyConfirmed");
             }
         }
@@ -207,20 +207,20 @@ class PowerAuthRecoveryTest {
         recoveryModel.setIdentityAttributes(identityAttributes);
         ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
         new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
-        assertTrue(stepLoggerRecovery.getResult().isSuccess());
-        assertEquals(200, stepLoggerRecovery.getResponse().getStatusCode());
+        assertTrue(stepLoggerRecovery.getResult().success());
+        assertEquals(200, stepLoggerRecovery.getResponse().statusCode());
 
         // Extract activation ID
         String activationIdNew = null;
         ActivationRecovery activationRecoveryNew = null;
         for (StepItem item: stepLoggerRecovery.getItems()) {
-            if (item.getName().equals("Activation Done")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Activation Done")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 activationIdNew = (String) responseMap.get("activationId");
                 break;
             }
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                activationRecoveryNew = ((ActivationLayer2Response)item.getObject()).getActivationRecovery();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                activationRecoveryNew = ((ActivationLayer2Response)item.object()).getActivationRecovery();
             }
         }
 
@@ -288,11 +288,11 @@ class PowerAuthRecoveryTest {
             prepareModel.setDeviceInfo("backend-tests");
             ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
             new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
-            assertTrue(stepLoggerPrepare.getResult().isSuccess());
-            assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+            assertTrue(stepLoggerPrepare.getResult().success());
+            assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
             // Extract recovery data
-            EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().getResponseObject();
+            final EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().responseObject();
             assertNotNull(eciesResponse.getEncryptedData());
             assertNotNull(eciesResponse.getMac());
 
@@ -300,13 +300,13 @@ class PowerAuthRecoveryTest {
             String activationId = null;
             ActivationRecovery activationRecovery = null;
             for (StepItem item : stepLoggerPrepare.getItems()) {
-                if (item.getName().equals("Activation Done")) {
-                    Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+                if (item.name().equals("Activation Done")) {
+                    final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                     activationId = (String) responseMap.get("activationId");
                     break;
                 }
-                if (item.getName().equals("Decrypted Layer 2 Response")) {
-                    activationRecovery = ((ActivationLayer2Response) item.getObject()).getActivationRecovery();
+                if (item.name().equals("Decrypted Layer 2 Response")) {
+                    activationRecovery = ((ActivationLayer2Response) item.object()).getActivationRecovery();
                 }
             }
 
@@ -369,11 +369,11 @@ class PowerAuthRecoveryTest {
         prepareModel.setActivationCode(initResponse.getActivationCode());
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Extract recovery data
-        EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().getResponseObject();
+        final EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().responseObject();
         assertNotNull(eciesResponse.getEncryptedData());
         assertNotNull(eciesResponse.getMac());
 
@@ -381,13 +381,13 @@ class PowerAuthRecoveryTest {
         String activationId = null;
         ActivationRecovery activationRecovery = null;
         for (StepItem item: stepLoggerPrepare.getItems()) {
-            if (item.getName().equals("Activation Done")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Activation Done")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 activationId = (String) responseMap.get("activationId");
                 break;
             }
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                activationRecovery = ((ActivationLayer2Response)item.getObject()).getActivationRecovery();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                activationRecovery = ((ActivationLayer2Response)item.object()).getActivationRecovery();
             }
         }
 
@@ -438,8 +438,8 @@ class PowerAuthRecoveryTest {
             ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
             new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
 
-            assertFalse(stepLoggerRecovery.getResult().isSuccess());
-            assertEquals(400, stepLoggerRecovery.getResponse().getStatusCode());
+            assertFalse(stepLoggerRecovery.getResult().success());
+            assertEquals(400, stepLoggerRecovery.getResponse().statusCode());
         }
 
         // Verify recovery code and PUK status after
@@ -506,20 +506,20 @@ class PowerAuthRecoveryTest {
         prepareModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify decrypted activationId and extract recovery data
         String activationId = null;
         ActivationRecovery activationRecovery = null;
         for (StepItem item: stepLoggerPrepare.getItems()) {
-            if (item.getName().equals("Activation Done")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Activation Done")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 activationId = (String) responseMap.get("activationId");
                 break;
             }
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                activationRecovery = ((ActivationLayer2Response)item.getObject()).getActivationRecovery();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                activationRecovery = ((ActivationLayer2Response)item.object()).getActivationRecovery();
             }
         }
 
@@ -548,13 +548,13 @@ class PowerAuthRecoveryTest {
 
         ObjectStepLogger stepLoggerConfirm = new ObjectStepLogger(System.out);
         new ConfirmRecoveryCodeStep().execute(stepLoggerConfirm, confirmModel.toMap());
-        assertTrue(stepLoggerConfirm.getResult().isSuccess());
-        assertEquals(200, stepLoggerConfirm.getResponse().getStatusCode());
+        assertTrue(stepLoggerConfirm.getResult().success());
+        assertEquals(200, stepLoggerConfirm.getResponse().statusCode());
 
         Boolean alreadyConfirmed = null;
         for (StepItem item: stepLoggerConfirm.getItems()) {
-            if (item.getName().equals("Recovery Code Confirmed")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Recovery Code Confirmed")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 alreadyConfirmed = (boolean) responseMap.get("alreadyConfirmed");
             }
         }
@@ -580,20 +580,20 @@ class PowerAuthRecoveryTest {
         recoveryModel.setIdentityAttributes(identityAttributes);
         ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
         new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
-        assertTrue(stepLoggerRecovery.getResult().isSuccess());
-        assertEquals(200, stepLoggerRecovery.getResponse().getStatusCode());
+        assertTrue(stepLoggerRecovery.getResult().success());
+        assertEquals(200, stepLoggerRecovery.getResponse().statusCode());
 
         // Extract activation ID
         String activationIdNew = null;
         ActivationRecovery activationRecoveryNew = null;
         for (StepItem item: stepLoggerRecovery.getItems()) {
-            if (item.getName().equals("Activation Done")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Activation Done")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 activationIdNew = (String) responseMap.get("activationId");
                 break;
             }
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                activationRecoveryNew = ((ActivationLayer2Response)item.getObject()).getActivationRecovery();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                activationRecoveryNew = ((ActivationLayer2Response)item.object()).getActivationRecovery();
             }
         }
 
@@ -691,14 +691,14 @@ class PowerAuthRecoveryTest {
         prepareModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Extract recovery data
         ActivationRecovery activationRecovery = null;
         for (StepItem item: stepLoggerPrepare.getItems()) {
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                activationRecovery = ((ActivationLayer2Response)item.getObject()).getActivationRecovery();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                activationRecovery = ((ActivationLayer2Response)item.object()).getActivationRecovery();
             }
         }
 
@@ -726,8 +726,8 @@ class PowerAuthRecoveryTest {
 
         ObjectStepLogger stepLoggerConfirm = new ObjectStepLogger(System.out);
         new ConfirmRecoveryCodeStep().execute(stepLoggerConfirm, confirmModel.toMap());
-        assertTrue(stepLoggerConfirm.getResult().isSuccess());
-        assertEquals(200, stepLoggerConfirm.getResponse().getStatusCode());
+        assertTrue(stepLoggerConfirm.getResult().success());
+        assertEquals(200, stepLoggerConfirm.getResponse().statusCode());
 
         // Create new activation using recovery code
         Map<String, String> identityAttributes = new HashMap<>();
@@ -749,21 +749,21 @@ class PowerAuthRecoveryTest {
         recoveryModel.setIdentityAttributes(identityAttributes);
         ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
         new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
-        assertTrue(stepLoggerRecovery.getResult().isSuccess());
-        assertEquals(200, stepLoggerRecovery.getResponse().getStatusCode());
+        assertTrue(stepLoggerRecovery.getResult().success());
+        assertEquals(200, stepLoggerRecovery.getResponse().statusCode());
 
         // Use invalid PUK
         recoveryModel.setActivationName("recovery postcard test invalid PUK v31");
         ObjectStepLogger stepLoggerRecovery2 = new ObjectStepLogger(System.out);
         new ActivationRecoveryStep().execute(stepLoggerRecovery2, recoveryModel.toMap());
-        assertFalse(stepLoggerRecovery2.getResult().isSuccess());
-        assertEquals(400, stepLoggerRecovery2.getResponse().getStatusCode());
+        assertFalse(stepLoggerRecovery2.getResult().success());
+        assertEquals(400, stepLoggerRecovery2.getResponse().statusCode());
 
         // Extract error
         Integer currentRecoveryPukIndex = null;
         for (StepItem item: stepLoggerRecovery2.getItems()) {
-            if (item.getName().equals("Response 400 - ERROR")) {
-                String recoveryErrorJSON = (String) ((HashMap)item.getObject()).get("responseObject");
+            if (item.name().equals("Response 400 - ERROR")) {
+                final String recoveryErrorJSON = (String) ((HashMap)item.object()).get("responseObject");
                 JavaType type = config.getObjectMapper().getTypeFactory().constructParametricType(ObjectResponse.class, RecoveryError.class);
                 ObjectResponse<RecoveryError> recoveryError = config.getObjectMapper().readValue(recoveryErrorJSON, type);
                 currentRecoveryPukIndex = recoveryError.getResponseObject().getCurrentRecoveryPukIndex();
@@ -779,8 +779,8 @@ class PowerAuthRecoveryTest {
         recoveryModel.setActivationName("recovery postcard test valid PUK 2 v31");
         ObjectStepLogger stepLoggerRecovery3 = new ObjectStepLogger(System.out);
         new ActivationRecoveryStep().execute(stepLoggerRecovery3, recoveryModel.toMap());
-        assertTrue(stepLoggerRecovery3.getResult().isSuccess());
-        assertEquals(200, stepLoggerRecovery3.getResponse().getStatusCode());
+        assertTrue(stepLoggerRecovery3.getResult().success());
+        assertEquals(200, stepLoggerRecovery3.getResponse().statusCode());
 
         // Verify postcard recovery code and PUK status
         LookupRecoveryCodesResponse responseCode = powerAuthClient.lookupRecoveryCodes(initResponse.getUserId(), null, config.getApplicationId(), null, null);

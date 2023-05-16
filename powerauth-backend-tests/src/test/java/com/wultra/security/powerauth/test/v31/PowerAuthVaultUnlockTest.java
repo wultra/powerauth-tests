@@ -89,13 +89,13 @@ class PowerAuthVaultUnlockTest {
     @Test
     void vaultUnlockTest() throws Exception {
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         boolean keyDecryptionSuccessful = false;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Vault Unlocked")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Vault Unlocked")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 assertEquals("true", responseMap.get("privateKeyDecryptionSuccessful"));
                 keyDecryptionSuccessful = true;
             }
@@ -108,11 +108,11 @@ class PowerAuthVaultUnlockTest {
         model.setPassword("1111");
 
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(401, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(401, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
     }
@@ -122,12 +122,12 @@ class PowerAuthVaultUnlockTest {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
 
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
+        assertFalse(stepLogger.getResult().success());
         // Verify BAD_REQUEST status code
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertEquals(400, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_SECURE_VAULT", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_SECURE_VAULT_INVALID", errorResponse.getResponseObject().getMessage());
@@ -138,8 +138,8 @@ class PowerAuthVaultUnlockTest {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_BIOMETRY);
 
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -147,8 +147,8 @@ class PowerAuthVaultUnlockTest {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY);
 
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -157,11 +157,11 @@ class PowerAuthVaultUnlockTest {
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new VaultUnlockStep().execute(stepLogger1, model.toMap());
-        assertFalse(stepLogger1.getResult().isSuccess());
-        assertEquals(401, stepLogger1.getResponse().getStatusCode());
+        assertFalse(stepLogger1.getResult().success());
+        assertEquals(401, stepLogger1.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
 
@@ -169,8 +169,8 @@ class PowerAuthVaultUnlockTest {
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new VaultUnlockStep().execute(stepLogger2, model.toMap());
-        assertTrue(stepLogger2.getResult().isSuccess());
-        assertEquals(200, stepLogger2.getResponse().getStatusCode());
+        assertTrue(stepLogger2.getResult().success());
+        assertEquals(200, stepLogger2.getResponse().statusCode());
     }
 
     @Test
@@ -179,11 +179,11 @@ class PowerAuthVaultUnlockTest {
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new VaultUnlockStep().execute(stepLogger1, model.toMap());
-        assertFalse(stepLogger1.getResult().isSuccess());
-        assertEquals(401, stepLogger1.getResponse().getStatusCode());
+        assertFalse(stepLogger1.getResult().success());
+        assertEquals(401, stepLogger1.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
 
@@ -191,10 +191,10 @@ class PowerAuthVaultUnlockTest {
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
         new VaultUnlockStep().execute(stepLogger2, model.toMap());
-        assertTrue(stepLogger2.getResult().isSuccess());
-        assertEquals(200, stepLogger2.getResponse().getStatusCode());
+        assertTrue(stepLogger2.getResult().success());
+        assertEquals(200, stepLogger2.getResponse().statusCode());
 
-        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger2.getResponse().getResponseObject();
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger2.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
     }
@@ -203,8 +203,8 @@ class PowerAuthVaultUnlockTest {
     void vaultUnlockCounterIncrementTest() throws Exception {
         byte[] ctrData = CounterUtil.getCtrData(model, stepLogger);
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         // Verify counter after createToken - in version 3.0 the counter is incremented once
         byte[] ctrDataExpected = new HashBasedCounter().next(ctrData);
@@ -216,11 +216,11 @@ class PowerAuthVaultUnlockTest {
         model.setReason("vt39nW6ZM963PJ8qxiREICZqK5medvUN8YizLDaLYTlMUtXyvdkqG3fMda29eCRHwAeAUsB415HqUlYZoDeEkvCOQzhu8ZpTGahAZVROi0YcNNGizecpzLDQUzRPbzVbHfJRd5zUasU3npS7FE9WZSqVfpLEthrPRN40efWxmKHxTzCUbHkk11odipkavelkG64mUgrdX0STh22vL4hE8jMjOM86HIT0rZHx2EhC1muJvtdDxWK3pz3Z9s2GHKj0");
 
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_SECURE_VAULT", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_SECURE_VAULT_INVALID", errorResponse.getResponseObject().getMessage());
@@ -233,14 +233,14 @@ class PowerAuthVaultUnlockTest {
 
         // Obtain the device private key using vault unlock
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         boolean keyDecryptionSuccessful = false;
         String devicePrivateKeyBase64 = null;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Vault Unlocked")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Vault Unlocked")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 assertEquals("true", responseMap.get("privateKeyDecryptionSuccessful"));
                 keyDecryptionSuccessful = true;
                 devicePrivateKeyBase64 = (String) responseMap.get("devicePrivateKey");
@@ -263,14 +263,14 @@ class PowerAuthVaultUnlockTest {
 
         // Obtain the device private key using vault unlock
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         boolean keyDecryptionSuccessful = false;
         String devicePrivateKeyBase64 = null;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Vault Unlocked")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Vault Unlocked")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 assertEquals("true", responseMap.get("privateKeyDecryptionSuccessful"));
                 keyDecryptionSuccessful = true;
                 devicePrivateKeyBase64 = (String) responseMap.get("devicePrivateKey");
@@ -293,14 +293,14 @@ class PowerAuthVaultUnlockTest {
 
         // Obtain the device private key using vault unlock
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         boolean keyDecryptionSuccessful = false;
         String devicePrivateKeyBase64 = null;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Vault Unlocked")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Vault Unlocked")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 assertEquals("true", responseMap.get("privateKeyDecryptionSuccessful"));
                 keyDecryptionSuccessful = true;
                 devicePrivateKeyBase64 = (String) responseMap.get("devicePrivateKey");
@@ -323,14 +323,14 @@ class PowerAuthVaultUnlockTest {
 
         // Obtain the device private key using vault unlock
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         boolean keyDecryptionSuccessful = false;
         String devicePrivateKeyBase64 = null;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Vault Unlocked")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Vault Unlocked")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 assertEquals("true", responseMap.get("privateKeyDecryptionSuccessful"));
                 keyDecryptionSuccessful = true;
                 devicePrivateKeyBase64 = (String) responseMap.get("devicePrivateKey");

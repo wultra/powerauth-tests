@@ -106,8 +106,8 @@ public class ActivationService extends BaseService {
             prepareActivationStep.execute(stepLogger, model.toMap());
             for (StepItem item: stepLogger.getItems()) {
                 StepItemLogger.log(logger, item);
-                if ("Activation Done".equals(item.getName())) {
-                    final Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+                if ("Activation Done".equals(item.name())) {
+                    final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                     activationId = (String) responseMap.get("activationId");
                 }
             }

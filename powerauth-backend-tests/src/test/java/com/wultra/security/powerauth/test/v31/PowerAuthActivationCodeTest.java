@@ -141,18 +141,18 @@ public class PowerAuthActivationCodeTest {
         signatureModel.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         boolean responseSuccessfullyDecrypted = false;
         String activationId = null;
         String activationCode = null;
         String activationSignature = null;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
+            if (item.name().equals("Decrypted Response")) {
                 ObjectMapper objectMapper = config.getObjectMapper();
                 final TypeReference<ObjectResponse<LinkedHashMap<String, String>>> responseType = new TypeReference<>(){};
-                ObjectResponse<LinkedHashMap<String, String>> responseData = objectMapper.readValue(item.getObject().toString(), responseType);
+                final ObjectResponse<LinkedHashMap<String, String>> responseData = objectMapper.readValue(item.object().toString(), responseType);
                 activationId = responseData.getResponseObject().get("activationId");
                 activationCode = responseData.getResponseObject().get("activationCode");
                 activationSignature = responseData.getResponseObject().get("activationSignature");
@@ -180,8 +180,8 @@ public class PowerAuthActivationCodeTest {
         activationModel.setAdditionalActivationOtp(additionalActivationOtp);
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, activationModel.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Activations with OTP on key exchange are committed automatically
     }

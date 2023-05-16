@@ -19,18 +19,18 @@ public class StepItemLogger {
             return;
         }
         String serializedObject = null;
-        if (item.getObject() != null) {
+        if (item.object() != null) {
             try {
-                serializedObject = objectMapper.writeValueAsString(item.getObject());
+                serializedObject = objectMapper.writeValueAsString(item.object());
             } catch (JsonProcessingException e) {
-                serializedObject = item.getObject().toString();
+                serializedObject = item.object().toString();
             }
         }
         logger.info("Log item with ID: {}, name: {}, description: {}, status: {}, object: {}",
-                item.getId(),
-                item.getName(),
-                item.getDescription(),
-                item.getStatus(),
+                item.id(),
+                item.name(),
+                item.description(),
+                item.status(),
                 serializedObject
         );
     }
