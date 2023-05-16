@@ -79,15 +79,15 @@ class PowerAuthSignatureTest {
 
     private PowerAuthClient powerAuthClient;
 
-    private SignatureUtils signatureUtils = new SignatureUtils();
+    private final SignatureUtils signatureUtils = new SignatureUtils();
 
     // Data for offline signatures
-    private String operationId = "5ff1b1ed-a3cc-45a3-8ab0-ed60950312b6";
-    private String operationData = "A1*A100CZK*ICZ2730300000001165254011*D20180425";
-    private String title = "Payment";
-    private String message = "Please confirm this payment";
-    private String flags = "B";
-    private String offlineData = operationId + "\n" + title + "\n" + message + "\n" + operationData + "\n" + flags;
+    private final String operationId = "5ff1b1ed-a3cc-45a3-8ab0-ed60950312b6";
+    private final String operationData = "A1*A100CZK*ICZ2730300000001165254011*D20180425";
+    private final String title = "Payment";
+    private final String message = "Please confirm this payment";
+    private final String flags = "B";
+    private final String offlineData = operationId + "\n" + title + "\n" + message + "\n" + operationData + "\n" + flags;
 
     @Autowired
     public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {
@@ -626,7 +626,7 @@ class PowerAuthSignatureTest {
 
         // Cripple signature
         String digitToReplace = signature.substring(0, 1);
-        String replacedDigit = String.valueOf((Integer.valueOf(digitToReplace) + 1) % 10);
+        final String replacedDigit = String.valueOf((Integer.parseInt(digitToReplace) + 1) % 10);
         signature = signature.replace(digitToReplace, replacedDigit);
 
         VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV31(), signatureBaseString, signature, true);
@@ -748,7 +748,7 @@ class PowerAuthSignatureTest {
 
         // Cripple signature
         String digitToReplace = signature.substring(0, 1);
-        String replacedDigit = String.valueOf((Integer.valueOf(digitToReplace) + 1) % 10);
+        final String replacedDigit = String.valueOf((Integer.parseInt(digitToReplace) + 1) % 10);
         signature = signature.replace(digitToReplace, replacedDigit);
 
         VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationIdV31(), signatureBaseString, signature, true);

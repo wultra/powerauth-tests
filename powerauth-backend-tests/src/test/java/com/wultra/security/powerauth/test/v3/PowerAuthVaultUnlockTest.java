@@ -57,7 +57,7 @@ class PowerAuthVaultUnlockTest {
     private VaultUnlockStepModel model;
     private ObjectStepLogger stepLogger;
 
-    private SignatureUtils signatureUtils = new SignatureUtils();
+    private final SignatureUtils signatureUtils = new SignatureUtils();
 
     @Autowired
     public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {

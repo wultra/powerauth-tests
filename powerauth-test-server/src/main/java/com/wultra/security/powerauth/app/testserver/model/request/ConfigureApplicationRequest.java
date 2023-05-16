@@ -18,7 +18,6 @@
 
 package com.wultra.security.powerauth.app.testserver.model.request;
 
-import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 

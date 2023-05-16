@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.app.testserver.errorhandling;
 
+import java.io.Serial;
+
 /**
  * Exception for case when activation could not be created.
  *
@@ -25,6 +27,7 @@ package com.wultra.security.powerauth.app.testserver.errorhandling;
  */
 public class ActivationFailedException extends Exception {
 
+    @Serial
     private static final long serialVersionUID = -1691643671398216316L;
 
     /**

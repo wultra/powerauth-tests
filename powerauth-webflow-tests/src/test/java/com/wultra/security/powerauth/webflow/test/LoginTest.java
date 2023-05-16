@@ -25,15 +25,15 @@ public class LoginTest {
         this.config = config;
     }
 
-    By loginLink = By.xpath("//a[@href='#LOGIN']");
-    By loginButton = By.xpath("//button[@type='submit' and text()='Connect']");
-    By usernameField = By.xpath("//div[@class='panel-body']//input[@type='text' and @placeholder='Login number']");
-    By passwordField = By.xpath("//div[@class='panel-body']//input[@type='password' and @placeholder='Password']");
-    By signInButton = By.xpath("//button[@type='submit']/span[text()='Sign In']/..");
-    By consentOption = By.id("CONSENT_LOGIN");
-    By confirmButton = By.xpath("//button[@type='submit']/span[text()='Confirm']/..");
-    By messageSuccess = By.xpath("//div[@class='message-success title']");
-    By logoutButton = By.xpath("//button[@type='submit' and text()='Log out']");
+    private final By loginLink = By.xpath("//a[@href='#LOGIN']");
+    private final By loginButton = By.xpath("//button[@type='submit' and text()='Connect']");
+    private final By usernameField = By.xpath("//div[@class='panel-body']//input[@type='text' and @placeholder='Login number']");
+    private final By passwordField = By.xpath("//div[@class='panel-body']//input[@type='password' and @placeholder='Password']");
+    private final By signInButton = By.xpath("//button[@type='submit']/span[text()='Sign In']/..");
+    private final By consentOption = By.id("CONSENT_LOGIN");
+    private final By confirmButton = By.xpath("//button[@type='submit']/span[text()='Confirm']/..");
+    private final By messageSuccess = By.xpath("//div[@class='message-success title']");
+    private final By logoutButton = By.xpath("//button[@type='submit' and text()='Log out']");
 
     @BeforeEach
     public void setUp() throws Exception {

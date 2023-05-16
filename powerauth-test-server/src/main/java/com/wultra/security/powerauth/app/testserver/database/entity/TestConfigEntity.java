@@ -27,6 +27,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 
@@ -43,6 +44,7 @@ import java.util.Objects;
 @Table(name = "pa_test_config")
 public class TestConfigEntity implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = -7771850381097895836L;
 
     @Id
