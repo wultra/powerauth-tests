@@ -117,14 +117,14 @@ class PowerAuthTokenTest {
     void tokenCreateAndVerifyTest() throws Exception {
         ObjectStepLogger stepLogger1 = new ObjectStepLogger();
         new CreateTokenStep().execute(stepLogger1, model.toMap());
-        assertTrue(stepLogger1.getResult().isSuccess());
-        assertEquals(200, stepLogger1.getResponse().getStatusCode());
+        assertTrue(stepLogger1.getResult().success());
+        assertEquals(200, stepLogger1.getResponse().statusCode());
 
         String tokenId = null;
         String tokenSecret = null;
         for (StepItem item: stepLogger1.getItems()) {
-            if (item.getName().equals("Token successfully obtained")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Token successfully obtained")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 tokenId = (String) responseMap.get("tokenId");
                 tokenSecret = (String) responseMap.get("tokenSecret");
                 break;
@@ -153,10 +153,10 @@ class PowerAuthTokenTest {
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new VerifyTokenStep().execute(stepLogger2, modelVerify.toMap());
-        assertTrue(stepLogger2.getResult().isSuccess());
-        assertEquals(200, stepLogger2.getResponse().getStatusCode());
+        assertTrue(stepLogger2.getResult().success());
+        assertEquals(200, stepLogger2.getResponse().statusCode());
 
-        Map<String, Object> responseOK = (Map<String, Object>) stepLogger2.getResponse().getResponseObject();
+        final Map<String, Object> responseOK = (Map<String, Object>) stepLogger2.getResponse().responseObject();
         assertEquals("OK", responseOK.get("status"));
     }
 
@@ -165,11 +165,11 @@ class PowerAuthTokenTest {
         model.setPassword("1235");
 
         new CreateTokenStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(401, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(401, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
     }
@@ -188,11 +188,11 @@ class PowerAuthTokenTest {
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new VerifyTokenStep().execute(stepLogger2, modelVerify.toMap());
-        assertFalse(stepLogger2.getResult().isSuccess());
-        assertEquals(401, stepLogger2.getResponse().getStatusCode());
+        assertFalse(stepLogger2.getResult().success());
+        assertEquals(401, stepLogger2.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger2.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger2.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
     }
@@ -201,14 +201,14 @@ class PowerAuthTokenTest {
     void tokenVerifyRemovedTokenTest() throws Exception {
         ObjectStepLogger stepLogger1 = new ObjectStepLogger();
         new CreateTokenStep().execute(stepLogger1, model.toMap());
-        assertTrue(stepLogger1.getResult().isSuccess());
-        assertEquals(200, stepLogger1.getResponse().getStatusCode());
+        assertTrue(stepLogger1.getResult().success());
+        assertEquals(200, stepLogger1.getResponse().statusCode());
 
         String tokenId = null;
         String tokenSecret = null;
         for (StepItem item: stepLogger1.getItems()) {
-            if (item.getName().equals("Token successfully obtained")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Token successfully obtained")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 tokenId = (String) responseMap.get("tokenId");
                 tokenSecret = (String) responseMap.get("tokenSecret");
                 break;
@@ -239,11 +239,11 @@ class PowerAuthTokenTest {
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new VerifyTokenStep().execute(stepLogger2, modelVerify.toMap());
-        assertFalse(stepLogger2.getResult().isSuccess());
-        assertEquals(401, stepLogger2.getResponse().getStatusCode());
+        assertFalse(stepLogger2.getResult().success());
+        assertEquals(401, stepLogger2.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger2.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger2.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
     }
@@ -254,11 +254,11 @@ class PowerAuthTokenTest {
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new CreateTokenStep().execute(stepLogger1, model.toMap());
-        assertFalse(stepLogger1.getResult().isSuccess());
-        assertEquals(401, stepLogger1.getResponse().getStatusCode());
+        assertFalse(stepLogger1.getResult().success());
+        assertEquals(401, stepLogger1.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
 
@@ -266,8 +266,8 @@ class PowerAuthTokenTest {
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new CreateTokenStep().execute(stepLogger2, model.toMap());
-        assertTrue(stepLogger2.getResult().isSuccess());
-        assertEquals(200, stepLogger2.getResponse().getStatusCode());
+        assertTrue(stepLogger2.getResult().success());
+        assertEquals(200, stepLogger2.getResponse().statusCode());
     }
 
     @Test
@@ -276,11 +276,11 @@ class PowerAuthTokenTest {
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new CreateTokenStep().execute(stepLogger1, model.toMap());
-        assertFalse(stepLogger1.getResult().isSuccess());
-        assertEquals(401, stepLogger1.getResponse().getStatusCode());
+        assertFalse(stepLogger1.getResult().success());
+        assertEquals(401, stepLogger1.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
 
@@ -288,10 +288,10 @@ class PowerAuthTokenTest {
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
         new CreateTokenStep().execute(stepLogger2, model.toMap());
-        assertTrue(stepLogger2.getResult().isSuccess());
-        assertEquals(200, stepLogger2.getResponse().getStatusCode());
+        assertTrue(stepLogger2.getResult().success());
+        assertEquals(200, stepLogger2.getResponse().statusCode());
 
-        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger2.getResponse().getResponseObject();
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger2.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
     }
@@ -300,8 +300,8 @@ class PowerAuthTokenTest {
     void tokenCounterIncrementTest() throws Exception {
         byte[] ctrData = CounterUtil.getCtrData(model, stepLogger);
         new CreateTokenStep().execute(this.stepLogger, model.toMap());
-        assertTrue(this.stepLogger.getResult().isSuccess());
-        assertEquals(200, this.stepLogger.getResponse().getStatusCode());
+        assertTrue(this.stepLogger.getResult().success());
+        assertEquals(200, this.stepLogger.getResponse().statusCode());
 
         // Verify counter after createToken
         byte[] ctrDataExpected = new HashBasedCounter().next(ctrData);

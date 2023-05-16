@@ -524,8 +524,8 @@ class PowerAuthIdentityVerificationTest {
         signatureModel.setResourceId("/api/identity/init");
 
         new VerifySignatureStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         File imageFront = new ClassPathResource("images/id_card_mock_front_large.png").getFile();
 
@@ -546,13 +546,13 @@ class PowerAuthIdentityVerificationTest {
         tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/upload");
 
         new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         String uploadIdFront = null;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
+            if (item.name().equals("Decrypted Response")) {
+                final String responseData = item.object().toString();
                 final ObjectResponse<DocumentUploadResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 DocumentUploadResponse response = objectResponse.getResponseObject();
                 uploadIdFront = response.getId();
@@ -581,13 +581,13 @@ class PowerAuthIdentityVerificationTest {
         tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/upload");
 
         new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         String uploadIdBack = null;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
+            if (item.name().equals("Decrypted Response")) {
+                final String responseData = item.object().toString();
                 final ObjectResponse<DocumentUploadResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 DocumentUploadResponse response = objectResponse.getResponseObject();
                 uploadIdBack = response.getId();
@@ -621,8 +621,8 @@ class PowerAuthIdentityVerificationTest {
         tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/submit");
 
         new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         powerAuthClient.removeActivation(activationId, "test");
     }
@@ -646,9 +646,9 @@ class PowerAuthIdentityVerificationTest {
         signatureModel.setResourceId("/api/identity/document/init-sdk");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
-        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
     }
@@ -744,7 +744,7 @@ class PowerAuthIdentityVerificationTest {
         request.setIdentification(identification);
         executeRequest(request);
 
-        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
@@ -752,8 +752,8 @@ class PowerAuthIdentityVerificationTest {
         String processId = null;
         OnboardingStatus onboardingStatus = null;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
+            if (item.name().equals("Decrypted Response")) {
+                final String responseData = item.object().toString();
                 final ObjectResponse<OnboardingStartResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 OnboardingStartResponse response = objectResponse.getResponseObject();
                 processId = response.getProcessId();
@@ -774,8 +774,8 @@ class PowerAuthIdentityVerificationTest {
         byte[] data = objectMapper.writeValueAsBytes(objectRequest);
         encryptModel.setData(data);
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     private String generateRandomClientId() {
@@ -793,15 +793,15 @@ class PowerAuthIdentityVerificationTest {
         identityAttributes.put("credentialsType", "ONBOARDING");
         activationModel.setIdentityAttributes(identityAttributes);
         new CreateActivationStep().execute(stepLogger, activationModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         String activationId = null;
         boolean responseOk = false;
         // Verify decrypted responses
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
                 activationId = layer2Response.getActivationId();
                 assertNotNull(activationId);
                 assertNotNull(layer2Response.getCtrData());
@@ -823,14 +823,14 @@ class PowerAuthIdentityVerificationTest {
         stepLogger = new ObjectStepLogger(System.out);
         ObjectStepLogger stepLogger1 = new ObjectStepLogger();
         new CreateTokenStep().execute(stepLogger1, createTokenModel.toMap());
-        assertTrue(stepLogger1.getResult().isSuccess());
-        assertEquals(200, stepLogger1.getResponse().getStatusCode());
+        assertTrue(stepLogger1.getResult().success());
+        assertEquals(200, stepLogger1.getResponse().statusCode());
 
         String tokenId = null;
         String tokenSecret = null;
         for (StepItem item: stepLogger1.getItems()) {
-            if (item.getName().equals("Token successfully obtained")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+            if (item.name().equals("Token successfully obtained")) {
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 tokenId = (String) responseMap.get("tokenId");
                 tokenSecret = (String) responseMap.get("tokenSecret");
                 break;
@@ -856,15 +856,15 @@ class PowerAuthIdentityVerificationTest {
         requestOtp.setOtpType(otpType);
         executeRequest(requestOtp);
 
-        EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        final EciesEncryptedResponse responseOtpOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseOtpOK.getEncryptedData());
         assertNotNull(responseOtpOK.getMac());
 
         boolean responseOtpSuccessfullyDecrypted = false;
         String otpCode = null;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
+            if (item.name().equals("Decrypted Response")) {
+                final String responseData = item.object().toString();
                 final ObjectResponse<OtpDetailResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 OtpDetailResponse response = objectResponse.getResponseObject();
                 otpCode = response.getOtpCode();
@@ -891,8 +891,8 @@ class PowerAuthIdentityVerificationTest {
         signatureModel.setResourceId("/api/identity/init");
 
         new VerifySignatureStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         // Check activation flags
         ListActivationFlagsResponse flagResponse2 = powerAuthClient.listActivationFlags(activationId);
@@ -909,8 +909,8 @@ class PowerAuthIdentityVerificationTest {
         tokenModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/consent/text");
 
         new VerifyTokenStep().execute(stepLogger, tokenModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         final String consentText = convertValue(stepLogger, new TypeReference<ObjectResponse<OnboardingConsentTextResponse>>() { })
                 .getConsentText();
@@ -927,12 +927,12 @@ class PowerAuthIdentityVerificationTest {
         signatureModel.setResourceId("/api/identity/consent/approve");
 
         new VerifySignatureStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     private Predicate<StepItem> isStepItemDecryptedResponse() {
-        return stepItem -> "Decrypted Response".equals(stepItem.getName());
+        return stepItem -> "Decrypted Response".equals(stepItem.name());
     }
 
     private <T> T safeReadValue(final String value, final TypeReference<T> typeReference) {
@@ -945,7 +945,7 @@ class PowerAuthIdentityVerificationTest {
     }
 
     private <T> T convertValue(final ObjectStepLogger stepLogger, final TypeReference<ObjectResponse<T>> typeReference) {
-        final Object value = stepLogger.getResponse().getResponseObject();
+        final Object value = stepLogger.getResponse().responseObject();
         return objectMapper.convertValue(value, typeReference).getResponseObject();
     }
 
@@ -980,10 +980,10 @@ class PowerAuthIdentityVerificationTest {
         tokenAndEncryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/submit");
 
         new TokenAndEncryptStep().execute(stepLogger, tokenAndEncryptModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
-        final EciesEncryptedResponse response = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        final EciesEncryptedResponse response = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(response.getEncryptedData());
         assertNotNull(response.getMac());
     }
@@ -1036,8 +1036,8 @@ class PowerAuthIdentityVerificationTest {
         tokenModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/status");
 
         new VerifyTokenStep().execute(stepLogger, tokenModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         final DocumentStatusResponse response = convertValue(stepLogger, new TypeReference<>() { });
         assertEquals(expectedDocumentsCount, response.getDocuments().size());
@@ -1058,8 +1058,8 @@ class PowerAuthIdentityVerificationTest {
         signatureModel.setResourceId("/api/identity/presence-check/init");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     private void submitPresenceCheck(final String processId) throws Exception {
@@ -1074,8 +1074,8 @@ class PowerAuthIdentityVerificationTest {
         signatureModel.setResourceId("/api/identity/presence-check/submit");
 
         new VerifySignatureStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     private void verifyStatusBeforeOtp() throws Exception {
@@ -1104,8 +1104,8 @@ class PowerAuthIdentityVerificationTest {
         tokenModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/status");
 
         new VerifyTokenStep().execute(stepLogger, tokenModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
         final IdentityVerificationStatusResponse response = convertValue(stepLogger, new TypeReference<>() {});
         final IdentityVerificationState idState = new IdentityVerificationState(
                 response.getIdentityVerificationPhase(),
@@ -1125,12 +1125,12 @@ class PowerAuthIdentityVerificationTest {
         encryptModel.setScope("application");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
         OnboardingStatus status = null;
         for (StepItem item : stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                String responseData = item.getObject().toString();
+            if (item.name().equals("Decrypted Response")) {
+                final String responseData = item.object().toString();
                 final ObjectResponse<OnboardingStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 OnboardingStatusResponse response = objectResponse.getResponseObject();
                 status = response.getOnboardingStatus();
@@ -1171,12 +1171,12 @@ class PowerAuthIdentityVerificationTest {
             encryptModel.setUriString(config.getEnrollmentOnboardingServiceUrl() + "/api/identity/otp/verify");
             encryptModel.setScope("activation");
             new EncryptStep().execute(stepLogger, encryptModel.toMap());
-            assertTrue(stepLogger.getResult().isSuccess());
-            assertEquals(200, stepLogger.getResponse().getStatusCode());
+            assertTrue(stepLogger.getResult().success());
+            assertEquals(200, stepLogger.getResponse().statusCode());
 
             otpVerified = stepLogger.getItems().stream()
                     .filter(isStepItemDecryptedResponse())
-                    .map(StepItem::getObject)
+                    .map(StepItem::object)
                     .map(Object::toString)
                     .map(it -> safeReadValue(it, new TypeReference<ObjectResponse<OtpVerifyResponse>>() {}))
                     .filter(Objects::nonNull)
@@ -1206,8 +1206,8 @@ class PowerAuthIdentityVerificationTest {
         signatureModel.setResourceId("/api/identity/cleanup");
 
         new VerifySignatureStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     private void verifyProcessFinished(String processId, String activationId) throws Exception {

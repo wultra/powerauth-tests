@@ -115,8 +115,8 @@ public class TokenService extends BaseService {
             createTokenStep.execute(stepLogger, model.toMap());
             for (StepItem item: stepLogger.getItems()) {
                 StepItemLogger.log(logger, item);
-                if ("Token successfully obtained".equals(item.getName())) {
-                    final Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+                if ("Token successfully obtained".equals(item.name())) {
+                    final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                     tokenId = (String) responseMap.get("tokenId");
                     tokenSecret = (String) responseMap.get("tokenSecret");
                 }
@@ -162,8 +162,8 @@ public class TokenService extends BaseService {
             verifyTokenStep.execute(stepLogger, model.toMap());
             for (StepItem item: stepLogger.getItems()) {
                 StepItemLogger.log(logger, item);
-                if ("token-validate-request-sent".equals(item.getId())) {
-                    final Map<String, Object> responseMap = (Map<String, Object>) item.getObject();
+                if ("token-validate-request-sent".equals(item.id())) {
+                    final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                     final Map<String, Object> requestHeadersMap = (Map<String, Object>) responseMap.get("requestHeaders");
                     authHeader = requestHeadersMap.get("X-PowerAuth-Token").toString();
                 }

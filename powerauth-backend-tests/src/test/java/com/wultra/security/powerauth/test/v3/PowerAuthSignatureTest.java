@@ -134,10 +134,10 @@ public class PowerAuthSignatureTest {
     @Test
     void signatureValidTest() throws Exception {
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
-        Response responseOK = (Response) stepLogger.getResponse().getResponseObject();
+        final Response responseOK = (Response) stepLogger.getResponse().responseObject();
         assertEquals("OK", responseOK.getStatus());
     }
 
@@ -145,11 +145,11 @@ public class PowerAuthSignatureTest {
     void signatureInvalidPasswordTest() throws Exception {
         model.setPassword("1111");
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(401, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(401, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
     }
@@ -158,11 +158,11 @@ public class PowerAuthSignatureTest {
     void signatureIncorrectPasswordFormatTest() throws Exception {
         model.setPassword("*");
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(401, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(401, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
     }
@@ -175,17 +175,17 @@ public class PowerAuthSignatureTest {
                 ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
                 model.setPassword("1111");
                 new VerifySignatureStep().execute(stepLogger, model.toMap());
-                assertFalse(stepLogger.getResult().isSuccess());
-                assertEquals(401, stepLogger.getResponse().getStatusCode());
+                assertFalse(stepLogger.getResult().success());
+                assertEquals(401, stepLogger.getResponse().statusCode());
             }
 
             ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
             model.setPassword(config.getPassword());
             new VerifySignatureStep().execute(stepLogger, model.toMap());
-            assertTrue(stepLogger.getResult().isSuccess());
-            assertEquals(200, stepLogger.getResponse().getStatusCode());
+            assertTrue(stepLogger.getResult().success());
+            assertEquals(200, stepLogger.getResponse().statusCode());
 
-            Response responseOK = (Response) stepLogger.getResponse().getResponseObject();
+            final Response responseOK = (Response) stepLogger.getResponse().responseObject();
             assertEquals("OK", responseOK.getStatus());
         }
 
@@ -197,11 +197,11 @@ public class PowerAuthSignatureTest {
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new VerifySignatureStep().execute(stepLogger1, model.toMap());
-        assertFalse(stepLogger1.getResult().isSuccess());
-        assertEquals(401, stepLogger1.getResponse().getStatusCode());
+        assertFalse(stepLogger1.getResult().success());
+        assertEquals(401, stepLogger1.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
 
@@ -209,8 +209,8 @@ public class PowerAuthSignatureTest {
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new VerifySignatureStep().execute(stepLogger2, model.toMap());
-        assertTrue(stepLogger2.getResult().isSuccess());
-        assertEquals(200, stepLogger2.getResponse().getStatusCode());
+        assertTrue(stepLogger2.getResult().success());
+        assertEquals(200, stepLogger2.getResponse().statusCode());
     }
 
     @Test
@@ -218,8 +218,8 @@ public class PowerAuthSignatureTest {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -227,8 +227,8 @@ public class PowerAuthSignatureTest {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_BIOMETRY);
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -236,8 +236,8 @@ public class PowerAuthSignatureTest {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY);
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -249,10 +249,10 @@ public class PowerAuthSignatureTest {
         model.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
-        Response responseOK = (Response) stepLogger.getResponse().getResponseObject();
+        final Response responseOK = (Response) stepLogger.getResponse().responseObject();
         assertEquals("OK", responseOK.getStatus());
     }
 
@@ -261,10 +261,10 @@ public class PowerAuthSignatureTest {
         model.setHttpMethod("GET");
         model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate?who=John_Tramonta&when=now");
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
-        Response responseOK = (Response) stepLogger.getResponse().getResponseObject();
+        final Response responseOK = (Response) stepLogger.getResponse().responseObject();
         assertEquals("OK", responseOK.getStatus());
     }
 
@@ -273,10 +273,10 @@ public class PowerAuthSignatureTest {
         model.setHttpMethod("GET");
         model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
-        Response responseOK = (Response) stepLogger.getResponse().getResponseObject();
+        final Response responseOK = (Response) stepLogger.getResponse().responseObject();
         assertEquals("OK", responseOK.getStatus());
     }
 
@@ -286,11 +286,11 @@ public class PowerAuthSignatureTest {
         model.setPassword("0000");
         model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate?who=John_Tramonta&when=now");
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(401, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(401, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
     }
@@ -301,11 +301,11 @@ public class PowerAuthSignatureTest {
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new VerifySignatureStep().execute(stepLogger1, model.toMap());
-        assertFalse(stepLogger1.getResult().isSuccess());
-        assertEquals(401, stepLogger1.getResponse().getStatusCode());
+        assertFalse(stepLogger1.getResult().success());
+        assertEquals(401, stepLogger1.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
 
@@ -313,10 +313,10 @@ public class PowerAuthSignatureTest {
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
         new VerifySignatureStep().execute(stepLogger2, model.toMap());
-        assertTrue(stepLogger2.getResult().isSuccess());
-        assertEquals(200, stepLogger2.getResponse().getStatusCode());
+        assertTrue(stepLogger2.getResult().success());
+        assertEquals(200, stepLogger2.getResponse().statusCode());
 
-        Response responseOK = (Response) stepLogger2.getResponse().getResponseObject();
+        final Response responseOK = (Response) stepLogger2.getResponse().responseObject();
         assertEquals("OK", responseOK.getStatus());
     }
 
@@ -352,8 +352,8 @@ public class PowerAuthSignatureTest {
 
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, modelPrepare.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Commit activation
         final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
@@ -367,24 +367,24 @@ public class PowerAuthSignatureTest {
         for (int i = 0; i < 2; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
             new VerifySignatureStep().execute(stepLoggerSignature, model.toMap());
-            assertFalse(stepLoggerSignature.getResult().isSuccess());
-            assertEquals(401, stepLoggerSignature.getResponse().getStatusCode());
+            assertFalse(stepLoggerSignature.getResult().success());
+            assertEquals(401, stepLoggerSignature.getResponse().statusCode());
         }
 
         // Last signature before max failed attempts should be successful
         model.setPassword(config.getPassword());
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new VerifySignatureStep().execute(stepLogger2, model.toMap());
-        assertTrue(stepLogger2.getResult().isSuccess());
-        assertEquals(200, stepLogger2.getResponse().getStatusCode());
+        assertTrue(stepLogger2.getResult().success());
+        assertEquals(200, stepLogger2.getResponse().statusCode());
 
         // Fail three signatures
         model.setPassword("1111");
         for (int i = 0; i < 3; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
             new VerifySignatureStep().execute(stepLoggerSignature, model.toMap());
-            assertFalse(stepLoggerSignature.getResult().isSuccess());
-            assertEquals(401, stepLoggerSignature.getResponse().getStatusCode());
+            assertFalse(stepLoggerSignature.getResult().success());
+            assertEquals(401, stepLoggerSignature.getResponse().statusCode());
         }
 
         // Activation should be blocked
@@ -428,8 +428,8 @@ public class PowerAuthSignatureTest {
 
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, modelPrepare.toMap());
-        assertTrue(stepLoggerPrepare.getResult().isSuccess());
-        assertEquals(200, stepLoggerPrepare.getResponse().getStatusCode());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
@@ -443,32 +443,32 @@ public class PowerAuthSignatureTest {
         for (int i = 0; i < 19; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
             new VerifySignatureStep().execute(stepLoggerSignature, model.toMap());
-            assertFalse(stepLoggerSignature.getResult().isSuccess());
-            assertEquals(401, stepLoggerSignature.getResponse().getStatusCode());
+            assertFalse(stepLoggerSignature.getResult().success());
+            assertEquals(401, stepLoggerSignature.getResponse().statusCode());
         }
 
         // Last signature before lookahead failure should be successful and should fix counter
         model.setPassword(config.getPassword());
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new VerifySignatureStep().execute(stepLogger2, model.toMap());
-        assertTrue(stepLogger2.getResult().isSuccess());
-        assertEquals(200, stepLogger2.getResponse().getStatusCode());
+        assertTrue(stepLogger2.getResult().success());
+        assertEquals(200, stepLogger2.getResponse().statusCode());
 
         // Fail 20 signatures
         model.setPassword("1111");
         for (int i = 0; i < 20; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
             new VerifySignatureStep().execute(stepLoggerSignature, model.toMap());
-            assertFalse(stepLoggerSignature.getResult().isSuccess());
-            assertEquals(401, stepLoggerSignature.getResponse().getStatusCode());
+            assertFalse(stepLoggerSignature.getResult().success());
+            assertEquals(401, stepLoggerSignature.getResponse().statusCode());
         }
 
         // Signature after lookahead failure should be fail
         model.setPassword(config.getPassword());
         ObjectStepLogger stepLogger3 = new ObjectStepLogger();
         new VerifySignatureStep().execute(stepLogger3, model.toMap());
-        assertFalse(stepLogger3.getResult().isSuccess());
-        assertEquals(401, stepLogger3.getResponse().getStatusCode());
+        assertFalse(stepLogger3.getResult().success());
+        assertEquals(401, stepLogger3.getResponse().statusCode());
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
@@ -481,8 +481,8 @@ public class PowerAuthSignatureTest {
         for (int i = 1; i <= 10; i++) {
             ObjectStepLogger stepLoggerLoop = new ObjectStepLogger();
             new VerifySignatureStep().execute(stepLoggerLoop, model.toMap());
-            assertTrue(stepLoggerLoop.getResult().isSuccess());
-            assertEquals(200, stepLoggerLoop.getResponse().getStatusCode());
+            assertTrue(stepLoggerLoop.getResult().success());
+            assertEquals(200, stepLoggerLoop.getResponse().statusCode());
 
             // Verify hash based counter
             ctrData = counter.next(ctrData);
@@ -504,10 +504,10 @@ public class PowerAuthSignatureTest {
         model.setData(Files.readAllBytes(Paths.get(dataFileLarge.getAbsolutePath())));
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
-        Response responseOK = (Response) stepLogger.getResponse().getResponseObject();
+        final Response responseOK = (Response) stepLogger.getResponse().responseObject();
         assertEquals("OK", responseOK.getStatus());
     }
 
@@ -770,11 +770,11 @@ public class PowerAuthSignatureTest {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY);
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(401, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(401, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
 
@@ -791,11 +791,11 @@ public class PowerAuthSignatureTest {
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
 
         new VerifySignatureStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(401, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(401, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         checkSignatureError(errorResponse);
 

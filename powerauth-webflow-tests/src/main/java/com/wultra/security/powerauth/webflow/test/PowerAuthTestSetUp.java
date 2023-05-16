@@ -156,7 +156,7 @@ public class PowerAuthTestSetUp {
 
         ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
+        assertTrue(stepLogger.getResult().success());
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");

@@ -119,17 +119,17 @@ class PowerAuthEncryptionTest {
         encryptModel.setScope("activation");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
-        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
         boolean responseSuccessfullyDecrypted = false;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                assertEquals("{\"data\":\"Server successfully decrypted signed data: hello, scope: ACTIVATION_SCOPE\"}", item.getObject());
+            if (item.name().equals("Decrypted Response")) {
+                assertEquals("{\"data\":\"Server successfully decrypted signed data: hello, scope: ACTIVATION_SCOPE\"}", item.object());
                 responseSuccessfullyDecrypted = true;
                 break;
             }
@@ -143,17 +143,17 @@ class PowerAuthEncryptionTest {
         encryptModel.setScope("application");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
-        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
         boolean responseSuccessfullyDecrypted = false;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                assertEquals("{\"data\":\"Server successfully decrypted signed data: hello, scope: APPLICATION_SCOPE\"}", item.getObject());
+            if (item.name().equals("Decrypted Response")) {
+                assertEquals("{\"data\":\"Server successfully decrypted signed data: hello, scope: APPLICATION_SCOPE\"}", item.object());
                 responseSuccessfullyDecrypted = true;
                 break;
             }
@@ -167,8 +167,8 @@ class PowerAuthEncryptionTest {
         encryptModel.setScope("application");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -177,8 +177,8 @@ class PowerAuthEncryptionTest {
         encryptModel.setScope("activation");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -194,8 +194,8 @@ class PowerAuthEncryptionTest {
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
         // It is allowed to encrypt empty data
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -207,8 +207,8 @@ class PowerAuthEncryptionTest {
         powerAuthClient.blockActivation(config.getActivationIdV3(), "test", "test");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
 
         // Unblock activation and verify that data exchange succeeds
         powerAuthClient.unblockActivation(config.getActivationIdV3(), "test");
@@ -216,17 +216,17 @@ class PowerAuthEncryptionTest {
         ObjectStepLogger stepLoggerSuccess = new ObjectStepLogger(System.out);
 
         new EncryptStep().execute(stepLoggerSuccess, encryptModel.toMap());
-        assertTrue(stepLoggerSuccess.getResult().isSuccess());
-        assertEquals(200, stepLoggerSuccess.getResponse().getStatusCode());
+        assertTrue(stepLoggerSuccess.getResult().success());
+        assertEquals(200, stepLoggerSuccess.getResponse().statusCode());
 
-        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLoggerSuccess.getResponse().getResponseObject();
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLoggerSuccess.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
         boolean responseSuccessfullyDecrypted = false;
         for (StepItem item: stepLoggerSuccess.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                assertEquals("{\"data\":\"Server successfully decrypted signed data: hello, scope: ACTIVATION_SCOPE\"}", item.getObject());
+            if (item.name().equals("Decrypted Response")) {
+                assertEquals("{\"data\":\"Server successfully decrypted signed data: hello, scope: ACTIVATION_SCOPE\"}", item.object());
                 responseSuccessfullyDecrypted = true;
                 break;
             }
@@ -240,17 +240,17 @@ class PowerAuthEncryptionTest {
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
-        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().getResponseObject();
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
         boolean responseSuccessfullyDecrypted = false;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                assertEquals("{\"data\":\"Server successfully decrypted data and verified signature, request data: hello, user ID: " + config.getUserV3() + "\"}", item.getObject());
+            if (item.name().equals("Decrypted Response")) {
+                assertEquals("{\"data\":\"Server successfully decrypted data and verified signature, request data: hello, user ID: " + config.getUserV3() + "\"}", item.object());
                 responseSuccessfullyDecrypted = true;
                 break;
             }
@@ -266,8 +266,8 @@ class PowerAuthEncryptionTest {
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(401, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(401, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -277,8 +277,8 @@ class PowerAuthEncryptionTest {
         signatureModel.setPassword("0000");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(401, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(401, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -294,8 +294,8 @@ class PowerAuthEncryptionTest {
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         // It is allowed to encrypt and sign empty data
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -319,8 +319,8 @@ class PowerAuthEncryptionTest {
         signatureModel.setData(Files.readAllBytes(Paths.get(dataFileLarge.getAbsolutePath())));
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -340,13 +340,13 @@ class PowerAuthEncryptionTest {
         signatureModel.setData(Files.readAllBytes(Paths.get(dataFileLarge.getAbsolutePath())));
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         boolean responseSuccessfullyDecrypted = false;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                assertEquals("\"Server successfully decrypted data and verified signature, request data: "+requestData+", user ID: " + config.getUserV3() + "\"", item.getObject());
+            if (item.name().equals("Decrypted Response")) {
+                assertEquals("\"Server successfully decrypted data and verified signature, request data: "+requestData+", user ID: " + config.getUserV3() + "\"", item.object());
                 responseSuccessfullyDecrypted = true;
                 break;
             }
@@ -370,13 +370,13 @@ class PowerAuthEncryptionTest {
         signatureModel.setData(Files.readAllBytes(Paths.get(dataFileLarge.getAbsolutePath())));
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         boolean responseSuccessfullyDecrypted = false;
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                assertEquals(requestData, item.getObject());
+            if (item.name().equals("Decrypted Response")) {
+                assertEquals(requestData, item.object());
                 responseSuccessfullyDecrypted = true;
                 break;
             }
@@ -390,8 +390,8 @@ class PowerAuthEncryptionTest {
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(401, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(401, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -403,24 +403,24 @@ class PowerAuthEncryptionTest {
         powerAuthClient.blockActivation(config.getActivationIdV3(), "test", "test");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
+        assertFalse(stepLogger.getResult().success());
 
         // Unblock activation and verify that data exchange succeeds
         powerAuthClient.unblockActivation(config.getActivationIdV3(), "test");
 
         ObjectStepLogger stepLoggerSuccess = new ObjectStepLogger(System.out);
         new SignAndEncryptStep().execute(stepLoggerSuccess, signatureModel.toMap());
-        assertTrue(stepLoggerSuccess.getResult().isSuccess());
-        assertEquals(200, stepLoggerSuccess.getResponse().getStatusCode());
+        assertTrue(stepLoggerSuccess.getResult().success());
+        assertEquals(200, stepLoggerSuccess.getResponse().statusCode());
 
-        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLoggerSuccess.getResponse().getResponseObject();
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLoggerSuccess.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
         boolean responseSuccessfullyDecrypted = false;
         for (StepItem item: stepLoggerSuccess.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                assertEquals("{\"data\":\"Server successfully decrypted data and verified signature, request data: hello, user ID: " + config.getUserV3() + "\"}", item.getObject());
+            if (item.name().equals("Decrypted Response")) {
+                assertEquals("{\"data\":\"Server successfully decrypted data and verified signature, request data: hello, user ID: " + config.getUserV3() + "\"}", item.object());
                 responseSuccessfullyDecrypted = true;
                 break;
             }
@@ -437,27 +437,27 @@ class PowerAuthEncryptionTest {
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new SignAndEncryptStep().execute(stepLogger1, signatureModel.toMap());
-        assertFalse(stepLogger1.getResult().isSuccess());
+        assertFalse(stepLogger1.getResult().success());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
 
         powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
         new SignAndEncryptStep().execute(stepLogger2, signatureModel.toMap());
-        assertTrue(stepLogger2.getResult().isSuccess());
-        assertEquals(200, stepLogger2.getResponse().getStatusCode());
+        assertTrue(stepLogger2.getResult().success());
+        assertEquals(200, stepLogger2.getResponse().statusCode());
 
-        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger2.getResponse().getResponseObject();
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger2.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
         boolean responseSuccessfullyDecrypted = false;
         for (StepItem item: stepLogger2.getItems()) {
-            if (item.getName().equals("Decrypted Response")) {
-                assertEquals("{\"data\":\"Server successfully decrypted data and verified signature, request data: hello, user ID: " + config.getUserV3() + "\"}", item.getObject());
+            if (item.name().equals("Decrypted Response")) {
+                assertEquals("{\"data\":\"Server successfully decrypted data and verified signature, request data: hello, user ID: " + config.getUserV3() + "\"}", item.object());
                 responseSuccessfullyDecrypted = true;
                 break;
             }
@@ -476,8 +476,8 @@ class PowerAuthEncryptionTest {
         for (int i = 1; i <= 10; i++) {
             ObjectStepLogger stepLoggerLoop = new ObjectStepLogger();
             new SignAndEncryptStep().execute(stepLoggerLoop, signatureModel.toMap());
-            assertTrue(stepLoggerLoop.getResult().isSuccess());
-            assertEquals(200, stepLoggerLoop.getResponse().getStatusCode());
+            assertTrue(stepLoggerLoop.getResult().success());
+            assertEquals(200, stepLoggerLoop.getResponse().statusCode());
 
             // Verify hash based counter
             ctrData = counter.next(ctrData);
@@ -496,15 +496,15 @@ class PowerAuthEncryptionTest {
                 ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
                 signatureModel.setPassword("1111");
                 new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-                assertFalse(stepLogger.getResult().isSuccess());
-                assertEquals(401, stepLogger.getResponse().getStatusCode());
+                assertFalse(stepLogger.getResult().success());
+                assertEquals(401, stepLogger.getResponse().statusCode());
             }
 
             ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
             signatureModel.setPassword(config.getPassword());
             new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-            assertTrue(stepLogger.getResult().isSuccess());
-            assertEquals(200, stepLogger.getResponse().getStatusCode());
+            assertTrue(stepLogger.getResult().success());
+            assertEquals(200, stepLogger.getResponse().statusCode());
         }
     }
 
@@ -515,11 +515,11 @@ class PowerAuthEncryptionTest {
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(401, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(401, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
     }
 
@@ -530,8 +530,8 @@ class PowerAuthEncryptionTest {
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_BIOMETRY);
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     @Test
@@ -541,8 +541,8 @@ class PowerAuthEncryptionTest {
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY);
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     private String generateRandomString() {

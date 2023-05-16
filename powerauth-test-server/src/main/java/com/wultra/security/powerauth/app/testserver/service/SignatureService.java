@@ -109,8 +109,8 @@ public class SignatureService extends BaseService {
             verifySignatureStep.execute(stepLogger, model.toMap());
             for (StepItem item: stepLogger.getItems()) {
                 StepItemLogger.log(logger, item);
-                if ("signature-verify-request-sent".equals(item.getId())) {
-                    final Map<String, Object> requestMap = (Map<String, Object>) item.getObject();
+                if ("signature-verify-request-sent".equals(item.id())) {
+                    final Map<String, Object> requestMap = (Map<String, Object>) item.object();
                     final Map<String, Object> requestHeadersMap = (Map<String, Object>) requestMap.get("requestHeaders");
                     authHeader = requestHeadersMap.get("X-PowerAuth-Authorization").toString();
                     resultStatusUtil.incrementCounter(request.getActivationId());
@@ -152,8 +152,8 @@ public class SignatureService extends BaseService {
             computeOfflineSignatureStep.execute(stepLogger, model.toMap());
             for (StepItem item: stepLogger.getItems()) {
                 StepItemLogger.log(logger, item);
-                if ("signature-offline-compute-finished".equals(item.getId())) {
-                    final Map<String, Object> resultMap = (Map<String, Object>) item.getObject();
+                if ("signature-offline-compute-finished".equals(item.id())) {
+                    final Map<String, Object> resultMap = (Map<String, Object>) item.object();
                     otpCode = resultMap.get("offlineSignature").toString();
                     resultStatusUtil.incrementCounter(request.getActivationId());
                 }

@@ -137,16 +137,16 @@ class PowerAuthCustomActivationTest {
         model.setCustomAttributes(customAttributes);
 
         new CreateActivationStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         String activationId = null;
         boolean layer2ResponseOk = false;
         boolean layer1ResponseOk = false;
         // Verify decrypted responses
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
                 activationId = layer2Response.getActivationId();
                 assertNotNull(activationId);
                 assertNotNull(layer2Response.getCtrData());
@@ -158,8 +158,8 @@ class PowerAuthCustomActivationTest {
                 layer2ResponseOk = true;
                 continue;
             }
-            if (item.getName().equals("Decrypted Layer 1 Response")) {
-                ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 1 Response")) {
+                final ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.object();
                 // Verify custom attributes after processing
                 assertEquals("value_new", layer1Response.getCustomAttributes().get("key_new"));
                 layer1ResponseOk = true;
@@ -184,16 +184,16 @@ class PowerAuthCustomActivationTest {
         model.setCustomAttributes(customAttributes);
 
         new CreateActivationStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         String activationId = null;
         boolean layer2ResponseOk = false;
         boolean layer1ResponseOk = false;
         // Verify decrypted responses
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
                 activationId = layer2Response.getActivationId();
                 assertNotNull(activationId);
                 assertNotNull(layer2Response.getCtrData());
@@ -205,8 +205,8 @@ class PowerAuthCustomActivationTest {
                 layer2ResponseOk = true;
                 continue;
             }
-            if (item.getName().equals("Decrypted Layer 1 Response")) {
-                ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 1 Response")) {
+                final ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.object();
                 // Verify custom attributes, there should be no change
                 assertEquals("value", layer1Response.getCustomAttributes().get("key"));
                 layer1ResponseOk = true;
@@ -232,16 +232,16 @@ class PowerAuthCustomActivationTest {
         model.setCustomAttributes(customAttributes);
 
         new CreateActivationStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         String activationId = null;
         boolean layer2ResponseOk = false;
         boolean layer1ResponseOk = false;
         // Verify decrypted responses
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
                 activationId = layer2Response.getActivationId();
                 assertNotNull(activationId);
                 assertNotNull(layer2Response.getCtrData());
@@ -253,8 +253,8 @@ class PowerAuthCustomActivationTest {
                 layer2ResponseOk = true;
                 continue;
             }
-            if (item.getName().equals("Decrypted Layer 1 Response")) {
-                ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 1 Response")) {
+                final ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.object();
                 // Verify custom attributes, there should be no change
                 assertEquals("value", layer1Response.getCustomAttributes().get("key"));
                 layer1ResponseOk = true;
@@ -279,12 +279,12 @@ class PowerAuthCustomActivationTest {
         model.setCustomAttributes(customAttributes);
 
         new CreateActivationStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
 
         // Verify error response
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
@@ -303,12 +303,12 @@ class PowerAuthCustomActivationTest {
         model.setCustomAttributes(customAttributes);
 
         new CreateActivationStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
 
         // Verify error response
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
@@ -327,12 +327,12 @@ class PowerAuthCustomActivationTest {
         model.setCustomAttributes(customAttributes);
 
         new CreateActivationStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
 
         // Verify error response
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
@@ -352,12 +352,12 @@ class PowerAuthCustomActivationTest {
 
         // Create activation
         new CreateActivationStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
 
         // Verify error response
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
@@ -385,12 +385,12 @@ class PowerAuthCustomActivationTest {
 
         // Create activation
         new CreateActivationStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
 
         // Verify error response
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
@@ -417,12 +417,12 @@ class PowerAuthCustomActivationTest {
 
         // Verify that CreateActivation fails
         new CreateActivationStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
 
         // Verify error response
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
@@ -440,12 +440,12 @@ class PowerAuthCustomActivationTest {
 
         // Verify that CreateActivation fails
         new CreateActivationStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().isSuccess());
-        assertEquals(400, stepLogger.getResponse().getStatusCode());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
 
         // Verify error response
         ObjectMapper objectMapper = config.getObjectMapper();
-        ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().getResponseObject().toString(), ErrorResponse.class);
+        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
         assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
@@ -461,16 +461,16 @@ class PowerAuthCustomActivationTest {
         model.setIdentityAttributes(identityAttributes);
 
         new CreateActivationStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         String activationId = null;
         boolean layer2ResponseOk = false;
         boolean layer1ResponseOk = false;
         // Verify decrypted responses
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
                 activationId = layer2Response.getActivationId();
                 assertNotNull(activationId);
                 assertNotNull(layer2Response.getCtrData());
@@ -481,7 +481,7 @@ class PowerAuthCustomActivationTest {
                 layer2ResponseOk = true;
                 continue;
             }
-            if (item.getName().equals("Decrypted Layer 1 Response")) {
+            if (item.name().equals("Decrypted Layer 1 Response")) {
                 layer1ResponseOk = true;
             }
         }
@@ -507,22 +507,22 @@ class PowerAuthCustomActivationTest {
         model.setIdentityAttributes(identityAttributes);
 
         new CreateActivationStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-        assertEquals(200, stepLogger.getResponse().getStatusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         String activationId = null;
         boolean layer2ResponseOk = false;
         boolean layer1ResponseOk = false;
         // Verify decrypted responses
         for (StepItem item: stepLogger.getItems()) {
-            if (item.getName().equals("Decrypted Layer 2 Response")) {
-                ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.getObject();
+            if (item.name().equals("Decrypted Layer 2 Response")) {
+                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
                 activationId = layer2Response.getActivationId();
                 assertNotNull(activationId);
                 layer2ResponseOk = true;
                 continue;
             }
-            if (item.getName().equals("Decrypted Layer 1 Response")) {
+            if (item.name().equals("Decrypted Layer 1 Response")) {
                 layer1ResponseOk = true;
             }
         }
@@ -550,24 +550,24 @@ class PowerAuthCustomActivationTest {
         for (int i = 0; i < 2; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
             new VerifySignatureStep().execute(stepLoggerSignature, signatureModel.toMap());
-            assertFalse(stepLoggerSignature.getResult().isSuccess());
-            assertEquals(401, stepLoggerSignature.getResponse().getStatusCode());
+            assertFalse(stepLoggerSignature.getResult().success());
+            assertEquals(401, stepLoggerSignature.getResponse().statusCode());
         }
 
         // Last signature before max failed attempts should be successful
         signatureModel.setPassword(config.getPassword());
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
         new VerifySignatureStep().execute(stepLogger2, signatureModel.toMap());
-        assertTrue(stepLogger2.getResult().isSuccess());
-        assertEquals(200, stepLogger2.getResponse().getStatusCode());
+        assertTrue(stepLogger2.getResult().success());
+        assertEquals(200, stepLogger2.getResponse().statusCode());
 
         // Fail 3 signatures (configured value for maximum failed count is 3)
         signatureModel.setPassword("1111");
         for (int i = 0; i < 3; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
             new VerifySignatureStep().execute(stepLoggerSignature, signatureModel.toMap());
-            assertFalse(stepLoggerSignature.getResult().isSuccess());
-            assertEquals(401, stepLoggerSignature.getResponse().getStatusCode());
+            assertFalse(stepLoggerSignature.getResult().success());
+            assertEquals(401, stepLoggerSignature.getResponse().statusCode());
         }
 
         // Activation should be blocked
