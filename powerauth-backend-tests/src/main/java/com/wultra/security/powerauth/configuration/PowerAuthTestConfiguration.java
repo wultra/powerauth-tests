@@ -122,22 +122,22 @@ public class PowerAuthTestConfiguration {
     private PowerAuthTestSetUp setUp;
     private PowerAuthTestTearDown tearDown;
 
-    private KeyConvertor keyConvertor = new KeyConvertor();
-    private ObjectMapper objectMapper = RestClientConfiguration.defaultMapper();
+    private final KeyConvertor keyConvertor = new KeyConvertor();
+    private final ObjectMapper objectMapper = RestClientConfiguration.defaultMapper();
 
     // Version 3.1 temporary storage
     private File statusFileV31;
-    private JSONObject resultStatusObjectV31 = new JSONObject();
+    private final JSONObject resultStatusObjectV31 = new JSONObject();
     private String activationIdV31;
     private String userV31;
 
     // Version 3.0 temporary storage
     private File statusFileV3;
-    private JSONObject resultStatusObjectV3 = new JSONObject();
+    private final JSONObject resultStatusObjectV3 = new JSONObject();
     private String activationIdV3;
     private String userV3;
 
-    private String password = "1234";
+    private final String password = "1234";
 
     @Autowired
     public void setPowerAuthTestSetUp(PowerAuthTestSetUp setUp) {
@@ -170,7 +170,7 @@ public class PowerAuthTestConfiguration {
 
     @Bean
     public NextStepClient nextStepClient() {
-        if (!nextStepServiceUrl.isPresent()) {
+        if (nextStepServiceUrl.isEmpty()) {
             return null;
         }
         try {

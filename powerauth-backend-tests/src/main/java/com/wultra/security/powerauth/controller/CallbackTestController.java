@@ -50,10 +50,7 @@ public class CallbackTestController {
     public Response verifyCallback(@RequestBody Map<String, Object> request) {
         String activationId = request.get("activationId").toString();
         int counter = 0;
-        while (true) {
-            if (callbacks.containsKey(activationId)) {
-                break;
-            }
+        while (!callbacks.containsKey(activationId)) {
             counter++;
             try {
                 Thread.sleep(100);

@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.app.testserver.errorhandling;
 
+import java.io.Serial;
+
 /**
  * Exception for case when application configuration is not found.
  *
@@ -25,6 +27,7 @@ package com.wultra.security.powerauth.app.testserver.errorhandling;
  */
 public class AppConfigNotFoundException extends Exception {
 
+    @Serial
     private static final long serialVersionUID = -1073701264200048869L;
 
     /**

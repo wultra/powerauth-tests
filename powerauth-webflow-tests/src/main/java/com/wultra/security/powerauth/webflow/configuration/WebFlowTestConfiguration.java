@@ -91,16 +91,16 @@ public class WebFlowTestConfiguration {
     private PowerAuthTestSetUp setUp;
     private PowerAuthTestTearDown tearDown;
 
-    private KeyConvertor keyConvertor = new KeyConvertor();
-    private ObjectMapper objectMapper = RestClientConfiguration.defaultMapper();
+    private final KeyConvertor keyConvertor = new KeyConvertor();
+    private final ObjectMapper objectMapper = RestClientConfiguration.defaultMapper();
 
     // Temporary storage
     private File statusFile;
-    private JSONObject resultStatusObject = new JSONObject();
+    private final JSONObject resultStatusObject = new JSONObject();
     private String activationId;
     private String user;
 
-    private String password = "1234";
+    private final String password = "1234";
 
     private WebDriver webDriver;
     private WebDriverWait webDriverWait;
@@ -160,7 +160,7 @@ public class WebFlowTestConfiguration {
 
         // Create status file and user
         statusFile = File.createTempFile("webflow_status", ".json");
-        user = "TestUser_" + UUID.randomUUID().toString();
+        user = "TestUser_" + UUID.randomUUID();
 
         // Random application name
         applicationVersionForTests = applicationVersion + "_" + System.currentTimeMillis();

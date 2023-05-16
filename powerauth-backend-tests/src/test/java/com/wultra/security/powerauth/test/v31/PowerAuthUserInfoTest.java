@@ -62,7 +62,7 @@ class PowerAuthUserInfoTest {
     private final ObjectMapper objectMapper = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());
         encryptModel.setApplicationSecret(config.getApplicationSecret());

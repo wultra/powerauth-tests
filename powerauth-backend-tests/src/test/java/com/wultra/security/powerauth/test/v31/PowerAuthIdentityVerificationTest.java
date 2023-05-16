@@ -553,7 +553,7 @@ class PowerAuthIdentityVerificationTest {
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 String responseData = item.getObject().toString();
-                ObjectResponse<DocumentUploadResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentUploadResponse>>() {});
+                final ObjectResponse<DocumentUploadResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 DocumentUploadResponse response = objectResponse.getResponseObject();
                 uploadIdFront = response.getId();
                 break;
@@ -588,7 +588,7 @@ class PowerAuthIdentityVerificationTest {
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 String responseData = item.getObject().toString();
-                ObjectResponse<DocumentUploadResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<DocumentUploadResponse>>() {});
+                final ObjectResponse<DocumentUploadResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 DocumentUploadResponse response = objectResponse.getResponseObject();
                 uploadIdBack = response.getId();
                 break;
@@ -754,7 +754,7 @@ class PowerAuthIdentityVerificationTest {
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 String responseData = item.getObject().toString();
-                ObjectResponse<OnboardingStartResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OnboardingStartResponse>>() {});
+                final ObjectResponse<OnboardingStartResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 OnboardingStartResponse response = objectResponse.getResponseObject();
                 processId = response.getProcessId();
                 onboardingStatus = response.getOnboardingStatus();
@@ -865,7 +865,7 @@ class PowerAuthIdentityVerificationTest {
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 String responseData = item.getObject().toString();
-                ObjectResponse<OtpDetailResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OtpDetailResponse>>() {});
+                final ObjectResponse<OtpDetailResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 OtpDetailResponse response = objectResponse.getResponseObject();
                 otpCode = response.getOtpCode();
                 responseOtpSuccessfullyDecrypted = true;
@@ -1039,7 +1039,7 @@ class PowerAuthIdentityVerificationTest {
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
 
-        final DocumentStatusResponse response = convertValue(stepLogger, new TypeReference<ObjectResponse<DocumentStatusResponse>>() { });
+        final DocumentStatusResponse response = convertValue(stepLogger, new TypeReference<>() { });
         assertEquals(expectedDocumentsCount, response.getDocuments().size());
         for (int i = 0; i < expectedDocumentsCount; i++) {
             assertEquals(expectedStatus, response.getDocuments().get(i).getStatus());
@@ -1106,7 +1106,7 @@ class PowerAuthIdentityVerificationTest {
         new VerifyTokenStep().execute(stepLogger, tokenModel.toMap());
         assertTrue(stepLogger.getResult().isSuccess());
         assertEquals(200, stepLogger.getResponse().getStatusCode());
-        final IdentityVerificationStatusResponse response = convertValue(stepLogger, new TypeReference<ObjectResponse<IdentityVerificationStatusResponse>>() {});
+        final IdentityVerificationStatusResponse response = convertValue(stepLogger, new TypeReference<>() {});
         final IdentityVerificationState idState = new IdentityVerificationState(
                 response.getIdentityVerificationPhase(),
                 response.getIdentityVerificationStatus());
@@ -1131,7 +1131,7 @@ class PowerAuthIdentityVerificationTest {
         for (StepItem item : stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 String responseData = item.getObject().toString();
-                ObjectResponse<OnboardingStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OnboardingStatusResponse>>() {});
+                final ObjectResponse<OnboardingStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 OnboardingStatusResponse response = objectResponse.getResponseObject();
                 status = response.getOnboardingStatus();
             }

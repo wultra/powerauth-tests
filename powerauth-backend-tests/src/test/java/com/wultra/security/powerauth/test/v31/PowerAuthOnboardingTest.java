@@ -339,7 +339,7 @@ class PowerAuthOnboardingTest {
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 String responseData = item.getObject().toString();
-                ObjectResponse<OnboardingStartResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OnboardingStartResponse>>() {});
+                final ObjectResponse<OnboardingStartResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 OnboardingStartResponse response = objectResponse.getResponseObject();
                 processId = response.getProcessId();
                 onboardingStatus = response.getOnboardingStatus();
@@ -387,7 +387,7 @@ class PowerAuthOnboardingTest {
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 String responseData = item.getObject().toString();
-                ObjectResponse<OnboardingStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OnboardingStatusResponse>>() {});
+                final ObjectResponse<OnboardingStatusResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 OnboardingStatusResponse response = objectResponse.getResponseObject();
                 processId = response.getProcessId();
                 onboardingStatus = response.getOnboardingStatus();
@@ -474,7 +474,7 @@ class PowerAuthOnboardingTest {
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 String responseData = item.getObject().toString();
-                ObjectResponse<OtpDetailResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<ObjectResponse<OtpDetailResponse>>() {});
+                final ObjectResponse<OtpDetailResponse> objectResponse = objectMapper.readValue(responseData, new TypeReference<>() {});
                 OtpDetailResponse response = objectResponse.getResponseObject();
                 otpCode = response.getOtpCode();
                 responseOtpSuccessfullyDecrypted = true;

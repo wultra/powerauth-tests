@@ -20,7 +20,6 @@
 package com.wultra.security.powerauth.provider;
 
 import io.getlime.security.powerauth.rest.api.model.entity.ActivationType;
-import io.getlime.security.powerauth.rest.api.spring.exception.PowerAuthActivationException;
 import io.getlime.security.powerauth.rest.api.spring.provider.CustomActivationProvider;
 import org.springframework.stereotype.Component;
 
@@ -39,7 +38,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
 
     private static String testId;
     // Set max failed attempt count to 3
-    public static int MAX_FAILED_ATTEMPTS = 3;
+    public static final int MAX_FAILED_ATTEMPTS = 3;
 
     @Override
     public String lookupUserIdForAttributes(Map<String, String> identityAttributes, Map<String, Object> context) {
@@ -47,21 +46,18 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
         Map<String, String> userNameToUserIdMap = new HashMap<>();
         userNameToUserIdMap.put("TestUser1", "12345678");
 
-        switch (testId) {
-            case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
-                return identityAttributes.get("username");
-            case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
-                return "static_username";
-            case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS":
-                return userNameToUserIdMap.get(identityAttributes.get("username"));
-            default:
+        return switch (testId) {
+            case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS" -> identityAttributes.get("username");
+            case "TEST_2_STATIC_NOCOMMIT_NOPROCESS" -> "static_username";
+            case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS" -> userNameToUserIdMap.get(identityAttributes.get("username"));
+            default ->
                 // Default action for negative tests
-                return identityAttributes.get("username");
-        }
+                    identityAttributes.get("username");
+        };
     }
 
     @Override
-    public Map<String, Object> processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) throws PowerAuthActivationException {
+    public Map<String, Object> processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) {
         Map<String, Object> processedCustomAttributes = new HashMap<>();
         if (customAttributes != null) {
             processedCustomAttributes.putAll(customAttributes);
@@ -84,17 +80,20 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) throws PowerAuthActivationException {
+    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) {
         if (testId != null) {
             switch (testId) {
-                case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
+                case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS" -> {
                     return true;
-                case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
+                }
+                case "TEST_2_STATIC_NOCOMMIT_NOPROCESS" -> {
                     return false;
-                case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS":
+                }
+                case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS" -> {
                     return true;
-                default:
-                    break;
+                }
+                default -> {
+                }
             }
         }
         if (customAttributes != null) {
@@ -108,7 +107,7 @@ public class CustomActivationProviderForTests implements CustomActivationProvide
     }
 
     @Override
-    public void activationWasCommitted(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) throws PowerAuthActivationException {
+    public void activationWasCommitted(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) {
         // Ignore
     }
 

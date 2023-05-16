@@ -90,7 +90,7 @@ public class PowerAuthTestSetUp {
         }
         if (!applicationExists) {
             final CreateApplicationResponse response = powerAuthClient.createApplication(config.getApplicationName());
-            assertNotEquals(0, response.getApplicationId());
+            assertNotEquals("0", response.getApplicationId());
             assertEquals(config.getApplicationName(), response.getApplicationId());
             config.setApplicationId(response.getApplicationId());
         }
@@ -110,7 +110,7 @@ public class PowerAuthTestSetUp {
         config.setMasterPublicKey(detail.getMasterPublicKey());
         if (!versionExists) {
             final CreateApplicationVersionResponse versionResponse = powerAuthClient.createApplicationVersion(config.getApplicationId(), config.getApplicationVersion());
-            assertNotEquals(0, versionResponse.getApplicationVersionId());
+            assertNotEquals("0", versionResponse.getApplicationVersionId());
             assertEquals(config.getApplicationVersion(), versionResponse.getApplicationVersionId());
             config.setApplicationVersionId(versionResponse.getApplicationVersionId());
             config.setApplicationKey(versionResponse.getApplicationKey());

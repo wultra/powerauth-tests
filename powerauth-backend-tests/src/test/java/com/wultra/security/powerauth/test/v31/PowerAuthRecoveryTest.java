@@ -454,7 +454,7 @@ class PowerAuthRecoveryTest {
     void recoveryPostcardTest() throws Exception {
         JSONObject resultStatusObject = new JSONObject();
         String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
-        String randomUserId = "TestUser_" + UUID.randomUUID().toString();
+        final String randomUserId = "TestUser_" + UUID.randomUUID();
         CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L);
 
         // Verify response
@@ -648,7 +648,7 @@ class PowerAuthRecoveryTest {
     void recoveryPostcardInvalidPukIndexTest() throws Exception {
         JSONObject resultStatusObject = new JSONObject();
         String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
-        String randomUserId = "TestUser_" + UUID.randomUUID().toString();
+        final String randomUserId = "TestUser_" + UUID.randomUUID();
         CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L);
 
         // Derive recovery code and PUKs

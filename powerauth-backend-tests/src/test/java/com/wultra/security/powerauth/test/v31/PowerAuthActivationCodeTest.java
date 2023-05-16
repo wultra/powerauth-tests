@@ -151,7 +151,7 @@ public class PowerAuthActivationCodeTest {
         for (StepItem item: stepLogger.getItems()) {
             if (item.getName().equals("Decrypted Response")) {
                 ObjectMapper objectMapper = config.getObjectMapper();
-                TypeReference<ObjectResponse<LinkedHashMap<String, String>>> responseType = new TypeReference<ObjectResponse<LinkedHashMap<String, String>>>(){};
+                final TypeReference<ObjectResponse<LinkedHashMap<String, String>>> responseType = new TypeReference<>(){};
                 ObjectResponse<LinkedHashMap<String, String>> responseData = objectMapper.readValue(item.getObject().toString(), responseType);
                 activationId = responseData.getResponseObject().get("activationId");
                 activationCode = responseData.getResponseObject().get("activationCode");

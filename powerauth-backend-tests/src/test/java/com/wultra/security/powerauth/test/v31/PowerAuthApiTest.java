@@ -231,7 +231,7 @@ class PowerAuthApiTest {
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
         RemoveActivationResponse removeResponse = powerAuthClient.removeActivation(response.getActivationId(), null);
-        assertEquals(true, removeResponse.isRemoved());
+        assertTrue(removeResponse.isRemoved());
         GetActivationStatusResponse statusResponse2 = powerAuthClient.getActivationStatus(response.getActivationId());
         assertEquals(ActivationStatus.REMOVED, statusResponse2.getActivationStatus());
     }
