@@ -570,7 +570,7 @@ class PowerAuthApiTest {
         final byte[] sharedInfo2 = Base64.getDecoder().decode(eciesDecryptorResponse.getSharedInfo2());
         final EciesDecryptor eciesDecryptor = eciesFactory.getEciesDecryptor(envelopeKey, sharedInfo2);
         EciesCryptogram cryptogram = new EciesCryptogram(ephemeralPublicKeyBytes, macBytes, encryptedDataBytes);
-        EciesParameters parameters = new EciesParameters(nonceBytes, null, new Date().getTime()); // TODO
+        EciesParameters parameters = new EciesParameters(nonceBytes, null, null);
         EciesPayload payload = new EciesPayload(cryptogram, parameters);
         byte[] decryptedData = eciesDecryptor.decrypt(payload);
         assertArrayEquals(requestData.getBytes(StandardCharsets.UTF_8), decryptedData);
