@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.*;
 import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
 import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -46,10 +47,7 @@ import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import io.getlime.security.powerauth.http.PowerAuthHttpBody;
 import io.getlime.security.powerauth.lib.cmd.steps.model.BaseStepModel;
-import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
-import io.getlime.security.powerauth.lib.cmd.util.EncryptedStorageUtil;
-import io.getlime.security.powerauth.lib.cmd.util.JsonUtil;
-import io.getlime.security.powerauth.lib.cmd.util.RestClientConfiguration;
+import io.getlime.security.powerauth.lib.cmd.util.*;
 import io.getlime.security.powerauth.rest.api.model.entity.TokenResponsePayload;
 import io.getlime.security.powerauth.rest.api.model.request.ActivationLayer2Request;
 import io.getlime.security.powerauth.rest.api.model.request.ConfirmRecoveryRequestPayload;
@@ -243,6 +241,40 @@ class PowerAuthApiTest {
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
         final List<Activation> listResponse = powerAuthClient.getActivationListForUser(config.getUserV31());
         assertNotEquals(0, listResponse.size());
+    }
+
+    @Test
+    void testGetActivationListForUserPagination() throws PowerAuthClientException {
+        // Prepare the base GetActivationListForUserRequest
+        GetActivationListForUserRequest request = new GetActivationListForUserRequest();
+        request.setUserId(config.getUserV31());
+        request.setApplicationId(config.getApplicationId());
+
+        // Create multiple activations for the test user
+        for (int i = 0; i < 10; i++) {
+            powerAuthClient.initActivation(request.getUserId(), request.getApplicationId());
+        }
+
+        // Prepare the query parameters for the first page
+        Map<String, String> queryParams1 = new HashMap<>();
+        queryParams1.put("pageNumber", "0");
+        queryParams1.put("pageSize", "5");
+
+        // Fetch the first page of activations
+        GetActivationListForUserResponse responsePage1 = powerAuthClient.getActivationListForUser(request, MapUtil.toMultiValueMap(queryParams1), null);
+        assertEquals(5, responsePage1.getActivations().size());
+
+        // Prepare the query parameters for the second page
+        Map<String, String> queryParams2 = new HashMap<>();
+        queryParams2.put("pageNumber", "1");
+        queryParams2.put("pageSize", "5");
+
+        // Fetch the second page of activations
+        GetActivationListForUserResponse responsePage2 = powerAuthClient.getActivationListForUser(request, MapUtil.toMultiValueMap(queryParams2), null);
+        assertEquals(5, responsePage2.getActivations().size());
+
+        // Check that the activations on the different pages are not the same
+        assertNotEquals(responsePage1.getActivations(), responsePage2.getActivations());
     }
 
     @Test
