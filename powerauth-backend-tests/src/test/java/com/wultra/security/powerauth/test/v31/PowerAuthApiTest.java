@@ -252,36 +252,51 @@ class PowerAuthApiTest {
     @Test
     void testGetActivationListForUserPagination() throws PowerAuthClientException {
         // Prepare the base GetActivationListForUserRequest
-        GetActivationListForUserRequest request = new GetActivationListForUserRequest();
-        request.setUserId(config.getUserV31());
-        request.setApplicationId(config.getApplicationId());
+        GetActivationListForUserRequest baseRequest = new GetActivationListForUserRequest();
+        baseRequest.setUserId(config.getUserV31());
+        baseRequest.setApplicationId(config.getApplicationId());
+
+        // Create a list to store the activation IDs
+        List<String> activationIds = new ArrayList<>();
 
         // Create multiple activations for the test user
         for (int i = 0; i < 10; i++) {
-            powerAuthClient.initActivation(request.getUserId(), request.getApplicationId());
+            InitActivationResponse initResponse = powerAuthClient.initActivation(baseRequest.getUserId(), baseRequest.getApplicationId());
+            activationIds.add(initResponse.getActivationId());
         }
 
-        // Prepare the query parameters for the first page
-        Map<String, String> queryParams1 = new HashMap<>();
-        queryParams1.put("pageNumber", "0");
-        queryParams1.put("pageSize", "5");
+        // Prepare the request for the first page of activations
+        GetActivationListForUserRequest requestPage1 = new GetActivationListForUserRequest();
+        requestPage1.setUserId(baseRequest.getUserId());
+        requestPage1.setApplicationId(baseRequest.getApplicationId());
+        requestPage1.setPage(0);
+        requestPage1.setSize(5);
 
         // Fetch the first page of activations
-        GetActivationListForUserResponse responsePage1 = powerAuthClient.getActivationListForUser(request, MapUtil.toMultiValueMap(queryParams1), null);
+        GetActivationListForUserResponse responsePage1 = powerAuthClient.getActivationListForUser(requestPage1);
         assertEquals(5, responsePage1.getActivations().size());
 
-        // Prepare the query parameters for the second page
-        Map<String, String> queryParams2 = new HashMap<>();
-        queryParams2.put("pageNumber", "1");
-        queryParams2.put("pageSize", "5");
+        // Prepare the request for the second page of activations
+        GetActivationListForUserRequest requestPage2 = new GetActivationListForUserRequest();
+        requestPage2.setUserId(baseRequest.getUserId());
+        requestPage2.setApplicationId(baseRequest.getApplicationId());
+        requestPage2.setPage(1);
+        requestPage2.setSize(5);
 
         // Fetch the second page of activations
-        GetActivationListForUserResponse responsePage2 = powerAuthClient.getActivationListForUser(request, MapUtil.toMultiValueMap(queryParams2), null);
+        GetActivationListForUserResponse responsePage2 = powerAuthClient.getActivationListForUser(requestPage2);
         assertEquals(5, responsePage2.getActivations().size());
 
         // Check that the activations on the different pages are not the same
         assertNotEquals(responsePage1.getActivations(), responsePage2.getActivations());
+
+        // Clean up the created activations at the end
+        for (String id : activationIds) {
+           RemoveActivationResponse removeActivationResponse = powerAuthClient.removeActivation(id, config.getUserV31());
+           assertTrue(removeActivationResponse.isRemoved());
+        }
     }
+
 
     @Test
     void lookupActivationsTest() throws PowerAuthClientException {
