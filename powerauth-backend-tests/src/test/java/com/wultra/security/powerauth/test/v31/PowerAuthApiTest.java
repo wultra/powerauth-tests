@@ -269,8 +269,8 @@ class PowerAuthApiTest {
         GetActivationListForUserRequest requestPage1 = new GetActivationListForUserRequest();
         requestPage1.setUserId(baseRequest.getUserId());
         requestPage1.setApplicationId(baseRequest.getApplicationId());
-        requestPage1.setPage(0);
-        requestPage1.setSize(5);
+        requestPage1.setPageNumber(0);
+        requestPage1.setPageSize(5);
 
         // Fetch the first page of activations
         GetActivationListForUserResponse responsePage1 = powerAuthClient.getActivationListForUser(requestPage1);
@@ -280,8 +280,8 @@ class PowerAuthApiTest {
         GetActivationListForUserRequest requestPage2 = new GetActivationListForUserRequest();
         requestPage2.setUserId(baseRequest.getUserId());
         requestPage2.setApplicationId(baseRequest.getApplicationId());
-        requestPage2.setPage(1);
-        requestPage2.setSize(5);
+        requestPage2.setPageNumber(1);
+        requestPage2.setPageSize(5);
 
         // Fetch the second page of activations
         GetActivationListForUserResponse responsePage2 = powerAuthClient.getActivationListForUser(requestPage2);
