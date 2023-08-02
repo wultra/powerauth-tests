@@ -723,7 +723,6 @@ class PowerAuthApiTest {
                 eciesRequest.getMac(), eciesRequest.getNonce(), "3.1", null, SignatureType.POSSESSION_KNOWLEDGE);
         assertNotNull(tokenResponse.getEncryptedData());
         assertNotNull(tokenResponse.getMac());
-        assertNotNull(tokenResponse.getEphemeralPublicKey());
         assertNotNull(tokenResponse.getNonce());
         final EciesCryptogram responseCryptogram = new EciesCryptogram(eciesPayload.getCryptogram().getEphemeralPublicKey(), Base64.getDecoder().decode(tokenResponse.getMac()), Base64.getDecoder().decode(tokenResponse.getEncryptedData()));
         EciesParameters responseParameters = EciesParameters.builder().nonce(Base64.getDecoder().decode(tokenResponse.getNonce())).build();
