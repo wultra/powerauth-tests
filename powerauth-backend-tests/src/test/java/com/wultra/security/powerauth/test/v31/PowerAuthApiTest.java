@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.*;
 import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
 import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -248,6 +249,54 @@ class PowerAuthApiTest {
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
         final List<Activation> listResponse = powerAuthClient.getActivationListForUser(config.getUserV31());
         assertNotEquals(0, listResponse.size());
+    }
+
+    @Test
+    void testGetActivationListForUserPagination() throws PowerAuthClientException {
+        // Prepare the base GetActivationListForUserRequest
+        final GetActivationListForUserRequest baseRequest = new GetActivationListForUserRequest();
+        baseRequest.setUserId(config.getUserV31());
+        baseRequest.setApplicationId(config.getApplicationId());
+
+        // Create a list to store the activation IDs
+        final List<String> activationIds = new ArrayList<>();
+
+        // Create multiple activations for the test user
+        for (int i = 0; i < 10; i++) {
+            InitActivationResponse initResponse = powerAuthClient.initActivation(baseRequest.getUserId(), baseRequest.getApplicationId());
+            activationIds.add(initResponse.getActivationId());
+        }
+
+        // Prepare the request for the first page of activations
+        final GetActivationListForUserRequest requestPage1 = new GetActivationListForUserRequest();
+        requestPage1.setUserId(baseRequest.getUserId());
+        requestPage1.setApplicationId(baseRequest.getApplicationId());
+        requestPage1.setPageNumber(0);
+        requestPage1.setPageSize(5);
+
+        // Fetch the first page of activations
+        final GetActivationListForUserResponse responsePage1 = powerAuthClient.getActivationListForUser(requestPage1);
+        assertEquals(5, responsePage1.getActivations().size());
+
+        // Prepare the request for the second page of activations
+        final GetActivationListForUserRequest requestPage2 = new GetActivationListForUserRequest();
+        requestPage2.setUserId(baseRequest.getUserId());
+        requestPage2.setApplicationId(baseRequest.getApplicationId());
+        requestPage2.setPageNumber(1);
+        requestPage2.setPageSize(5);
+
+        // Fetch the second page of activations
+        final GetActivationListForUserResponse responsePage2 = powerAuthClient.getActivationListForUser(requestPage2);
+        assertEquals(5, responsePage2.getActivations().size());
+
+        // Check that the activations on the different pages are not the same
+        assertNotEquals(responsePage1.getActivations(), responsePage2.getActivations());
+
+        // Clean up the created activations at the end
+        for (String id : activationIds) {
+            RemoveActivationResponse removeActivationResponse = powerAuthClient.removeActivation(id, config.getUserV31());
+            assertTrue(removeActivationResponse.isRemoved());
+        }
     }
 
     @Test
