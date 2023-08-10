@@ -585,11 +585,13 @@ public class PowerAuthSignatureTest {
     }
 
     private void testSignatureOfflinePersonalizedProximityCheck(final boolean expectedResult) throws Exception {
+        final String seed = "LtxE0f0RWNx3hy7ISjUPWA==";
+
         final CreatePersonalizedOfflineSignaturePayloadRequest request = new CreatePersonalizedOfflineSignaturePayloadRequest();
         request.setActivationId(config.getActivationIdV3());
         request.setData(offlineData);
         request.setProximityCheck(new CreatePersonalizedOfflineSignaturePayloadRequest.ProximityCheck());
-        request.getProximityCheck().setSeed("LtxE0f0RWNx3hy7ISjUPWA==");
+        request.getProximityCheck().setSeed(seed);
         request.getProximityCheck().setStepLength(30);
 
         final CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(request);
@@ -616,11 +618,11 @@ public class PowerAuthSignatureTest {
         assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
 
         // Prepare data for PowerAuth signature
-        final String proximityTotp = expectedResult ? parts[5] : "11111111";
-        final String dataForSignature = operationId + "&" + operationData + "&" + proximityTotp;
+        final String proximityTotp = parts[5];
+        final String dataForSignatureWithOtp = operationId + "&" + operationData + "&" + proximityTotp;
 
         // Prepare normalized data for signature
-        final String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
+        final String signatureBaseStringWithOtp = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignatureWithOtp.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
@@ -637,7 +639,10 @@ public class PowerAuthSignatureTest {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        final String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), SignatureConfiguration.decimal());
+        final String signature = signatureUtils.computePowerAuthSignature((signatureBaseStringWithOtp + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), SignatureConfiguration.decimal());
+
+        final String dataForSignature= operationId + "&" + operationData;
+        final String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         final VerifyOfflineSignatureRequest verifyRequest = new VerifyOfflineSignatureRequest();
         verifyRequest.setActivationId(config.getActivationIdV3());
@@ -645,7 +650,7 @@ public class PowerAuthSignatureTest {
         verifyRequest.setSignature(signature);
         verifyRequest.setAllowBiometry(true);
         verifyRequest.setProximityCheck(new VerifyOfflineSignatureRequest.ProximityCheck());
-        verifyRequest.getProximityCheck().setSeed("LtxE0f0RWNx3hy7ISjUPWA==");
+        verifyRequest.getProximityCheck().setSeed(expectedResult ? seed : "bGlnaHQgd28=");
         verifyRequest.getProximityCheck().setStepLength(30);
         verifyRequest.getProximityCheck().setStepCount(2);
 
