@@ -21,7 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.request.CreatePersonalizedOfflineSignaturePayloadRequest;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.VerifyOfflineSignatureRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
@@ -570,6 +572,97 @@ public class PowerAuthSignatureTest {
         assertEquals(config.getApplicationId(), signatureResponse.getApplicationId());
 
         // Increment counter
+        CounterUtil.incrementCounter(model);
+    }
+
+    @Test
+    void testSignatureOfflinePersonalizedProximityCheckValid() throws Exception {
+        testSignatureOfflinePersonalizedProximityCheck(true);
+    }
+    @Test
+    void testSignatureOfflinePersonalizedProximityCheckInvalid() throws Exception {
+        testSignatureOfflinePersonalizedProximityCheck(false);
+    }
+
+    private void testSignatureOfflinePersonalizedProximityCheck(final boolean expectedResult) throws Exception {
+        final String seed = "LtxE0f0RWNx3hy7ISjUPWA==";
+
+        final CreatePersonalizedOfflineSignaturePayloadRequest request = new CreatePersonalizedOfflineSignaturePayloadRequest();
+        request.setActivationId(config.getActivationIdV3());
+        request.setData(offlineData);
+        request.setProximityCheck(new CreatePersonalizedOfflineSignaturePayloadRequest.ProximityCheck());
+        request.getProximityCheck().setSeed(seed);
+        request.getProximityCheck().setStepLength(30);
+
+        final CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(request);
+        final String nonce = offlineResponse.getNonce();
+        final String offlineDataResponse = offlineResponse.getOfflineData();
+
+        final String[] parts = offlineDataResponse.split("\n");
+
+        // Extract last line which contains information about key and ECDSA signature
+        final String lastLine = parts[parts.length - 1];
+
+        // 1 = KEY_SERVER_PRIVATE was used to sign data (personalized offline signature)
+        assertEquals("1", lastLine.substring(0, 1));
+
+        // The remainder of last line is Base64 encoded ECDSA signature
+        final String ecdsaSignature = lastLine.substring(1);
+        final byte[] serverPublicKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("serverPublicKey"));
+        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(serverPublicKeyBytes);
+
+        // Prepare offline data without signature
+        final String offlineDataWithoutSignature = offlineDataResponse.substring(0, offlineDataResponse.length() - ecdsaSignature.length());
+
+        // Validate ECDSA signature of data using server public key
+        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
+
+        // Prepare data for PowerAuth signature
+        final String proximityTotp = parts[5];
+        final String dataForSignatureWithOtp = operationId + "&" + operationData + "&" + proximityTotp;
+
+        // Prepare normalized data for signature
+        final String signatureBaseStringWithOtp = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignatureWithOtp.getBytes(StandardCharsets.UTF_8));
+
+        // Prepare keys
+        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
+        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
+        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
+
+        // Get the signature keys
+        final SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
+        final SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
+
+        // Put keys into a list
+        final List<SecretKey> signatureKeys = new ArrayList<>();
+        signatureKeys.add(signaturePossessionKey);
+        signatureKeys.add(signatureKnowledgeKey);
+
+        // Calculate signature of normalized signature base string with 'offline' as application secret
+        final String signature = signatureUtils.computePowerAuthSignature((signatureBaseStringWithOtp + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), SignatureConfiguration.decimal());
+
+        final String dataForSignature= operationId + "&" + operationData;
+        final String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
+
+        final VerifyOfflineSignatureRequest verifyRequest = new VerifyOfflineSignatureRequest();
+        verifyRequest.setActivationId(config.getActivationIdV3());
+        verifyRequest.setData(signatureBaseString);
+        verifyRequest.setSignature(signature);
+        verifyRequest.setAllowBiometry(true);
+        verifyRequest.setProximityCheck(new VerifyOfflineSignatureRequest.ProximityCheck());
+        verifyRequest.getProximityCheck().setSeed(expectedResult ? seed : "bGlnaHQgd28=");
+        verifyRequest.getProximityCheck().setStepLength(30);
+        verifyRequest.getProximityCheck().setStepCount(2);
+
+        final VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(verifyRequest);
+        assertEquals(expectedResult, signatureResponse.isSignatureValid());
+        assertEquals(config.getActivationIdV3(), signatureResponse.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, signatureResponse.getActivationStatus());
+        final BigInteger expectedRemainingAttempts = BigInteger.valueOf(expectedResult ? 5 : 4);
+        assertEquals(expectedRemainingAttempts, signatureResponse.getRemainingAttempts());
+        assertEquals(SignatureType.POSSESSION_KNOWLEDGE, signatureResponse.getSignatureType());
+        assertEquals(config.getApplicationId(), signatureResponse.getApplicationId());
+
         CounterUtil.incrementCounter(model);
     }
 
