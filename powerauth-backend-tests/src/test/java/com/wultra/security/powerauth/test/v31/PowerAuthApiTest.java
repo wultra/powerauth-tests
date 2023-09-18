@@ -553,6 +553,7 @@ class PowerAuthApiTest {
         // Check successful token validation and activation status
         final ValidateTokenResponse validateResponse = powerAuthClient.validateToken(tokenInfo.getTokenId(),
                 Base64.getEncoder().encodeToString(tokenInfo.getTokenNonce()),
+                "3.1",
                 Long.parseLong(new String(tokenInfo.getTokenTimestamp())),
                 Base64.getEncoder().encodeToString(tokenInfo.getTokenDigest()));
         assertTrue(validateResponse.isTokenValid());
@@ -574,6 +575,7 @@ class PowerAuthApiTest {
         // Check that token validation failed and activation status and blocked reason is available
         final ValidateTokenResponse validateResponse = powerAuthClient.validateToken(tokenInfo.getTokenId(),
                 Base64.getEncoder().encodeToString(tokenInfo.getTokenNonce()),
+                "3.1",
                 Long.parseLong(new String(tokenInfo.getTokenTimestamp())),
                 Base64.getEncoder().encodeToString(tokenInfo.getTokenDigest()));
         assertFalse(validateResponse.isTokenValid());
