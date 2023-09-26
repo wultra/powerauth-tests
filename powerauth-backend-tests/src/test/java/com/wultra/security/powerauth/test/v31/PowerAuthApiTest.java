@@ -772,6 +772,7 @@ class PowerAuthApiTest {
         tokenInfo.setTokenDigest(tokenGenerator.computeTokenDigest(
                 tokenInfo.getTokenNonce(),
                 tokenInfo.getTokenTimestamp(),
+                "3.1",
                 Base64.getDecoder().decode(response.getTokenSecret())));
         return tokenInfo;
     }

@@ -52,7 +52,7 @@ object ClientConfig {
 
   val applicationSecret: String = ConfigurationUtil.getApplicationSecret(clientConfigObject)
 
-  val masterPublicKey: ECPublicKey = ConfigurationUtil.getMasterKey(clientConfigObject, stepLogger).asInstanceOf[ECPublicKey]
+  val masterPublicKey: ECPublicKey = ConfigurationUtil.getMasterPublicKey(clientConfigObject, stepLogger).asInstanceOf[ECPublicKey]
 
   val modelVersion: PowerAuthVersion = PowerAuthVersion.V3_1
 
