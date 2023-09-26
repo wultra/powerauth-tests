@@ -54,7 +54,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push:  ${{ github.actor != 'dependabot[bot]' }}
-        tags: powerauthextendedtest.azurecr.io/powerauth-test-server::${{ env.REVISION }}${{ env.TIMESTAMP }}-${{ github.sha }}
+        tags: powerauthextendedtest.azurecr.io/powerauth-test-server:${{ env.REVISION }}${{ env.TIMESTAMP }}-${{ github.sha }}
         file: ./powerauth-test-server/Dockerfile
         context: ./powerauth-test-server/
 
