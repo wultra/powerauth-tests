@@ -8,9 +8,7 @@ on:
     branches:
       - develop
   workflow_dispatch:
-    branches:
-      - develop
-      - test/ci
+
 jobs:
   build:
     runs-on: 'ubuntu-latest'
@@ -26,6 +24,13 @@ jobs:
         server-username: INTERNAL_USERNAME
         server-password: INTERNAL_PASSWORD
         cache: maven
+    - name: Set Timestamp for docker image tag
+      run: echo "TIMESTAMP=-$(date +%Y.%m.%d)" >> $GITHUB_ENV
+    - name: Get Powerauth Test Server version
+      run: |
+        cd powerauth-test-server
+        REVISION=`mvn help:evaluate -Dexpression=project.version -q -DforceStdout`
+        echo "REVISION=$REVISION" >> $GITHUB_ENV
     - name: Package test server war
       run: |
         cd powerauth-test-server
@@ -34,7 +39,6 @@ jobs:
         # those are not environmental secrect, but global secret - for readonly access to artifactory
         INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
         INTERNAL_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
-
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
@@ -50,7 +54,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push:  ${{ github.actor != 'dependabot[bot]' }}
-        tags: powerauthextendedtest.azurecr.io/powerauth-test-server:${{ github.sha }}
+        tags: powerauthextendedtest.azurecr.io/powerauth-test-server:${{ env.REVISION }}${{ env.TIMESTAMP }}-${{ github.sha }}
         file: ./powerauth-test-server/Dockerfile
         context: ./powerauth-test-server/
 
