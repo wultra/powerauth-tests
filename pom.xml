@@ -53,6 +53,7 @@
         <wultra-core.version>1.7.0</wultra-core.version>
 
         <bc.version>1.76</bc.version>
+        <springdoc-openapi-starter-webmvc-ui.version>2.2.0</springdoc-openapi-starter-webmvc-ui.version>
     </properties>
 
     <modules>
