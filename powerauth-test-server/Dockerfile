@@ -7,6 +7,7 @@ ENV JAVA_HOME=/opt/java/openjdk \
     TOMCAT_HOME=/usr/local/tomcat \
     TOMCAT_MAJOR=10 \
     TOMCAT_VERSION=10.1.7 \
+    LOGBACK_CONF=/opt/logback/conf \
     TZ=UTC
 
 ENV PATH=$PATH:$TOMCAT_HOME/bin
@@ -46,5 +47,7 @@ EXPOSE 8080
 STOPSIGNAL SIGQUIT
 
 USER powerauth
+
+COPY deploy/conf/logback/* $LOGBACK_CONF/
 
 CMD ["catalina.sh", "run"]

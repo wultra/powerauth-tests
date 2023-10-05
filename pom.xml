@@ -54,6 +54,7 @@
 
         <bc.version>1.76</bc.version>
         <springdoc-openapi-starter-webmvc-ui.version>2.2.0</springdoc-openapi-starter-webmvc-ui.version>
+        <logstash.version>7.4</logstash.version>
     </properties>
 
     <modules>
@@ -140,6 +141,13 @@
                 <groupId>com.wultra.security</groupId>
                 <artifactId>enrollment-server-onboarding-api-model</artifactId>
                 <version>${enrollment-server.version}</version>
+            </dependency>
+
+            <!-- Logging -->
+            <dependency>
+                <groupId>net.logstash.logback</groupId>
+                <artifactId>logstash-logback-encoder</artifactId>
+                <version>${logstash.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
