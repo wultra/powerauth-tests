@@ -6,24 +6,46 @@ on:
       environment:
         type: string
         description: environment
-        default: dev
+        default: 'dev'
         options:
           - dev
   schedule:
     - cron: '0 0 * * *'
 
 jobs:
-  maven-tests:
-    uses: wultra/wultra-infrastructure/.github/workflows/maven-test.yml@develop
-    secrets: inherit
+  run-tests:
+    runs-on: ubuntu-latest
     environment: ${{ inputs.environment || 'dev' }}
-    env:
-      POWERAUTH_REST_URL: ${{ env.POWERAUTH_REST_URL }}
-      POWERAUTH_INTEGRATION_SERVICE_URL: ${{ env.POWERAUTH_INTEGRATION_SERVICE_URL }}
-      POWERAUTH_NEXTSTEP_SERVICE_URL: ${{ env.POWERAUTH_NEXTSTEP_SERVICE_URL }}
-      POWERAUTH_ENROLLMENT_SERVICE_URL: ${{ env.POWERAUTH_ENROLLMENT_SERVICE_URL }}
-      POWERAUTH_ENROLLMENT_ONBOARDING_SERVICE_URL: ${{ env.POWERAUTH_ENROLLMENT_ONBOARDING_SERVICE_URL }}
-      POWERAUTH_SERVICE_SECURITY_CLIENTTOKEN: ${{ secrets.POWERAUTH_SERVICE_SECURITY_CLIENTTOKEN }}
-      POWERAUTH_SERVICE_SECURITY_CLIENTSECRET: ${{ secrets.POWERAUTH_SERVICE_SECURITY_CLIENTSECRET }}
-    with:
-      directory_path: powerauth-backend-tests
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          server-id: jfrog-central
+          server-username: INTERNAL_USERNAME
+          server-password: INTERNAL_PASSWORD
+          cache: maven
+      - name: Run Maven Test Step
+        run: |
+          echo "$BRANCH"
+          echo ${{ inputs.environment }}
+          mvn -B -U -pl powerauth-backend-tests test -DuseInternalRepo=true
+        env:
+          INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
+          INTERNAL_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          BRANCH: ${{ github.ref_name }}
+          POWERAUTH_REST_URL: ${{ secrets.POWERAUTH_REST_URL }}
+          POWERAUTH_INTEGRATION_SERVICE_URL: ${{ secrets.POWERAUTH_INTEGRATION_SERVICE_URL }}
+          POWERAUTH_NEXTSTEP_SERVICE_URL: ${{ secrets.POWERAUTH_NEXTSTEP_SERVICE_URL }}
+          POWERAUTH_ENROLLMENT_SERVICE_URL: ${{ secrets.POWERAUTH_ENROLLMENT_SERVICE_URL }}
+          POWERAUTH_ENROLLMENT_ONBOARDING_SERVICE_URL: ${{ secrets.POWERAUTH_ENROLLMENT_ONBOARDING_SERVICE_URL }}
+          POWERAUTH_SERVICE_SECURITY_CLIENTTOKEN: ${{ secrets.POWERAUTH_SERVICE_SECURITY_CLIENTTOKEN }}
+          POWERAUTH_SERVICE_SECURITY_CLIENTSECRET: ${{ secrets.POWERAUTH_SERVICE_SECURITY_CLIENTSECRET }}
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: always()
+        with:
+          detailed_summary: true
+          report_paths: '**/target/surefire-reports/*.xml'
