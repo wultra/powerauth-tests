@@ -39,6 +39,8 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepMode
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
 import io.getlime.security.powerauth.lib.cmd.util.EncryptedStorageUtil;
+import org.apache.commons.text.CharacterPredicates;
+import org.apache.commons.text.RandomStringGenerator;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -492,13 +494,16 @@ class PowerAuthSignatureTest {
 
     @Test
     void signatureLargeDataTest() throws Exception {
-        SecureRandom secureRandom = new SecureRandom();
-        File dataFileLarge = File.createTempFile("data_large_v31", ".dat");
+        final File dataFileLarge = File.createTempFile("data_large_v31", ".dat");
         dataFileLarge.deleteOnExit();
-        FileWriter fw = new FileWriter(dataFileLarge);
-        for (int i = 0; i < 10000; i++) {
-            fw.write(secureRandom.nextInt());
-        }
+        final FileWriter fw = new FileWriter(dataFileLarge);
+        final RandomStringGenerator randomStringGenerator =
+                new RandomStringGenerator.Builder()
+                        .withinRange('0', 'z')
+                        .filteredBy(CharacterPredicates.LETTERS, CharacterPredicates.DIGITS)
+                        .build();
+        final String randomString = randomStringGenerator.generate(10000);
+        fw.write(randomString);
         fw.close();
 
         model.setData(Files.readAllBytes(Paths.get(dataFileLarge.getAbsolutePath())));
