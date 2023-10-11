@@ -38,6 +38,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit.jupiter.EnabledIf;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.BufferedWriter;
@@ -46,7 +47,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
@@ -115,6 +119,7 @@ public class PowerAuthActivationCodeTest {
     }
 
     @Test
+    @EnabledIf(expression = "${powerauth.test.includeCustomTests}", loadContext = true)
     void activationUsingActivationCodeTest() throws Exception {
         // Run this test only in case Enrollment server is available
         assumeFalse(config.getEnrollmentServiceUrl().isEmpty());
