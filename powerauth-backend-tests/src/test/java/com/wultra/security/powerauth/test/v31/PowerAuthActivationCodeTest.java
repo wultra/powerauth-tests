@@ -56,7 +56,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = PowerAuthTestConfiguration.class,properties="powerauth.test.scope=FULL")
+@SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 public class PowerAuthActivationCodeTest {
 
