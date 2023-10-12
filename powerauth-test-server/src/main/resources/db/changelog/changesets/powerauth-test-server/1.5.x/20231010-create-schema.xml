@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <!-- Creation of pa_test_config table -->
+    <changeSet id="1" logicalFilePath="powerauth-test-server/1.5.x/20231010-create-schema.xml" author="Jan Dusil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pa_test_config"/>
+            </not>
+        </preConditions>
+        <comment>Create a new table pa_test_config</comment>
+        <createTable tableName="pa_test_config">
+            <column name="application_id" type="varchar(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="application_name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="application_key" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="application_secret" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="master_public_key" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <rollback>
+            <dropTable tableName="pa_test_config"/>
+        </rollback>
+    </changeSet>
+
+    <!-- Creation of pa_test_status table -->
+    <changeSet id="2" logicalFilePath="powerauth-test-server/1.5.x/20231010-create-schema.xml" author="Jan Dusil">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="pa_test_status"/>
+            </not>
+        </preConditions>
+        <createTable tableName="pa_test_status">
+            <column name="activation_id" type="varchar(255)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="server_public_key" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="counter" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ctr_data" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="encrypted_device_private_key" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="signature_biometry_key" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="signature_knowledge_key_encrypted" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="signature_knowledge_key_salt" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="signature_possession_key" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="transport_master_key" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <rollback>
+            <dropTable tableName="pa_test_status"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

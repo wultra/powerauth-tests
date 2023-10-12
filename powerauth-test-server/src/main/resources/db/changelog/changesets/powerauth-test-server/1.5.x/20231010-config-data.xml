@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-test-server/1.5.x/20231010-config-data.xml" author="Jan Dusil">
+        <comment>Inserting data into pa_cloud_property, es_operation_template, pa_operation_template,
+            pa_cloud_localization, and pa_cloud_user tables
+        </comment>
+
+        <!-- pa cloud property -->
+        <insert tableName="pa_cloud_property">
+            <column name="name" value="service.base.url"/>
+            <column name="value" value="${pa-cloud-service-base-url}"/>
+        </insert>
+
+        <!-- es operation templates -->
+        <insert tableName="es_operation_template">
+            <column name="id" valueComputed="nextval('es_operation_template_seq')"/>
+            <column name="placeholder" value="authorize_payment"/>
+            <column name="language" value="en"/>
+            <column name="title" value="Payment Approval"/>
+            <column name="message" value="Please confirm the payment"/>
+            <column name="attributes" value='[
+                {
+                  "id": "operation.amount",
+                  "type": "AMOUNT",
+                  "text": "Amount",
+                  "params": {
+                    "amount": "amount",
+                    "currency": "currency"
+                  }
+                },
+                {
+                  "id": "operation.account",
+                  "type": "KEY_VALUE",
+                  "text": "To Account",
+                  "params": {
+                    "value": "iban"
+                  }
+                }
+            ]'/>
+        </insert>
+
+        <insert tableName="es_operation_template">
+            <column name="id" valueComputed="nextval('es_operation_template_seq')"/>
+            <column name="placeholder" value="login"/>
+            <column name="language" value="en"/>
+            <column name="title" value="Login Approval"/>
+            <column name="message" value="Are you logging in to the internet banking?"/>
+        </insert>
+
+        <!-- pa operation template -->
+        <insert tableName="pa_operation_template">
+            <column name="id" valueComputed="nextval('pa_operation_template_seq')"/>
+            <column name="template_name" value="login"/>
+            <column name="operation_type" value="login"/>
+            <column name="data_template" value="A2"/>
+            <column name="signature_type" value="possession_knowledge, possession_biometry"/>
+            <column name="max_failure_count" valueNumeric="5"/>
+            <column name="expiration" valueNumeric="300"/>
+        </insert>
+
+        <insert tableName="pa_operation_template">
+            <column name="id" valueComputed="nextval('pa_operation_template_seq')"/>
+            <column name="template_name" value="payment"/>
+            <column name="operation_type" value="authorize_payment"/>
+            <column name="data_template" value="A1*A${amount}${currency}*I${iban}"/>
+            <column name="signature_type" value="possession_knowledge, possession_biometry"/>
+            <column name="max_failure_count" valueNumeric="5"/>
+            <column name="expiration" valueNumeric="300"/>
+        </insert>
+
+        <!-- localization -->
+        <insert tableName="pa_cloud_localization">
+            <column name="id" valueComputed="nextval('pa_cloud_localization_seq')"/>
+            <column name="placeholder" value="login"/>
+            <column name="language" value="en"/>
+            <column name="title" value="Approve Login"/>
+            <column name="summary" value="Please confirm the login request."/>
+        </insert>
+
+        <insert tableName="pa_cloud_localization">
+            <column name="id" valueComputed="nextval('pa_cloud_localization_seq')"/>
+            <column name="placeholder" value="payment"/>
+            <column name="language" value="en"/>
+            <column name="title" value="Approve Payment"/>
+            <column name="summary" value="Please approve the payment of ${amount} ${currency} to account ${iban}."/>
+        </insert>
+
+        <!-- admin user -->
+        <insert tableName="pa_cloud_user">
+            <column name="id" valueComputed="nextval('pa_cloud_user_seq')"/>
+            <column name="username" value="${pa-cloud-admin-username}"/>
+            <column name="password" value="${pa-cloud-admin-password-encoded}"/>
+            <column name="enabled" valueBoolean="true"/>
+        </insert>
+
+        <insert tableName="pa_cloud_user_authority">
+            <column name="id" valueComputed="nextval('pa_cloud_user_seq')"/>
+            <column name="user_id"
+                    valueComputed="(SELECT id FROM pa_cloud_user WHERE username = '${pa-cloud-admin-username}')"/>
+            <column name="authority" value="ROLE_ADMIN"/>
+        </insert>
+
+        <rollback>
+            <!-- pa cloud property -->
+            <delete tableName="pa_cloud_property">
+                <where>name = 'service.base.url' AND value = '${pa-cloud-service-base-url}'</where>
+            </delete>
+
+            <!-- es operation templates -->
+            <delete tableName="es_operation_template">
+                <where>placeholder IN ('authorize_payment', 'login') AND language IN ('en')</where>
+            </delete>
+
+            <!-- pa operation template -->
+            <delete tableName="pa_operation_template">
+                <where>template_name IN ('login', 'payment') AND operation_type IN ('login', 'authorize_payment')
+                </where>
+            </delete>
+
+            <!-- localization -->
+            <delete tableName="pa_cloud_localization">
+                <where>placeholder IN ('login', 'payment') AND language IN ('en')</where>
+            </delete>
+
+            <!-- admin user -->
+            <delete tableName="pa_cloud_user_authority">
+                <where>user_id IN (SELECT id FROM pa_cloud_user WHERE username = '${pa-admin-username}')</where>
+            </delete>
+            <delete tableName="pa_cloud_user">
+                <where>username = '${pa-admin-username}'</where>
+            </delete>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
