@@ -37,7 +37,6 @@ jobs:
         env:
           INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
           INTERNAL_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
-          BRANCH: ${{ github.ref_name }}
           POWERAUTH_REST_URL: ${{ secrets.POWERAUTH_REST_URL }}
           POWERAUTH_INTEGRATION_SERVICE_URL: ${{ secrets.POWERAUTH_INTEGRATION_SERVICE_URL }}
           POWERAUTH_NEXTSTEP_SERVICE_URL: ${{ secrets.POWERAUTH_NEXTSTEP_SERVICE_URL }}
