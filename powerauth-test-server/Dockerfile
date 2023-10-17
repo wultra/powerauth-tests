@@ -4,13 +4,14 @@ LABEL maintainer="roman.strobl@wultra.com"
 # Prepare environment variables
 ENV JAVA_HOME=/opt/java/openjdk \
     PKG_RELEASE=1~jammy \
+    LB_HOME=/usr/local/liquibase \
     TOMCAT_HOME=/usr/local/tomcat \
     TOMCAT_MAJOR=10 \
     TOMCAT_VERSION=10.1.13 \
     LOGBACK_CONF=/opt/logback/conf \
     TZ=UTC
 
-ENV PATH=$PATH:$TOMCAT_HOME/bin
+ENV PATH=$PATH:$LB_HOME:$TOMCAT_HOME/bin
 
 # Init
 RUN apt-get -y update  \
@@ -42,6 +43,23 @@ RUN groupadd -r powerauth \
     && chown -R powerauth:powerauth $TOMCAT_HOME \
     && chown -R powerauth:powerauth /opt/apache-tomcat-$TOMCAT_VERSION
 
+# Liquibase - binaries
+# This setup was inspired by https://github.com/mobtitude/liquibase/blob/master/Dockerfile
+RUN set -x \
+    && wget -q -O /tmp/liquibase.tar.gz "https://github.com/liquibase/liquibase/releases/download/v$LB_VERSION/liquibase-$LB_VERSION.tar.gz" \
+    && [ "fc7d2a9fa97d91203d639b664715d40953c6c9155a5225a0ddc4c8079b9a3641  /tmp/liquibase.tar.gz" = "$(sha256sum /tmp/liquibase.tar.gz)" ] \
+    && mkdir -p "$LB_HOME" \
+    && tar -xzf /tmp/liquibase.tar.gz -C "$LB_HOME" \
+    && rm -rf "$LB_HOME/sdk" \
+# Uninstall packages which are no longer needed and clean apt caches
+    && apt-get -y remove wget curl gettext-base \
+    && apt-get -y purge --auto-remove \
+    && rm -rf /tmp/* /var/cache/apt/*
+
+# Liquibase - changesets
+RUN rm -rf $LB_HOME/data
+COPY deploy/liquibase/data $LB_HOME/data
+
 # Docker configuration
 EXPOSE 8080
 STOPSIGNAL SIGQUIT
@@ -49,5 +67,6 @@ STOPSIGNAL SIGQUIT
 USER powerauth
 
 COPY deploy/conf/logback/* $LOGBACK_CONF/
+COPY deploy/docker-entrypoint.sh /
 
-CMD ["catalina.sh", "run"]
+ENTRYPOINT ["/docker-entrypoint.sh"]
