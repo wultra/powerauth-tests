@@ -1,4 +1,4 @@
-CREATE TABLE pa_test_config
+CREATE TABLE IF NOT EXISTS pa_test_config
 (
     application_id     VARCHAR(255) NOT NULL PRIMARY KEY, -- Application identifier
     application_name   VARCHAR(255) NOT NULL,             -- Application name
@@ -7,7 +7,7 @@ CREATE TABLE pa_test_config
     master_public_key  VARCHAR(255) NOT NULL              -- Master public key in Base64 format
 );
 
-CREATE TABLE pa_test_status
+CREATE TABLE IF NOT EXISTS pa_test_status
 (
     activation_id                     VARCHAR(255) NOT NULL PRIMARY KEY, -- Activation identifier
     server_public_key                 VARCHAR(255) NOT NULL,             -- Server public key in Base64 format
