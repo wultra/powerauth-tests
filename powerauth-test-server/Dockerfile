@@ -5,6 +5,7 @@ LABEL maintainer="roman.strobl@wultra.com"
 ENV JAVA_HOME=/opt/java/openjdk \
     PKG_RELEASE=1~jammy \
     LB_HOME=/usr/local/liquibase \
+    LB_VERSION=4.23.2 \
     TOMCAT_HOME=/usr/local/tomcat \
     TOMCAT_MAJOR=10 \
     TOMCAT_VERSION=10.1.13 \

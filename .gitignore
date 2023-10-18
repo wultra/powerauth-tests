@@ -19,3 +19,7 @@
 .idea/
 .mvn
 dist/
+
+# Docker image support files
+powerauth-test-server/env.list
+powerauth-test-server/deploy/liquibase
