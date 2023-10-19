@@ -21,5 +21,4 @@
 dist/
 
 # Docker image support files
-powerauth-test-server/env.list
-powerauth-test-server/deploy/liquibase
+powerauth-test-server/deploy/liquibase/*
