@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.v30;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -39,7 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @EnableConfigurationProperties
 class PowerAuthRecoveryTest {
 
-    private static final String VERSION = "3.1";
+    private static final String VERSION = "3.0";
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;

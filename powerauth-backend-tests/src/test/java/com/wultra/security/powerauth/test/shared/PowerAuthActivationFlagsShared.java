@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2020 Wultra s.r.o.
+ * Copyright (C) 2023 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.shared;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
@@ -29,85 +29,25 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepMo
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer2Response;
-import org.json.simple.JSONObject;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Activation flag tests.
+ * Activation flag test shared logic.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@EnableConfigurationProperties
-@ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
-public class PowerAuthActivationFlagsTest {
+public class PowerAuthActivationFlagsShared {
 
-    private PowerAuthClient powerAuthClient;
-    private PowerAuthTestConfiguration config;
-    private PrepareActivationStepModel model;
-    private File tempStatusFile;
-
-    @LocalServerPort
-    private int port;
-
-    @Autowired
-    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
-        this.powerAuthClient = powerAuthClient;
-    }
-
-    @Autowired
-    public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {
-        this.config = config;
-    }
-
-    @BeforeEach
-    void setUp() throws IOException {
-        // Create temp status file
-        tempStatusFile = File.createTempFile("pa_status_v31", ".json");
-
-        // Model shared among tests
-        model = new PrepareActivationStepModel();
-        model.setActivationName("test v31 flags");
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(new JSONObject());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.1");
-        model.setDeviceInfo("backend-tests");
-    }
-
-    @AfterEach
-    void tearDown() {
-        assertTrue(tempStatusFile.delete());
-    }
-
-    @Test
-    void activationFlagCrudTest() throws Exception {
+    public static void activationFlagCrudTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PrepareActivationStepModel model, String version) throws Exception {
         // Init activation
         final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV31());
+        initRequest.setUserId(config.getUser(version));
         final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
@@ -145,12 +85,11 @@ public class PowerAuthActivationFlagsTest {
         assertEquals(Arrays.asList("FLAG3", "FLAG4"), listResponse4.getActivationFlags());
     }
 
-    @Test
-    void activationFlagLookupTest() throws Exception {
+    public static void activationFlagLookupTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PrepareActivationStepModel model, String version) throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV31());
+        initRequest.setUserId(config.getUser(version));
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
@@ -169,7 +108,7 @@ public class PowerAuthActivationFlagsTest {
         // Test flag lookup
         String activationId = initResponse.getActivationId();
         final LookupActivationsRequest lookupRequest = new LookupActivationsRequest();
-        lookupRequest.getUserIds().add(config.getUserV31());
+        lookupRequest.getUserIds().add(config.getUser(version));
         lookupRequest.setTimestampLastUsedAfter(timestampCreated);
         lookupRequest.getActivationFlags().add("FLAG1");
         final LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupRequest);
@@ -196,20 +135,19 @@ public class PowerAuthActivationFlagsTest {
         assertTrue(response5.getActivations().isEmpty());
     }
 
-    @Test
-    void activationProviderFlagTest() throws Exception {
+    public static void activationProviderFlagTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, File tempStatusFile, int port, String version) throws Exception {
         // Create custom activation with test provider
         CreateActivationStepModel model = new CreateActivationStepModel();
-        model.setActivationName("test v3.1");
+        model.setActivationName("test v" + version);
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(config.getResultStatusObjectV31());
+        model.setResultStatusObject(config.getResultStatusObject(version));
         model.setUriString("http://localhost:" + port);
-        model.setVersion("3.1");
+        model.setVersion(version);
         model.setDeviceInfo("backend-tests");
 
         // Set unique user identity

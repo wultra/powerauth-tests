@@ -125,6 +125,12 @@ public class PowerAuthTestConfiguration {
     private final KeyConvertor keyConvertor = new KeyConvertor();
     private final ObjectMapper objectMapper = RestClientConfiguration.defaultMapper();
 
+    // Version 3.2 temporary storage
+    private File statusFileV32;
+    private final JSONObject resultStatusObjectV32 = new JSONObject();
+    private String activationIdV32;
+    private String userV32;
+
     // Version 3.1 temporary storage
     private File statusFileV31;
     private final JSONObject resultStatusObjectV31 = new JSONObject();
@@ -197,6 +203,10 @@ public class PowerAuthTestConfiguration {
 
         // Prepare common userId
         final String userId = UUID.randomUUID().toString();
+
+        // Create status file and user for version 3.2
+        statusFileV32 = File.createTempFile("pa_status_v32", ".json");
+        userV32 = "TestUserV32_" + userId;
 
         // Create status file and user for version 3.1
         statusFileV31 = File.createTempFile("pa_status_v31", ".json");
@@ -273,20 +283,49 @@ public class PowerAuthTestConfiguration {
         return keyConvertor;
     }
 
-    public File getStatusFileV31() {
-        return statusFileV31;
+    public File getStatusFileV32() {
+        return statusFileV32;
     }
 
-    public JSONObject getResultStatusObjectV31() {
-        return resultStatusObjectV31;
+    public File getStatusFileV31() {
+        return statusFileV31;
     }
 
     public File getStatusFileV3() {
         return statusFileV3;
     }
 
+    public JSONObject getResultStatusObjectV32() {
+        return resultStatusObjectV32;
+    }
+
+    public JSONObject getResultStatusObjectV31() {
+        return resultStatusObjectV31;
+    }
+
     public JSONObject getResultStatusObjectV3() {
         return resultStatusObjectV3;
+    }
+
+    public JSONObject getResultStatusObject(String version) {
+        switch (version) {
+            case "3.2":
+                return resultStatusObjectV32;
+            case "3.1":
+                return resultStatusObjectV31;
+            case "3.0":
+                return resultStatusObjectV3;
+            default:
+                return null;
+        }
+    }
+
+    public String getActivationIdV32() {
+        return activationIdV32;
+    }
+
+    public void setActivationIdV32(String activationIdV32) {
+        this.activationIdV32 = activationIdV32;
     }
 
     public String getActivationIdV31() {
@@ -305,6 +344,19 @@ public class PowerAuthTestConfiguration {
         this.activationIdV3 = activationIdV3;
     }
 
+    public String getActivationId(String version) {
+        switch (version) {
+            case "3.2":
+                return activationIdV32;
+            case "3.1":
+                return activationIdV31;
+            case "3.0":
+                return activationIdV3;
+            default:
+                return null;
+        }
+    }
+
     public String getPassword() {
         return password;
     }
@@ -319,6 +371,23 @@ public class PowerAuthTestConfiguration {
 
     public String getUserV31() {
         return userV31;
+    }
+
+    public String getUserV32() {
+        return userV32;
+    }
+
+    public String getUser(String version) {
+        switch (version) {
+            case "3.2":
+                return userV32;
+            case "3.1":
+                return userV31;
+            case "3.0":
+                return userV3;
+            default:
+                return null;
+        }
     }
 
     public void setApplicationKey(String applicationKey) {

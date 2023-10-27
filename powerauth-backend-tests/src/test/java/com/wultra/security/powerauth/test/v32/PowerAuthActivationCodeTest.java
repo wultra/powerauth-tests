@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.v32;
 
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthActivationCodeShared;
@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @EnableConfigurationProperties
 public class PowerAuthActivationCodeTest {
 
-    private static final String VERSION = "3.1";
+    private static final String VERSION = "3.2";
 
     private PowerAuthTestConfiguration config;
     private PrepareActivationStepModel activationModel;
@@ -85,7 +85,7 @@ public class PowerAuthActivationCodeTest {
         signatureModel.setHttpMethod("POST");
         signatureModel.setHeaders(new HashMap<>());
         signatureModel.setStatusFileName(tempStatusFile.getAbsolutePath());
-        signatureModel.setResultStatusObject(config.getResultStatusObjectV31());
+        signatureModel.setResultStatusObject(config.getResultStatusObjectV32());
         signatureModel.setVersion(VERSION);
         signatureModel.setDryRun(false);
 

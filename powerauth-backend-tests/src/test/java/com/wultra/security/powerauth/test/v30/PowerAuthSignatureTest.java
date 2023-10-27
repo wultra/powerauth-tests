@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2019 Wultra s.r.o.
+ * Copyright (C) 2018 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.v30;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -45,9 +45,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-class PowerAuthSignatureTest {
+public class PowerAuthSignatureTest {
 
-    private static final String VERSION = "3.1";
+    private static final String VERSION = "3.0";
 
     private PowerAuthTestConfiguration config;
     private static File dataFile;
@@ -89,9 +89,9 @@ class PowerAuthSignatureTest {
         model.setHttpMethod("POST");
         model.setPassword(config.getPassword());
         model.setResourceId("/pa/signature/validate");
-        model.setResultStatusObject(config.getResultStatusObjectV31());
+        model.setResultStatusObject(config.getResultStatusObjectV3());
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
-        model.setStatusFileName(config.getStatusFileV31().getAbsolutePath());
+        model.setStatusFileName(config.getStatusFileV3().getAbsolutePath());
         model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
         model.setVersion(VERSION);
 

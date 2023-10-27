@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.v32;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
 class PowerAuthCustomActivationTest {
 
-    private static final String VERSION = "3.1";
+    private static final String VERSION = "3.2";
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -93,7 +93,7 @@ class PowerAuthCustomActivationTest {
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(config.getResultStatusObjectV31());
+        model.setResultStatusObject(config.getResultStatusObjectV32());
         model.setUriString("http://localhost:" + port);
         model.setVersion(VERSION);
         model.setDeviceInfo("backend-tests");
@@ -125,6 +125,7 @@ class PowerAuthCustomActivationTest {
     @Test
     void customActivationMissingUsernameTest() throws Exception {
         PowerAuthCustomActivationShared.customActivationMissingUsernameTest(config, model, stepLogger);
+
     }
 
     @Test

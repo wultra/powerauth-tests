@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.shared;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -28,17 +28,8 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
 import io.getlime.security.powerauth.rest.api.model.request.UserInfoRequest;
 import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.opentest4j.AssertionFailedError;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.EnabledIf;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -46,36 +37,15 @@ import java.util.function.Predicate;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test for {@code /pa/v3/user/info}.
+ * PowerAuth user info test shared logic.
  *
- * @author Lubos Racansky, lubos.racansky@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = PowerAuthTestConfiguration.class)
-@EnableConfigurationProperties
-@EnabledIf(expression = "${powerauth.test.includeCustomTests}", loadContext = true)
-class PowerAuthUserInfoTest {
+public class PowerAuthUserInfoShared {
 
-    @Autowired
-    private PowerAuthTestConfiguration config;
+    private static final ObjectMapper objectMapper = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
-    private EncryptStepModel encryptModel;
-
-    private final ObjectMapper objectMapper = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
-
-    @BeforeEach
-    void setUp() {
-        encryptModel = new EncryptStepModel();
-        encryptModel.setApplicationKey(config.getApplicationKey());
-        encryptModel.setApplicationSecret(config.getApplicationSecret());
-        encryptModel.setMasterPublicKey(config.getMasterPublicKey());
-        encryptModel.setHeaders(new HashMap<>());
-        encryptModel.setResultStatusObject(config.getResultStatusObjectV31());
-        encryptModel.setVersion("3.1");
-    }
-
-    @Test
-    void testUserInfo() throws Exception {
+    public static void testUserInfo(final PowerAuthTestConfiguration config, final EncryptStepModel encryptModel, final String version) throws Exception {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/pa/v3/user/info");
         encryptModel.setScope("activation");
         encryptModel.setData(objectMapper.writeValueAsBytes(new UserInfoRequest()));
@@ -100,14 +70,14 @@ class PowerAuthUserInfoTest {
 
         assertNotNull(decryptedData.get("iat"));
         assertNotNull(decryptedData.get("jti"));
-        assertEquals(config.getUserV31(), decryptedData.get("sub"));
+        assertEquals(config.getUser(version), decryptedData.get("sub"));
     }
 
     private static Predicate<StepItem> isStepItemDecryptedResponse() {
         return stepItem -> "Decrypted Response".equals(stepItem.name());
     }
 
-    private <T> T safeReadValue(final String value, final TypeReference<T> typeReference) {
+    private static <T> T safeReadValue(final String value, final TypeReference<T> typeReference) {
         try {
             return objectMapper.readValue(value, typeReference);
         } catch (JsonProcessingException e) {

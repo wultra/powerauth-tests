@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2023 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v3;
+package com.wultra.security.powerauth.test.shared;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
@@ -38,21 +38,14 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
+import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
+import io.getlime.security.powerauth.rest.api.model.request.ActivationStatusRequest;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.json.simple.JSONObject;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.crypto.SecretKey;
-import java.io.File;
-import java.io.IOException;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.time.Duration;
@@ -61,59 +54,21 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = PowerAuthTestConfiguration.class)
-@EnableConfigurationProperties
-class PowerAuthActivationTest {
+/**
+ * PowerAuth activation test shared logic.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
+public class PowerAuthActivationShared {
 
-    private PowerAuthClient powerAuthClient;
-    private PowerAuthTestConfiguration config;
-    private PrepareActivationStepModel model;
-    private File tempStatusFile;
+    private static final PowerAuthClientActivation CLIENT_ACTIVATION = new PowerAuthClientActivation();
 
-    private static final PowerAuthClientActivation activation = new PowerAuthClientActivation();
-
-    @Autowired
-    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
-        this.powerAuthClient = powerAuthClient;
-    }
-
-    @Autowired
-    public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {
-        this.config = config;
-    }
-
-    @BeforeEach
-    void setUp() throws IOException {
-        // Create temp status file
-        tempStatusFile = File.createTempFile("pa_status_v3", ".json");
-
-        // Model shared among tests
-        model = new PrepareActivationStepModel();
-        model.setActivationName("test v3");
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(new JSONObject());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
-        model.setDeviceInfo("backend-tests");
-    }
-
-    @AfterEach
-    void tearDown() {
-        assertTrue(tempStatusFile.delete());
-    }
-
-    @Test
-    void activationPrepareTest() throws Exception {
+    public static void activationPrepareTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
+                                             PrepareActivationStepModel model, String version) throws Exception {
         // Init activation
         final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV3());
+        initRequest.setUserId(config.getUser(version));
         final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
@@ -133,7 +88,7 @@ class PowerAuthActivationTest {
 
         // Verify decrypted activationId
         String activationIdPrepareResponse = null;
-        for (StepItem item : stepLoggerPrepare.getItems()) {
+        for (StepItem item: stepLoggerPrepare.getItems()) {
             if (item.name().equals("Activation Done")) {
                 final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 activationIdPrepareResponse = (String) responseMap.get("activationId");
@@ -148,7 +103,7 @@ class PowerAuthActivationTest {
         assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseOtpUsed.getActivationStatus());
 
         // Commit activation
-        final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Verify activation status
@@ -156,7 +111,7 @@ class PowerAuthActivationTest {
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
 
         // Block activation
-        BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
+        final BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
         assertEquals(initResponse.getActivationId(), blockResponse.getActivationId());
         assertEquals("test", blockResponse.getBlockedReason());
 
@@ -165,7 +120,7 @@ class PowerAuthActivationTest {
         assertEquals(ActivationStatus.BLOCKED, statusResponseBlocked.getActivationStatus());
 
         // Unblock activation
-        UnblockActivationResponse unblockResponse = powerAuthClient.unblockActivation(initResponse.getActivationId(), "test");
+        final UnblockActivationResponse unblockResponse = powerAuthClient.unblockActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), unblockResponse.getActivationId());
 
         // Verify activation status
@@ -180,30 +135,29 @@ class PowerAuthActivationTest {
         assertEquals(ActivationStatus.REMOVED, statusResponseRemoved.getActivationStatus());
     }
 
-    @Test
-    void activationNonExistentTest() throws PowerAuthClientException {
+    public static void activationNonExistentTest(PowerAuthClient powerAuthClient) throws PowerAuthClientException {
         // Verify activation status
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus("AAAAA-BBBBB-CCCCC-DDDDD");
         assertEquals(ActivationStatus.REMOVED, statusResponse.getActivationStatus());
     }
 
-    @Test
-    void activationPrepareUnsupportedApplicationTest() throws Exception {
+    public static void activationPrepareUnsupportedApplicationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
+                                                                   PrepareActivationStepModel model, String version) throws Exception {
         // Unsupport application version
         powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         // Verify that application version is unsupported
-        GetApplicationDetailResponse detailResponse = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        for (ApplicationVersion version : detailResponse.getVersions()) {
-            if (version.getApplicationVersionId().equals(config.getApplicationVersion())) {
-                assertFalse(version.isSupported());
+        final GetApplicationDetailResponse detailResponse = powerAuthClient.getApplicationDetail(config.getApplicationId());
+        for (ApplicationVersion appVer: detailResponse.getVersions()) {
+            if (appVer.getApplicationVersionId().equals(config.getApplicationVersion())) {
+                assertFalse(appVer.isSupported());
             }
         }
 
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV3());
+        initRequest.setUserId(config.getUser(version));
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
@@ -230,19 +184,19 @@ class PowerAuthActivationTest {
 
         // Verify that application version is supported
         GetApplicationDetailResponse detailResponse2 = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        for (ApplicationVersion version : detailResponse2.getVersions()) {
-            if (version.getApplicationVersionId().equals(config.getApplicationVersion())) {
-                assertTrue(version.isSupported());
+        for (ApplicationVersion appVer: detailResponse2.getVersions()) {
+            if (appVer.getApplicationVersionId().equals(config.getApplicationVersion())) {
+                assertTrue(appVer.isSupported());
             }
         }
     }
 
-    @Test
-    void activationPrepareExpirationTest() throws Exception {
+    public static void activationPrepareExpirationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
+                                                       PrepareActivationStepModel model, String version) throws Exception {
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV3());
+        initRequest.setUserId(config.getUser(version));
         // Expire activation with 1 hour in the past
         final Date expirationTime = Date.from(Instant.now().minus(Duration.ofHours(1)));
         initRequest.setTimestampActivationExpire(expirationTime);
@@ -265,8 +219,7 @@ class PowerAuthActivationTest {
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
-    @Test
-    void activationPrepareWithoutInitTest() throws Exception {
+    public static void activationPrepareWithoutInitTest(PowerAuthTestConfiguration config, PrepareActivationStepModel model) throws Exception {
         // Prepare non-existent activation
         model.setActivationCode("AAAAA-BBBBB-CCCCC-EEEEE");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
@@ -282,12 +235,12 @@ class PowerAuthActivationTest {
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
-    @Test
-    void activationPrepareBadMasterPublicKeyTest() throws Exception {
+    public static void activationPrepareBadMasterPublicKeyTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
+                                                               PrepareActivationStepModel model, String version) throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV3());
+        initRequest.setUserId(config.getUser(version));
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
@@ -316,14 +269,14 @@ class PowerAuthActivationTest {
         model.setMasterPublicKey(originalKey);
     }
 
-    @Test
-    void activationStatusTest() throws Exception {
+    public static void activationStatusTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
+                                            PrepareActivationStepModel model, String version) throws Exception {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV3());
+        initRequest.setUserId(config.getUser(version));
         initRequest.setMaxFailureCount(10L);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
@@ -344,31 +297,49 @@ class PowerAuthActivationTest {
         statusModel.setResultStatusObject(resultStatusObject);
         statusModel.setHeaders(new HashMap<>());
         statusModel.setUriString(config.getPowerAuthIntegrationUrl());
-        statusModel.setVersion("3.0");
+        statusModel.setVersion(version);
 
         ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
         assertTrue(stepLoggerStatus.getResult().success());
         assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        ActivationStatusRequest request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
+        if (!"3.0".equals(version)) {
+            assertNotNull(request.getChallenge());
+        }
         ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
         ActivationStatusResponse response = responseObject.getResponseObject();
         assertEquals(initResponse.getActivationId(), response.getActivationId());
+        if (!"3.0".equals(version)) {
+            assertNotNull(response.getNonce());
+        }
 
         // Get transport key
         String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");
         SecretKey transportMasterKey = config.getKeyConvertor().convertBytesToSharedSecretKey(Base64.getDecoder().decode(transportMasterKeyBase64));
+        byte[] cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
 
         // Verify activation status blob
-        byte[] cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
-        ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
+        ActivationStatusBlobInfo statusBlob;
+        byte[] challengeData = null;
+        byte[] nonceData = null;
+        if ("3.0".equals(version)) {
+            statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
+        } else {
+            challengeData = Base64.getDecoder().decode(request.getChallenge());
+            nonceData = Base64.getDecoder().decode(response.getNonce());
+            statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
+            // Added in V3.1
+            assertEquals(20, statusBlob.getCtrLookAhead());
+            assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey));
+        }
+
         assertTrue(statusBlob.isValid());
         assertEquals(0x2, statusBlob.getActivationStatus());
         assertEquals(10, statusBlob.getMaxFailedAttempts());
         assertEquals(0, statusBlob.getFailedAttempts());
         assertEquals(3, statusBlob.getCurrentVersion());
         assertEquals(3, statusBlob.getUpgradeVersion());
-        // For V3.0 protocol CTR_DATA has no actual meaning. We can skip this assertion.
-        // assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
@@ -379,18 +350,23 @@ class PowerAuthActivationTest {
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
         assertTrue(stepLoggerStatus.getResult().success());
         assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
         responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
         response = responseObject.getResponseObject();
         assertEquals(initResponse.getActivationId(), response.getActivationId());
 
         // Verify activation status blob
+        if (!"3.0".equals(version)) {
+            challengeData = Base64.getDecoder().decode(request.getChallenge());
+            nonceData = Base64.getDecoder().decode(response.getNonce());
+        }
         cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
-        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
+        statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x3, statusBlob.getActivationStatus());
 
         // Block activation
-        final BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
+        BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
         assertEquals(initResponse.getActivationId(), blockResponse.getActivationId());
         assertEquals("test", blockResponse.getBlockedReason());
 
@@ -399,13 +375,18 @@ class PowerAuthActivationTest {
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
         assertTrue(stepLoggerStatus.getResult().success());
         assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
         responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
         response = responseObject.getResponseObject();
         assertEquals(initResponse.getActivationId(), response.getActivationId());
 
         // Verify activation status blob
+        if (!"3.0".equals(version)) {
+            challengeData = Base64.getDecoder().decode(request.getChallenge());
+            nonceData = Base64.getDecoder().decode(response.getNonce());
+        }
         cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
-        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
+        statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x4, statusBlob.getActivationStatus());
 
@@ -417,23 +398,28 @@ class PowerAuthActivationTest {
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
         assertTrue(stepLoggerStatus.getResult().success());
         assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
         responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
         response = responseObject.getResponseObject();
         assertEquals(initResponse.getActivationId(), response.getActivationId());
 
         // Verify activation status blob
+        if (!"3.0".equals(version)) {
+            challengeData = Base64.getDecoder().decode(request.getChallenge());
+            nonceData = Base64.getDecoder().decode(response.getNonce());
+        }
         cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
-        statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
+        statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
         assertTrue(statusBlob.isValid());
         assertEquals(0x5, statusBlob.getActivationStatus());
     }
 
-    @Test
-    void activationInvalidApplicationKeyTest() throws Exception {
+    public static void activationInvalidApplicationKeyTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
+                                                           PrepareActivationStepModel model, String version) throws Exception {
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV3());
+        initRequest.setUserId(config.getUser(version));
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
@@ -459,12 +445,12 @@ class PowerAuthActivationTest {
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
-    @Test
-    void activationInvalidApplicationSecretTest() throws Exception {
+    public static void activationInvalidApplicationSecretTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
+                                                              PrepareActivationStepModel model, String version) throws Exception {
         // Init activation should not fail, because application version is not known (applicationKey is not sent in InitActivationRequest)
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV3());
+        initRequest.setUserId(config.getUser(version));
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
@@ -490,93 +476,85 @@ class PowerAuthActivationTest {
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
-    @Test
-    void lookupActivationsTest() throws Exception {
-        InitActivationResponse response = powerAuthClient.initActivation(config.getUserV3(), config.getApplicationId());
+    public static void lookupActivationsTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws Exception {
+        InitActivationResponse response = powerAuthClient.initActivation(config.getUser(version), config.getApplicationId());
         GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
         final Date timestampCreated = statusResponse.getTimestampCreated();
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-        List<Activation> activations = powerAuthClient.lookupActivations(Collections.singletonList(config.getUserV3()), Collections.singletonList(config.getApplicationId()),
+        final List<Activation> activations = powerAuthClient.lookupActivations(Collections.singletonList(config.getUser(version)), Collections.singletonList(config.getApplicationId()),
                 null, timestampCreated, ActivationStatus.CREATED, null);
         assertTrue(activations.size() >= 1);
     }
 
-    @Test
-    void lookupActivationsNonExistentUserTest() throws Exception {
+    public static void lookupActivationsNonExistentUserTest(PowerAuthClient powerAuthClient) throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
         lookupActivationsRequest.getUserIds().add("nonexistent");
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertEquals(0, response.getActivations().size());
     }
 
-    @Test
-    void lookupActivationsApplicationTest() throws Exception {
-        final LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+    public static void lookupActivationsApplicationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws Exception {
+        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUser(version));
         lookupActivationsRequest.getApplicationIds().add(config.getApplicationId());
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertTrue(response.getActivations().size() >= 1);
     }
 
-    @Test
-    void lookupActivationsNonExistentApplicationTest() throws Exception {
-        LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+    public static void lookupActivationsNonExistentApplicationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws Exception {
+        final LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
+        lookupActivationsRequest.getUserIds().add(config.getUser(version));
         lookupActivationsRequest.getApplicationIds().add("10000000");
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertEquals(0, response.getActivations().size());
     }
 
-    @Test
-    void lookupActivationsStatusTest() throws Exception {
+    public static void lookupActivationsStatusTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getUserIds().add(config.getUser(version));
         lookupActivationsRequest.setActivationStatus(ActivationStatus.ACTIVE);
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertTrue(response.getActivations().size() >= 1);
     }
 
-    @Test
-    void lookupActivationsInvalidStatusTest() throws Exception {
+    public static void lookupActivationsInvalidStatusTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws Exception {
         //
         // This test may fail in case that our battery of tests leaves some activation in the blocked state.
         // Try to re-run the test alone, or fix the new test case that collides with this one.
         //
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getUserIds().add(config.getUser(version));
         lookupActivationsRequest.setActivationStatus(ActivationStatus.BLOCKED);
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertEquals(0, response.getActivations().size());
     }
 
-    @Test
-    void lookupActivationsDateValidTest() throws Exception {
+    public static void lookupActivationsDateValidTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getUserIds().add(config.getUser(version));
         final Date timestampLastUsedAfter = Date.from(Instant.now().minus(Duration.ofMinutes(1)));
         lookupActivationsRequest.setTimestampLastUsedAfter(timestampLastUsedAfter);
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertTrue(response.getActivations().size() >= 1);
     }
 
-    @Test
-    void lookupActivationsDateInvalidTest() throws Exception {
+    public static void lookupActivationsDateInvalidTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws Exception {
         LookupActivationsRequest lookupActivationsRequest = new LookupActivationsRequest();
-        lookupActivationsRequest.getUserIds().add(config.getUserV3());
+        lookupActivationsRequest.getUserIds().add(config.getUser(version));
         final Date timestampLastUsedAfter = Date.from(Instant.now().plus(Duration.ofMinutes(1)));
         lookupActivationsRequest.setTimestampLastUsedAfter(timestampLastUsedAfter);
         LookupActivationsResponse response = powerAuthClient.lookupActivations(lookupActivationsRequest);
         assertEquals(0, response.getActivations().size());
     }
 
-    @Test
-    void updateActivationStatusTest() throws Exception {
+    public static void updateActivationStatusTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
+                                                  PrepareActivationStepModel model, String version) throws Exception {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV3());
+        initRequest.setUserId(config.getUser(version));
         initRequest.setMaxFailureCount(10L);
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
@@ -597,27 +575,45 @@ class PowerAuthActivationTest {
         statusModel.setResultStatusObject(resultStatusObject);
         statusModel.setHeaders(new HashMap<>());
         statusModel.setUriString(config.getPowerAuthIntegrationUrl());
-        statusModel.setVersion("3.0");
+        statusModel.setVersion(version);
 
         ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
         new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
         assertTrue(stepLoggerStatus.getResult().success());
         assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        final ActivationStatusRequest request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
+        if (!"3.0".equals(version)) {
+            assertNotNull(request.getChallenge());
+        }
         final ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
         ActivationStatusResponse response = responseObject.getResponseObject();
         assertEquals(initResponse.getActivationId(), response.getActivationId());
+        if (!"3.0".equals(version)) {
+            assertNotNull(response.getNonce());
+        }
 
         // Get transport key
         String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");
         SecretKey transportMasterKey = config.getKeyConvertor().convertBytesToSharedSecretKey(Base64.getDecoder().decode(transportMasterKeyBase64));
 
         // Verify activation status blob
+        byte[] challengeData = null;
+        byte[] nonceData = null;
         byte[] cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
-        ActivationStatusBlobInfo statusBlob = activation.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
+        ActivationStatusBlobInfo statusBlob;
+        if ("3.0".equals(version)) {
+            statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
+        } else {
+            challengeData = Base64.getDecoder().decode(request.getChallenge());
+            nonceData = Base64.getDecoder().decode(response.getNonce());
+            statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
+            // Added in V3.1
+            assertEquals(20, statusBlob.getCtrLookAhead());
+            assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey));
+        }
+
         assertTrue(statusBlob.isValid());
         assertEquals(0x2, statusBlob.getActivationStatus());
-        // For V3.0 protocol CTR_DATA has no actual meaning. We can skip this assertion.
-        // assertArrayEquals(CounterUtil.getCtrData(model, stepLoggerStatus), statusBlob.getCtrData());
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
@@ -632,9 +628,8 @@ class PowerAuthActivationTest {
         // Remove activation using UpdateStatusForActivations method
         powerAuthClient.updateStatusForActivations(Collections.singletonList(initResponse.getActivationId()), ActivationStatus.ACTIVE);
 
-        GetActivationStatusResponse statusResponseRemoved = powerAuthClient.getActivationStatus(initResponse.getActivationId());
-        assertEquals(ActivationStatus.ACTIVE, statusResponseRemoved.getActivationStatus());
+        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
     }
-
 
 }
