@@ -107,16 +107,11 @@ public class PowerAuthCustomActivationOtpShared {
         final int maxIterations = CustomActivationProviderForTests.MAX_FAILED_ATTEMPTS;
         for (int iteration = 1; iteration <= maxIterations; iteration++) {
             boolean lastIteration = iteration == maxIterations;
-            boolean isActivated;
-            try {
-                final CommitActivationRequest commitRequest = new CommitActivationRequest();
-                commitRequest.setActivationId(activationId);
-                commitRequest.setActivationOtp(lastIteration ? validOtpValue : invalidOtpValue);
-                final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
-                isActivated = commitResponse.isActivated();
-            } catch (Throwable t) {
-                isActivated = false;
-            }
+            final CommitActivationRequest commitRequest = new CommitActivationRequest();
+            commitRequest.setActivationId(activationId);
+            commitRequest.setActivationOtp(lastIteration ? validOtpValue : invalidOtpValue);
+            final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
+            boolean isActivated = commitResponse.isActivated();
             assertEquals(lastIteration, isActivated);
 
             // Verify activation status
@@ -192,16 +187,11 @@ public class PowerAuthCustomActivationOtpShared {
         final int maxIterations = CustomActivationProviderForTests.MAX_FAILED_ATTEMPTS;
         for (int iteration = 1; iteration <= maxIterations; iteration++) {
             boolean lastIteration = iteration == maxIterations;
-            boolean isActivated;
-            try {
-                CommitActivationRequest commitRequest = new CommitActivationRequest();
-                commitRequest.setActivationId(activationId);
-                commitRequest.setActivationOtp(invalidOtpValue);
-                CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
-                isActivated = commitResponse.isActivated();
-            } catch (Throwable t) {
-                isActivated = false;
-            }
+            CommitActivationRequest commitRequest = new CommitActivationRequest();
+            commitRequest.setActivationId(activationId);
+            commitRequest.setActivationOtp(invalidOtpValue);
+            CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
+            boolean isActivated = commitResponse.isActivated();
             assertFalse(isActivated);
 
             // Verify activation status
@@ -254,16 +244,11 @@ public class PowerAuthCustomActivationOtpShared {
         final int maxIterations = CustomActivationProviderForTests.MAX_FAILED_ATTEMPTS;
         for (int iteration = 1; iteration <= maxIterations; iteration++) {
             boolean lastIteration = iteration == maxIterations;
-            boolean isActivated;
-            try {
-                CommitActivationRequest commitRequest = new CommitActivationRequest();
-                commitRequest.setActivationId(activationId);
-                commitRequest.setActivationOtp(lastIteration ? validOtpValue : invalidOtpValue);
-                CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
-                isActivated = commitResponse.isActivated();
-            } catch (Throwable t) {
-                isActivated = false;
-            }
+            CommitActivationRequest commitRequest = new CommitActivationRequest();
+            commitRequest.setActivationId(activationId);
+            commitRequest.setActivationOtp(lastIteration ? validOtpValue : invalidOtpValue);
+            CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
+            boolean isActivated = commitResponse.isActivated();
             assertEquals(lastIteration, isActivated);
 
             // Verify activation status
@@ -327,16 +312,11 @@ public class PowerAuthCustomActivationOtpShared {
         final int maxIterations = CustomActivationProviderForTests.MAX_FAILED_ATTEMPTS;
         for (int iteration = 1; iteration <= maxIterations; iteration++) {
             boolean lastIteration = iteration == maxIterations;
-            boolean isActivated;
-            try {
-                CommitActivationRequest commitRequest = new CommitActivationRequest();
-                commitRequest.setActivationId(activationId);
-                commitRequest.setActivationOtp(invalidOtpValue);
-                CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
-                isActivated = commitResponse.isActivated();
-            } catch (Throwable t) {
-                isActivated = false;
-            }
+            CommitActivationRequest commitRequest = new CommitActivationRequest();
+            commitRequest.setActivationId(activationId);
+            commitRequest.setActivationOtp(invalidOtpValue);
+            CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
+            boolean isActivated = commitResponse.isActivated();
             assertFalse(isActivated);
 
             // Verify activation status

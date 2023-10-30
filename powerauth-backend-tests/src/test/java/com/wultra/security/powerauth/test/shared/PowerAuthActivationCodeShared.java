@@ -104,12 +104,8 @@ public class PowerAuthActivationCodeShared {
         byte[] activationSignatureBytes = Base64.getDecoder().decode(activationSignature);
 
         // Verify activation signature
-        try {
-            boolean activationSignatureOK = CLIENT_ACTIVATION.verifyActivationCodeSignature(activationCode, activationSignatureBytes, config.getMasterPublicKey());
-            assertTrue(activationSignatureOK);
-        } catch (Throwable t) {
-            t.printStackTrace();
-        }
+        boolean activationSignatureOK = CLIENT_ACTIVATION.verifyActivationCodeSignature(activationCode, activationSignatureBytes, config.getMasterPublicKey());
+        assertTrue(activationSignatureOK);
 
         // Create a new activation using received activation code and generated OTP
         activationModel.setActivationCode(activationCode);

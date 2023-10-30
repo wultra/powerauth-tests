@@ -308,16 +308,12 @@ public class PowerAuthTestConfiguration {
     }
 
     public JSONObject getResultStatusObject(String version) {
-        switch (version) {
-            case "3.2":
-                return resultStatusObjectV32;
-            case "3.1":
-                return resultStatusObjectV31;
-            case "3.0":
-                return resultStatusObjectV3;
-            default:
-                return null;
-        }
+        return switch (version) {
+            case "3.2" -> resultStatusObjectV32;
+            case "3.1" -> resultStatusObjectV31;
+            case "3.0" -> resultStatusObjectV3;
+            default -> null;
+        };
     }
 
     public String getActivationIdV32() {
@@ -345,16 +341,12 @@ public class PowerAuthTestConfiguration {
     }
 
     public String getActivationId(String version) {
-        switch (version) {
-            case "3.2":
-                return activationIdV32;
-            case "3.1":
-                return activationIdV31;
-            case "3.0":
-                return activationIdV3;
-            default:
-                return null;
-        }
+        return switch (version) {
+            case "3.2" -> activationIdV32;
+            case "3.1" -> activationIdV31;
+            case "3.0" -> activationIdV3;
+            default -> null;
+        };
     }
 
     public String getPassword() {
@@ -378,16 +370,12 @@ public class PowerAuthTestConfiguration {
     }
 
     public String getUser(String version) {
-        switch (version) {
-            case "3.2":
-                return userV32;
-            case "3.1":
-                return userV31;
-            case "3.0":
-                return userV3;
-            default:
-                return null;
-        }
+        return switch (version) {
+            case "3.2" -> userV32;
+            case "3.1" -> userV31;
+            case "3.0" -> userV3;
+            default -> null;
+        };
     }
 
     public void setApplicationKey(String applicationKey) {

@@ -148,9 +148,9 @@ public class PowerAuthActivationShared {
 
         // Verify that application version is unsupported
         final GetApplicationDetailResponse detailResponse = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        for (ApplicationVersion appVer: detailResponse.getVersions()) {
-            if (appVer.getApplicationVersionId().equals(config.getApplicationVersion())) {
-                assertFalse(appVer.isSupported());
+        for (ApplicationVersion appVersion: detailResponse.getVersions()) {
+            if (appVersion.getApplicationVersionId().equals(config.getApplicationVersion())) {
+                assertFalse(appVersion.isSupported());
             }
         }
 
@@ -184,9 +184,9 @@ public class PowerAuthActivationShared {
 
         // Verify that application version is supported
         GetApplicationDetailResponse detailResponse2 = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        for (ApplicationVersion appVer: detailResponse2.getVersions()) {
-            if (appVer.getApplicationVersionId().equals(config.getApplicationVersion())) {
-                assertTrue(appVer.isSupported());
+        for (ApplicationVersion appVersion: detailResponse2.getVersions()) {
+            if (appVersion.getApplicationVersionId().equals(config.getApplicationVersion())) {
+                assertTrue(appVersion.isSupported());
             }
         }
     }
