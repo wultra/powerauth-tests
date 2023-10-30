@@ -1,5 +1,5 @@
 #!/bin/bash
 
-mkdir -p deploy/liquibase/data/
+mkdir -p powerauth-test-server/deploy/liquibase/data/
 
 cp -r docs/db/changelog/changesets/powerauth-test-server powerauth-test-server/deploy/liquibase/data/
