@@ -67,7 +67,7 @@ STOPSIGNAL SIGQUIT
 
 USER powerauth
 
-COPY powerauth-test-server/deploy/conf/logback/* $LOGBACK_CONF/
+COPY deploy/conf/logback/* $LOGBACK_CONF/
 COPY deploy/docker-entrypoint.sh /
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
