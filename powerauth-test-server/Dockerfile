@@ -59,7 +59,7 @@ RUN set -x \
 
 # Liquibase - changesets
 RUN rm -rf $LB_HOME/data
-COPY powerauth-test-server/deploy/liquibase/data $LB_HOME/data
+COPY ./deploy/liquibase/data $LB_HOME/data
 
 # Docker configuration
 EXPOSE 8080
@@ -67,7 +67,7 @@ STOPSIGNAL SIGQUIT
 
 USER powerauth
 
-COPY powerauth-test-server/deploy/conf/logback/* $LOGBACK_CONF/
-COPY powerauth-test-server/deploy/docker-entrypoint.sh /
+COPY ./deploy/conf/logback/* $LOGBACK_CONF/
+COPY ./deploy/docker-entrypoint.sh /
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
