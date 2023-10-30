@@ -15,11 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.v32;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthActivationOtpShared;
+import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import org.junit.jupiter.api.AfterEach;
@@ -42,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @EnableConfigurationProperties
 class PowerAuthActivationOtpTest {
 
-    private static final String VERSION = "3.1";
+    private static final String VERSION = "3.2";
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -52,6 +53,8 @@ class PowerAuthActivationOtpTest {
 
     private final String validOtpValue = "1234-5678";
     private final String invalidOtpValue = "8765-4321";
+
+    private static final PowerAuthClientActivation activation = new PowerAuthClientActivation();
 
     @Autowired
     public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
@@ -70,21 +73,21 @@ class PowerAuthActivationOtpTest {
 
         // Models shared among tests
         model = new PrepareActivationStepModel();
-        model.setActivationName("test v31");
+        model.setActivationName("test v" + VERSION);
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(config.getResultStatusObjectV31());
+        model.setResultStatusObject(config.getResultStatusObjectV32());
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion(VERSION);
         model.setDeviceInfo("backend-tests");
 
         statusModel = new GetStatusStepModel();
         statusModel.setHeaders(new HashMap<>());
-        statusModel.setResultStatusObject(config.getResultStatusObjectV31());
+        statusModel.setResultStatusObject(config.getResultStatusObjectV32());
         statusModel.setUriString(config.getPowerAuthIntegrationUrl());
         statusModel.setVersion(VERSION);
     }

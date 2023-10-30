@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2023 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v3;
+package com.wultra.security.powerauth.test.shared;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
@@ -36,18 +36,8 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepMode
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer1Response;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer2Response;
-import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.KeyPair;
@@ -57,75 +47,9 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@EnableConfigurationProperties
-@ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
-class PowerAuthCustomActivationTest {
+public class PowerAuthCustomActivationShared {
 
-    private PowerAuthClient powerAuthClient;
-    private PowerAuthTestConfiguration config;
-    private CreateActivationStepModel model;
-    private static File dataFile;
-    private File tempStatusFile;
-    private ObjectStepLogger stepLogger;
-
-    @LocalServerPort
-    private int port;
-
-    @Autowired
-    public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {
-        this.config = config;
-    }
-
-    @Autowired
-    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
-        this.powerAuthClient = powerAuthClient;
-    }
-
-    @BeforeAll
-    static void setUpBeforeClass() throws IOException {
-        dataFile = File.createTempFile("data", ".json");
-        FileWriter fw = new FileWriter(dataFile);
-        fw.write("All your base are belong to us!");
-        fw.close();
-    }
-
-    @AfterAll
-    static void tearDownAfterClass() {
-        assertTrue(dataFile.delete());
-    }
-
-    @BeforeEach
-    void setUp() throws IOException {
-        // Create temp status file
-        tempStatusFile = File.createTempFile("pa_status_v3", ".json");
-
-        // Model shared among tests
-        model = new CreateActivationStepModel();
-        model.setActivationName("test v3");
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(config.getResultStatusObjectV3());
-        model.setUriString("http://localhost:" + port);
-        model.setVersion("3.0");
-        model.setDeviceInfo("backend-tests");
-
-        // Prepare step logger
-        stepLogger = new ObjectStepLogger(System.out);
-    }
-
-    @AfterEach
-    void tearDown() {
-        assertTrue(tempStatusFile.delete());
-    }
-
-    @Test
-    void customActivationValidTest() throws Exception {
+    public static void customActivationValidTest(PowerAuthClient powerAuthClient, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS");
         identityAttributes.put("username", "TestUser1");
@@ -172,8 +96,7 @@ class PowerAuthCustomActivationTest {
         powerAuthClient.removeActivation(activationId, "test");
     }
 
-    @Test
-    void customActivationValid2Test() throws Exception {
+    public static void customActivationValid2Test(PowerAuthClient powerAuthClient, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_2_STATIC_NOCOMMIT_NOPROCESS");
 
@@ -219,8 +142,7 @@ class PowerAuthCustomActivationTest {
         powerAuthClient.removeActivation(activationId, "test");
     }
 
-    @Test
-    void customActivationValid3Test() throws Exception {
+    public static void customActivationValid3Test(PowerAuthClient powerAuthClient, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS");
 
@@ -267,8 +189,7 @@ class PowerAuthCustomActivationTest {
         powerAuthClient.removeActivation(activationId, "test");
     }
 
-    @Test
-    void customActivationMissingUsernameTest() throws Exception {
+    public static void customActivationMissingUsernameTest(PowerAuthTestConfiguration config, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_4_MISSING_USERNAME");
 
@@ -290,8 +211,7 @@ class PowerAuthCustomActivationTest {
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
-    @Test
-    void customActivationEmptyUsernameTest() throws Exception {
+    public static void customActivationEmptyUsernameTest(PowerAuthTestConfiguration config, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_5_EMPTY_USERNAME");
         identityAttributes.put("username", "");
@@ -314,8 +234,7 @@ class PowerAuthCustomActivationTest {
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
-    @Test
-    void customActivationUsernameTooLongTest() throws Exception {
+    public static void customActivationUsernameTooLongTest(PowerAuthTestConfiguration config, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_6_USERNAME_TOO_LONG");
         identityAttributes.put("username", "123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
@@ -338,8 +257,7 @@ class PowerAuthCustomActivationTest {
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
-    @Test
-    void customActivationBadMasterPublicKeyTest() throws Exception {
+    public static void customActivationBadMasterPublicKeyTest(PowerAuthTestConfiguration config, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_7_BAD_MASTER_PUBLIC_KEY");
         model.setIdentityAttributes(identityAttributes);
@@ -366,8 +284,7 @@ class PowerAuthCustomActivationTest {
         model.setMasterPublicKey(originalKey);
     }
 
-    @Test
-    void customActivationUnsupportedApplicationTest() throws Exception {
+    public static void customActivationUnsupportedApplicationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_8_UNSUPPORTED_APP_VERSION");
         model.setIdentityAttributes(identityAttributes);
@@ -407,8 +324,7 @@ class PowerAuthCustomActivationTest {
         }
     }
 
-    @Test
-    void customActivationInvalidApplicationKeyTest() throws Exception {
+    public static void customActivationInvalidApplicationKeyTest(PowerAuthTestConfiguration config, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_8_INVALID_APP_KEY");
         model.setIdentityAttributes(identityAttributes);
@@ -430,8 +346,7 @@ class PowerAuthCustomActivationTest {
         model.setApplicationKey(config.getApplicationKey());
     }
 
-    @Test
-    void customActivationInvalidApplicationSecretTest() throws Exception {
+    public static void customActivationInvalidApplicationSecretTest(PowerAuthTestConfiguration config, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_8_INVALID_APP_SECRET");
         model.setIdentityAttributes(identityAttributes);
@@ -453,8 +368,7 @@ class PowerAuthCustomActivationTest {
         model.setApplicationSecret(config.getApplicationSecret());
     }
 
-    @Test
-    void customActivationDoubleCommitTest() throws Exception {
+    public static void customActivationDoubleCommitTest(PowerAuthClient powerAuthClient, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_9_DOUBLE_COMMIT");
         identityAttributes.put("username", "TestUser1");
@@ -498,8 +412,9 @@ class PowerAuthCustomActivationTest {
         }
     }
 
-    @Test
-    void customActivationSignatureMaxFailedTest() throws Exception {
+    public static void customActivationSignatureMaxFailedTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
+                                                              CreateActivationStepModel model, ObjectStepLogger stepLogger,
+                                                              File dataFile, File tempStatusFile, Integer port, String version) throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_10_SIGNATURES_MAX_FAILED");
         identityAttributes.put("username", "TestUser1");
@@ -538,11 +453,11 @@ class PowerAuthCustomActivationTest {
         signatureModel.setHttpMethod("POST");
         signatureModel.setPassword(config.getPassword());
         signatureModel.setResourceId("/pa/signature/validate");
-        signatureModel.setResultStatusObject(config.getResultStatusObjectV3());
+        signatureModel.setResultStatusObject(config.getResultStatusObject(version));
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
         signatureModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         signatureModel.setUriString("http://localhost:" + port + "/pa/v3/signature/validate");
-        signatureModel.setVersion("3.0");
+        signatureModel.setVersion(version);
 
         signatureModel.setPassword("1111");
 

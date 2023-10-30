@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2020 Wultra s.r.o.
+ * Copyright (C) 2023 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,18 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.shared;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.ListApplicationRolesResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -34,30 +28,13 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Application roles tests.
+ * Application roles test shared logic.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = PowerAuthTestConfiguration.class)
-@EnableConfigurationProperties
-class PowerAuthApplicationRolesTest {
+public class PowerAuthApplicationRolesShared {
 
-    private PowerAuthClient powerAuthClient;
-    private PowerAuthTestConfiguration config;
-
-    @Autowired
-    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
-        this.powerAuthClient = powerAuthClient;
-    }
-
-    @Autowired
-    public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {
-        this.config = config;
-    }
-
-    @Test
-    void applicationRolesCrudTest() throws Exception {
+    public static void applicationRolesCrudTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config) throws Exception {
         // Test application roles CRUD
         String applicationId = config.getApplicationId();
 

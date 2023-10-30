@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2019 Wultra s.r.o.
+ * Copyright (C) 2023 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v3;
+package com.wultra.security.powerauth.test.shared;
 
 import com.fasterxml.jackson.databind.JavaType;
 import com.wultra.security.powerauth.client.PowerAuthClient;
@@ -46,18 +46,9 @@ import io.getlime.security.powerauth.rest.api.model.exception.RecoveryError;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.json.simple.JSONObject;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import javax.crypto.SecretKey;
 import java.io.File;
-import java.io.IOException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Base64;
@@ -67,51 +58,27 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = PowerAuthTestConfiguration.class)
-@EnableConfigurationProperties
-class PowerAuthRecoveryTest {
+/**
+ * PowerAuth recovery test shared logic.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
+public class PowerAuthRecoveryShared {
 
     private static final String PRIVATE_KEY_RECOVERY_POSTCARD_BASE64 = "ALvtO6YEISVuCKugiltkUKgJaJbHRrdT77+9OhS79Gvm";
 
-    private PowerAuthClient powerAuthClient;
-    private PowerAuthTestConfiguration config;
-    private File tempStatusFile;
-
-    @Autowired
-    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
-        this.powerAuthClient = powerAuthClient;
-    }
-
-    @Autowired
-    public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {
-        this.config = config;
-    }
-
-    @BeforeEach
-    void setUp() throws IOException {
-        // Create temp status file
-        tempStatusFile = File.createTempFile("pa_status_recovery_v3", ".json");
-    }
-
-    @AfterEach
-    void tearDown() {
-        assertTrue(tempStatusFile.delete());
-    }
-
-    @Test
-    void activationRecoveryTest() throws Exception {
+    public static void activationRecoveryTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final String version) throws Exception {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV3());
+        initRequest.setUserId(config.getUser(version));
         final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation, assume recovery is enabled on server
         PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
-        prepareModel.setActivationName("test_recovery_v3");
+        prepareModel.setActivationName("test_recovery_v" + version);
         prepareModel.setApplicationKey(config.getApplicationKey());
         prepareModel.setApplicationSecret(config.getApplicationSecret());
         prepareModel.setMasterPublicKey(config.getMasterPublicKey());
@@ -120,7 +87,7 @@ class PowerAuthRecoveryTest {
         prepareModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         prepareModel.setResultStatusObject(resultStatusObject);
         prepareModel.setUriString(config.getPowerAuthIntegrationUrl());
-        prepareModel.setVersion("3.0");
+        prepareModel.setVersion(version);
         prepareModel.setActivationCode(initResponse.getActivationCode());
         prepareModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
@@ -171,7 +138,7 @@ class PowerAuthRecoveryTest {
         confirmModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         confirmModel.setResultStatusObject(resultStatusObject);
         confirmModel.setUriString(config.getPowerAuthIntegrationUrl());
-        confirmModel.setVersion("3.0");
+        confirmModel.setVersion(version);
         confirmModel.setRecoveryCode(activationRecovery.getRecoveryCode());
 
         ObjectStepLogger stepLoggerConfirm = new ObjectStepLogger(System.out);
@@ -202,10 +169,9 @@ class PowerAuthRecoveryTest {
         recoveryModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         recoveryModel.setResultStatusObject(resultStatusObject);
         recoveryModel.setUriString(config.getPowerAuthIntegrationUrl());
-        recoveryModel.setVersion("3.0");
-        recoveryModel.setActivationName("recovery test v3");
+        recoveryModel.setVersion(version);
+        recoveryModel.setActivationName("recovery test v" + version);
         recoveryModel.setIdentityAttributes(identityAttributes);
-        recoveryModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
         new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
         assertTrue(stepLoggerRecovery.getResult().success());
@@ -257,19 +223,105 @@ class PowerAuthRecoveryTest {
 
     }
 
-    @Test
-    void activationRecoveryInvalidPukTest() throws Exception {
+    public static void removeActivationAndRevokeRecoveryCodeTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final String version) throws Exception {
+        for (int loop = 1; loop <= 2; loop++) {
+            // We'll perform two iterations and revoke Recovery Code on activationRemove() in the second one.
+            final boolean revokeRecoveryCode = loop == 2;
+            final RecoveryCodeStatus expectedRecoveryCodeStatusAfterRemove = revokeRecoveryCode ? RecoveryCodeStatus.REVOKED : RecoveryCodeStatus.ACTIVE;
+            final RecoveryPukStatus expectedRecoveryPukStatusAfterRemove = revokeRecoveryCode ? RecoveryPukStatus.INVALID : RecoveryPukStatus.VALID;
+
+            JSONObject resultStatusObject = new JSONObject();
+
+            // Init activation
+            InitActivationRequest initRequest = new InitActivationRequest();
+            initRequest.setApplicationId(config.getApplicationId());
+            initRequest.setUserId(config.getUser(version));
+            InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+
+            // Prepare activation, assume recovery is enabled on server
+            PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
+            prepareModel.setActivationName("test_recovery_v" + version);
+            prepareModel.setApplicationKey(config.getApplicationKey());
+            prepareModel.setApplicationSecret(config.getApplicationSecret());
+            prepareModel.setMasterPublicKey(config.getMasterPublicKey());
+            prepareModel.setHeaders(new HashMap<>());
+            prepareModel.setPassword(config.getPassword());
+            prepareModel.setStatusFileName(tempStatusFile.getAbsolutePath());
+            prepareModel.setResultStatusObject(resultStatusObject);
+            prepareModel.setUriString(config.getPowerAuthIntegrationUrl());
+            prepareModel.setVersion(version);
+            prepareModel.setActivationCode(initResponse.getActivationCode());
+            prepareModel.setDeviceInfo("backend-tests");
+            ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
+            new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
+            assertTrue(stepLoggerPrepare.getResult().success());
+            assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
+
+            // Extract recovery data
+            final EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) stepLoggerPrepare.getResponse().responseObject();
+            assertNotNull(eciesResponse.getEncryptedData());
+            assertNotNull(eciesResponse.getMac());
+
+            // Verify decrypted activationId
+            String activationId = null;
+            ActivationRecovery activationRecovery = null;
+            for (StepItem item : stepLoggerPrepare.getItems()) {
+                if (item.name().equals("Activation Done")) {
+                    final Map<String, Object> responseMap = (Map<String, Object>) item.object();
+                    activationId = (String) responseMap.get("activationId");
+                    break;
+                }
+                if (item.name().equals("Decrypted Layer 2 Response")) {
+                    activationRecovery = ((ActivationLayer2Response) item.object()).getActivationRecovery();
+                }
+            }
+
+            // Verify extracted data
+            assertNotNull(activationId);
+            assertNotNull(activationRecovery);
+            assertNotNull(activationRecovery.getRecoveryCode());
+            assertNotNull(activationRecovery.getPuk());
+
+            // Commit activation
+            CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+            assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
+
+            // Verify activation status
+            GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+            assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
+
+            // Verify recovery code and PUK status
+            LookupRecoveryCodesResponse response1 = powerAuthClient.lookupRecoveryCodes(initResponse.getUserId(), activationId, config.getApplicationId(), null, null);
+            assertEquals(1, response1.getRecoveryCodes().size());
+            assertEquals(RecoveryCodeStatus.ACTIVE, response1.getRecoveryCodes().get(0).getStatus());
+            assertEquals(1, response1.getRecoveryCodes().get(0).getPuks().size());
+            assertEquals(RecoveryPukStatus.VALID, response1.getRecoveryCodes().get(0).getPuks().get(0).getStatus());
+
+            // Remove activation
+            final RemoveActivationResponse removeResponse = powerAuthClient.removeActivation(activationId, null, revokeRecoveryCode);
+            assertTrue(removeResponse.isRemoved());
+
+            // Verify recovery code and PUK status after activation remove
+            LookupRecoveryCodesResponse response2 = powerAuthClient.lookupRecoveryCodes(initResponse.getUserId(), activationId, config.getApplicationId(), null, null);
+            assertEquals(1, response2.getRecoveryCodes().size());
+            assertEquals(expectedRecoveryCodeStatusAfterRemove, response2.getRecoveryCodes().get(0).getStatus());
+            assertEquals(1, response2.getRecoveryCodes().get(0).getPuks().size());
+            assertEquals(expectedRecoveryPukStatusAfterRemove, response2.getRecoveryCodes().get(0).getPuks().get(0).getStatus());
+        }
+    }
+
+    public static void activationRecoveryInvalidPukTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final String version) throws Exception {
         JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV3());
+        initRequest.setUserId(config.getUser(version));
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation, assume recovery is enabled on server
         PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
-        prepareModel.setActivationName("test_recovery_invalid_puk_v3");
+        prepareModel.setActivationName("test_recovery_invalid_puk_v" + version);
         prepareModel.setApplicationKey(config.getApplicationKey());
         prepareModel.setApplicationSecret(config.getApplicationSecret());
         prepareModel.setMasterPublicKey(config.getMasterPublicKey());
@@ -278,7 +330,7 @@ class PowerAuthRecoveryTest {
         prepareModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         prepareModel.setResultStatusObject(resultStatusObject);
         prepareModel.setUriString(config.getPowerAuthIntegrationUrl());
-        prepareModel.setVersion("3.0");
+        prepareModel.setVersion(version);
         prepareModel.setActivationCode(initResponse.getActivationCode());
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
@@ -345,8 +397,8 @@ class PowerAuthRecoveryTest {
             recoveryModel.setStatusFileName(tempStatusFile.getAbsolutePath());
             recoveryModel.setResultStatusObject(resultStatusObject);
             recoveryModel.setUriString(config.getPowerAuthIntegrationUrl());
-            recoveryModel.setVersion("3.0");
-            recoveryModel.setActivationName("recovery test v3");
+            recoveryModel.setVersion(version);
+            recoveryModel.setActivationName("recovery test v" + version);
             recoveryModel.setIdentityAttributes(identityAttributes);
             ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
             new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
@@ -363,12 +415,11 @@ class PowerAuthRecoveryTest {
         assertEquals(RecoveryPukStatus.INVALID, rcStatusResponse2.getRecoveryCodes().get(0).getPuks().get(0).getStatus());
     }
 
-    @Test
-    void recoveryPostcardTest() throws Exception {
+    public static void recoveryPostcardTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final String version) throws Exception {
         JSONObject resultStatusObject = new JSONObject();
         String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
         final String randomUserId = "TestUser_" + UUID.randomUUID();
-        final CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L);
+        CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L);
 
         // Verify response
         assertNotNull(response);
@@ -405,7 +456,7 @@ class PowerAuthRecoveryTest {
 
         // Prepare activation, assume recovery is enabled on server
         PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
-        prepareModel.setActivationName("test_recovery_postcard_v3");
+        prepareModel.setActivationName("test_recovery_postcard_v" + version);
         prepareModel.setApplicationKey(config.getApplicationKey());
         prepareModel.setApplicationSecret(config.getApplicationSecret());
         prepareModel.setMasterPublicKey(config.getMasterPublicKey());
@@ -414,7 +465,7 @@ class PowerAuthRecoveryTest {
         prepareModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         prepareModel.setResultStatusObject(resultStatusObject);
         prepareModel.setUriString(config.getPowerAuthIntegrationUrl());
-        prepareModel.setVersion("3.0");
+        prepareModel.setVersion(version);
         prepareModel.setActivationCode(initResponse.getActivationCode());
         prepareModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
@@ -427,7 +478,7 @@ class PowerAuthRecoveryTest {
         ActivationRecovery activationRecovery = null;
         for (StepItem item: stepLoggerPrepare.getItems()) {
             if (item.name().equals("Activation Done")) {
-                Map<String, Object> responseMap = (Map<String, Object>) item.object();
+                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
                 activationId = (String) responseMap.get("activationId");
                 break;
             }
@@ -456,7 +507,7 @@ class PowerAuthRecoveryTest {
         confirmModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         confirmModel.setResultStatusObject(resultStatusObject);
         confirmModel.setUriString(config.getPowerAuthIntegrationUrl());
-        confirmModel.setVersion("3.0");
+        confirmModel.setVersion(version);
         confirmModel.setRecoveryCode(recoveryInfo.getRecoveryCode());
 
         ObjectStepLogger stepLoggerConfirm = new ObjectStepLogger(System.out);
@@ -488,8 +539,8 @@ class PowerAuthRecoveryTest {
         recoveryModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         recoveryModel.setResultStatusObject(resultStatusObject);
         recoveryModel.setUriString(config.getPowerAuthIntegrationUrl());
-        recoveryModel.setVersion("3.0");
-        recoveryModel.setActivationName("recovery postcard test v3");
+        recoveryModel.setVersion(version);
+        recoveryModel.setActivationName("recovery postcard test v" + version);
         recoveryModel.setIdentityAttributes(identityAttributes);
         ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
         new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
@@ -557,8 +608,7 @@ class PowerAuthRecoveryTest {
         assertEquals(RecoveryPukStatus.VALID, response2.getRecoveryCodes().get(0).getPuks().get(0).getStatus());
     }
 
-    @Test
-    void recoveryPostcardInvalidPukIndexTest() throws Exception {
+    public static void recoveryPostcardInvalidPukIndexTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, String version) throws Exception {
         JSONObject resultStatusObject = new JSONObject();
         String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
         final String randomUserId = "TestUser_" + UUID.randomUUID();
@@ -590,7 +640,7 @@ class PowerAuthRecoveryTest {
 
         // Prepare activation, assume recovery is enabled on server
         PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
-        prepareModel.setActivationName("test_recovery_postcard_v3");
+        prepareModel.setActivationName("test_recovery_postcard_v" + version);
         prepareModel.setApplicationKey(config.getApplicationKey());
         prepareModel.setApplicationSecret(config.getApplicationSecret());
         prepareModel.setMasterPublicKey(config.getMasterPublicKey());
@@ -599,7 +649,7 @@ class PowerAuthRecoveryTest {
         prepareModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         prepareModel.setResultStatusObject(resultStatusObject);
         prepareModel.setUriString(config.getPowerAuthIntegrationUrl());
-        prepareModel.setVersion("3.0");
+        prepareModel.setVersion(version);
         prepareModel.setActivationCode(initResponse.getActivationCode());
         prepareModel.setDeviceInfo("backend-tests");
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
@@ -634,7 +684,7 @@ class PowerAuthRecoveryTest {
         confirmModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         confirmModel.setResultStatusObject(resultStatusObject);
         confirmModel.setUriString(config.getPowerAuthIntegrationUrl());
-        confirmModel.setVersion("3.0");
+        confirmModel.setVersion(version);
         confirmModel.setRecoveryCode(recoveryInfo.getRecoveryCode());
 
         ObjectStepLogger stepLoggerConfirm = new ObjectStepLogger(System.out);
@@ -657,8 +707,8 @@ class PowerAuthRecoveryTest {
         recoveryModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         recoveryModel.setResultStatusObject(resultStatusObject);
         recoveryModel.setUriString(config.getPowerAuthIntegrationUrl());
-        recoveryModel.setVersion("3.0");
-        recoveryModel.setActivationName("recovery postcard test valid PUK v3");
+        recoveryModel.setVersion(version);
+        recoveryModel.setActivationName("recovery postcard test valid PUK v" + version);
         recoveryModel.setIdentityAttributes(identityAttributes);
         ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
         new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
@@ -666,7 +716,7 @@ class PowerAuthRecoveryTest {
         assertEquals(200, stepLoggerRecovery.getResponse().statusCode());
 
         // Use invalid PUK
-        recoveryModel.setActivationName("recovery postcard test invalid PUK v3");
+        recoveryModel.setActivationName("recovery postcard test invalid PUK v" + version);
         ObjectStepLogger stepLoggerRecovery2 = new ObjectStepLogger(System.out);
         new ActivationRecoveryStep().execute(stepLoggerRecovery2, recoveryModel.toMap());
         assertFalse(stepLoggerRecovery2.getResult().success());
@@ -689,7 +739,7 @@ class PowerAuthRecoveryTest {
         // Use correct PUK now
         identityAttributes.put("puk", recoveryInfo.getPuks().get(currentRecoveryPukIndex));
 
-        recoveryModel.setActivationName("recovery postcard test valid PUK 2 v3");
+        recoveryModel.setActivationName("recovery postcard test valid PUK 2 v" + version);
         ObjectStepLogger stepLoggerRecovery3 = new ObjectStepLogger(System.out);
         new ActivationRecoveryStep().execute(stepLoggerRecovery3, recoveryModel.toMap());
         assertTrue(stepLoggerRecovery3.getResult().success());

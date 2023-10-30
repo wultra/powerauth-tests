@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.v32;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -46,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
 class PowerAuthCustomActivationOtpTest {
 
-    private static final String VERSION = "3.1";
+    private static final String VERSION = "3.2";
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -101,7 +101,7 @@ class PowerAuthCustomActivationOtpTest {
         createModel.setHeaders(new HashMap<>());
         createModel.setPassword(config.getPassword());
         createModel.setStatusFileName(tempStatusFile.getAbsolutePath());
-        createModel.setResultStatusObject(config.getResultStatusObjectV31());
+        createModel.setResultStatusObject(config.getResultStatusObjectV32());
         createModel.setUriString("http://localhost:" + port);
         createModel.setVersion(VERSION);
         createModel.setDeviceInfo("backend-tests");
@@ -114,14 +114,14 @@ class PowerAuthCustomActivationOtpTest {
         recoveryModel.setHeaders(new HashMap<>());
         recoveryModel.setPassword(config.getPassword());
         recoveryModel.setStatusFileName(tempStatusFile.getAbsolutePath());
-        recoveryModel.setResultStatusObject(config.getResultStatusObjectV31());
+        recoveryModel.setResultStatusObject(config.getResultStatusObjectV32());
         recoveryModel.setUriString("http://localhost:" + port);
         recoveryModel.setVersion(VERSION);
         recoveryModel.setDeviceInfo("backend-tests");
 
         statusModel = new GetStatusStepModel();
         statusModel.setHeaders(new HashMap<>());
-        statusModel.setResultStatusObject(config.getResultStatusObjectV31());
+        statusModel.setResultStatusObject(config.getResultStatusObjectV32());
         statusModel.setUriString(config.getPowerAuthIntegrationUrl());
         statusModel.setVersion(VERSION);
 

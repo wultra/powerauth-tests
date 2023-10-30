@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2020 Wultra s.r.o.
+ * Copyright (C) 2023 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.shared;
 
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.client.PowerAuthClient;
@@ -25,16 +25,7 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientFactory;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.*;
 
@@ -42,43 +33,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * Callback tests.
+ * Callback test shared logic.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@EnableConfigurationProperties
-@ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
-class PowerAuthCallbackTest {
+public class PowerAuthCallbackShared {
 
-    private PowerAuthClient powerAuthClient;
-    private PowerAuthTestConfiguration config;
-
-    @LocalServerPort
-    private int port;
-
-    @Autowired
-    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
-        this.powerAuthClient = powerAuthClient;
-    }
-
-    @Autowired
-    public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {
-        this.config = config;
-    }
-
-    @AfterEach
-    void tearDown() throws PowerAuthClientException {
-        // Remove all callbacks on test application, they slow down tests
-        final GetCallbackUrlListResponse callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
-        for (CallbackUrl callback: callbacks.getCallbackUrlList()) {
-            powerAuthClient.removeCallbackUrl(callback.getId());
-        }
-    }
-
-    @Test
-    void callbackCreateDeleteTest() throws PowerAuthClientException {
+    public static void callbackCreateDeleteTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config) throws PowerAuthClientException {
         String callbackName = UUID.randomUUID().toString();
         String callbackUrl = "http://test.test";
         powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrl, Collections.singletonList("activationId"), null);
@@ -98,8 +59,7 @@ class PowerAuthCallbackTest {
         assertTrue(callbackFound);
     }
 
-    @Test
-    void callbackUpdateTest() throws PowerAuthClientException {
+    public static void callbackUpdateTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config) throws PowerAuthClientException {
         String callbackName = UUID.randomUUID().toString();
         String callbackUrl = "http://test.test";
         powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrl, Collections.singletonList("activationId"), null);
@@ -137,8 +97,7 @@ class PowerAuthCallbackTest {
         powerAuthClient.removeCallbackUrl(callbackId);
     }
 
-    @Test
-    void callbackExecutionTest() throws PowerAuthClientException, RestClientException {
+    public static void callbackExecutionTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, Integer port, String version) throws PowerAuthClientException, RestClientException {
         // Skip test when the tested PA server is not running on localhost
         assumeTrue(config.getPowerAuthRestUrl().contains("localhost:8080"));
         String callbackName = UUID.randomUUID().toString();
@@ -146,13 +105,13 @@ class PowerAuthCallbackTest {
         powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrlPost, Arrays.asList("activationId", "userId", "activationName", "deviceInfo", "platform", "activationFlags", "activationStatus", "blockedReason", "applicationId"), null);
         final GetCallbackUrlListResponse callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
         // Update activation status
-        powerAuthClient.blockActivation(config.getActivationIdV31(), "TEST_CALLBACK", config.getUserV31());
+        powerAuthClient.blockActivation(config.getActivationId(version), "TEST_CALLBACK", config.getUser(version));
         String callbackUrlVerify = "http://localhost:" + port + "/callback/verify";
         // When a HTTP error occurs, the test fails
         Map<String, Object> request = new HashMap<>();
-        request.put("activationId", config.getActivationIdV31());
-        request.put("userId", config.getUserV31());
-        request.put("activationName", "test v31");
+        request.put("activationId", config.getActivationId(version));
+        request.put("userId", config.getUser(version));
+        request.put("activationName", "test v" + version);
         request.put("deviceInfo", "backend-tests");
         request.put("platform", "unknown");
         request.put("activationFlags", Collections.emptyList());
@@ -160,7 +119,7 @@ class PowerAuthCallbackTest {
         request.put("blockedReason", "TEST_CALLBACK");
         request.put("applicationId", config.getApplicationId());
         RestClientFactory.getRestClient().post(callbackUrlVerify, request, new ParameterizedTypeReference<String>() {});
-        powerAuthClient.unblockActivation(config.getActivationIdV31(), config.getUserV31());
+        powerAuthClient.unblockActivation(config.getActivationId(version), config.getUser(version));
         boolean callbackFound = false;
         for (CallbackUrl callback: callbacks.getCallbackUrlList()) {
             if (callbackName.equals(callback.getName())) {

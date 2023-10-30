@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.v32;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -50,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @EnabledIf(expression = "${powerauth.test.includeCustomTests}", loadContext = true)
 class PowerAuthEncryptionTest {
 
-    private static final String VERSION = "3.1";
+    private static final String VERSION = "3.2";
 
     private PowerAuthTestConfiguration config;
     private static File dataFile;
@@ -90,7 +90,7 @@ class PowerAuthEncryptionTest {
         encryptModel.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
         encryptModel.setMasterPublicKey(config.getMasterPublicKey());
         encryptModel.setHeaders(new HashMap<>());
-        encryptModel.setResultStatusObject(config.getResultStatusObjectV31());
+        encryptModel.setResultStatusObject(config.getResultStatusObjectV32());
         encryptModel.setVersion(VERSION);
 
         signatureModel = new VerifySignatureStepModel();
@@ -100,9 +100,9 @@ class PowerAuthEncryptionTest {
         signatureModel.setHeaders(new HashMap<>());
         signatureModel.setHttpMethod("POST");
         signatureModel.setPassword(config.getPassword());
-        signatureModel.setResultStatusObject(config.getResultStatusObjectV31());
+        signatureModel.setResultStatusObject(config.getResultStatusObjectV32());
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
-        signatureModel.setStatusFileName(config.getStatusFileV31().getAbsolutePath());
+        signatureModel.setStatusFileName(config.getStatusFileV32().getAbsolutePath());
         signatureModel.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
         signatureModel.setVersion(VERSION);
 

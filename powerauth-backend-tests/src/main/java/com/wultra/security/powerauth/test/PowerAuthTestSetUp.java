@@ -62,6 +62,7 @@ public class PowerAuthTestSetUp {
 
     public void execute() throws Exception {
         createApplication();
+        createActivationV32();
         createActivationV31();
         createActivationV3();
         createOperationTemplates();
@@ -137,6 +138,39 @@ public class PowerAuthTestSetUp {
             request.setRemotePostcardPublicKey(PUBLIC_KEY_RECOVERY_POSTCARD_BASE64);
             powerAuthClient.updateRecoveryConfig(request);
         }
+    }
+
+    private void createActivationV32() throws Exception {
+        // Init activation
+        final InitActivationRequest initRequest = new InitActivationRequest();
+        initRequest.setApplicationId(config.getApplicationId());
+        initRequest.setUserId(config.getUserV32());
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+
+        // Prepare activation
+        PrepareActivationStepModel model = new PrepareActivationStepModel();
+        model.setActivationCode(initResponse.getActivationCode());
+        model.setActivationName("test v32");
+        model.setApplicationKey(config.getApplicationKey());
+        model.setApplicationSecret(config.getApplicationSecret());
+        model.setMasterPublicKey(config.getMasterPublicKey());
+        model.setHeaders(new HashMap<>());
+        model.setPassword(config.getPassword());
+        model.setStatusFileName(config.getStatusFileV32().getAbsolutePath());
+        model.setResultStatusObject(config.getResultStatusObjectV32());
+        model.setUriString(config.getPowerAuthIntegrationUrl());
+        model.setVersion("3.2");
+        model.setDeviceInfo("backend-tests");
+
+        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        new PrepareActivationStep().execute(stepLogger, model.toMap());
+        assertTrue(stepLogger.getResult().success());
+
+        // Commit activation
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
+
+        config.setActivationIdV32(initResponse.getActivationId());
     }
 
     private void createActivationV31() throws Exception {

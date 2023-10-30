@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.shared;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
@@ -26,12 +26,6 @@ import com.wultra.security.powerauth.client.model.request.OperationDetailRequest
 import com.wultra.security.powerauth.client.model.response.OperationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.OperationUserActionResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.List;
 
@@ -41,35 +35,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
- * Test of PowerAuth operation endpoints.
+ * PowerAuth operations test shared logic.
  *
- * @author Lubos Racansky, lubos.racansky@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = PowerAuthTestConfiguration.class)
-@EnableConfigurationProperties
-class PowerAuthOperationTest {
+public class PowerAuthOperationShared {
 
-    @Autowired
-    private PowerAuthClient powerAuthClient;
+    public static void testOperationApprove(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final String version) throws Exception {
+        final OperationDetailResponse operation = createOperation(powerAuthClient, config, version);
 
-    @Autowired
-    private PowerAuthTestConfiguration config;
-
-    @Test
-    void testOperationApprove() throws Exception {
-        final OperationDetailResponse operation = createOperation();
-
-        final OperationApproveRequest approveRequest = createOperationApproveRequest(operation.getId());
+        final OperationApproveRequest approveRequest = createOperationApproveRequest(config, operation.getId(), version);
 
         final OperationUserActionResponse result = powerAuthClient.operationApprove(approveRequest);
 
         assertEquals(APPROVED, result.getResult());
     }
 
-    @Test
-    void testOperationApproveWithValidProximityOtp() throws Exception {
-        final OperationDetailResponse operation = createOperation(true);
+    public static void testOperationApproveWithValidProximityOtp(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final String version) throws Exception {
+        final OperationDetailResponse operation = createOperation(powerAuthClient, config, true, version);
 
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         detailRequest.setOperationId(operation.getId());
@@ -77,7 +60,7 @@ class PowerAuthOperationTest {
         final String totp = powerAuthClient.operationDetail(detailRequest).getProximityOtp();
         assertNotNull(totp);
 
-        final OperationApproveRequest approveRequest = createOperationApproveRequest(operation.getId());
+        final OperationApproveRequest approveRequest = createOperationApproveRequest(config, operation.getId(), version);
         approveRequest.getAdditionalData().put("proximity_otp", totp);
 
         final OperationUserActionResponse result = powerAuthClient.operationApprove(approveRequest);
@@ -85,9 +68,8 @@ class PowerAuthOperationTest {
         assertEquals(APPROVED, result.getResult());
     }
 
-    @Test
-    void testOperationApproveWithInvalidProximityOtp() throws Exception {
-        final OperationDetailResponse operation = createOperation(true);
+    public static void testOperationApproveWithInvalidProximityOtp(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final String version) throws Exception {
+        final OperationDetailResponse operation = createOperation(powerAuthClient, config, true, version);
 
         final OperationDetailRequest detailRequest = new OperationDetailRequest();
         detailRequest.setOperationId(operation.getId());
@@ -95,7 +77,7 @@ class PowerAuthOperationTest {
         final String totp = powerAuthClient.operationDetail(detailRequest).getProximityOtp();
         assertNotNull(totp);
 
-        final OperationApproveRequest approveRequest = createOperationApproveRequest(operation.getId());
+        final OperationApproveRequest approveRequest = createOperationApproveRequest(config, operation.getId(), version);
         approveRequest.getAdditionalData().put("proximity_otp", "1111"); // invalid otp on purpose, it is too short
 
         final OperationUserActionResponse result = powerAuthClient.operationApprove(approveRequest);
@@ -103,24 +85,24 @@ class PowerAuthOperationTest {
         assertEquals(APPROVAL_FAILED, result.getResult());
     }
 
-    private OperationApproveRequest createOperationApproveRequest(final String operationId) {
+    private static OperationApproveRequest createOperationApproveRequest(final PowerAuthTestConfiguration config, final String operationId, final String version) {
         final OperationApproveRequest approveRequest = new OperationApproveRequest();
         approveRequest.setOperationId(operationId);
-        approveRequest.setUserId(config.getUserV31());
+        approveRequest.setUserId(config.getUser(version));
         approveRequest.setApplicationId(config.getApplicationId());
         approveRequest.setData("A2");
         approveRequest.setSignatureType(SignatureType.POSSESSION_KNOWLEDGE);
         return approveRequest;
     }
 
-    private OperationDetailResponse createOperation() throws PowerAuthClientException {
-        return createOperation(null);
+    private static OperationDetailResponse createOperation(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, String version) throws PowerAuthClientException {
+        return createOperation(powerAuthClient, config, null, version);
     }
 
-    private OperationDetailResponse createOperation(final Boolean proximityCheckEnabled) throws PowerAuthClientException {
+    private static OperationDetailResponse createOperation(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final Boolean proximityCheckEnabled, final String version) throws PowerAuthClientException {
         final OperationCreateRequest createRequest = new OperationCreateRequest();
         createRequest.setApplications(List.of(config.getApplicationName()));
-        createRequest.setUserId(config.getUserV31());
+        createRequest.setUserId(config.getUser(version));
         createRequest.setTemplateName(config.getLoginOperationTemplateName());
         createRequest.setProximityCheckEnabled(proximityCheckEnabled);
 
