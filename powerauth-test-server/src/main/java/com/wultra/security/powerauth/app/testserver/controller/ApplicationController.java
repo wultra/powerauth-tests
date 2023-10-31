@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.app.testserver.controller;
 
+import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigInvalidException;
 import com.wultra.security.powerauth.app.testserver.model.request.ConfigureApplicationRequest;
 import com.wultra.security.powerauth.app.testserver.service.ApplicationService;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
@@ -49,9 +50,10 @@ public class ApplicationController {
      * Configure an application.
      * @param request Configure an application request.
      * @return Configure an application response.
+     * @throws AppConfigInvalidException Thrown in case mobile SDK configuration is invalid.
      */
     @PostMapping("config")
-    public Response createActivation(@RequestBody ObjectRequest<ConfigureApplicationRequest> request) {
+    public Response createActivation(@RequestBody ObjectRequest<ConfigureApplicationRequest> request) throws AppConfigInvalidException {
         return applicationService.configureApplication(request.getRequestObject());
     }
 

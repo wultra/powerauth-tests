@@ -16,25 +16,32 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.app.testserver.model.request;
+package com.wultra.security.powerauth.app.testserver.errorhandling;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.io.Serial;
 
 /**
- * Request for configuring an application.
+ * Exception for case when application configuration is invalid.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-@Getter
-@Setter
-public class ConfigureApplicationRequest {
+public class AppConfigInvalidException extends Exception {
 
-    private String applicationId;
-    private String applicationName;
-    private String applicationKey;
-    private String applicationSecret;
-    private String masterPublicKey;
-    private String mobileSdkConfig;
+    @Serial
+    private static final long serialVersionUID = -5133187370481724023L;
+
+    /**
+     * Default exception constructor.
+     */
+    public AppConfigInvalidException() {
+    }
+
+    /**
+     * Constructor with error message.
+     * @param message Error message.
+     */
+    public AppConfigInvalidException(String message) {
+        super(message);
+    }
 
 }
