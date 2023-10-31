@@ -153,8 +153,13 @@ public class PowerAuthActivationOtpShared {
             commitRequest.setActivationId(initResponse.getActivationId());
             commitRequest.setActivationOtp(lastIteration ? validOtpValue : invalidOtpValue);
 
-            final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
-            boolean isActivated = commitResponse.isActivated();
+            boolean isActivated;
+            try {
+                final CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
+                isActivated = commitResponse.isActivated();
+            } catch (PowerAuthClientException ex) {
+                isActivated = false;
+            }
             assertEquals(lastIteration, isActivated);
 
             // Verify activation status
@@ -201,8 +206,13 @@ public class PowerAuthActivationOtpShared {
             commitRequest.setActivationId(initResponse.getActivationId());
             commitRequest.setActivationOtp(invalidOtpValue);
 
-            CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
-            boolean isActivated = commitResponse.isActivated();
+            boolean isActivated;
+            try {
+                CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
+                isActivated = commitResponse.isActivated();
+            } catch (PowerAuthClientException ex) {
+                isActivated = false;
+            }
             assertFalse(isActivated);
 
             // Verify activation status
@@ -243,11 +253,16 @@ public class PowerAuthActivationOtpShared {
         // Try commit activation with wrong OTP. Last attempt is valid.
         for (int iteration = 1; iteration <= 5; iteration++) {
             boolean lastIteration = iteration == 5;
-            CommitActivationRequest commitRequest = new CommitActivationRequest();
-            commitRequest.setActivationId(initResponse.getActivationId());
-            commitRequest.setActivationOtp(lastIteration ? validOtpValue : invalidOtpValue);
-            CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
-            boolean isActivated = commitResponse.isActivated();
+            boolean isActivated;
+            try {
+                CommitActivationRequest commitRequest = new CommitActivationRequest();
+                commitRequest.setActivationId(initResponse.getActivationId());
+                commitRequest.setActivationOtp(lastIteration ? validOtpValue : invalidOtpValue);
+                CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
+                isActivated = commitResponse.isActivated();
+            } catch (PowerAuthClientException ex) {
+                isActivated = false;
+            }
             assertEquals(lastIteration, isActivated);
 
             // Verify activation status
@@ -304,11 +319,16 @@ public class PowerAuthActivationOtpShared {
         // Try commit activation with wrong OTP. Last attempt is valid.
         for (int iteration = 1; iteration <= 5; iteration++) {
             boolean lastIteration = iteration == 5;
-            CommitActivationRequest commitRequest = new CommitActivationRequest();
-            commitRequest.setActivationId(initResponse.getActivationId());
-            commitRequest.setActivationOtp(invalidOtpValue);
-            CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
-            boolean isActivated = commitResponse.isActivated();
+            boolean isActivated;
+            try {
+                CommitActivationRequest commitRequest = new CommitActivationRequest();
+                commitRequest.setActivationId(initResponse.getActivationId());
+                commitRequest.setActivationOtp(invalidOtpValue);
+                CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
+                isActivated = commitResponse.isActivated();
+            } catch (PowerAuthClientException ex) {
+                isActivated = false;
+            }
             assertFalse(isActivated);
 
             // Verify activation status
@@ -414,13 +434,18 @@ public class PowerAuthActivationOtpShared {
         // Try commit with no OTP for more than max failed attempts. Use OTP in the last iteration, that should pass.
         for (int iteration = 1; iteration <= 6; iteration++) {
             boolean lastIteration = iteration == 6;
-            CommitActivationRequest commitRequest = new CommitActivationRequest();
-            commitRequest.setActivationId(initResponse.getActivationId());
-            if (lastIteration) {
-                commitRequest.setActivationOtp(validOtpValue);
+            boolean isActivated;
+            try {
+                CommitActivationRequest commitRequest = new CommitActivationRequest();
+                commitRequest.setActivationId(initResponse.getActivationId());
+                if (lastIteration) {
+                    commitRequest.setActivationOtp(validOtpValue);
+                }
+                CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
+                isActivated = commitResponse.isActivated();
+            } catch (PowerAuthClientException ex) {
+                isActivated = false;
             }
-            CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
-            boolean isActivated = commitResponse.isActivated();
             assertEquals(lastIteration, isActivated);
 
             // Verify activation status again
