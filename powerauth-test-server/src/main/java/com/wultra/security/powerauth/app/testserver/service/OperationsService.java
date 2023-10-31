@@ -46,15 +46,14 @@ import io.getlime.security.powerauth.lib.mtoken.model.response.OperationListResp
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Service for working with operations.
@@ -135,6 +134,7 @@ public class OperationsService extends BaseService {
 
         final HttpHeaders headers = new HttpHeaders();
         headers.put("X-PowerAuth-Token", Collections.singletonList(header));
+        headers.add(HttpHeaders.ACCEPT_LANGUAGE, LocaleContextHolder.getLocale().getLanguage());
 
         final RestClient restClient = new DefaultRestClient(config.getEnrollmentServiceUrl());
         final ResponseEntity<ObjectResponse<OperationListResponse>> responseEntity = restClient.post("/api/auth/token/app/operation/list", null, null, headers, new ParameterizedTypeReference<>() {});
