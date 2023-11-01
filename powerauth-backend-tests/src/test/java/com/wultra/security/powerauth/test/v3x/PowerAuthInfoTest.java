@@ -18,7 +18,7 @@
 package com.wultra.security.powerauth.test.v3x;
 
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.PowerAuthUserInfoShared;
+import com.wultra.security.powerauth.test.shared.PowerAuthInfoShared;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +40,7 @@ import java.util.HashMap;
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 @EnabledIf(expression = "${powerauth.test.includeCustomTests}", loadContext = true)
-class PowerAuthUserInfoTest {
+class PowerAuthInfoTest {
 
     private final static String VERSION = "3.2";
 
@@ -62,7 +62,12 @@ class PowerAuthUserInfoTest {
 
     @Test
     void testUserInfo() throws Exception {
-        PowerAuthUserInfoShared.testUserInfo(config, encryptModel, VERSION);
+        PowerAuthInfoShared.testUserInfo(config, encryptModel, VERSION);
+    }
+
+    @Test
+    void testServerStatus() throws Exception {
+        PowerAuthInfoShared.testServerStatus(config);
     }
 
 }
