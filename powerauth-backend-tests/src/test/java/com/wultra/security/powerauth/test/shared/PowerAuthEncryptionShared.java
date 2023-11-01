@@ -523,7 +523,7 @@ public class PowerAuthEncryptionShared {
                     powerAuthClient.getEciesDecryptor(eciesDecryptorRequest);
                 }
         );
-        assertEquals("ERR0024", ex.getPowerAuthError().getCode());
+        assertEquals("ERR0024", ex.getPowerAuthError().get().getCode());
     }
 
     public static void encryptedResponseTest(final PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger, String version) throws Exception {
