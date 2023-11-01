@@ -17,20 +17,26 @@
  */
 package com.wultra.security.powerauth.test;
 
+import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.entity.Application;
+import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
+import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
+import com.wultra.security.powerauth.client.model.request.UpdateRecoveryConfigRequest;
+import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import io.getlime.powerauth.soap.v3.*;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
-import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
+import java.util.UUID;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Global test setup.
@@ -39,11 +45,13 @@ import static org.junit.Assert.assertNotEquals;
  */
 public class PowerAuthTestSetUp {
 
-    private PowerAuthServiceClient powerAuthClient;
+    private static final String PUBLIC_KEY_RECOVERY_POSTCARD_BASE64 = "BABXgGoj4Lizl3GN0rjrtileEEwekFkpX1ERS9yyYjyuM1Iqdti3ihtATBxk5XGvjetPO1YC+qXciUYjIsETtbI=";
+
+    private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
 
     @Autowired
-    public void setPowerAuthServiceClient(PowerAuthServiceClient powerAuthClient) {
+    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 
@@ -54,47 +62,148 @@ public class PowerAuthTestSetUp {
 
     public void execute() throws Exception {
         createApplication();
+        createActivationV32();
+        createActivationV31();
         createActivationV3();
-        createActivationV2();
+        createOperationTemplates();
     }
 
-    private void createApplication() {
+    private void createOperationTemplates() throws Exception {
+        createLoginOperationTemplate();
+    }
+
+    private void createLoginOperationTemplate() throws Exception {
+        final OperationTemplateCreateRequest request = new OperationTemplateCreateRequest();
+        request.setTemplateName(UUID.randomUUID().toString());
+        request.setOperationType("login");
+        request.getSignatureType().addAll(Arrays.asList(SignatureType.values()));
+        request.setDataTemplate("A2");
+        request.setExpiration(300L);
+        request.setMaxFailureCount(5L);
+
+        final OperationTemplateDetailResponse operationTemplate = powerAuthClient.createOperationTemplate(request);
+        config.setLoginOperationTemplateName(operationTemplate.getTemplateName());
+        config.setLoginOperationTemplateId(operationTemplate.getId());
+    }
+
+    private void createApplication() throws PowerAuthClientException {
         // Create application if it does not exist
-        List<GetApplicationListResponse.Applications> applications = powerAuthClient.getApplicationList();
+        final GetApplicationListResponse applicationsListResponse = powerAuthClient.getApplicationList();
         boolean applicationExists = false;
-        for (GetApplicationListResponse.Applications app: applications) {
-            if (app.getApplicationName().equals(config.getApplicationName())) {
+        for (Application app: applicationsListResponse.getApplications()) {
+            if (app.getApplicationId().equals(config.getApplicationName())) {
                 applicationExists = true;
-                config.setApplicationId(app.getId());
+                config.setApplicationId(app.getApplicationId());
             }
         }
         if (!applicationExists) {
-            CreateApplicationResponse response = powerAuthClient.createApplication(config.getApplicationName());
-            assertNotEquals(0, response.getApplicationId());
-            assertEquals(config.getApplicationName(), response.getApplicationName());
+            final CreateApplicationResponse response = powerAuthClient.createApplication(config.getApplicationName());
+            assertNotEquals("0", response.getApplicationId());
+            assertEquals(config.getApplicationName(), response.getApplicationId());
             config.setApplicationId(response.getApplicationId());
         }
 
+
         // Create application version if it does not exist
-        GetApplicationDetailResponse detail = powerAuthClient.getApplicationDetail(config.getApplicationId());
+        final GetApplicationDetailResponse detail = powerAuthClient.getApplicationDetail(config.getApplicationId());
         boolean versionExists = false;
-        for (GetApplicationDetailResponse.Versions appVersion: detail.getVersions()) {
-            if (appVersion.getApplicationVersionName().equals(config.getApplicationVersion())) {
+        for (ApplicationVersion appVersion: detail.getVersions()) {
+            if (appVersion.getApplicationVersionId().equals(config.getApplicationVersion())) {
                 versionExists = true;
                 config.setApplicationVersionId(appVersion.getApplicationVersionId());
+                config.setApplicationKey(appVersion.getApplicationKey());
+                config.setApplicationSecret(appVersion.getApplicationSecret());
             }
         }
+        config.setMasterPublicKey(detail.getMasterPublicKey());
         if (!versionExists) {
-            CreateApplicationVersionResponse versionResponse = powerAuthClient.createApplicationVersion(config.getApplicationId(), config.getApplicationVersion());
-            assertNotEquals(0, versionResponse.getApplicationVersionId());
-            assertEquals(config.getApplicationVersion(), versionResponse.getApplicationVersionName());
+            final CreateApplicationVersionResponse versionResponse = powerAuthClient.createApplicationVersion(config.getApplicationId(), config.getApplicationVersion());
+            assertNotEquals("0", versionResponse.getApplicationVersionId());
+            assertEquals(config.getApplicationVersion(), versionResponse.getApplicationVersionId());
             config.setApplicationVersionId(versionResponse.getApplicationVersionId());
             config.setApplicationKey(versionResponse.getApplicationKey());
             config.setApplicationSecret(versionResponse.getApplicationSecret());
         } else {
             // Make sure application version is supported
-            powerAuthClient.supportApplicationVersion(config.getApplicationVersionId());
+            powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
         }
+        // Set up activation recovery
+        final GetRecoveryConfigResponse recoveryResponse = powerAuthClient.getRecoveryConfig(config.getApplicationId());
+        if (!recoveryResponse.isActivationRecoveryEnabled() || !recoveryResponse.isRecoveryPostcardEnabled() || recoveryResponse.getPostcardPublicKey() == null || recoveryResponse.getRemotePostcardPublicKey() == null) {
+            final UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
+            request.setApplicationId(config.getApplicationId());
+            request.setActivationRecoveryEnabled(true);
+            request.setRecoveryPostcardEnabled(true);
+            request.setAllowMultipleRecoveryCodes(false);
+            request.setRemotePostcardPublicKey(PUBLIC_KEY_RECOVERY_POSTCARD_BASE64);
+            powerAuthClient.updateRecoveryConfig(request);
+        }
+    }
+
+    private void createActivationV32() throws Exception {
+        // Init activation
+        final InitActivationRequest initRequest = new InitActivationRequest();
+        initRequest.setApplicationId(config.getApplicationId());
+        initRequest.setUserId(config.getUserV32());
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+
+        // Prepare activation
+        PrepareActivationStepModel model = new PrepareActivationStepModel();
+        model.setActivationCode(initResponse.getActivationCode());
+        model.setActivationName("test v32");
+        model.setApplicationKey(config.getApplicationKey());
+        model.setApplicationSecret(config.getApplicationSecret());
+        model.setMasterPublicKey(config.getMasterPublicKey());
+        model.setHeaders(new HashMap<>());
+        model.setPassword(config.getPassword());
+        model.setStatusFileName(config.getStatusFileV32().getAbsolutePath());
+        model.setResultStatusObject(config.getResultStatusObjectV32());
+        model.setUriString(config.getPowerAuthIntegrationUrl());
+        model.setVersion("3.2");
+        model.setDeviceInfo("backend-tests");
+
+        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        new PrepareActivationStep().execute(stepLogger, model.toMap());
+        assertTrue(stepLogger.getResult().success());
+
+        // Commit activation
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
+
+        config.setActivationIdV32(initResponse.getActivationId());
+    }
+
+    private void createActivationV31() throws Exception {
+        // Init activation
+        final InitActivationRequest initRequest = new InitActivationRequest();
+        initRequest.setApplicationId(config.getApplicationId());
+        initRequest.setUserId(config.getUserV31());
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+
+        // Prepare activation
+        PrepareActivationStepModel model = new PrepareActivationStepModel();
+        model.setActivationCode(initResponse.getActivationCode());
+        model.setActivationName("test v31");
+        model.setApplicationKey(config.getApplicationKey());
+        model.setApplicationSecret(config.getApplicationSecret());
+        model.setMasterPublicKey(config.getMasterPublicKey());
+        model.setHeaders(new HashMap<>());
+        model.setPassword(config.getPassword());
+        model.setStatusFileName(config.getStatusFileV31().getAbsolutePath());
+        model.setResultStatusObject(config.getResultStatusObjectV31());
+        model.setUriString(config.getPowerAuthIntegrationUrl());
+        model.setVersion("3.1");
+        model.setDeviceInfo("backend-tests");
+
+        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        new PrepareActivationStep().execute(stepLogger, model.toMap());
+        assertTrue(stepLogger.getResult().success());
+
+        // Commit activation
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
+
+        config.setActivationIdV31(initResponse.getActivationId());
     }
 
     private void createActivationV3() throws Exception {
@@ -117,48 +226,17 @@ public class PowerAuthTestSetUp {
         model.setResultStatusObject(config.getResultStatusObjectV3());
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion("3.0");
+        model.setDeviceInfo("backend-tests");
 
         ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
+        assertTrue(stepLogger.getResult().success());
 
         // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         config.setActivationIdV3(initResponse.getActivationId());
-    }
-
-    private void createActivationV2() throws Exception {
-        // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
-        initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV2());
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
-
-        // Prepare activation
-        PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationCode(initResponse.getActivationCode());
-        model.setActivationName("test v2");
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(config.getStatusFileV2().getAbsolutePath());
-        model.setResultStatusObject(config.getResultStatusObjectV2());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("2.1");
-
-        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
-        new io.getlime.security.powerauth.lib.cmd.steps.v2.PrepareActivationStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().isSuccess());
-
-        // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId());
-        assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
-
-        config.setActivationIdV2(initResponse.getActivationId());
     }
 
 }

@@ -19,9 +19,9 @@
  */
 package com.wultra.security.powerauth.configuration;
 
-import io.getlime.security.powerauth.rest.api.spring.annotation.PowerAuthAnnotationInterceptor;
-import io.getlime.security.powerauth.rest.api.spring.annotation.PowerAuthEncryptionArgumentResolver;
-import io.getlime.security.powerauth.rest.api.spring.annotation.PowerAuthWebArgumentResolver;
+import io.getlime.security.powerauth.rest.api.spring.annotation.support.PowerAuthAnnotationInterceptor;
+import io.getlime.security.powerauth.rest.api.spring.annotation.support.PowerAuthEncryptionArgumentResolver;
+import io.getlime.security.powerauth.rest.api.spring.annotation.support.PowerAuthWebArgumentResolver;
 import io.getlime.security.powerauth.rest.api.spring.filter.PowerAuthRequestFilter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -73,7 +73,7 @@ public class WebApplicationConfiguration implements WebMvcConfigurer {
      * @return PowerAuthRequestFilter instance.
      */
     @Bean
-    public FilterRegistrationBean powerAuthFilterRegistration() {
+    public FilterRegistrationBean<PowerAuthRequestFilter> powerAuthFilterRegistration() {
         FilterRegistrationBean<PowerAuthRequestFilter> registrationBean = new FilterRegistrationBean<>();
         registrationBean.setFilter(new PowerAuthRequestFilter());
         registrationBean.setMatchAfter(true);

@@ -1,0 +1,53 @@
+name: Integration Test with Maven
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: string
+        description: environment
+        default: 'dev'
+        options:
+          - dev
+      includeCustomTests:
+        type: boolean
+        description: Set whether to include custom tests, such as onboarding tests and test requiring specific customizations in enrollment-server-wultra
+        default: true
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  run-integration-tests:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment || 'dev' }}
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          server-id: jfrog-central
+          server-username: INTERNAL_USERNAME
+          server-password: INTERNAL_PASSWORD
+          cache: maven
+      - name: Run Maven Test Step
+        run: |
+          mvn -B -U -pl powerauth-backend-tests test -DuseInternalRepo=true
+        env:
+          INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
+          INTERNAL_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+          POWERAUTH_REST_URL: ${{ secrets.POWERAUTH_REST_URL }}
+          POWERAUTH_INTEGRATION_SERVICE_URL: ${{ secrets.POWERAUTH_INTEGRATION_SERVICE_URL }}
+          POWERAUTH_NEXTSTEP_SERVICE_URL: ${{ secrets.POWERAUTH_NEXTSTEP_SERVICE_URL }}
+          POWERAUTH_ENROLLMENT_SERVICE_URL: ${{ secrets.POWERAUTH_ENROLLMENT_SERVICE_URL }}
+          POWERAUTH_ENROLLMENT_ONBOARDING_SERVICE_URL: ${{ secrets.POWERAUTH_ENROLLMENT_ONBOARDING_SERVICE_URL }}
+          POWERAUTH_SERVICE_SECURITY_CLIENTTOKEN: ${{ secrets.POWERAUTH_SERVICE_SECURITY_CLIENTTOKEN }}
+          POWERAUTH_SERVICE_SECURITY_CLIENTSECRET: ${{ secrets.POWERAUTH_SERVICE_SECURITY_CLIENTSECRET }}
+          POWERAUTH_TEST_INCLUDECUSTOMTESTS: ${{ inputs.includeCustomTests }}
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v3
+        if: always()
+        with:
+          detailed_summary: true
+          report_paths: '**/target/surefire-reports/*.xml'

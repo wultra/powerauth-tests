@@ -17,11 +17,13 @@
  */
 package com.wultra.security.powerauth.test;
 
+import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.model.request.OperationTemplateDeleteRequest;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import static junit.framework.TestCase.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Global test teardown.
@@ -30,11 +32,11 @@ import static junit.framework.TestCase.assertTrue;
  */
 public class PowerAuthTestTearDown {
 
-    private PowerAuthServiceClient powerAuthClient;
+    private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
 
     @Autowired
-    public void setPowerAuthServiceClient(PowerAuthServiceClient powerAuthClient) {
+    public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
     }
 
@@ -43,10 +45,16 @@ public class PowerAuthTestTearDown {
         this.config = config;
     }
 
-    public void execute() {
-        powerAuthClient.removeActivation(config.getActivationIdV2());
-        powerAuthClient.removeActivation(config.getActivationIdV3());
+    public void execute() throws PowerAuthClientException {
+        powerAuthClient.removeActivation(config.getActivationIdV3(), "test");
         assertTrue(config.getStatusFileV3().delete());
-        assertTrue(config.getStatusFileV2().delete());
+
+        removeOperationTemplates();
+    }
+
+    private void removeOperationTemplates() throws PowerAuthClientException {
+        final OperationTemplateDeleteRequest request = new OperationTemplateDeleteRequest();
+        request.setId(config.getLoginOperationTemplateId());
+        powerAuthClient.removeOperationTemplate(request);
     }
 }

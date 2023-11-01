@@ -1,0 +1,64 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
+name: Build and deploy container app to Azure Web App - pa-test-internal-testserver-app
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: 'ubuntu-latest'
+    environment: test
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        server-id: jfrog-central
+        server-username: INTERNAL_USERNAME
+        server-password: INTERNAL_PASSWORD
+        cache: maven
+    - name: Set Timestamp for docker image tag
+      run: echo "TIMESTAMP=-$(date +%Y.%m.%d)" >> $GITHUB_ENV
+    - name: Get Powerauth Test Server version
+      run: |
+        cd powerauth-test-server
+        REVISION=`mvn help:evaluate -Dexpression=project.version -q -DforceStdout`
+        echo "REVISION=$REVISION" >> $GITHUB_ENV
+    - name: Package test server war
+      run: |
+        cd powerauth-test-server
+        mvn package -DuseInternalRepo=true
+      env:
+        # those are not environmental secrect, but global secret - for readonly access to artifactory
+        INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
+        INTERNAL_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Log in to registry
+      if:  ${{ github.actor != 'dependabot[bot]' }}
+      uses: docker/login-action@v2
+      with:
+        registry: https://powerauthextendedtest.azurecr.io/
+        username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME }}
+        password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD }}
+    - name: Copy liquibase files
+      run: |
+        cd powerauth-test-server
+        ./copy_liquibase.sh
+    - name: Build and push container image to registry
+      uses: docker/build-push-action@v2
+      with:
+        push:  ${{ github.actor != 'dependabot[bot]' }}
+        tags: powerauthextendedtest.azurecr.io/powerauth-test-server:${{ env.REVISION }}${{ env.TIMESTAMP }}-${{ github.sha }}
+        file: ./powerauth-test-server/Dockerfile
+        context: ./powerauth-test-server/
+
+

@@ -18,31 +18,33 @@
 package com.wultra.security.powerauth.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.io.BaseEncoding;
+import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
+import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
 import com.wultra.security.powerauth.test.PowerAuthTestSetUp;
 import com.wultra.security.powerauth.test.PowerAuthTestTearDown;
-import io.getlime.security.powerauth.crypto.lib.config.PowerAuthConfiguration;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientConfiguration;
 import io.getlime.security.powerauth.lib.nextstep.client.NextStepClient;
-import io.getlime.security.powerauth.provider.CryptoProviderUtil;
-import io.getlime.security.powerauth.provider.CryptoProviderUtilFactory;
-import io.getlime.security.powerauth.soap.spring.client.PowerAuthServiceClient;
-import org.apache.wss4j.dom.WSConstants;
+import io.getlime.security.powerauth.lib.nextstep.client.NextStepClientException;
+import jakarta.annotation.PostConstruct;
+import jakarta.annotation.PreDestroy;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.json.simple.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.oxm.jaxb.Jaxb2Marshaller;
-import org.springframework.ws.client.support.interceptor.ClientInterceptor;
-import org.springframework.ws.soap.security.wss4j2.Wss4jSecurityInterceptor;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.File;
 import java.security.PublicKey;
 import java.security.Security;
+import java.time.Duration;
+import java.util.Base64;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -53,60 +55,95 @@ import java.util.UUID;
 @Configuration
 public class PowerAuthTestConfiguration {
 
-    @Value("${powerauth.service.url}")
-    private String powerAuthServiceUrl;
+    private static final Logger logger = LoggerFactory.getLogger(PowerAuthTestConfiguration.class);
 
-    @Value("${powerauth.integration.service.url}")
+    @Value("${powerauth.rest.url:http://localhost:8080/powerauth-java-server/rest}")
+    private String powerAuthRestUrl;
+
+    @Value("${powerauth.integration.service.url:http://localhost:8080/enrollment-server}")
     private String powerAuthIntegrationUrl;
 
-    @Value("${powerauth.nextstep.service.url}")
-    private String nextStepServiceUrl;
+    @Value("${powerauth.nextstep.service.url:http://localhost:8080/powerauth-nextstep}")
+    private Optional<String> nextStepServiceUrl;
 
-    @Value("${powerauth.custom.service.url}")
-    private String customServiceUrl;
+    @Value("${powerauth.enrollment.service.url:http://localhost:8080/enrollment-server}")
+    private String enrollmentServiceUrl;
 
-    @Value("${powerauth.service.security.clientToken}")
+    @Value("${powerauth.enrollment-onboarding.service.url:http://localhost:8080/enrollment-server-onboarding}")
+    private String enrollmentOnboardingServiceUrl;
+
+    @Value("${powerauth.service.security.clientToken:}")
     private String clientToken;
 
-    @Value("${powerauth.service.security.clientSecret}")
+    @Value("${powerauth.service.security.clientSecret:}")
     private String clientSecret;
 
-    @Value("${powerauth.test.application.name}")
+    @Value("${powerauth.test.application.name:PA_Tests}")
     private String applicationName;
 
-    @Value("${powerauth.test.application.version}")
+    @Value("${powerauth.test.application.version:default}")
     private String applicationVersion;
 
-    @Value("${powerauth.test.masterPublicKey}")
-    private String masterPublicKey;
+    @Value("${powerauth.test.identity.additionalDocSubmitValidationsEnabled:true}")
+    private boolean additionalDocSubmitValidationsEnabled;
+
+    @Value("${powerauth.test.identity.presence-check.skip:true}")
+    private boolean skipPresenceCheck;
+
+    @Value("${powerauth.test.identity.otp-verification.skip:true}")
+    private boolean skipOtpVerification;
+
+    @Value("${powerauth.test.identity.verificationOnSubmitEnabled:true}")
+    private boolean verificationOnSubmitEnabled;
+
+    @Value("${powerauth.test.assertMaxRetries:20}")
+    private int assertMaxRetries;
+
+    @Value("${powerauth.test.assertRetryWaitPeriod:PT1S}")
+    private Duration assertRetryWaitPeriod;
+
+    @Value("${powerauth.test.identity.result-verification.skip:false}")
+    private boolean skipResultVerification;
+
+    @Value("${powerauth.test.db.concurrency.skip:true}")
+    private boolean skipDbConcurrencyTests;
 
     private String applicationVersionForTests;
     private String applicationKey;
     private String applicationSecret;
 
-    private Long applicationId;
-    private Long versionId;
+    private String applicationId;
+    private String versionId;
     private PublicKey masterPublicKeyConverted;
+
+    private Long loginOperationTemplateId;
+    private String loginOperationTemplateName;
 
     private PowerAuthTestSetUp setUp;
     private PowerAuthTestTearDown tearDown;
 
-    private CryptoProviderUtil keyConversion;
-    private ObjectMapper objectMapper = RestClientConfiguration.defaultMapper();
+    private final KeyConvertor keyConvertor = new KeyConvertor();
+    private final ObjectMapper objectMapper = RestClientConfiguration.defaultMapper();
+
+    // Version 3.2 temporary storage
+    private File statusFileV32;
+    private final JSONObject resultStatusObjectV32 = new JSONObject();
+    private String activationIdV32;
+    private String userV32;
+
+    // Version 3.1 temporary storage
+    private File statusFileV31;
+    private final JSONObject resultStatusObjectV31 = new JSONObject();
+    private String activationIdV31;
+    private String userV31;
 
     // Version 3.0 temporary storage
     private File statusFileV3;
-    private JSONObject resultStatusObjectV3 = new JSONObject();
+    private final JSONObject resultStatusObjectV3 = new JSONObject();
     private String activationIdV3;
-    private String userV2;
-
-    // Version 2.1 temporary storage
-    private File statusFileV2;
-    private JSONObject resultStatusObjectV2 = new JSONObject();
-    private String activationIdV2;
     private String userV3;
 
-    private String password = "1234";
+    private final String password = "1234";
 
     @Autowired
     public void setPowerAuthTestSetUp(PowerAuthTestSetUp setUp) {
@@ -119,51 +156,34 @@ public class PowerAuthTestConfiguration {
     }
 
     /**
-     * Initialize security interceptor.
-     * @return Security interceptor.
-     */
-    @Bean
-    public Wss4jSecurityInterceptor securityInterceptor() {
-        Wss4jSecurityInterceptor wss4jSecurityInterceptor = new Wss4jSecurityInterceptor();
-        wss4jSecurityInterceptor.setSecurementActions("UsernameToken");
-        wss4jSecurityInterceptor.setSecurementUsername(clientToken);
-        wss4jSecurityInterceptor.setSecurementPassword(clientSecret);
-        wss4jSecurityInterceptor.setSecurementPasswordType(WSConstants.PW_TEXT);
-        return wss4jSecurityInterceptor;
-    }
-
-    /**
-     * Initialize JAXB marshaller.
-     * @return JAXB marshaller.
-     */
-    @Bean
-    public Jaxb2Marshaller marshaller() {
-        Jaxb2Marshaller marshaller = new Jaxb2Marshaller();
-        marshaller.setContextPaths("io.getlime.powerauth.soap.v2", "io.getlime.powerauth.soap.v3");
-        return marshaller;
-    }
-
-    /**
      * Initialize PowerAuth client.
-     * @param marshaller JAXB marshaller.
      * @return PowerAuth client.
      */
     @Bean
-    public PowerAuthServiceClient powerAuthClient(Jaxb2Marshaller marshaller) {
-        PowerAuthServiceClient client = new PowerAuthServiceClient();
-        client.setDefaultUri(powerAuthServiceUrl);
-        client.setMarshaller(marshaller);
-        client.setUnmarshaller(marshaller);
-        if (!clientToken.isEmpty()) {
-            ClientInterceptor interceptor = securityInterceptor();
-            client.setInterceptors(new ClientInterceptor[]{interceptor});
+    public PowerAuthClient powerAuthClient() {
+        PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
+        config.setPowerAuthClientToken(clientToken);
+        config.setPowerAuthClientSecret(clientSecret);
+        config.setAcceptInvalidSslCertificate(true);
+        try {
+            return new PowerAuthRestClient(powerAuthRestUrl, config);
+        } catch (PowerAuthClientException ex) {
+            // Log the error in case Rest client initialization failed
+            logger.error(ex.getMessage(), ex);
+            return null;
         }
-        return client;
     }
 
     @Bean
     public NextStepClient nextStepClient() {
-        return new NextStepClient(nextStepServiceUrl);
+        if (nextStepServiceUrl.isEmpty()) {
+            return null;
+        }
+        try {
+            return new NextStepClient(nextStepServiceUrl.get());
+        } catch (NextStepClientException ex) {
+            return null;
+        }
     }
 
     @Bean
@@ -180,28 +200,21 @@ public class PowerAuthTestConfiguration {
     public void setUp() throws Exception {
         // Add Bouncy Castle Security Provider
         Security.addProvider(new BouncyCastleProvider());
-        PowerAuthConfiguration.INSTANCE.setKeyConvertor(CryptoProviderUtilFactory.getCryptoProviderUtils());
 
-        keyConversion = PowerAuthConfiguration.INSTANCE.getKeyConvertor();
+        // Prepare common userId
+        final String userId = UUID.randomUUID().toString();
 
-        // Configure REST client
-        RestClientConfiguration.configure();
+        // Create status file and user for version 3.2
+        statusFileV32 = File.createTempFile("pa_status_v32", ".json");
+        userV32 = "TestUserV32_" + userId;
 
-        // Convert master public key
-        byte[] masterKeyBytes = BaseEncoding.base64().decode(masterPublicKey);
-        masterPublicKeyConverted = PowerAuthConfiguration.INSTANCE.getKeyConvertor().convertBytesToPublicKey(masterKeyBytes);
+        // Create status file and user for version 3.1
+        statusFileV31 = File.createTempFile("pa_status_v31", ".json");
+        userV31 = "TestUserV31_" + userId;
 
-        // Create status file for version 3.0
+        // Create status file and user for version 3.0
         statusFileV3 = File.createTempFile("pa_status_v3", ".json");
-
-        // Create status file for version 2.1
-        statusFileV2 = File.createTempFile("pa_status_v2", ".json");
-
-        // Create random user for version 3.0
-        userV3 = "TestUser_" + UUID.randomUUID().toString();
-
-        // Create random user for version 2.1
-        userV2 = "TestUser_" + UUID.randomUUID().toString();
+        userV3 = "TestUserV3_" + userId;
 
         // Random application name
         applicationVersionForTests = applicationVersion + "_" + System.currentTimeMillis();
@@ -210,20 +223,24 @@ public class PowerAuthTestConfiguration {
     }
 
     @PreDestroy
-    public void tearDown() {
+    public void tearDown() throws PowerAuthClientException {
         tearDown.execute();
     }
 
-    public String getPowerAuthServiceUrl() {
-        return powerAuthServiceUrl;
+    public String getPowerAuthRestUrl() {
+        return powerAuthRestUrl;
     }
 
     public String getPowerAuthIntegrationUrl() {
         return powerAuthIntegrationUrl;
     }
 
-    public String getCustomServiceUrl() {
-        return customServiceUrl;
+    public String getEnrollmentServiceUrl() {
+        return enrollmentServiceUrl;
+    }
+
+    public String getEnrollmentOnboardingServiceUrl() {
+        return enrollmentOnboardingServiceUrl;
     }
 
     public String getApplicationName() {
@@ -234,19 +251,19 @@ public class PowerAuthTestConfiguration {
         return applicationVersionForTests;
     }
 
-    public Long getApplicationId() {
+    public String getApplicationId() {
         return applicationId;
     }
 
-    public void setApplicationId(Long applicationId) {
+    public void setApplicationId(String applicationId) {
         this.applicationId = applicationId;
     }
 
-    public Long getApplicationVersionId() {
+    public String getApplicationVersionId() {
         return versionId;
     }
 
-    public void setApplicationVersionId(Long versionId) {
+    public void setApplicationVersionId(String versionId) {
         this.versionId = versionId;
     }
 
@@ -262,24 +279,57 @@ public class PowerAuthTestConfiguration {
         return masterPublicKeyConverted;
     }
 
-    public CryptoProviderUtil getKeyConversion() {
-        return keyConversion;
+    public KeyConvertor getKeyConvertor() {
+        return keyConvertor;
+    }
+
+    public File getStatusFileV32() {
+        return statusFileV32;
+    }
+
+    public File getStatusFileV31() {
+        return statusFileV31;
     }
 
     public File getStatusFileV3() {
         return statusFileV3;
     }
 
+    public JSONObject getResultStatusObjectV32() {
+        return resultStatusObjectV32;
+    }
+
+    public JSONObject getResultStatusObjectV31() {
+        return resultStatusObjectV31;
+    }
+
     public JSONObject getResultStatusObjectV3() {
         return resultStatusObjectV3;
     }
 
-    public File getStatusFileV2() {
-        return statusFileV2;
+    public JSONObject getResultStatusObject(String version) {
+        return switch (version) {
+            case "3.2" -> resultStatusObjectV32;
+            case "3.1" -> resultStatusObjectV31;
+            case "3.0" -> resultStatusObjectV3;
+            default -> null;
+        };
     }
 
-    public JSONObject getResultStatusObjectV2() {
-        return resultStatusObjectV2;
+    public String getActivationIdV32() {
+        return activationIdV32;
+    }
+
+    public void setActivationIdV32(String activationIdV32) {
+        this.activationIdV32 = activationIdV32;
+    }
+
+    public String getActivationIdV31() {
+        return activationIdV31;
+    }
+
+    public void setActivationIdV31(String activationIdV31) {
+        this.activationIdV31 = activationIdV31;
     }
 
     public String getActivationIdV3() {
@@ -290,12 +340,13 @@ public class PowerAuthTestConfiguration {
         this.activationIdV3 = activationIdV3;
     }
 
-    public String getActivationIdV2() {
-        return activationIdV2;
-    }
-
-    public void setActivationIdV2(String activationIdV2) {
-        this.activationIdV2 = activationIdV2;
+    public String getActivationId(String version) {
+        return switch (version) {
+            case "3.2" -> activationIdV32;
+            case "3.1" -> activationIdV31;
+            case "3.0" -> activationIdV3;
+            default -> null;
+        };
     }
 
     public String getPassword() {
@@ -306,12 +357,25 @@ public class PowerAuthTestConfiguration {
         return objectMapper;
     }
 
-    public String getUserV2() {
-        return userV2;
-    }
-
     public String getUserV3() {
         return userV3;
+    }
+
+    public String getUserV31() {
+        return userV31;
+    }
+
+    public String getUserV32() {
+        return userV32;
+    }
+
+    public String getUser(String version) {
+        return switch (version) {
+            case "3.2" -> userV32;
+            case "3.1" -> userV31;
+            case "3.0" -> userV3;
+            default -> null;
+        };
     }
 
     public void setApplicationKey(String applicationKey) {
@@ -320,5 +384,59 @@ public class PowerAuthTestConfiguration {
 
     public void setApplicationSecret(String applicationSecret) {
         this.applicationSecret = applicationSecret;
+    }
+
+    public void setMasterPublicKey(String masterPublicKey) {
+        // Convert master public key
+        byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKey);
+        try {
+            masterPublicKeyConverted = keyConvertor.convertBytesToPublicKey(masterKeyBytes);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+        }
+    }
+
+    public Duration getAssertRetryWaitPeriod() {
+        return assertRetryWaitPeriod;
+    }
+
+    public int getAssertMaxRetries() {
+        return assertMaxRetries;
+    }
+
+    public boolean isAdditionalDocSubmitValidationsEnabled() {
+        return additionalDocSubmitValidationsEnabled;
+    }
+
+    public boolean isSkipPresenceCheck() {
+        return skipPresenceCheck;
+    }
+
+    public boolean isSkipOtpVerification() {
+        return skipOtpVerification;
+    }
+
+    public boolean isVerificationOnSubmitEnabled() {
+        return verificationOnSubmitEnabled;
+    }
+
+    public boolean isSkipResultVerification() {
+        return skipResultVerification;
+    }
+
+    public Long getLoginOperationTemplateId() {
+        return loginOperationTemplateId;
+    }
+
+    public void setLoginOperationTemplateId(Long loginOperationTemplateId) {
+        this.loginOperationTemplateId = loginOperationTemplateId;
+    }
+
+    public String getLoginOperationTemplateName() {
+        return loginOperationTemplateName;
+    }
+
+    public void setLoginOperationTemplateName(String loginOperationTemplateName) {
+        this.loginOperationTemplateName = loginOperationTemplateName;
     }
 }

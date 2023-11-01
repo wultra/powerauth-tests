@@ -19,11 +19,13 @@
  */
 package com.wultra.security.powerauth.provider;
 
-import io.getlime.security.powerauth.rest.api.base.provider.CustomActivationProvider;
 import io.getlime.security.powerauth.rest.api.model.entity.ActivationType;
+import io.getlime.security.powerauth.rest.api.spring.provider.CustomActivationProvider;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,56 +37,93 @@ import java.util.Map;
 public class CustomActivationProviderForTests implements CustomActivationProvider {
 
     private static String testId;
+    // Set max failed attempt count to 3
+    public static final int MAX_FAILED_ATTEMPTS = 3;
 
     @Override
-    public String lookupUserIdForAttributes(Map<String, String> identityAttributes) {
+    public String lookupUserIdForAttributes(Map<String, String> identityAttributes, Map<String, Object> context) {
         testId = identityAttributes.get("test_id");
         Map<String, String> userNameToUserIdMap = new HashMap<>();
         userNameToUserIdMap.put("TestUser1", "12345678");
 
-        switch (testId) {
-            case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
-                return identityAttributes.get("username");
-            case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
-                return "static_username";
-            case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS":
-                return userNameToUserIdMap.get(identityAttributes.get("username"));
-            default:
+        return switch (testId) {
+            case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS" -> identityAttributes.get("username");
+            case "TEST_2_STATIC_NOCOMMIT_NOPROCESS" -> "static_username";
+            case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS" -> userNameToUserIdMap.get(identityAttributes.get("username"));
+            default ->
                 // Default action for negative tests
-                return identityAttributes.get("username");
-        }
+                    identityAttributes.get("username");
+        };
     }
 
     @Override
-    public Map<String, Object> processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, ActivationType activationType) {
-        Map<String, Object> processedCustomAttributes = new HashMap<>(customAttributes);
-        switch (testId) {
-            case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
-                processedCustomAttributes.remove("key");
-                processedCustomAttributes.put("key_new", "value_new");
-                break;
-            case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
-                break;
-            case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS":
-                break;
-            default:
-                // Default action for negative tests - do nothing
+    public Map<String, Object> processCustomActivationAttributes(Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) {
+        Map<String, Object> processedCustomAttributes = new HashMap<>();
+        if (customAttributes != null) {
+            processedCustomAttributes.putAll(customAttributes);
+        }
+        if (testId != null) {
+            switch (testId) {
+                case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
+                    processedCustomAttributes.remove("key");
+                    processedCustomAttributes.put("key_new", "value_new");
+                    break;
+                case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
+                    break;
+                case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS":
+                    break;
+                default:
+                    // Default action for negative tests - do nothing
+            }
         }
         return processedCustomAttributes;
     }
 
     @Override
-    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId) {
-        switch (testId) {
-            case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS":
-                return true;
-            case "TEST_2_STATIC_NOCOMMIT_NOPROCESS":
-                return false;
-            case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS":
-                return true;
-            default:
-                // Default action for negative tests
-                return true;
+    public boolean shouldAutoCommitActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) {
+        if (testId != null) {
+            switch (testId) {
+                case "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS" -> {
+                    return true;
+                }
+                case "TEST_2_STATIC_NOCOMMIT_NOPROCESS" -> {
+                    return false;
+                }
+                case "TEST_3_USER_ID_MAP_COMMIT_NOPROCESS" -> {
+                    return true;
+                }
+                default -> {
+                }
+            }
         }
+        if (customAttributes != null) {
+            Object o = customAttributes.get("TEST_SHOULD_AUTOCOMMIT");
+            if (o != null) {
+                return "YES".equals(o);
+            }
+        }
+        // Default action for all other tests
+        return true;
+    }
+
+    @Override
+    public void activationWasCommitted(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) {
+        // Ignore
+    }
+
+    @Override
+    public Integer getMaxFailedAttemptCount(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId, ActivationType activationType, Map<String, Object> context) {
+        return MAX_FAILED_ATTEMPTS;
+    }
+
+    @Override
+    public Long getValidityPeriodDuringActivation(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String userId, ActivationType activationType, Map<String, Object> context) {
+        // Return 10 seconds as validity period
+        return 10000L;
+    }
+
+    @Override
+    public List<String> getActivationFlags(Map<String, String> identityAttributes, Map<String, Object> customAttributes, String activationId, String userId, String appId, ActivationType activationType, Map<String, Object> context) {
+        return Collections.singletonList("TEST-PROVIDER");
     }
 }

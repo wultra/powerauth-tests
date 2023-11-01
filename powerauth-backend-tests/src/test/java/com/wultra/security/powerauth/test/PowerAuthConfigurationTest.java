@@ -18,17 +18,17 @@
 package com.wultra.security.powerauth.test;
 
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 public class PowerAuthConfigurationTest {
@@ -45,19 +45,15 @@ public class PowerAuthConfigurationTest {
         assertNotNull(config.getApplicationId());
         assertNotNull(config.getApplicationVersionId());
         assertNotNull(config.getMasterPublicKey());
-        assertNotEquals("", config.getMasterPublicKey());
         assertNotNull(config.getApplicationKey());
         assertNotEquals("", config.getApplicationKey());
         assertNotNull(config.getApplicationSecret());
         assertNotEquals("", config.getApplicationSecret());
-        assertNotNull(config.getActivationIdV2());
         assertNotNull(config.getActivationIdV3());
     }
 
     @Test
     public void activationSetUpTest() {
-        assertNotNull(config.getStatusFileV2());
-        assertNotNull(config.getResultStatusObjectV2());
         assertNotNull(config.getStatusFileV3());
         assertNotNull(config.getResultStatusObjectV3());
     }
