@@ -11,7 +11,7 @@ mvn -pl powerauth-test-server clean package
 ## Build the docker image
 
 ```shell
-docker build ./powerauth-test-server -t powerauth-test-server:1.5.0-SNAPSHOT
+docker build ./powerauth-test-server -t powerauth-test-server:1.5.0
 ```
 
 
@@ -24,5 +24,5 @@ docker build ./powerauth-test-server -t powerauth-test-server:1.5.0-SNAPSHOT
 ## Run the docker image
 
 ```shell
-docker run -p 80:8080 powerauth-test-server:1.5.0-SNAPSHOT
+docker run -p 80:8080 powerauth-test-server:1.5.0
 ```
