@@ -72,8 +72,8 @@ public class ApplicationService extends BaseService {
             try {
                 config = SdkConfigurationSerializer.deserialize(mobileSdkConfig);
             } catch (Exception ex) {
-                logger.warn("Invalid mobile SDK configuration", ex);
-                throw new AppConfigInvalidException("Invalid mobile SDK configuration");
+                logger.warn("Invalid mobile SDK configuration: {}", ex.getMessage());
+                throw new AppConfigInvalidException("Invalid mobile SDK configuration", ex);
             }
             if (config == null) {
                 throw new AppConfigInvalidException("Missing mobile SDK configuration");
