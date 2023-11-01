@@ -35,5 +35,6 @@ public class ConfigureApplicationRequest {
     private String applicationKey;
     private String applicationSecret;
     private String masterPublicKey;
+    private String mobileSdkConfig;
 
 }

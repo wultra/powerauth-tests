@@ -20,9 +20,12 @@ package com.wultra.security.powerauth.app.testserver.service;
 
 import com.wultra.security.powerauth.app.testserver.database.TestConfigRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
+import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigInvalidException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.model.request.ConfigureApplicationRequest;
 import io.getlime.core.rest.model.base.response.Response;
+import io.getlime.security.powerauth.lib.cmd.util.config.SdkConfiguration;
+import io.getlime.security.powerauth.lib.cmd.util.config.SdkConfigurationSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,16 +53,39 @@ public class ApplicationService extends BaseService {
      * Configure an application.
      * @param request Configure an application request.
      * @return Configure an application response.
+     * @throws AppConfigInvalidException Thrown in case mobile SDK configuration is invalid.
      */
     @Transactional
-    public Response configureApplication(ConfigureApplicationRequest request) {
+    public Response configureApplication(final ConfigureApplicationRequest request) throws AppConfigInvalidException {
         final String applicationId = request.getApplicationId();
         final String applicationName = request.getApplicationName();
-        final String applicationKey = request.getApplicationKey();
-        final String applicationSecret = request.getApplicationSecret();
-        final String masterPublicKey = request.getMasterPublicKey();
+        final String mobileSdkConfig = request.getMobileSdkConfig();
 
-        TestConfigEntity appConfig = getOrCreateTestAppConfig(applicationId);
+        final TestConfigEntity appConfig = getOrCreateTestAppConfig(applicationId);
+
+        final String applicationKey;
+        final String applicationSecret;
+        final String masterPublicKey;
+
+        if (mobileSdkConfig != null) {
+            final SdkConfiguration config;
+            try {
+                config = SdkConfigurationSerializer.deserialize(mobileSdkConfig);
+            } catch (Exception ex) {
+                logger.warn("Invalid mobile SDK configuration: {}", ex.getMessage());
+                throw new AppConfigInvalidException("Invalid mobile SDK configuration", ex);
+            }
+            if (config == null) {
+                throw new AppConfigInvalidException("Missing mobile SDK configuration");
+            }
+            applicationKey = config.appKeyBase64();
+            applicationSecret = config.appSecretBase64();
+            masterPublicKey = config.masterPublicKeyBase64();
+        } else {
+            applicationKey = request.getApplicationKey();
+            applicationSecret = request.getApplicationSecret();
+            masterPublicKey = request.getMasterPublicKey();
+        }
 
         appConfig.setApplicationName(applicationName);
         appConfig.setApplicationKey(applicationKey);
@@ -71,7 +97,7 @@ public class ApplicationService extends BaseService {
         return new Response();
     }
 
-    private TestConfigEntity getOrCreateTestAppConfig(String applicationId) {
+    private TestConfigEntity getOrCreateTestAppConfig(final String applicationId) {
         TestConfigEntity appConfig;
         try {
             appConfig = getTestAppConfig(applicationId);

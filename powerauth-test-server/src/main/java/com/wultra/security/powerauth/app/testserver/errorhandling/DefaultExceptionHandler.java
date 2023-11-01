@@ -48,15 +48,27 @@ public class DefaultExceptionHandler {
     }
 
     /**
-     * Exception handler for application not found exception.
+     * Exception handler for application configuration not found exception.
      * @param ex Exception.
      * @return Response with error details.
      */
     @ExceptionHandler(AppConfigNotFoundException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public @ResponseBody ErrorResponse handleApplicationNotFoundException(AppConfigNotFoundException ex) {
-        logger.warn("Error occurred during application lookup.", ex);
-        return new ErrorResponse("APPLICATION_NOT_FOUND", "Application was not found.");
+    public @ResponseBody ErrorResponse handleAppConfigNotFoundException(AppConfigNotFoundException ex) {
+        logger.warn("Error occurred during application configuration.", ex);
+        return new ErrorResponse("APP_CONFIG_NOT_FOUND", "Application configuration was not found.");
+    }
+
+    /**
+     * Exception handler for application configuration invalid exception.
+     * @param ex Exception.
+     * @return Response with error details.
+     */
+    @ExceptionHandler(AppConfigInvalidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public @ResponseBody ErrorResponse handleAppConfigInvalidException(AppConfigInvalidException ex) {
+        logger.warn("Error occurred during application configuration.", ex);
+        return new ErrorResponse("APP_CONFIG_INVALID", "Application configuration is invalid.");
     }
 
     /**

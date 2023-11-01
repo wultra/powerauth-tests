@@ -15,31 +15,32 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package com.wultra.security.powerauth.app.testserver.errorhandling;
 
 import java.io.Serial;
 
 /**
- * Exception thrown when verification of signature fails.
+ * Exception for case when application configuration is invalid.
  *
- * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class SignatureVerificationException extends Exception {
+public class AppConfigInvalidException extends Exception {
 
     @Serial
-    private static final long serialVersionUID = 181491361337035037L;
+    private static final long serialVersionUID = -5133187370481724023L;
 
     /**
      * Default exception constructor.
      */
-    public SignatureVerificationException() {
+    public AppConfigInvalidException() {
     }
 
     /**
-     * Constructor with a message.
-     * @param message Message.
+     * Constructor with error message.
+     * @param message Error message.
      */
-    public SignatureVerificationException(String message) {
+    public AppConfigInvalidException(String message) {
         super(message);
     }
 
@@ -48,7 +49,7 @@ public class SignatureVerificationException extends Exception {
      * @param message Error message.
      * @param cause Error cause.
      */
-    public SignatureVerificationException(String message, Throwable cause) {
+    public AppConfigInvalidException(String message, Throwable cause) {
         super(message, cause);
     }
 
