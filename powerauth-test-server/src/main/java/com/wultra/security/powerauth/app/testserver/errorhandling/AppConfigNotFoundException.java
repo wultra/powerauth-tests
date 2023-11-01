@@ -44,4 +44,13 @@ public class AppConfigNotFoundException extends Exception {
         super(message);
     }
 
+    /**
+     * Constructor with error message and cause.
+     * @param message Error message.
+     * @param cause Error cause.
+     */
+    public AppConfigNotFoundException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }

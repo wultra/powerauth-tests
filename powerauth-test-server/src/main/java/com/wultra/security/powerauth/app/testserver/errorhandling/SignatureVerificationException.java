@@ -17,12 +17,23 @@
  */
 package com.wultra.security.powerauth.app.testserver.errorhandling;
 
+import java.io.Serial;
+
 /**
  * Exception thrown when verification of signature fails.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 public class SignatureVerificationException extends Exception {
+
+    @Serial
+    private static final long serialVersionUID = 181491361337035037L;
+
+    /**
+     * Default exception constructor.
+     */
+    public SignatureVerificationException() {
+    }
 
     /**
      * Constructor with a message.
@@ -31,4 +42,14 @@ public class SignatureVerificationException extends Exception {
     public SignatureVerificationException(String message) {
         super(message);
     }
+
+    /**
+     * Constructor with error message and cause.
+     * @param message Error message.
+     * @param cause Error cause.
+     */
+    public SignatureVerificationException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
 }
