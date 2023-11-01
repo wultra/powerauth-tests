@@ -224,4 +224,9 @@ class PowerAuthEncryptionTest {
         PowerAuthEncryptionShared.replayAttackEciesDecryptorTest(powerAuthClient, config, VERSION);
     }
 
+    @Test
+    void encryptedResponseTest() throws Exception {
+        PowerAuthEncryptionShared.encryptedResponseTest(config, encryptModel, stepLogger, VERSION);
+    }
+
 }

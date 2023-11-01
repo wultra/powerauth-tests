@@ -526,6 +526,29 @@ public class PowerAuthEncryptionShared {
         assertEquals("ERR0024", ex.getPowerAuthError().getCode());
     }
 
+    public static void encryptedResponseTest(final PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger, String version) throws Exception {
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setScope("activation");
+
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
+        EciesEncryptedResponse responseObject = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
+        assertNotNull(responseObject.getEncryptedData());
+        assertNotNull(responseObject.getMac());
+        switch (version) {
+            case "3.0", "3.1" -> {
+                assertNull(responseObject.getNonce());
+                assertNull(responseObject.getTimestamp());
+            }
+            case "3.2" -> {
+                assertNotNull(responseObject.getNonce());
+                assertNotNull(responseObject.getTimestamp());
+            }
+            default -> fail("Unsupported version");
+        }
+    }
+
     private static String generateRandomString() {
         SecureRandom secureRandom = new SecureRandom();
         StringBuilder alphabetBuilder = new StringBuilder();
