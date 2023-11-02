@@ -519,10 +519,8 @@ public class PowerAuthEncryptionShared {
         assertNotNull(decryptorResponse.getSharedInfo2());
 
         // Replay attack simulation - send the same request twice, expect error ERR0024
-        PowerAuthClientException ex = assertThrows(PowerAuthClientException.class, () -> {
-                    powerAuthClient.getEciesDecryptor(eciesDecryptorRequest);
-                }
-        );
+        final PowerAuthClientException ex = assertThrows(PowerAuthClientException.class, () ->
+                powerAuthClient.getEciesDecryptor(eciesDecryptorRequest));
         assertEquals("ERR0024", ex.getPowerAuthError().get().getCode());
     }
 
