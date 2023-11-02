@@ -61,7 +61,6 @@ File `powerauth-java.server.xml`:
     <Parameter name="spring.datasource.username" value="powerauth"/>
     <Parameter name="spring.datasource.password" value="[PASSWORD]"/>
     <Parameter name="spring.datasource.driver-class-name" value="org.postgresql.Driver"/>
-    <Parameter name="spring.jpa.database-platform" value="org.hibernate.dialect.PostgreSQLDialect"/>
 </Context>
 ```
 
