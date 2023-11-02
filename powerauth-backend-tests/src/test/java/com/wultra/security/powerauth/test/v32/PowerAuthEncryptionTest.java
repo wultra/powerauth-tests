@@ -219,4 +219,14 @@ class PowerAuthEncryptionTest {
         PowerAuthEncryptionShared.signAndEncryptThreeFactorTest(config, signatureModel, stepLogger);
     }
 
+    @Test
+    void replayAttackEciesDecryptorTest() throws Exception {
+        PowerAuthEncryptionShared.replayAttackEciesDecryptorTest(powerAuthClient, config, VERSION);
+    }
+
+    @Test
+    void encryptedResponseTest() throws Exception {
+        PowerAuthEncryptionShared.encryptedResponseTest(config, encryptModel, stepLogger, VERSION);
+    }
+
 }
