@@ -26,9 +26,6 @@
     <Parameter name="spring.jpa.properties.hibernate.connection.characterEncoding" value="${POWERAUTH_TEST_SERVER_JPA_CHARACTER_ENCODING:UTF-8}"/>
     <Parameter name="spring.jpa.properties.hibernate.connection.useUnicode" value="${POWERAUTH_TEST_SERVER_JPA_USE_UNICODE:true}"/>
 
-    <!-- Additional JPA Configuration -->
-    <Parameter name="spring.jpa.database-platform" value="${POWERAUTH_TEST_SERVER_JPA_DATABASE_PLATFORM:org.hibernate.dialect.PostgreSQLDialect}"/>
-
     <!-- Liquibase Script Configuration -->
     <Parameter name="spring.liquibase.enabled" value="${LIQUIBASE_ENABLED:false}"/>
     <Parameter name="spring.liquibase.parameters.pa-cloud-service-base-url" value="${POWERAUTH_CLOUD_SERVICE_BASE_URL:}"/>
