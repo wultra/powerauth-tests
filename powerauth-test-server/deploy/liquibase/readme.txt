@@ -9,8 +9,7 @@ The directory is dedicated to storing Liquibase scripts for Docker build context
 
 Setup Instructions:
 -------------------
-A) Create folder 'data' in powerauth-test-server/deploy/liquibase'.
-   Manually copy all the contents from the following path:
+A) Manually copy all the contents from the following path:
    'docs/db/changelog/changesets/powerauth-test-server'
    to
    'powerauth-test-server/deploy/liquibase/data'
