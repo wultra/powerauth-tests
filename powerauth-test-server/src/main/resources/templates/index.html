@@ -28,8 +28,11 @@
     Version <span th:text="${version}">version</span><span th:if="${built != 'UNKNOWN'}">, built on
     <span th:text="${#dates.format(built, 'yyyy/MM/dd, HH:mm:ss')}">built</span>.</span>
 </p>
-<p>
-    2022, &copy; <a href="https://wultra.com/">Wultra s.r.o.</a>
+<p th:unless="${built == 'UNKNOWN'}">
+    <span th:text="${#dates.format(built, 'yyyy')}">year</span>, &copy; <a href="https://wultra.com/">Wultra s.r.o.</a>
+</p>
+<p th:if="${built == 'UNKNOWN'}">
+    2023, &copy; <a href="https://wultra.com/">Wultra s.r.o.</a>
 </p>
 </body>
 </html>
