@@ -1,6 +1,47 @@
 # PowerAuth Test Server
 
-PowerAuth TestServer is deployed to simplify testing of PowerAuth backends. The REST API encapsulates PowerAuth actions which require cryptography with an embedded `powerauth-java-cmd-lib` library.
+PowerAuth Test Server is deployed to simplify testing of PowerAuth backends. The REST API encapsulates PowerAuth actions which require cryptography with an embedded `powerauth-java-cmd-lib` library.
+
+## Docker Build Instructions
+
+Follow these steps to build and run (example commands were run from root) the PowerAuth Test Server Docker image:
+
+### Preparation Steps
+
+1. **Build the WAR File**:
+   Execute the following Maven command to package the `powerauth-test-server` application:
+    ```shell
+    mvn -pl powerauth-test-server clean package
+    ```
+
+2. **Liquibase Scripts**:
+   Copy the Liquibase migration scripts into the Docker build context. For detailed instructions, refer to [readme.txt](deploy%2Fliquibase%2Freadme.txt).
+
+3. **Environment Configuration**:
+   Set up the environment variables using one of the two methods below:
+
+   - **Using an `env.list` File**:
+     Duplicate `powerauth-test-server/docker/env.list.tmp` as `powerauth-test-server/env.list` and modify the values accordingly.
+   - **Using the `-e` Flag**:
+     Directly set environment variables via the Docker run command. For example, to set the database username, you would use:
+       ```shell
+       docker run -e POWERAUTH_TEST_SERVER_DATASOURCE_USERNAME='powerauth' IMAGE
+       ```
+
+4. **Docker Image Build**:
+   Build the Docker image using the provided Dockerfile:
+    ```shell
+    docker build -f powerauth-test-server/Dockerfile -t powerauth-test-server:latest ./powerauth-test-server
+    ```
+
+5. **Run the Docker Image**:
+   Deploy the container with the following command:
+    ```shell
+    docker run -d -p 80:8080 --name powerauth-test-server --env-file ./powerauth-test-server/env.list powerauth-test-server:latest
+    ```
+
+6. **Server Verification**:
+   Confirm the server is operational by navigating to [http://localhost/powerauth-test-server/](http://localhost/powerauth-test-server/) in your web browser. You should see the PowerAuth Test Server home page.
 
 ## Test Server Configuration
 
