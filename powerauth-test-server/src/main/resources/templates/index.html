@@ -29,7 +29,7 @@
     <span th:text="${#dates.format(built, 'yyyy/MM/dd, HH:mm:ss')}">built</span>.</span>
 </p>
 <p th:unless="${built == 'UNKNOWN'}">
-    &copy; <span th:text="${#dates.format(built, 'yyyy')}">year</span>, <a href="https://wultra.com/">Wultra s.r.o.</a>
+    <span th:text="${#dates.format(built, 'yyyy')}">year</span>, &copy; <a href="https://wultra.com/">Wultra s.r.o.</a>
 </p>
 <p th:if="${built == 'UNKNOWN'}">
     2023, &copy; <a href="https://wultra.com/">Wultra s.r.o.</a>
