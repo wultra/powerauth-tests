@@ -46,7 +46,7 @@
 
     <properties>
         <enrollment-server.version>1.6.0-SNAPSHOT</enrollment-server.version>
-        <powerauth-cmd.version>1.6.0-SNAPSHOT</powerauth-cmd.version>
+        <powerauth-cmd.version>1.6.0</powerauth-cmd.version>
         <powerauth-crypto.version>1.6.0-SNAPSHOT</powerauth-crypto.version>
         <powerauth-restful-integration.version>1.6.0-SNAPSHOT</powerauth-restful-integration.version>
         <powerauth-webflow.version>1.6.0-SNAPSHOT</powerauth-webflow.version>
