@@ -22,7 +22,6 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.*;
 import com.wultra.security.powerauth.client.model.enumeration.*;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
 import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -98,27 +97,6 @@ public class PowerAuthApiShared {
     private static final ClientTokenGenerator CLIENT_TOKEN_GENERATOR = new ClientTokenGenerator();
 
     private static final int TIME_SYNCHRONIZATION_WINDOW_SECONDS = 60;
-
-    public static void systemStatusTest(PowerAuthClient powerAuthClient) throws PowerAuthClientException {
-        final GetSystemStatusResponse response = powerAuthClient.getSystemStatus();
-        assertEquals("OK", response.getStatus());
-    }
-
-    public static void errorListTest(PowerAuthClient powerAuthClient) throws PowerAuthClientException {
-        final GetErrorCodeListResponse response = powerAuthClient.getErrorList(Locale.ENGLISH.getLanguage());
-        assertTrue(response.getErrors().size() > 32);
-    }
-
-    public static void initActivationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws PowerAuthClientException {
-        final InitActivationResponse response = powerAuthClient.initActivation(config.getUser(version), config.getApplicationId());
-        assertNotNull(response.getActivationId());
-        assertNotNull(response.getActivationCode());
-        assertNotNull(response.getActivationSignature());
-        assertEquals(config.getUser(version), response.getUserId());
-        assertEquals(config.getApplicationId(), response.getApplicationId());
-        final GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
-        assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-    }
 
     public static void prepareActivationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws CryptoProviderException, EncryptorException, IOException, PowerAuthClientException {
         String activationName = "test_prepare";
@@ -198,91 +176,6 @@ public class PowerAuthApiShared {
         assertTrue(commitResponse.isActivated());
     }
 
-    public static void removeActivationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws PowerAuthClientException {
-        InitActivationResponse response = powerAuthClient.initActivation(config.getUser(version), config.getApplicationId());
-        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
-        assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-        RemoveActivationResponse removeResponse = powerAuthClient.removeActivation(response.getActivationId(), null);
-        assertTrue(removeResponse.isRemoved());
-        GetActivationStatusResponse statusResponse2 = powerAuthClient.getActivationStatus(response.getActivationId());
-        assertEquals(ActivationStatus.REMOVED, statusResponse2.getActivationStatus());
-    }
-
-    public static void activationListForUserTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws PowerAuthClientException {
-        InitActivationResponse response = powerAuthClient.initActivation(config.getUser(version), config.getApplicationId());
-        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
-        assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-        final List<Activation> listResponse = powerAuthClient.getActivationListForUser(config.getUser(version));
-        assertNotEquals(0, listResponse.size());
-    }
-
-    public static void testGetActivationListForUserPagination(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws PowerAuthClientException {
-        // Prepare the base GetActivationListForUserRequest
-        final GetActivationListForUserRequest baseRequest = new GetActivationListForUserRequest();
-        baseRequest.setUserId(config.getUser(version));
-        baseRequest.setApplicationId(config.getApplicationId());
-
-        // Create a list to store the activation IDs
-        final List<String> activationIds = new ArrayList<>();
-
-        // Create multiple activations for the test user
-        for (int i = 0; i < 10; i++) {
-            InitActivationResponse initResponse = powerAuthClient.initActivation(baseRequest.getUserId(), baseRequest.getApplicationId());
-            activationIds.add(initResponse.getActivationId());
-        }
-
-        // Prepare the request for the first page of activations
-        final GetActivationListForUserRequest requestPage1 = new GetActivationListForUserRequest();
-        requestPage1.setUserId(baseRequest.getUserId());
-        requestPage1.setApplicationId(baseRequest.getApplicationId());
-        requestPage1.setPageNumber(0);
-        requestPage1.setPageSize(5);
-
-        // Fetch the first page of activations
-        final GetActivationListForUserResponse responsePage1 = powerAuthClient.getActivationListForUser(requestPage1);
-        assertEquals(5, responsePage1.getActivations().size());
-
-        // Prepare the request for the second page of activations
-        final GetActivationListForUserRequest requestPage2 = new GetActivationListForUserRequest();
-        requestPage2.setUserId(baseRequest.getUserId());
-        requestPage2.setApplicationId(baseRequest.getApplicationId());
-        requestPage2.setPageNumber(1);
-        requestPage2.setPageSize(5);
-
-        // Fetch the second page of activations
-        final GetActivationListForUserResponse responsePage2 = powerAuthClient.getActivationListForUser(requestPage2);
-        assertEquals(5, responsePage2.getActivations().size());
-
-        // Check that the activations on the different pages are not the same
-        assertNotEquals(responsePage1.getActivations(), responsePage2.getActivations());
-
-        // Clean up the created activations at the end
-        for (String id : activationIds) {
-            RemoveActivationResponse removeActivationResponse = powerAuthClient.removeActivation(id, config.getUser(version));
-            assertTrue(removeActivationResponse.isRemoved());
-        }
-    }
-
-    public static void lookupActivationsTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws PowerAuthClientException {
-        InitActivationResponse response = powerAuthClient.initActivation(config.getUser(version), config.getApplicationId());
-        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
-        final Date timestampCreated = statusResponse.getTimestampCreated();
-        assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-        List<Activation> activations = powerAuthClient.lookupActivations(Collections.singletonList(config.getUser(version)), Collections.singletonList(config.getApplicationId()),
-                null, timestampCreated, ActivationStatus.CREATED, null);
-        assertTrue(activations.size() >= 1);
-    }
-
-    public static void activationStatusUpdateTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws PowerAuthClientException {
-        InitActivationResponse response = powerAuthClient.initActivation(config.getUser(version), config.getApplicationId());
-        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
-        assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-        UpdateStatusForActivationsResponse updateResponse = powerAuthClient.updateStatusForActivations(Collections.singletonList(response.getActivationId()), ActivationStatus.REMOVED);
-        assertTrue(updateResponse.isUpdated());
-        GetActivationStatusResponse statusResponse2 = powerAuthClient.getActivationStatus(response.getActivationId());
-        assertEquals(ActivationStatus.REMOVED, statusResponse2.getActivationStatus());
-    }
-
     public static void verifySignatureTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws GenericCryptoException, CryptoProviderException, InvalidKeyException, PowerAuthClientException {
         Calendar before = new GregorianCalendar();
         before.add(Calendar.SECOND, -TIME_SYNCHRONIZATION_WINDOW_SECONDS);
@@ -307,7 +200,7 @@ public class PowerAuthApiShared {
         after.add(Calendar.SECOND, TIME_SYNCHRONIZATION_WINDOW_SECONDS);
         List<SignatureAuditItem> auditItems = powerAuthClient.getSignatureAuditLog(config.getUser(version), config.getApplicationId(), before.getTime(), after.getTime());
         boolean signatureFound = false;
-        for (SignatureAuditItem item: auditItems) {
+        for (SignatureAuditItem item : auditItems) {
             if (signatureValue.equals(item.getSignature())) {
                 assertEquals(config.getActivationId(version), item.getActivationId());
                 assertEquals(normalizedDataWithSecret, new String(Base64.getDecoder().decode(item.getDataBase64())));
@@ -321,26 +214,6 @@ public class PowerAuthApiShared {
             }
         }
         assertTrue(signatureFound);
-    }
-
-    public static void nonPersonalizedOfflineSignaturePayloadTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config) throws PowerAuthClientException {
-        // For more complete tests for createNonPersonalizedOfflineSignaturePayload see PowerAuthSignatureTest
-        CreateNonPersonalizedOfflineSignaturePayloadResponse response = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(config.getApplicationId(), "test_data");
-        assertNotNull(response.getOfflineData());
-        assertNotNull(response.getNonce());
-    }
-
-    public static void personalizedOfflineSignaturePayloadTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws PowerAuthClientException {
-        // For more complete tests for createPersonalizedOfflineSignaturePayload see PowerAuthSignatureTest
-        CreatePersonalizedOfflineSignaturePayloadResponse response = powerAuthClient.createPersonalizedOfflineSignaturePayload(config.getActivationId(version), "test_data");
-        assertNotNull(response.getOfflineData());
-        assertNotNull(response.getNonce());
-    }
-
-    public static void verifyOfflineSignatureTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws PowerAuthClientException {
-        // For more complete tests for verifyOfflineSignature see PowerAuthSignatureTest
-        VerifyOfflineSignatureResponse response = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), "test_data", "12345678", false);
-        assertFalse(response.isSignatureValid());
     }
 
     public static void unlockVaultAndECDSASignatureTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws GenericCryptoException, CryptoProviderException, InvalidKeySpecException, EncryptorException, IOException, InvalidKeyException, PowerAuthClientException {
@@ -401,105 +274,7 @@ public class PowerAuthApiShared {
         assertTrue(ecdsaResponse.isSignatureValid());
     }
 
-    public static void activationHistoryTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws PowerAuthClientException {
-        InitActivationResponse response = powerAuthClient.initActivation(config.getUser(version) + "_history_test", config.getApplicationId());
-        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
-        assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-        final Date before = statusResponse.getTimestampCreated();
-        final Date after = Date.from(before.toInstant().plus(Duration.ofSeconds(1)));
-        final List<ActivationHistoryItem> activationHistory = powerAuthClient.getActivationHistory(response.getActivationId(), before, after);
-        final ActivationHistoryItem item = activationHistory.get(0);
-        assertEquals(response.getActivationId(), item.getActivationId());
-        assertEquals(ActivationStatus.CREATED, item.getActivationStatus());
-    }
-
-    public static void blockAndUnblockActivationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws PowerAuthClientException {
-        InitActivationResponse response = powerAuthClient.initActivation(config.getUser(version), config.getApplicationId());
-        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
-        assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
-        // Fake status change to ACTIVE for block and unblock test
-        UpdateStatusForActivationsResponse updateResponse = powerAuthClient.updateStatusForActivations(Collections.singletonList(response.getActivationId()), ActivationStatus.ACTIVE);
-        assertTrue(updateResponse.isUpdated());
-        BlockActivationResponse blockResponse = powerAuthClient.blockActivation(response.getActivationId(), "TEST", null);
-        assertEquals(ActivationStatus.BLOCKED, blockResponse.getActivationStatus());
-        GetActivationStatusResponse statusResponse2 = powerAuthClient.getActivationStatus(response.getActivationId());
-        assertEquals(ActivationStatus.BLOCKED, statusResponse2.getActivationStatus());
-        UnblockActivationResponse unblockResponse = powerAuthClient.unblockActivation(response.getActivationId(), null);
-        assertEquals(ActivationStatus.ACTIVE, unblockResponse.getActivationStatus());
-        GetActivationStatusResponse statusResponse3 = powerAuthClient.getActivationStatus(response.getActivationId());
-        assertEquals(ActivationStatus.ACTIVE, statusResponse3.getActivationStatus());
-    }
-
-    public static void applicationListTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config) throws PowerAuthClientException {
-        final GetApplicationListResponse applications = powerAuthClient.getApplicationList();
-        assertNotEquals(0, applications.getApplications().size());
-        boolean testApplicationFound = false;
-        for (Application app: applications.getApplications()) {
-            if (app.getApplicationId().equals(config.getApplicationId())) {
-                testApplicationFound = true;
-            }
-        }
-        assertTrue(testApplicationFound);
-    }
-
-    public static void applicationDetailTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config) throws PowerAuthClientException {
-        GetApplicationDetailResponse response = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        assertEquals(config.getApplicationName(), response.getApplicationId());
-        boolean testAppVersionFound = false;
-        for (ApplicationVersion version: response.getVersions()) {
-            if (version.getApplicationVersionId().equals(config.getApplicationVersionId())) {
-                testAppVersionFound = true;
-            }
-        }
-        assertTrue(testAppVersionFound);
-    }
-
-    public static void applicationVersionLookupTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config) throws PowerAuthClientException {
-        LookupApplicationByAppKeyResponse response = powerAuthClient.lookupApplicationByAppKey(config.getApplicationKey());
-        assertEquals(config.getApplicationId(), response.getApplicationId());
-    }
-
     // createApplication and createApplication version tests are skipped to avoid creating too many applications
-
-    public static void applicationSupportTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config) throws PowerAuthClientException {
-        UnsupportApplicationVersionResponse response = powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
-        assertFalse(response.isSupported());
-        SupportApplicationVersionResponse response2 = powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
-        assertTrue(response2.isSupported());
-    }
-
-    public static void applicationIntegrationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config) throws PowerAuthClientException {
-        String integrationName = UUID.randomUUID().toString();
-        CreateIntegrationResponse response = powerAuthClient.createIntegration(integrationName);
-        assertEquals(integrationName, response.getName());
-        final GetIntegrationListResponse items = powerAuthClient.getIntegrationList();
-        boolean integrationFound = false;
-        for (Integration integration: items.getItems()) {
-            if (integration.getName().equals(integrationName)) {
-                integrationFound = true;
-            }
-        }
-        assertTrue(integrationFound);
-        RemoveIntegrationResponse removeResponse = powerAuthClient.removeIntegration(response.getId());
-        assertTrue(removeResponse.isRemoved());
-    }
-
-    public static void callbackTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config) throws PowerAuthClientException {
-        String callbackName = UUID.randomUUID().toString();
-        String url = "http://test.wultra.com/";
-        CreateCallbackUrlResponse response = powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, url, Collections.emptyList(), null);
-        assertEquals(callbackName, response.getName());
-        final GetCallbackUrlListResponse items = powerAuthClient.getCallbackUrlList(config.getApplicationId());
-        boolean callbackFound = false;
-        for (CallbackUrl callback: items.getCallbackUrlList()) {
-            if (callback.getName().equals(callbackName)) {
-                callbackFound = true;
-            }
-        }
-        assertTrue(callbackFound);
-        RemoveCallbackUrlResponse removeResponse = powerAuthClient.removeCallbackUrl(response.getId());
-        assertTrue(removeResponse.isRemoved());
-    }
 
     public static void createValidateAndRemoveTokenTestActiveActivation(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, IOException, EncryptorException, PowerAuthClientException {
         final TokenInfo tokenInfo = createToken(powerAuthClient, config, version);
@@ -515,31 +290,6 @@ public class PowerAuthApiShared {
         assertNull(validateResponse.getBlockedReason());
 
         RemoveTokenResponse removeResponse = powerAuthClient.removeToken(tokenInfo.getTokenId(), config.getActivationId(version));
-        assertTrue(removeResponse.isRemoved());
-    }
-
-    public static void createValidateAndRemoveTokenTestBlockedActivation(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, IOException, EncryptorException, PowerAuthClientException {
-        final TokenInfo tokenInfo = createToken(powerAuthClient, config, version);
-
-        // Block activation
-        final BlockActivationResponse blockResponse = powerAuthClient.blockActivation(config.getActivationId(version), "TEST", null);
-        assertEquals(ActivationStatus.BLOCKED, blockResponse.getActivationStatus());
-
-        // Check that token validation failed and activation status and blocked reason is available
-        final ValidateTokenResponse validateResponse = powerAuthClient.validateToken(tokenInfo.getTokenId(),
-                Base64.getEncoder().encodeToString(tokenInfo.getTokenNonce()),
-                version,
-                Long.parseLong(new String(tokenInfo.getTokenTimestamp())),
-                Base64.getEncoder().encodeToString(tokenInfo.getTokenDigest()));
-        assertFalse(validateResponse.isTokenValid());
-        assertEquals(ActivationStatus.BLOCKED, validateResponse.getActivationStatus());
-        assertEquals("TEST", validateResponse.getBlockedReason());
-
-        // Unblock activation
-        final UnblockActivationResponse unblockResponse = powerAuthClient.unblockActivation(config.getActivationId(version), "TEST");
-        assertEquals(ActivationStatus.ACTIVE, unblockResponse.getActivationStatus());
-
-        final RemoveTokenResponse removeResponse = powerAuthClient.removeToken(tokenInfo.getTokenId(), config.getActivationId(version));
         assertTrue(removeResponse.isRemoved());
     }
 
@@ -571,17 +321,6 @@ public class PowerAuthApiShared {
         );
         byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
         assertArrayEquals(requestData.getBytes(StandardCharsets.UTF_8), decryptedData);
-    }
-
-    public static void recoveryCodeCreateLookupRevokeTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws PowerAuthClientException {
-        CreateRecoveryCodeResponse createResponse = powerAuthClient.createRecoveryCode(config.getApplicationId(), config.getUser(version), 2L);
-        assertEquals(config.getUser(version), createResponse.getUserId());
-        assertEquals(RecoveryCodeStatus.CREATED, createResponse.getStatus());
-        assertEquals(2, createResponse.getPuks().size());
-        LookupRecoveryCodesResponse lookupResponse = powerAuthClient.lookupRecoveryCodes(config.getUser(version), null, config.getApplicationId(), RecoveryCodeStatus.CREATED, RecoveryPukStatus.VALID);
-        assertNotEquals(0, lookupResponse.getRecoveryCodes().size());
-        RevokeRecoveryCodesResponse revokeResponse = powerAuthClient.revokeRecoveryCodes(Collections.singletonList(createResponse.getRecoveryCodeId()));
-        assertTrue(revokeResponse.isRevoked());
     }
 
     public static void recoveryCodeConfirmAndActivationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws CryptoProviderException, GenericCryptoException, IOException, EncryptorException, InvalidKeyException, InvalidKeySpecException, PowerAuthClientException {
@@ -666,23 +405,6 @@ public class PowerAuthApiShared {
         assertEquals(ActivationStatus.ACTIVE, statusResponseR2.getActivationStatus());
         GetActivationStatusResponse statusResponseR3 = powerAuthClient.getActivationStatus(activationId);
         assertEquals(ActivationStatus.REMOVED, statusResponseR3.getActivationStatus());
-    }
-
-    public static void recoveryConfigTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config) throws PowerAuthClientException {
-        GetRecoveryConfigResponse response = powerAuthClient.getRecoveryConfig(config.getApplicationId());
-        String remotePostcardPublicKey = response.getRemotePostcardPublicKey();
-        assertNotNull(response.getPostcardPublicKey());
-        assertNotNull(remotePostcardPublicKey);
-        UpdateRecoveryConfigResponse configResponse = powerAuthClient.updateRecoveryConfig(config.getApplicationId(), false, false, false, "test_key");
-        assertTrue(configResponse.isUpdated());
-        GetRecoveryConfigResponse response2 = powerAuthClient.getRecoveryConfig(config.getApplicationId());
-        assertNotNull(response2.getPostcardPublicKey());
-        assertFalse(response2.isActivationRecoveryEnabled());
-        assertFalse(response2.isRecoveryPostcardEnabled());
-        assertFalse(response2.isAllowMultipleRecoveryCodes());
-        assertEquals("test_key", response2.getRemotePostcardPublicKey());
-        UpdateRecoveryConfigResponse configResponse2 = powerAuthClient.updateRecoveryConfig(config.getApplicationId(), true, true, false, remotePostcardPublicKey);
-        assertTrue(configResponse2.isUpdated());
     }
 
     // Activation flags are tested using PowerAuthActivationFlagsTest

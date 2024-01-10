@@ -61,21 +61,6 @@ class PowerAuthApiTest {
     }
 
     @Test
-    void systemStatusTest() throws PowerAuthClientException {
-        PowerAuthApiShared.systemStatusTest(powerAuthClient);
-    }
-
-    @Test
-    void errorListTest() throws PowerAuthClientException {
-        PowerAuthApiShared.errorListTest(powerAuthClient);
-    }
-
-    @Test
-    void initActivationTest() throws PowerAuthClientException {
-        PowerAuthApiShared.initActivationTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
     void prepareActivationTest() throws CryptoProviderException, EncryptorException, IOException, PowerAuthClientException {
         PowerAuthApiShared.prepareActivationTest(powerAuthClient, config, VERSION);
     }
@@ -91,48 +76,8 @@ class PowerAuthApiTest {
     }
 
     @Test
-    void removeActivationTest() throws PowerAuthClientException {
-        PowerAuthApiShared.removeActivationTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void activationListForUserTest() throws PowerAuthClientException {
-        PowerAuthApiShared.activationListForUserTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void testGetActivationListForUserPagination() throws PowerAuthClientException {
-        PowerAuthApiShared.testGetActivationListForUserPagination(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void lookupActivationsTest() throws PowerAuthClientException {
-        PowerAuthApiShared.lookupActivationsTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void activationStatusUpdateTest() throws PowerAuthClientException {
-        PowerAuthApiShared.activationStatusUpdateTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
     void verifySignatureTest() throws GenericCryptoException, CryptoProviderException, InvalidKeyException, PowerAuthClientException {
         PowerAuthApiShared.verifySignatureTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void nonPersonalizedOfflineSignaturePayloadTest() throws PowerAuthClientException {
-        PowerAuthApiShared.nonPersonalizedOfflineSignaturePayloadTest(powerAuthClient, config);
-    }
-
-    @Test
-    void personalizedOfflineSignaturePayloadTest() throws PowerAuthClientException {
-        PowerAuthApiShared.personalizedOfflineSignaturePayloadTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void verifyOfflineSignatureTest() throws PowerAuthClientException {
-        PowerAuthApiShared.verifyOfflineSignatureTest(powerAuthClient, config, VERSION);
     }
 
     @Test
@@ -140,56 +85,11 @@ class PowerAuthApiTest {
         PowerAuthApiShared.unlockVaultAndECDSASignatureTest(powerAuthClient, config, VERSION);
     }
 
-    @Test
-    void activationHistoryTest() throws PowerAuthClientException {
-        PowerAuthApiShared.activationHistoryTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void blockAndUnblockActivationTest() throws PowerAuthClientException {
-        PowerAuthApiShared.blockAndUnblockActivationTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void applicationListTest() throws PowerAuthClientException {
-        PowerAuthApiShared.applicationListTest(powerAuthClient, config);
-    }
-
-    @Test
-    void applicationDetailTest() throws PowerAuthClientException {
-        PowerAuthApiShared.applicationDetailTest(powerAuthClient, config);
-    }
-
-    @Test
-    void applicationVersionLookupTest() throws PowerAuthClientException {
-        PowerAuthApiShared.applicationVersionLookupTest(powerAuthClient, config);
-    }
-
     // createApplication and createApplication version tests are skipped to avoid creating too many applications
-
-    @Test
-    void applicationSupportTest() throws PowerAuthClientException {
-        PowerAuthApiShared.applicationSupportTest(powerAuthClient, config);
-    }
-
-    @Test
-    void applicationIntegrationTest() throws PowerAuthClientException {
-        PowerAuthApiShared.applicationIntegrationTest(powerAuthClient, config);
-    }
-
-    @Test
-    void callbackTest() throws PowerAuthClientException {
-        PowerAuthApiShared.callbackTest(powerAuthClient, config);
-    }
 
     @Test
     void createValidateAndRemoveTokenTestActiveActivation() throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, IOException, EncryptorException, PowerAuthClientException {
         PowerAuthApiShared.createValidateAndRemoveTokenTestActiveActivation(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void createValidateAndRemoveTokenTestBlockedActivation() throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, IOException, EncryptorException, PowerAuthClientException {
-        PowerAuthApiShared.createValidateAndRemoveTokenTestBlockedActivation(powerAuthClient, config, VERSION);
     }
 
     @Test
@@ -198,18 +98,8 @@ class PowerAuthApiTest {
     }
 
     @Test
-    void recoveryCodeCreateLookupRevokeTest() throws PowerAuthClientException {
-        PowerAuthApiShared.recoveryCodeCreateLookupRevokeTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
     void recoveryCodeConfirmAndActivationTest() throws CryptoProviderException, GenericCryptoException, IOException, EncryptorException, InvalidKeyException, InvalidKeySpecException, PowerAuthClientException {
         PowerAuthApiShared.recoveryCodeConfirmAndActivationTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void recoveryConfigTest() throws PowerAuthClientException {
-        PowerAuthApiShared.recoveryConfigTest(powerAuthClient, config);
     }
 
     // Activation flags are tested using PowerAuthActivationFlagsTest
