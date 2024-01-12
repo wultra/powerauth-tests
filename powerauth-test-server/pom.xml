@@ -118,8 +118,8 @@
             <artifactId>powerauth-java-crypto</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.getlime.security</groupId>
-            <artifactId>powerauth-mtoken-model</artifactId>
+            <groupId>com.wultra.security</groupId>
+            <artifactId>mtoken-model</artifactId>
         </dependency>
 
         <!-- Other Dependencies -->
