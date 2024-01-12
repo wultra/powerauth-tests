@@ -81,12 +81,6 @@
                 <version>${powerauth-webflow.version}</version>
             </dependency>
 
-            <dependency>
-                <groupId>io.getlime.security</groupId>
-                <artifactId>powerauth-mtoken-model</artifactId>
-                <version>${powerauth-webflow.version}</version>
-            </dependency>
-
             <!-- PowerAuth Crypto  -->
             <dependency>
                 <groupId>io.getlime.security</groupId>
@@ -142,6 +136,12 @@
             <dependency>
                 <groupId>com.wultra.security</groupId>
                 <artifactId>enrollment-server-onboarding-api-model</artifactId>
+                <version>${enrollment-server.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.wultra.security</groupId>
+                <artifactId>mtoken-model</artifactId>
                 <version>${enrollment-server.version}</version>
             </dependency>
 
