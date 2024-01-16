@@ -21,13 +21,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.wultra.core.rest.client.base.DefaultRestClient;
+import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.core.rest.model.base.request.ObjectRequest;
+import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
 import io.getlime.security.powerauth.rest.api.model.request.UserInfoRequest;
 import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
+import io.getlime.security.powerauth.rest.api.model.response.ServerStatusResponse;
 import org.opentest4j.AssertionFailedError;
 
 import java.util.Map;
@@ -37,13 +42,16 @@ import java.util.function.Predicate;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * PowerAuth user info test shared logic.
+ * PowerAuth server info test shared logic.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class PowerAuthUserInfoShared {
+public class PowerAuthInfoShared {
 
     private static final ObjectMapper objectMapper = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+
+    // Tolerate 60 seconds time difference between client and server in tests
+    private static final long SERVER_CLIENT_TIME_DIFF_TOLERANCE_MILLIS = 60000;
 
     public static void testUserInfo(final PowerAuthTestConfiguration config, final EncryptStepModel encryptModel, final String version) throws Exception {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/pa/v3/user/info");
@@ -71,6 +79,12 @@ public class PowerAuthUserInfoShared {
         assertNotNull(decryptedData.get("iat"));
         assertNotNull(decryptedData.get("jti"));
         assertEquals(config.getUser(version), decryptedData.get("sub"));
+    }
+
+    public static void testServerStatus(final PowerAuthTestConfiguration config) throws Exception {
+        final RestClient restClient = new DefaultRestClient(config.getEnrollmentServiceUrl());
+        final ObjectResponse<ServerStatusResponse> objectResponse = restClient.postObject("/pa/v3/status", new ObjectRequest<>(), ServerStatusResponse.class);
+        assertTrue(Math.abs(objectResponse.getResponseObject().serverTime() - System.currentTimeMillis()) < SERVER_CLIENT_TIME_DIFF_TOLERANCE_MILLIS);
     }
 
     private static Predicate<StepItem> isStepItemDecryptedResponse() {

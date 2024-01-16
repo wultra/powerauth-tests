@@ -32,6 +32,7 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.SignatureVerif
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
+import com.wultra.security.powerauth.lib.mtoken.model.response.OperationListResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.core.rest.model.base.response.Response;
@@ -42,7 +43,6 @@ import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
-import io.getlime.security.powerauth.lib.mtoken.model.response.OperationListResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +53,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Service for working with operations.

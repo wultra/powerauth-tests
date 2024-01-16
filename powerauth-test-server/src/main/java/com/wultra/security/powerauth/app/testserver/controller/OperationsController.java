@@ -25,12 +25,18 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.SignatureVerif
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
 import com.wultra.security.powerauth.app.testserver.service.OperationsService;
+import com.wultra.security.powerauth.lib.mtoken.model.response.OperationListResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.core.rest.model.base.response.Response;
-import io.getlime.security.powerauth.lib.mtoken.model.response.OperationListResponse;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Controller for operation specific services.
@@ -61,6 +67,7 @@ public class OperationsController {
      * @throws SignatureVerificationException In case signature verification fails.
      * @throws ActivationFailedException In case activation is not found.
      */
+    @Parameter(name = HttpHeaders.ACCEPT_LANGUAGE, in = ParameterIn.HEADER, allowEmptyValue = true, description = "Preferred language in which we want to get the operations.", example = "en")
     @PostMapping("pending")
     public ObjectResponse<OperationListResponse> fetchOperations(@RequestBody ObjectRequest<GetOperationsRequest> request) throws RemoteExecutionException, RestClientException, SignatureVerificationException, ActivationFailedException {
         final OperationListResponse response = operationsService.getOperations(request.getRequestObject());

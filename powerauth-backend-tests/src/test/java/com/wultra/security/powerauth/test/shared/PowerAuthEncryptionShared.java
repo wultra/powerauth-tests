@@ -19,8 +19,18 @@ package com.wultra.security.powerauth.test.shared;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
+import com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
+import io.getlime.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
+import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
+import io.getlime.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ClientEncryptorSecrets;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -50,6 +60,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 public class PowerAuthEncryptionShared {
+
+    private static final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
 
     public static void encryptInActivationScopeTest(PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger) throws Exception {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
@@ -485,6 +497,54 @@ public class PowerAuthEncryptionShared {
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
+    }
+
+    public static void replayAttackEciesDecryptorTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, String version) throws EncryptorException, PowerAuthClientException {
+        String requestData = "test_data";
+        ClientEncryptor clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
+                EncryptorId.APPLICATION_SCOPE_GENERIC,
+                new EncryptorParameters(version, config.getApplicationKey(), null),
+                new ClientEncryptorSecrets(config.getMasterPublicKey(), config.getApplicationSecret())
+        );
+        EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
+        final GetEciesDecryptorRequest eciesDecryptorRequest = new GetEciesDecryptorRequest();
+        eciesDecryptorRequest.setProtocolVersion(version);
+        eciesDecryptorRequest.setActivationId(null);
+        eciesDecryptorRequest.setApplicationKey(config.getApplicationKey());
+        eciesDecryptorRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
+        eciesDecryptorRequest.setNonce(encryptedRequest.getNonce());
+        eciesDecryptorRequest.setTimestamp(encryptedRequest.getTimestamp());
+        GetEciesDecryptorResponse decryptorResponse = powerAuthClient.getEciesDecryptor(eciesDecryptorRequest);
+        assertNotNull(decryptorResponse.getSecretKey());
+        assertNotNull(decryptorResponse.getSharedInfo2());
+
+        // Replay attack simulation - send the same request twice, expect error ERR0024
+        final PowerAuthClientException ex = assertThrows(PowerAuthClientException.class, () ->
+                powerAuthClient.getEciesDecryptor(eciesDecryptorRequest));
+        assertEquals("ERR0024", ex.getPowerAuthError().get().getCode());
+    }
+
+    public static void encryptedResponseTest(final PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger, String version) throws Exception {
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setScope("activation");
+
+        new EncryptStep().execute(stepLogger, encryptModel.toMap());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
+        EciesEncryptedResponse responseObject = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
+        assertNotNull(responseObject.getEncryptedData());
+        assertNotNull(responseObject.getMac());
+        switch (version) {
+            case "3.0", "3.1" -> {
+                assertNull(responseObject.getNonce());
+                assertNull(responseObject.getTimestamp());
+            }
+            case "3.2" -> {
+                assertNotNull(responseObject.getNonce());
+                assertNotNull(responseObject.getTimestamp());
+            }
+            default -> fail("Unsupported version");
+        }
     }
 
     private static String generateRandomString() {
