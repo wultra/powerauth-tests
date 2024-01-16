@@ -45,12 +45,12 @@
     </developers>
 
     <properties>
-        <enrollment-server.version>1.6.0-SNAPSHOT</enrollment-server.version>
-        <powerauth-cmd.version>1.6.0-SNAPSHOT</powerauth-cmd.version>
-        <powerauth-crypto.version>1.6.0-SNAPSHOT</powerauth-crypto.version>
-        <powerauth-restful-integration.version>1.6.0-SNAPSHOT</powerauth-restful-integration.version>
-        <powerauth-webflow.version>1.6.0-SNAPSHOT</powerauth-webflow.version>
-        <wultra-core.version>1.8.0-SNAPSHOT</wultra-core.version>
+        <enrollment-server.version>1.6.0</enrollment-server.version>
+        <powerauth-cmd.version>1.6.0</powerauth-cmd.version>
+        <powerauth-crypto.version>1.6.0</powerauth-crypto.version>
+        <powerauth-restful-integration.version>1.6.0</powerauth-restful-integration.version>
+        <powerauth-webflow.version>1.6.0</powerauth-webflow.version>
+        <wultra-core.version>1.8.0</wultra-core.version>
 
         <bc.version>1.77</bc.version>
         <springdoc-openapi-starter-webmvc-ui.version>2.3.0</springdoc-openapi-starter-webmvc-ui.version>
