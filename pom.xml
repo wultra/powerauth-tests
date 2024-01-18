@@ -181,6 +181,18 @@
                     <value>true</value>
                 </property>
             </activation>
+            <distributionManagement>
+                <repository>
+                    <id>jfrog-central</id>
+                    <name>Wultra Artifactory-releases</name>
+                    <url>https://wultra.jfrog.io/artifactory/internal-maven-repository</url>
+                </repository>
+                <snapshotRepository>
+                    <id>jfrog-central</id>
+                    <name>Wultra Artifactory-snapshots</name>
+                    <url>https://wultra.jfrog.io/artifactory/internal-maven-repository</url>
+                </snapshotRepository>
+            </distributionManagement>
             <repositories>
                 <repository>
                     <id>jfrog-central</id>
