@@ -14,3 +14,7 @@ jobs:
     uses: wultra/wultra-infrastructure/.github/workflows/maven-deploy.yml@develop
     with:
       environment: internal-publish
+      release_type: snapshot
+    secrets:
+      username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+      password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
