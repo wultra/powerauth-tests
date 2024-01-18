@@ -1,0 +1,16 @@
+name: Deploy with Maven
+
+on:
+  workflow_dispatch:
+    branches:
+      - 'develop'
+      - 'master'
+      - 'releases/*'
+
+jobs:
+  maven-deploy-manual:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    name: Manual deploy
+    uses: wultra/wultra-infrastructure/.github/workflows/maven-deploy.yml@develop
+    with:
+      environment: internal-publish
