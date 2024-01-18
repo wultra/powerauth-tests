@@ -15,6 +15,7 @@ jobs:
     with:
       environment: internal-publish
       release_type: snapshot
+      directory_path: ./powerauth-test-server
     secrets:
       username: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
       password: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
