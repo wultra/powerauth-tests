@@ -57,6 +57,8 @@
         <logstash.version>7.4</logstash.version>
         <!--  TODO (racansky, 2023-12-08) temporarily override the version 1.4.11 from spring boot version because of CVE  -->
         <logback.version>1.4.14</logback.version>
+
+        <maven.deploy.skip>true</maven.deploy.skip>
     </properties>
 
     <modules>
@@ -183,6 +185,18 @@
                     <value>true</value>
                 </property>
             </activation>
+            <distributionManagement>
+                <repository>
+                    <id>jfrog-central</id>
+                    <name>Wultra Artifactory-releases</name>
+                    <url>https://wultra.jfrog.io/artifactory/internal-maven-repository</url>
+                </repository>
+                <snapshotRepository>
+                    <id>jfrog-central</id>
+                    <name>Wultra Artifactory-snapshots</name>
+                    <url>https://wultra.jfrog.io/artifactory/internal-maven-repository</url>
+                </snapshotRepository>
+            </distributionManagement>
             <repositories>
                 <repository>
                     <id>jfrog-central</id>
@@ -218,9 +232,6 @@
                     <name>!useInternalRepo</name>
                 </property>
             </activation>
-            <properties>
-                <maven.deploy.skip>true</maven.deploy.skip>
-            </properties>
             <repositories>
                 <repository>
                     <id>ossrh-snapshots</id>
