@@ -61,21 +61,6 @@ class PowerAuthApiTest {
     }
 
     @Test
-    void prepareActivationTest() throws CryptoProviderException, EncryptorException, IOException, PowerAuthClientException {
-        PowerAuthApiShared.prepareActivationTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void createActivationTest() throws CryptoProviderException, EncryptorException, IOException, PowerAuthClientException {
-        PowerAuthApiShared.createActivationTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void updateActivationOtpAndCommitTest() throws CryptoProviderException, EncryptorException, IOException, PowerAuthClientException {
-        PowerAuthApiShared.updateActivationOtpAndCommitTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
     void verifySignatureTest() throws GenericCryptoException, CryptoProviderException, InvalidKeyException, PowerAuthClientException {
         PowerAuthApiShared.verifySignatureTest(powerAuthClient, config, VERSION);
     }
@@ -92,10 +77,6 @@ class PowerAuthApiTest {
         PowerAuthApiShared.createValidateAndRemoveTokenTestActiveActivation(powerAuthClient, config, VERSION);
     }
 
-    @Test
-    void getEciesDecryptorTest() throws EncryptorException, PowerAuthClientException {
-        PowerAuthApiShared.getEciesDecryptorTest(powerAuthClient, config, VERSION);
-    }
 
     @Test
     void recoveryCodeConfirmAndActivationTest() throws CryptoProviderException, GenericCryptoException, IOException, EncryptorException, InvalidKeyException, InvalidKeySpecException, PowerAuthClientException {

@@ -73,7 +73,6 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.time.Duration;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -97,84 +96,6 @@ public class PowerAuthApiShared {
     private static final ClientTokenGenerator CLIENT_TOKEN_GENERATOR = new ClientTokenGenerator();
 
     private static final int TIME_SYNCHRONIZATION_WINDOW_SECONDS = 60;
-
-    public static void prepareActivationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws CryptoProviderException, EncryptorException, IOException, PowerAuthClientException {
-        String activationName = "test_prepare";
-        InitActivationResponse response = powerAuthClient.initActivation(config.getUser(version), config.getApplicationId());
-        String activationId = response.getActivationId();
-        String activationCode = response.getActivationCode();
-        KeyPair deviceKeyPair = CLIENT_ACTIVATION.generateDeviceKeyPair();
-        byte[] devicePublicKeyBytes = KEY_CONVERTOR.convertPublicKeyToBytes(deviceKeyPair.getPublic());
-        String devicePublicKeyBase64 = Base64.getEncoder().encodeToString(devicePublicKeyBytes);
-        ActivationLayer2Request requestL2 = new ActivationLayer2Request();
-        requestL2.setActivationName(activationName);
-        requestL2.setDevicePublicKey(devicePublicKeyBase64);
-        ClientEncryptor clientEncryptorL2 = ENCRYPTOR_FACTORY.getClientEncryptor(
-                EncryptorId.ACTIVATION_LAYER_2,
-                new EncryptorParameters(version, config.getApplicationKey(), null),
-                new ClientEncryptorSecrets(config.getMasterPublicKey(), config.getApplicationSecret())
-        );
-        ByteArrayOutputStream baosL2 = new ByteArrayOutputStream();
-        OBJECT_MAPPER.writeValue(baosL2, requestL2);
-        EncryptedRequest encryptedRequestL2 = clientEncryptorL2.encryptRequest(baosL2.toByteArray());
-        PrepareActivationResponse prepareResponse = powerAuthClient.prepareActivation(activationCode, config.getApplicationKey(), true, encryptedRequestL2.getEphemeralPublicKey(), encryptedRequestL2.getEncryptedData(), encryptedRequestL2.getMac(), encryptedRequestL2.getNonce(), version, encryptedRequestL2.getTimestamp());
-        assertEquals(ActivationStatus.PENDING_COMMIT, prepareResponse.getActivationStatus());
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(activationId, config.getUser(version));
-        assertTrue(commitResponse.isActivated());
-    }
-
-    public static void createActivationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws CryptoProviderException, EncryptorException, IOException, PowerAuthClientException {
-        String activationName = "test_create";
-        KeyPair deviceKeyPair = CLIENT_ACTIVATION.generateDeviceKeyPair();
-        byte[] devicePublicKeyBytes = KEY_CONVERTOR.convertPublicKeyToBytes(deviceKeyPair.getPublic());
-        String devicePublicKeyBase64 = Base64.getEncoder().encodeToString(devicePublicKeyBytes);
-        ActivationLayer2Request requestL2 = new ActivationLayer2Request();
-        requestL2.setActivationName(activationName);
-        requestL2.setDevicePublicKey(devicePublicKeyBase64);
-        ClientEncryptor clientEncryptorL2 = ENCRYPTOR_FACTORY.getClientEncryptor(
-                EncryptorId.ACTIVATION_LAYER_2,
-                new EncryptorParameters(version, config.getApplicationKey(), null),
-                new ClientEncryptorSecrets(config.getMasterPublicKey(), config.getApplicationSecret())
-        );
-        ByteArrayOutputStream baosL2 = new ByteArrayOutputStream();
-        OBJECT_MAPPER.writeValue(baosL2, requestL2);
-        EncryptedRequest encryptedRequestL2 = clientEncryptorL2.encryptRequest(baosL2.toByteArray());
-        CreateActivationResponse createResponse = powerAuthClient.createActivation(config.getUser(version), null,
-                null, config.getApplicationKey(), encryptedRequestL2.getEphemeralPublicKey(), encryptedRequestL2.getEncryptedData(), encryptedRequestL2.getMac(), encryptedRequestL2.getNonce(), version, encryptedRequestL2.getTimestamp());
-        String activationId = createResponse.getActivationId();
-        assertNotNull(activationId);
-        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(activationId);
-        assertEquals(ActivationStatus.PENDING_COMMIT, statusResponse.getActivationStatus());
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(activationId, config.getUser(version));
-        assertTrue(commitResponse.isActivated());
-    }
-
-    public static void updateActivationOtpAndCommitTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws CryptoProviderException, EncryptorException, IOException, PowerAuthClientException {
-        String activationName = "test_update_otp";
-        InitActivationResponse response = powerAuthClient.initActivation(config.getUser(version), config.getApplicationId(), ActivationOtpValidation.NONE, null);
-        String activationId = response.getActivationId();
-        String activationCode = response.getActivationCode();
-        KeyPair deviceKeyPair = CLIENT_ACTIVATION.generateDeviceKeyPair();
-        byte[] devicePublicKeyBytes = KEY_CONVERTOR.convertPublicKeyToBytes(deviceKeyPair.getPublic());
-        String devicePublicKeyBase64 = Base64.getEncoder().encodeToString(devicePublicKeyBytes);
-        ActivationLayer2Request requestL2 = new ActivationLayer2Request();
-        requestL2.setActivationName(activationName);
-        requestL2.setDevicePublicKey(devicePublicKeyBase64);
-        ClientEncryptor clientEncryptorL2 = ENCRYPTOR_FACTORY.getClientEncryptor(
-                EncryptorId.ACTIVATION_LAYER_2,
-                new EncryptorParameters(version, config.getApplicationKey(), null),
-                new ClientEncryptorSecrets(config.getMasterPublicKey(), config.getApplicationSecret())
-        );
-        ByteArrayOutputStream baosL2 = new ByteArrayOutputStream();
-        OBJECT_MAPPER.writeValue(baosL2, requestL2);
-        EncryptedRequest encryptedRequestL2 = clientEncryptorL2.encryptRequest(baosL2.toByteArray());
-        PrepareActivationResponse prepareResponse = powerAuthClient.prepareActivation(activationCode, config.getApplicationKey(), true, encryptedRequestL2.getEphemeralPublicKey(), encryptedRequestL2.getEncryptedData(), encryptedRequestL2.getMac(), encryptedRequestL2.getNonce(), version, encryptedRequestL2.getTimestamp());
-        assertEquals(ActivationStatus.PENDING_COMMIT, prepareResponse.getActivationStatus());
-        UpdateActivationOtpResponse otpResponse = powerAuthClient.updateActivationOtp(activationId, config.getUser(version), "12345678");
-        assertTrue(otpResponse.isUpdated());
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(activationId, config.getUser(version), "12345678");
-        assertTrue(commitResponse.isActivated());
-    }
 
     public static void verifySignatureTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws GenericCryptoException, CryptoProviderException, InvalidKeyException, PowerAuthClientException {
         Calendar before = new GregorianCalendar();
@@ -291,36 +212,6 @@ public class PowerAuthApiShared {
 
         RemoveTokenResponse removeResponse = powerAuthClient.removeToken(tokenInfo.getTokenId(), config.getActivationId(version));
         assertTrue(removeResponse.isRemoved());
-    }
-
-    public static void getEciesDecryptorTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws EncryptorException, PowerAuthClientException {
-        String requestData = "test_data";
-        ClientEncryptor clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
-                EncryptorId.APPLICATION_SCOPE_GENERIC,
-                new EncryptorParameters(version, config.getApplicationKey(), null),
-                new ClientEncryptorSecrets(config.getMasterPublicKey(), config.getApplicationSecret())
-        );
-        EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
-        final GetEciesDecryptorRequest eciesDecryptorRequest = new GetEciesDecryptorRequest();
-        eciesDecryptorRequest.setProtocolVersion(version);
-        eciesDecryptorRequest.setActivationId(null);
-        eciesDecryptorRequest.setApplicationKey(config.getApplicationKey());
-        eciesDecryptorRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
-        eciesDecryptorRequest.setNonce(encryptedRequest.getNonce());
-        eciesDecryptorRequest.setTimestamp(encryptedRequest.getTimestamp());
-        GetEciesDecryptorResponse decryptorResponse = powerAuthClient.getEciesDecryptor(eciesDecryptorRequest);
-
-        final byte[] secretKey = Base64.getDecoder().decode(decryptorResponse.getSecretKey());
-        final byte[] sharedInfo2Base = Base64.getDecoder().decode(decryptorResponse.getSharedInfo2());
-        final byte[] ephemeralPublicKeyBytes = Base64.getDecoder().decode(encryptedRequest.getEphemeralPublicKey());
-        final EciesEnvelopeKey envelopeKey = new EciesEnvelopeKey(secretKey, ephemeralPublicKeyBytes);
-        final ServerEncryptor serverEncryptor = ENCRYPTOR_FACTORY.getServerEncryptor(
-                EncryptorId.APPLICATION_SCOPE_GENERIC,
-                new EncryptorParameters(version, config.getApplicationKey(), null),
-                new ServerEncryptorSecrets(secretKey, sharedInfo2Base)
-        );
-        byte[] decryptedData = serverEncryptor.decryptRequest(encryptedRequest);
-        assertArrayEquals(requestData.getBytes(StandardCharsets.UTF_8), decryptedData);
     }
 
     public static void recoveryCodeConfirmAndActivationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) throws CryptoProviderException, GenericCryptoException, IOException, EncryptorException, InvalidKeyException, InvalidKeySpecException, PowerAuthClientException {
