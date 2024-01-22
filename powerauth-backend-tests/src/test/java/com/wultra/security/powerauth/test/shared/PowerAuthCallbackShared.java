@@ -39,64 +39,6 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  */
 public class PowerAuthCallbackShared {
 
-    public static void callbackCreateDeleteTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config) throws PowerAuthClientException {
-        String callbackName = UUID.randomUUID().toString();
-        String callbackUrl = "http://test.test";
-        powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrl, Collections.singletonList("activationId"), null);
-        final GetCallbackUrlListResponse callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
-        boolean callbackFound = false;
-        for (CallbackUrl callback: callbacks.getCallbackUrlList()) {
-            if (callbackName.equals(callback.getName())) {
-                callbackFound = true;
-                assertEquals(callbackUrl, callback.getCallbackUrl());
-                assertEquals(config.getApplicationId(), callback.getApplicationId());
-                assertEquals(1, callback.getAttributes().size());
-                assertEquals("activationId", callback.getAttributes().get(0));
-                int callbackCountOrig = callbacks.getCallbackUrlList().size();
-                powerAuthClient.removeCallbackUrl(callback.getId());
-            }
-        }
-        assertTrue(callbackFound);
-    }
-
-    public static void callbackUpdateTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config) throws PowerAuthClientException {
-        String callbackName = UUID.randomUUID().toString();
-        String callbackUrl = "http://test.test";
-        powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrl, Collections.singletonList("activationId"), null);
-        final GetCallbackUrlListResponse callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
-        boolean callbackFound = false;
-        String callbackId = null;
-        for (CallbackUrl callback: callbacks.getCallbackUrlList()) {
-            if (callbackName.equals(callback.getName())) {
-                callbackFound = true;
-                callbackId = callback.getId();
-                assertEquals(callbackUrl, callback.getCallbackUrl());
-                assertEquals(config.getApplicationId(), callback.getApplicationId());
-                assertEquals(1, callback.getAttributes().size());
-                assertEquals("activationId", callback.getAttributes().get(0));
-            }
-        }
-        assertTrue(callbackFound);
-        assertNotNull(callbackId);
-        String callbackName2 = UUID.randomUUID().toString();
-        String callbackUrl2 = "http://test2.test2";
-        powerAuthClient.updateCallbackUrl(callbackId, config.getApplicationId(), callbackName2, callbackUrl2, Arrays.asList("activationId", "userId", "deviceInfo", "platform"), null);
-        final GetCallbackUrlListResponse callbacks2 = powerAuthClient.getCallbackUrlList(config.getApplicationId());
-        boolean callbackFound2 = false;
-        for (CallbackUrl callback: callbacks2.getCallbackUrlList()) {
-            if (callbackName2.equals(callback.getName())) {
-                callbackFound2 = true;
-                callbackId = callback.getId();
-                assertEquals(callbackUrl2, callback.getCallbackUrl());
-                assertEquals(config.getApplicationId(), callback.getApplicationId());
-                assertEquals(4, callback.getAttributes().size());
-                assertEquals(Arrays.asList("activationId", "userId", "deviceInfo", "platform"), callback.getAttributes());
-            }
-        }
-        assertTrue(callbackFound2);
-        powerAuthClient.removeCallbackUrl(callbackId);
-    }
-
     public static void callbackExecutionTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, Integer port, String version) throws PowerAuthClientException, RestClientException {
         // Skip test when the tested PA server is not running on localhost
         assumeTrue(config.getPowerAuthRestUrl().contains("localhost:8080"));
