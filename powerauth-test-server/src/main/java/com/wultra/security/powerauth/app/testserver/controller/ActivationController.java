@@ -28,7 +28,9 @@ import com.wultra.security.powerauth.app.testserver.service.ActivationService;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 /**
  * Controller for activation actions.
@@ -37,6 +39,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("activation")
+@Validated
 public class ActivationController {
 
     private final ActivationService activationService;
@@ -60,7 +63,7 @@ public class ActivationController {
      * @throws ActivationFailedException Thrown when activation fails.
      */
     @PostMapping("create")
-    public ObjectResponse<CreateActivationResponse> createActivation(@RequestBody ObjectRequest<CreateActivationRequest> request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException, ActivationFailedException {
+    public ObjectResponse<CreateActivationResponse> createActivation(@Valid @RequestBody ObjectRequest<CreateActivationRequest> request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException, ActivationFailedException {
         // TODO - input validation
         final CreateActivationResponse response = activationService.createActivation(request.getRequestObject());
         return new ObjectResponse<>(response);

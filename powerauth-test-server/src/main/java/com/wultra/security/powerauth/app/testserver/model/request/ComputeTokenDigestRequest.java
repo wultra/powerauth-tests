@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.request;
 
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,8 +30,11 @@ import lombok.Setter;
 @Setter
 public class ComputeTokenDigestRequest {
 
+    @NotNull
     private String activationId;
+    @NotNull
     private String tokenId;
+    @NotNull
     private String tokenSecret;
 
 }
