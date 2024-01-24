@@ -17,7 +17,7 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.request;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,11 +29,11 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ComputeOfflineSignatureRequest {
-    @NotNull
+    @NotBlank
     private String activationId;
-    @NotNull
+    @NotBlank
     private String qrCodeData;
-    @NotNull
+    @NotBlank
     private String password;
 
 }

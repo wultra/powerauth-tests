@@ -17,7 +17,7 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.request;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -27,11 +27,11 @@ import lombok.Data;
  */
 @Data
 public class GetOperationsRequest {
-    @NotNull
+    @NotBlank
     private String activationId;
-    @NotNull
+    @NotBlank
     private String tokenId;
-    @NotNull
+    @NotBlank
     private String tokenSecret;
 
 }
