@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.app.testserver.model.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
@@ -28,6 +29,7 @@ import lombok.Data;
 @Data
 public class CreateActivationRequest {
 
+    @NotBlank
     private String applicationId;
     private String activationName;
     private String password;
