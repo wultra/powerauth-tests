@@ -749,7 +749,7 @@ public class PowerAuthSignatureShared {
         final CreatePersonalizedOfflineSignaturePayloadRequest request = new CreatePersonalizedOfflineSignaturePayloadRequest();
         request.setActivationId(config.getActivationId(version));
         request.setData(offlineData);
-        request.setProximityCheck(new CreatePersonalizedOfflineSignaturePayloadRequest.ProximityCheck());
+        request.setProximityCheck(new CreatePersonalizedOfflineSignaturePayloadRequest.CreateProximityCheck());
         request.getProximityCheck().setSeed(seed);
         request.getProximityCheck().setStepLength(30);
 
@@ -808,7 +808,7 @@ public class PowerAuthSignatureShared {
         verifyRequest.setData(signatureBaseString);
         verifyRequest.setSignature(signature);
         verifyRequest.setAllowBiometry(true);
-        verifyRequest.setProximityCheck(new VerifyOfflineSignatureRequest.ProximityCheck());
+        verifyRequest.setProximityCheck(new VerifyOfflineSignatureRequest.VerifyProximityCheck());
         verifyRequest.getProximityCheck().setSeed(expectedResult ? seed : "bGlnaHQgd28=");
         verifyRequest.getProximityCheck().setStepLength(30);
         verifyRequest.getProximityCheck().setStepCount(2);
