@@ -19,10 +19,10 @@ package com.wultra.security.powerauth.test.shared;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.model.entity.*;
-import com.wultra.security.powerauth.client.model.enumeration.*;
+import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
@@ -33,15 +33,12 @@ import io.getlime.security.powerauth.crypto.client.vault.PowerAuthClientVault;
 import io.getlime.security.powerauth.crypto.lib.config.SignatureConfiguration;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ServerEncryptor;
-import io.getlime.security.powerauth.crypto.lib.encryptor.ecies.EciesEnvelopeKey;
 import io.getlime.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ClientEncryptorSecrets;
-import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ServerEncryptorSecrets;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
@@ -73,7 +70,10 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
-import java.util.*;
+import java.util.Base64;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -270,8 +270,8 @@ public class PowerAuthApiShared {
                 confirmResponse.getNonce(),
                 confirmResponse.getTimestamp()
         ));
-        ConfirmRecoveryResponsePayload confirmResponsePayload = RestClientConfiguration.defaultMapper().readValue(confirmResponseRaw, ConfirmRecoveryResponsePayload.class);
-        assertTrue(confirmResponsePayload.getAlreadyConfirmed());
+        final ConfirmRecoveryResponsePayload confirmResponsePayload = RestClientConfiguration.defaultMapper().readValue(confirmResponseRaw, ConfirmRecoveryResponsePayload.class);
+        assertTrue(confirmResponsePayload.isAlreadyConfirmed());
         // Create recovery activation
         KeyPair deviceKeyPairR = CLIENT_ACTIVATION.generateDeviceKeyPair();
         byte[] devicePublicKeyBytesR = KEY_CONVERTOR.convertPublicKeyToBytes(deviceKeyPairR.getPublic());
