@@ -9,7 +9,6 @@
         <version>1.7.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>com.wultra</groupId>
     <artifactId>powerauth-load-tests</artifactId>
 
     <inceptionYear>2021</inceptionYear>
@@ -43,6 +42,7 @@
 
         <maven-plugin-gatling.version>4.8.0</maven-plugin-gatling.version>
         <maven-plugin-scala.version>4.8.1</maven-plugin-scala.version>
+        <maven-plugin-scala.version>4.8.1</maven-plugin-scala.version>
 
         <gatling.version>3.10.3</gatling.version>
     </properties>
@@ -64,18 +64,28 @@
             <version>${gatling.version}</version>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>io.gatling</groupId>
+            <artifactId>gatling-test-framework</artifactId>
+            <version>${gatling.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
-        <testSourceDirectory>src/test/scala</testSourceDirectory>
         <plugins>
+            <!-- Scala Maven Plugin -->
             <plugin>
                 <groupId>net.alchim31.maven</groupId>
                 <artifactId>scala-maven-plugin</artifactId>
                 <version>${maven-plugin-scala.version}</version>
                 <executions>
                     <execution>
+                        <id>scala-test-compile</id>
+                        <phase>test-compile</phase>
                         <goals>
+                            <goal>add-source</goal>
                             <goal>testCompile</goal>
                         </goals>
                         <configuration>
@@ -90,13 +100,15 @@
                                 <arg>-language:implicitConversions</arg>
                                 <arg>-language:postfixOps</arg>
                             </args>
+                            <scalaVersion>${scala.version}</scalaVersion>
+                            <!-- Explicitly define Scala source directory for tests -->
+                            <testSourceDir>src/test/scala</testSourceDir>
                         </configuration>
                     </execution>
                 </executions>
-                <configuration>
-                    <scalaVersion>${scala.version}</scalaVersion>
-                </configuration>
             </plugin>
+
+            <!-- Gatling Maven Plugin -->
             <plugin>
                 <groupId>io.gatling</groupId>
                 <artifactId>gatling-maven-plugin</artifactId>
@@ -104,9 +116,11 @@
                 <configuration>
                     <resultsFolder>${project.basedir}/target/test-results/gatling</resultsFolder>
                     <simulationsFolder>${project.basedir}/src/test/scala</simulationsFolder>
-                    <runDescription>Wultra PowerAuth Load Test</runDescription>
+                    <runDescription>Wultra PowerAuth Load Test Scala</runDescription>
                 </configuration>
             </plugin>
+
+            <!-- Maven Surefire Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
