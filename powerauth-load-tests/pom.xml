@@ -41,7 +41,7 @@
         <scala.version>2.13.6</scala.version>
         <scala.minor.version>2.13.6</scala.minor.version>
 
-        <maven-plugin-gatling.version>4.8.0</maven-plugin-gatling.version>
+        <maven-plugin-gatling.version>4.8.2</maven-plugin-gatling.version>
         <maven-plugin-scala.version>4.8.1</maven-plugin-scala.version>
 
         <gatling.version>3.10.3</gatling.version>
