@@ -1,4 +1,4 @@
-FROM ibm-semeru-runtimes:open-21.0.1_12-jre
+FROM ibm-semeru-runtimes:open-21.0.2_13-jre
 LABEL maintainer="roman.strobl@wultra.com"
 
 # Prepare environment variables
