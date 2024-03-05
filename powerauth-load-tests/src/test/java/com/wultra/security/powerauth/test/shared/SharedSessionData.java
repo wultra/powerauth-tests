@@ -1,4 +1,4 @@
-package com.wultra.security.powerauth.test;
+package com.wultra.security.powerauth.test.shared;
 
 import java.util.concurrent.ConcurrentHashMap;
 

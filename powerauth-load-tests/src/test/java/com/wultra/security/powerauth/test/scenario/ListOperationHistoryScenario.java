@@ -2,23 +2,14 @@ package com.wultra.security.powerauth.test.scenario;
 
 import com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon;
 import io.gatling.javaapi.core.ScenarioBuilder;
-import lombok.extern.slf4j.Slf4j;
-
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
-import static java.util.UUID.randomUUID;
 
-@Slf4j
-public class CreateRegistrationScenario extends SharedSessionScenario {
+public class ListOperationHistoryScenario {
 
-    public static final ScenarioBuilder createRegistrationScenario = scenario(CreateRegistrationScenario.class.getName())
-            .doIf(String.valueOf(PowerAuthLoadTestCommon.isPreparation)).then(exec(prepareSessionData()))
-            .exec(session -> session.set("testUserId", generateUserId()))
+    public static final ScenarioBuilder listOperationHistoryScenario = scenario(CreateRegistrationScenario.class.getName())
             .exec(
                     http("Create registration PowerAuth Cloud")
                             .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/registrations")
@@ -59,15 +50,7 @@ public class CreateRegistrationScenario extends SharedSessionScenario {
                                     }
                                     """))
                             .check(status().is(200))
-            ).doIf(String.valueOf(PowerAuthLoadTestCommon.isPreparation)).then(
-                    exec(session -> {
-                        final List<String> testUserIds = session.contains("testUserIds") && session.get("testUserIds") != null ? session.get("testUserIds") : new ArrayList<>();
-                        testUserIds.add(session.get("testUserId"));
-                        return session.set("testUserIds", testUserIds);
-                    }).exec(saveSessionData()));
+            );
 
-    private static String generateUserId() {
-        return "TEST_USER_ID" + randomUUID();
-    }
 
 }

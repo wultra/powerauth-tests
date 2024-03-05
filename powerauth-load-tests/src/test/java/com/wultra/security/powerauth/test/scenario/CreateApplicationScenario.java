@@ -1,7 +1,7 @@
 package com.wultra.security.powerauth.test.scenario;
 
 
-import com.wultra.security.powerauth.test.config.PowerAuthCommon;
+import com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon;
 import io.gatling.javaapi.core.ScenarioBuilder;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,16 +12,16 @@ import static io.gatling.javaapi.http.HttpDsl.status;
 import static java.util.UUID.randomUUID;
 
 @Slf4j
-public class CreateApplicationScenario extends AbstractScenario {
+public class CreateApplicationScenario extends SharedSessionScenario {
 
     private static final String APP_NAME = "TEST_APP" + randomUUID();
     private static final String APP_ROLE = "ROLE_ADMIN";
+
     public static final ScenarioBuilder createApplicationScenario = scenario(CreateApplicationScenario.class.getName())
             .exec(
                     http("Create Application PowerAuth Cloud")
-                            .post(PowerAuthCommon.powerAuthCloudUrl + "admin/applications")
-                            /* TODO: Read basic auth params from env variable */
-                            .basicAuth("system-admin", "MLUteJ+uvi2EOP/F")
+                            .post(PowerAuthLoadTestCommon.PAC_URL + "/admin/applications")
+                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC__ADMIN_PASS)
                             .body(StringBody("""
                                     {
                                       "id": "%s",
@@ -35,16 +35,16 @@ public class CreateApplicationScenario extends AbstractScenario {
                                     jmesPath("appSecret").saveAs("appSecret"),
                                     jmesPath("mobileSdkConfig").saveAs("mobileSdkConfig"),
                                     jmesPath("id").saveAs("appId"))
-            ).exec(
+            )
+            .exec(
                     http("Add access to app for user PowerAuth Cloud")
-                            .post(PowerAuthCommon.powerAuthCloudUrl + "admin/users/system-admin/applications/#{appId}")
-                            /* TODO: Read basic auth params from env variable */
-                            .basicAuth("system-admin", "MLUteJ+uvi2EOP/F")
+                            .post(PowerAuthLoadTestCommon.PAC_URL + "/admin/users/system-admin/applications/#{appId}")
+                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC__ADMIN_PASS)
                             .check(status().is(200))
             )
             .exec(
                     http("Create application Test Server")
-                            .post(PowerAuthCommon.powerAuthTestServerUrl + "application/config")
+                            .post(PowerAuthLoadTestCommon.TEST_SERVER_URL + "/application/config")
                             .body(StringBody("""
                                      {
                                         "requestObject": {

@@ -1,18 +1,15 @@
 package com.wultra.security.powerauth.test.scenario;
 
-import com.wultra.security.powerauth.test.SharedSessionData;
+import com.wultra.security.powerauth.test.shared.SharedSessionData;
 import io.gatling.javaapi.core.ChainBuilder;
 
 import static io.gatling.javaapi.core.CoreDsl.exec;
 
-import lombok.extern.slf4j.Slf4j;
 import scala.collection.JavaConverters;
 
 import java.util.Map;
 
-
-@Slf4j
-abstract class AbstractScenario {
+abstract class SharedSessionScenario {
     public static ChainBuilder prepareSessionData() {
         return exec(session -> {
             for (final Map.Entry<String, Object> entry : SharedSessionData.transferVariable.entrySet()) {
