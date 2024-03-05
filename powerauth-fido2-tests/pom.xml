@@ -3,8 +3,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <name>powerauth-fido2-demo</name>
-    <description>PowerAuth FIDO2 Demo Web Application</description>
+    <name>powerauth-fido2-tests</name>
+    <description>PowerAuth FIDO2 Test Web Application</description>
     <artifactId>powerauth-fido2-tests</artifactId>
     <packaging>war</packaging>
 
