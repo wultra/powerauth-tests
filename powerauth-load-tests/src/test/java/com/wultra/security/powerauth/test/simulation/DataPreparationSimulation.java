@@ -10,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 
-import static com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon.NUM_OF_PREPARED_OPERATIONS;
-import static com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon.NUM_OF_PREPARED_REGISTRATIONS;
 import static io.gatling.javaapi.core.CoreDsl.rampUsers;
 import static io.gatling.javaapi.core.OpenInjectionStep.atOnceUsers;
 
@@ -28,8 +26,13 @@ public class DataPreparationSimulation extends Simulation {
         logger.info("Preparation phase is finished!");
     }
 
+    /*
+     * N reg = 1000 0000
+     * M op  = 10
+     *
+     * */
+
     public DataPreparationSimulation() {
-        PowerAuthLoadTestCommon.isPreparation = true;
         setUp(
                 CreateApplicationScenario.createApplicationScenario
                         .injectOpen(atOnceUsers(1))
@@ -40,11 +43,11 @@ public class DataPreparationSimulation extends Simulation {
                         )
                         .andThen(
                                 CreateRegistrationScenario.createRegistrationScenario
-                                        .injectOpen(rampUsers(NUM_OF_PREPARED_REGISTRATIONS).during(Duration.ofSeconds(1)))
+                                        .injectOpen(rampUsers(Integer.getInteger(PowerAuthLoadTestCommon.PERF_TEST_PREP_N_REG)).during(Duration.ofMinutes(5)))
                                         .protocols(PowerAuthLoadTestCommon.commonProtocol)
                                         .andThen(
                                                 CreateOperationScenario.createOperationScenario
-                                                        .injectOpen(rampUsers(NUM_OF_PREPARED_OPERATIONS).during(Duration.ofSeconds(10)))
+                                                        .injectOpen(rampUsers(Integer.getInteger(PowerAuthLoadTestCommon.PREP_TEST_PREP_M_OP)).during(Duration.ofMinutes(5)))
                                                         .protocols(PowerAuthLoadTestCommon.commonProtocol)
                                         )
                         )

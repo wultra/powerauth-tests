@@ -17,9 +17,8 @@ import static java.util.UUID.randomUUID;
 public class CreateRegistrationScenario extends SharedSessionScenario {
 
     public static final ScenarioBuilder createRegistrationScenario = scenario(CreateRegistrationScenario.class.getName())
-            .doIf(String.valueOf(PowerAuthLoadTestCommon.isPreparation)).then(exec(prepareSessionData()))
-            .doIfEquals(String.valueOf(PowerAuthLoadTestCommon.isPreparation), String.valueOf(Boolean.FALSE))
-            .then(feed(PowerAuthLoadTestCommon.powerauthJdbcFeeder("SELECT name as \"appId\" FROM pa_application ORDER BY Id DESC LIMIT 1;").circular()))
+            .exec(feed(PowerAuthLoadTestCommon.powerauthJdbcFeeder("SELECT name as \"appId\" FROM pa_application ORDER BY Id DESC LIMIT 1;").circular()))
+            .exec(prepareSessionData())
             .exec(session -> session.set("testUserId", generateUserId()))
             .exec(
                     http("Create registration PowerAuth Cloud")
@@ -61,12 +60,13 @@ public class CreateRegistrationScenario extends SharedSessionScenario {
                                     }
                                     """))
                             .check(status().is(200))
-            ).doIf(String.valueOf(PowerAuthLoadTestCommon.isPreparation)).then(
-                    exec(session -> {
-                        final List<String> testUserIds = session.contains("testUserIds") && session.get("testUserIds") != null ? session.get("testUserIds") : new ArrayList<>();
-                        testUserIds.add(session.get("testUserId"));
-                        return session.set("testUserIds", testUserIds);
-                    }).exec(saveSessionData()));
+            )
+            .exec(session -> {
+                final List<String> testUserIds = session.contains("testUserIds") && session.get("testUserIds") != null ? session.get("testUserIds") : new ArrayList<>();
+                testUserIds.add(session.get("testUserId"));
+                return session.set("testUserIds", testUserIds);
+            })
+            .exec(saveSessionData());
 
     private static String generateUserId() {
         return "TEST_USER_ID" + randomUUID();
