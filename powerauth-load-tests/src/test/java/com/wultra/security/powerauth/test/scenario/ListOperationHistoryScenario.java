@@ -28,26 +28,30 @@ public class ListOperationHistoryScenario {
             .exec(http("Create Token Test Server")
                     .post(PowerAuthLoadTestCommon.TEST_SERVER_URL + "/token/create")
                     .body(StringBody("""
+                               {
+                                "requestObject":
                               {
                               "activationId": "#{activationId}",
                               "applicationId": "#{appId}",
                               "signatureType": "POSSESSION"
-                            }
+                            }}
                             """)
                     )
                     .check(status().is(200))
-                    .check((jmesPath("tokenId").saveAs("tokenId")))
-                    .check((jmesPath("tokenSecret").saveAs("tokenSecret"))))
+                    .check((jmesPath("responseObject.tokenId").saveAs("tokenId")))
+                    .check((jmesPath("responseObject.tokenSecret").saveAs("tokenSecret"))))
             .exec(
                     http("List Operation History Test Server")
                             .post(PowerAuthLoadTestCommon.TEST_SERVER_URL + "/operations/pending")
                             .body(StringBody("""
-                                      {
-                                      "activationId": "#{activationId}",
-                                      "tokenId": "#{tokenId}",
-                                      "tokenSecret": "#{tokenSecret}"
-                                    }
-                                    """)
+                                          {
+                                    "requestObject":
+                                          {
+                                          "activationId": "#{activationId}",
+                                          "tokenId": "#{tokenId}",
+                                          "tokenSecret": "#{tokenSecret}"
+                                        }}
+                                        """)
                             )
                             .check(status().is(200)));
 
