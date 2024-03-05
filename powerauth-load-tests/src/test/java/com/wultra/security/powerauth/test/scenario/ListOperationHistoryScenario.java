@@ -10,47 +10,45 @@ import static io.gatling.javaapi.http.HttpDsl.status;
 public class ListOperationHistoryScenario {
 
     public static final ScenarioBuilder listOperationHistoryScenario = scenario(ListOperationHistoryScenario.class.getName())
+            .feed(PowerAuthLoadTestCommon.powerauthJdbcFeeder(
+                    """
+                            SELECT a.user_id AS "testUserId",
+                            a.activation_id AS "activationId",
+                            p.name AS "appId"
+                            FROM pa_activation a
+                            JOIN pa_application p ON a.application_id = p.id
+                            WHERE application_id = (
+                              SELECT id
+                              FROM pa_application
+                              ORDER BY Id DESC
+                              LIMIT 1
+                            );
+                            """
+            ).random())
+            .exec(http("Create Token Test Server")
+                    .post(PowerAuthLoadTestCommon.TEST_SERVER_URL + "/token/create")
+                    .body(StringBody("""
+                              {
+                              "activationId": "#{activationId}",
+                              "applicationId": "#{appId}",
+                              "signatureType": "POSSESSION"
+                            }
+                            """)
+                    )
+                    .check(status().is(200))
+                    .check((jmesPath("tokenId").saveAs("tokenId")))
+                    .check((jmesPath("tokenSecret").saveAs("tokenSecret"))))
             .exec(
-                    http("Create registration PowerAuth Cloud")
-                            .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/registrations")
-                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC__ADMIN_PASS)
+                    http("List Operation History Test Server")
+                            .post(PowerAuthLoadTestCommon.TEST_SERVER_URL + "/operations/pending")
                             .body(StringBody("""
                                       {
-                                      "userId": "#{testUserId}",
-                                      "appId": "#{appId}"
+                                      "activationId": "#{activationId}",
+                                      "tokenId": "#{tokenId}",
+                                      "tokenSecret": "#{tokenSecret}"
                                     }
                                     """)
                             )
-                            .check(status().is(200))
-                            .check((jmesPath("activationCode").saveAs("activationCode")))
-            )
-            .exec(
-                    http("Create activation Test Server")
-                            .post(PowerAuthLoadTestCommon.TEST_SERVER_URL + "/activation/create")
-                            .body(StringBody("""
-                                      {
-                                      "requestObject": {
-                                          "applicationId": "#{appId}",
-                                          "activationName": "TEST ACTIVATION",
-                                          "password": "1234",
-                                          "activationCode": "#{activationCode}"
-                                      }
-                                    }""")
-                            )
-                            .check(status().is(200))
-                            .check((jmesPath("responseObject.activationId").saveAs("activationId")))
-            )
-            .exec(
-                    http("Commit registration PowerAuth Cloud")
-                            .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/registrations/#{activationId}/commit")
-                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC__ADMIN_PASS)
-                            .body(StringBody("""
-                                     {
-                                      "externalUserId": null
-                                    }
-                                    """))
-                            .check(status().is(200))
-            );
-
+                            .check(status().is(200)));
 
 }

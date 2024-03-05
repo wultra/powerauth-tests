@@ -13,21 +13,24 @@ public class ApproveOperationScenario extends SharedSessionScenario {
             .feed(PowerAuthLoadTestCommon.powerauthJdbcFeeder(
                     """
                             SELECT
-                                   a.user_id AS "testUserId",
-                                   a.application_id AS "appId",
-                                   o.id AS "operationId"
-                               FROM
-                                   pa_activation a
-                               JOIN
-                                   pa_operation o ON a.user_id = o.user_id
-                               WHERE
-                                   a.application_id = (
-                                       SELECT id
-                                       FROM pa_application
-                                       ORDER BY id DESC
-                                       LIMIT 1
-                                   );
-                            """
+                                a.user_id AS "testUserId",
+                                a.activation_id AS "activationId",
+                                p.name AS "appId",
+                                o.id AS "operationId"
+                            FROM
+                                pa_activation a
+                            JOIN
+                                pa_operation o ON a.user_id = o.user_id
+                            JOIN
+                                pa_application p ON a.application_id = p.id
+                            WHERE
+                                a.application_id = (
+                                    SELECT id
+                                    FROM pa_application
+                                    ORDER BY id DESC
+                                    LIMIT 1
+                                );
+                           """
             ).random())
             .exec(
                     http("Approve Operation Test Server")
@@ -36,7 +39,7 @@ public class ApproveOperationScenario extends SharedSessionScenario {
                                     {
                                         "requestObject":
                                             {
-                                                "activationId": "null",
+                                                "activationId": "#{activationId}",
                                                 "applicationId": "#{appId}",
                                                 "password": "1234",
                                                 "operationData": "A2",
