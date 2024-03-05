@@ -16,24 +16,21 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.app.powerauth.fido2.demo.controller;
+package com.wultra.security.powerauth.fido2;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-
-import java.util.Map;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 
 /**
- * Controller to display initial web page
+ * Spring Boot servlet initializer
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
-@Controller
-public class HomeController {
+public class ServletInitializer extends SpringBootServletInitializer {
 
-    @GetMapping
-    public String homePage(Map<String, Object> model) {
-        return "home";
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+        return application.sources(PowerauthFido2TestApplication.class);
     }
 
 }

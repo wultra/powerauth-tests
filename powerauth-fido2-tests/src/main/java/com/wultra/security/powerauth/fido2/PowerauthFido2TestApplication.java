@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.app.powerauth.fido2.demo;
+package com.wultra.security.powerauth.fido2;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -27,10 +27,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @SpringBootApplication
-public class PowerauthFido2DemoApplication {
+public class PowerauthFido2TestApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(PowerauthFido2DemoApplication.class, args);
+        SpringApplication.run(PowerauthFido2TestApplication.class, args);
     }
 
 }

@@ -61,7 +61,7 @@
 
     <modules>
         <module>powerauth-backend-tests</module>
-        <module>powerauth-fido2-demo</module>
+        <module>powerauth-fido2-tests</module>
         <module>powerauth-load-tests</module>
         <module>powerauth-test-server</module>
         <module>powerauth-webflow-tests</module>

@@ -5,7 +5,7 @@
 
     <name>powerauth-fido2-demo</name>
     <description>PowerAuth FIDO2 Demo Web Application</description>
-    <artifactId>powerauth-fido2-demo</artifactId>
+    <artifactId>powerauth-fido2-tests</artifactId>
     <packaging>war</packaging>
 
     <parent>
