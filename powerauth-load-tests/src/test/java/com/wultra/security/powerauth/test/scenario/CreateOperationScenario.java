@@ -15,7 +15,7 @@ import static io.gatling.javaapi.http.HttpDsl.status;
 @Slf4j
 public class CreateOperationScenario extends SharedSessionScenario {
 
-    public static final Random rand = new Random();
+    private static final Random rand = new Random();
     public static final ScenarioBuilder createOperationScenario = scenario(CreateOperationScenario.class.getName())
             .doIf(String.valueOf(PowerAuthLoadTestCommon.isPreparation)).then(
                     exec(prepareSessionData())

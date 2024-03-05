@@ -18,6 +18,8 @@ public class CreateRegistrationScenario extends SharedSessionScenario {
 
     public static final ScenarioBuilder createRegistrationScenario = scenario(CreateRegistrationScenario.class.getName())
             .doIf(String.valueOf(PowerAuthLoadTestCommon.isPreparation)).then(exec(prepareSessionData()))
+            .doIfEquals(String.valueOf(PowerAuthLoadTestCommon.isPreparation), String.valueOf(Boolean.FALSE))
+            .then(feed(PowerAuthLoadTestCommon.powerauthJdbcFeeder("SELECT name as \"appId\" FROM pa_application ORDER BY Id DESC LIMIT 1;").circular()))
             .exec(session -> session.set("testUserId", generateUserId()))
             .exec(
                     http("Create registration PowerAuth Cloud")

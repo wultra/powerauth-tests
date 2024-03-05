@@ -31,5 +31,15 @@ abstract class SharedSessionScenario {
             return session;
         });
     }
+
+    public static ChainBuilder saveSessionVariable(final String key) {
+        return exec(session -> {
+            final String value = session.get(key);
+            if (value !=null) {
+                SharedSessionData.transferVariable.put(key, value);
+            }
+            return session;
+        });
+    }
 }
 

@@ -20,12 +20,12 @@ public class DataPreparationSimulation extends Simulation {
 
     @Override
     public void before() {
-        logger.info("Simulation is about to start!");
+        logger.info("Preparation phase is about to start!");
     }
 
     @Override
     public void after() {
-        logger.info("Simulation is finished!");
+        logger.info("Preparation phase is finished!");
     }
 
     public DataPreparationSimulation() {
@@ -35,7 +35,7 @@ public class DataPreparationSimulation extends Simulation {
                         .injectOpen(atOnceUsers(1))
                         .protocols(PowerAuthLoadTestCommon.commonProtocol).andThen(
                                 CreateCallbackScenario.createCallbackScenario
-                                        .injectOpen()
+                                        .injectOpen(atOnceUsers(1))
                                         .protocols(PowerAuthLoadTestCommon.commonProtocol)
                         )
                         .andThen(

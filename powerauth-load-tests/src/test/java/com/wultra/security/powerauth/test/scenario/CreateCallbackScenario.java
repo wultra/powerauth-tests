@@ -16,7 +16,7 @@ public class CreateCallbackScenario extends SharedSessionScenario {
             .exec(prepareSessionData())
             .exec(
                     http("Create callback PowerAuth Cloud")
-                            .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/admin/operations/#{appId}/callbacks")
+                            .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/admin/applications/#{appId}/callbacks")
                             .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC__ADMIN_PASS)
                             .body(StringBody("""
                                       {
@@ -29,7 +29,7 @@ public class CreateCallbackScenario extends SharedSessionScenario {
                             .check(status().is(200))
             ).exec(
                     http("Create callback PowerAuth Cloud")
-                            .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/admin/operations/#{appId}/callbacks")
+                            .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/admin/applications/#{appId}/callbacks")
                             .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC__ADMIN_PASS)
                             .body(StringBody("""
                                       {

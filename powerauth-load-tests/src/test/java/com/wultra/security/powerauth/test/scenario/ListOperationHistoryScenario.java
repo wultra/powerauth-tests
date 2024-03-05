@@ -9,7 +9,7 @@ import static io.gatling.javaapi.http.HttpDsl.status;
 
 public class ListOperationHistoryScenario {
 
-    public static final ScenarioBuilder listOperationHistoryScenario = scenario(CreateRegistrationScenario.class.getName())
+    public static final ScenarioBuilder listOperationHistoryScenario = scenario(ListOperationHistoryScenario.class.getName())
             .exec(
                     http("Create registration PowerAuth Cloud")
                             .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/registrations")

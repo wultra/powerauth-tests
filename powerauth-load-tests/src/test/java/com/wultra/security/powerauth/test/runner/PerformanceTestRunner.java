@@ -9,9 +9,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 public class PerformanceTestRunner {
     public static void main(String[] args) {
-        final WireMockServer wireMockServer = new WireMockServer();
-        configureFor("localhost", 8090);
-        stubFor(get(urlEqualTo("/mock-callback")).willReturn(aResponse().withBody("Callback ok")));
+        final WireMockServer wireMockServer = new WireMockServer(8090);
+        wireMockServer.stubFor(get(urlEqualTo("/mock-callback")).willReturn(aResponse().withBody("Callback ok")));
         wireMockServer.start();
         final GatlingPropertiesBuilder props = new GatlingPropertiesBuilder();
         props.simulationClass(PerformanceTestSimulation.class.getName());

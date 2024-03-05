@@ -1,19 +1,23 @@
 package com.wultra.security.powerauth.test.config;
 
+import com.wultra.security.powerauth.test.shared.SharedSessionData;
+import io.gatling.javaapi.core.ChainBuilder;
 import io.gatling.javaapi.core.FeederBuilder;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+import static io.gatling.javaapi.core.CoreDsl.exec;
+import static io.gatling.javaapi.core.CoreDsl.feed;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.jdbc.JdbcDsl.jdbcFeeder;
 
+@Slf4j
 public class PowerAuthLoadTestCommon {
 
     public static boolean isPreparation = false;
 
-    public static final int NUM_OF_PREPARED_REGISTRATIONS = 5;
-    public static final int NUM_OF_PREPARED_OPERATIONS = 10;
+    public static final int NUM_OF_PREPARED_REGISTRATIONS = 1;
+    public static final int NUM_OF_PREPARED_OPERATIONS = 1;
 
     public static final int NUM_OF_EXECUTED_REGISTRATIONS_TOTAL = 10;
     public static final int NUM_OF_EXECUTED_REGISTRATIONS_MINS = 2;
@@ -35,8 +39,16 @@ public class PowerAuthLoadTestCommon {
             .acceptHeader("application/json")
             .userAgentHeader("PowerAuth-LoadTest/gatling").check();
 
-    public static FeederBuilder<Object> powerauthJdbcFeeder(final String query){
+    public static FeederBuilder<Object> powerauthJdbcFeeder(final String query) {
+
         return jdbcFeeder("jdbc:postgresql://localhost:5432/powerauth", "powerauth", "", query);
+    }
+
+    public static FeederBuilder<Object> dynamicPowerauthJdbcFeeder(final String query, final Boolean dynamic, final String key) {
+        final String value = (String) SharedSessionData.transferVariable.get(key);
+        final String queryFormatted = query.formatted(value);
+        logger.info(queryFormatted);
+        return jdbcFeeder("jdbc:postgresql://localhost:5432/powerauth", "powerauth", "", queryFormatted);
     }
 
 }
