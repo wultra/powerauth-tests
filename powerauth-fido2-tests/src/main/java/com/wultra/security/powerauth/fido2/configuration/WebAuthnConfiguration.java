@@ -18,8 +18,9 @@
 
 package com.wultra.security.powerauth.fido2.configuration;
 
-import lombok.Data;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
@@ -30,7 +31,8 @@ import java.util.List;
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @Configuration
-@Data
+@ConfigurationProperties(prefix = "powerauth.webauthn")
+@Getter
 public class WebAuthnConfiguration {
 
     @Value("${powerauth.webauthn.rpId}")

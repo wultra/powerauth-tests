@@ -19,11 +19,13 @@
 package com.wultra.security.powerauth.fido2.configuration;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.PowerAuthFido2Client;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.rest.client.PowerAuthFido2RestClient;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
@@ -34,7 +36,7 @@ import org.springframework.util.StringUtils;
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @Configuration
-@Slf4j
+@ConfigurationProperties(prefix = "powerauth.service")
 public class PowerAuthWebServiceConfiguration {
 
     @Value("${powerauth.service.baseUrl}")
@@ -59,6 +61,17 @@ public class PowerAuthWebServiceConfiguration {
             return new PowerAuthRestClient(powerAuthServiceUrl, config);
         }
         return new PowerAuthRestClient(powerAuthServiceUrl);
+    }
+
+    @Bean
+    public PowerAuthFido2Client powerAuthFido2Client() throws PowerAuthClientException {
+        if (StringUtils.hasText(clientToken)) {
+            final PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
+            config.setPowerAuthClientToken(clientToken);
+            config.setPowerAuthClientSecret(clientSecret);
+            return new PowerAuthFido2RestClient(powerAuthServiceBaseUrl, config);
+        }
+        return new PowerAuthFido2RestClient(powerAuthServiceBaseUrl);
     }
 
 }
