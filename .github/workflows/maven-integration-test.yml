@@ -21,9 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment || 'dev' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up JDK 21
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: 'temurin'
@@ -46,7 +46,7 @@ jobs:
           POWERAUTH_SERVICE_SECURITY_CLIENTSECRET: ${{ secrets.POWERAUTH_SERVICE_SECURITY_CLIENTSECRET }}
           POWERAUTH_TEST_INCLUDECUSTOMTESTS: ${{ inputs.includeCustomTests == '' || inputs.includeCustomTests }} # default includeCustomTests=true even for 'schedule' event
       - name: Publish Test Report
-        uses: mikepenz/action-junit-report@v3
+        uses: mikepenz/action-junit-report@v4
         if: always()
         with:
           detailed_summary: true
