@@ -38,8 +38,7 @@
     </developers>
 
     <properties>
-        <scala.version>2.13.6</scala.version>
-        <scala.minor.version>2.13.6</scala.minor.version>
+        <scala.version>2.13.13</scala.version>
 
         <maven-plugin-gatling.version>4.8.2</maven-plugin-gatling.version>
         <maven-plugin-scala.version>4.8.1</maven-plugin-scala.version>
@@ -83,7 +82,7 @@
                                 <jvmArg>-Xss100M</jvmArg>
                             </jvmArgs>
                             <args>
-                                <arg>-target:jvm-1.8</arg>
+                                <arg>-release:17</arg>
                                 <arg>-deprecation</arg>
                                 <arg>-feature</arg>
                                 <arg>-unchecked</arg>
