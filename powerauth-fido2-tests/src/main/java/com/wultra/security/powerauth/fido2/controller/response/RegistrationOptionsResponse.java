@@ -22,7 +22,6 @@ import com.webauthn4j.data.PublicKeyCredentialParameters;
 import com.webauthn4j.data.PublicKeyCredentialRpEntity;
 import com.webauthn4j.data.PublicKeyCredentialUserEntity;
 import lombok.Builder;
-import lombok.Getter;
 
 import java.util.List;
 
@@ -32,12 +31,11 @@ import java.util.List;
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @Builder
-@Getter
-public class RegistrationOptionsResponse {
-    private PublicKeyCredentialRpEntity rp;
-    private PublicKeyCredentialUserEntity user;
-    private String challenge;
-    private List<PublicKeyCredentialParameters> pubKeyCredParams;
-    private Long timeout;
-    private List<CredentialDescriptor> excludeCredentials;
-}
+public record RegistrationOptionsResponse(
+    PublicKeyCredentialRpEntity rp,
+    PublicKeyCredentialUserEntity user,
+    String challenge,
+    List<PublicKeyCredentialParameters> pubKeyCredParams,
+    Long timeout,
+    List<CredentialDescriptor> excludeCredentials
+) {}

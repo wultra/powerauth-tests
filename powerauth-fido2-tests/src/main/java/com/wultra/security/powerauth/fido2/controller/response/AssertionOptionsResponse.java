@@ -20,7 +20,6 @@ package com.wultra.security.powerauth.fido2.controller.response;
 
 import com.webauthn4j.data.UserVerificationRequirement;
 import lombok.Builder;
-import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
@@ -30,13 +29,12 @@ import java.util.Map;
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
-@Data
 @Builder
-public class AssertionOptionsResponse {
-    private String rpId;
-    private String challenge;
-    private Long timeout;
-    private List<CredentialDescriptor> allowCredentials;
-    private UserVerificationRequirement userVerification;
-    private Map<String, Object> extensions;
-}
+public record AssertionOptionsResponse(
+    String rpId,
+    String challenge,
+    Long timeout,
+    List<CredentialDescriptor> allowCredentials,
+    UserVerificationRequirement userVerification,
+    Map<String, Object> extensions
+) {}
