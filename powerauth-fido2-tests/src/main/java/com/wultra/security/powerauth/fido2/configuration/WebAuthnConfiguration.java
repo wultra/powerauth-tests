@@ -31,7 +31,7 @@ import java.util.List;
  */
 @Configuration
 @Data
-public class WebauthnConfiguration {
+public class WebAuthnConfiguration {
 
     @Value("${powerauth.webauthn.rpId}")
     private String rpId;
