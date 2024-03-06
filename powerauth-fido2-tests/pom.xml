@@ -30,6 +30,13 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
+        <!-- Wultra Dependencies -->
+        <dependency>
+            <groupId>io.getlime.security</groupId>
+            <artifactId>powerauth-rest-client-spring</artifactId>
+            <version>${powerauth-server.version}</version>
+        </dependency>
+
     </dependencies>
 
     <!-- Build profiles -->
