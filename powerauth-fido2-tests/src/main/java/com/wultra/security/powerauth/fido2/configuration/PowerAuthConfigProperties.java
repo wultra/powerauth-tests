@@ -22,21 +22,19 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
-import java.util.List;
-
 /**
- * WebAuthn configuration properties.
+ * PowerAuth clients configuration properties.
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @Configuration
-@ConfigurationProperties(prefix = "powerauth.webauthn")
+@ConfigurationProperties(prefix = "powerauth.service")
 @Data
-public class WebAuthnConfiguration {
+public class PowerAuthConfigProperties {
 
-    private String rpId;
-    private String rpName;
-    private Long timeout;
-    private List<String> allowedOrigins;
+    private String baseUrl;
+    private SecurityProperties security;
+
+    public record SecurityProperties(String clientToken, String clientSecret) {}
 
 }

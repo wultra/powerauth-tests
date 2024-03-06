@@ -24,8 +24,6 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.rest.client.PowerAuthFido2RestClient;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
@@ -36,42 +34,29 @@ import org.springframework.util.StringUtils;
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @Configuration
-@ConfigurationProperties(prefix = "powerauth.service")
 public class PowerAuthWebServiceConfiguration {
 
-    @Value("${powerauth.service.baseUrl}")
-    private String powerAuthServiceBaseUrl;
-
-    @Value("${powerauth.service.apiContext}")
-    private String powerAuthServiceApiPath;
-
-    @Value("${powerauth.service.security.clientToken}")
-    private String clientToken;
-
-    @Value("${powerauth.service.security.clientSecret}")
-    private String clientSecret;
-
     @Bean
-    public PowerAuthClient powerAuthClient() throws PowerAuthClientException {
-        final String powerAuthServiceUrl = powerAuthServiceBaseUrl + powerAuthServiceApiPath;
-        if (StringUtils.hasText(clientToken)) {
+    public PowerAuthClient powerAuthClient(final PowerAuthConfigProperties properties) throws PowerAuthClientException {
+        final String powerAuthServiceUrl = properties.getBaseUrl() + "/rest";
+        if (StringUtils.hasText(properties.getSecurity().clientToken())) {
             final PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
-            config.setPowerAuthClientToken(clientToken);
-            config.setPowerAuthClientSecret(clientSecret);
+            config.setPowerAuthClientToken(properties.getSecurity().clientToken());
+            config.setPowerAuthClientSecret(properties.getSecurity().clientSecret());
             return new PowerAuthRestClient(powerAuthServiceUrl, config);
         }
         return new PowerAuthRestClient(powerAuthServiceUrl);
     }
 
     @Bean
-    public PowerAuthFido2Client powerAuthFido2Client() throws PowerAuthClientException {
-        if (StringUtils.hasText(clientToken)) {
+    public PowerAuthFido2Client powerAuthFido2Client(final PowerAuthConfigProperties properties) throws PowerAuthClientException {
+        if (StringUtils.hasText(properties.getSecurity().clientToken())) {
             final PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
-            config.setPowerAuthClientToken(clientToken);
-            config.setPowerAuthClientSecret(clientSecret);
-            return new PowerAuthFido2RestClient(powerAuthServiceBaseUrl, config);
+            config.setPowerAuthClientToken(properties.getSecurity().clientToken());
+            config.setPowerAuthClientSecret(properties.getSecurity().clientSecret());
+            return new PowerAuthFido2RestClient(properties.getBaseUrl(), config);
         }
-        return new PowerAuthFido2RestClient(powerAuthServiceBaseUrl);
+        return new PowerAuthFido2RestClient(properties.getBaseUrl());
     }
 
 }
