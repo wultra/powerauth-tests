@@ -22,6 +22,7 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+import java.time.Duration;
 import java.util.List;
 
 /**
@@ -36,7 +37,7 @@ public class WebAuthnConfiguration {
 
     private String rpId;
     private String rpName;
-    private Long timeout;
+    private Duration timeout;
     private List<String> allowedOrigins;
 
 }
