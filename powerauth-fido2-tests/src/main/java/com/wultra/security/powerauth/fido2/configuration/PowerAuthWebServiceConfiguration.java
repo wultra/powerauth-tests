@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 /**
  * PowerAuth service configuration class.
@@ -49,23 +50,15 @@ public class PowerAuthWebServiceConfiguration {
     private String clientSecret;
 
     @Bean
-    public PowerAuthClient powerAuthClient() {
+    public PowerAuthClient powerAuthClient() throws PowerAuthClientException {
         final String powerAuthServiceUrl = powerAuthServiceBaseUrl + powerAuthServiceApiPath;
-        try {
-            // Endpoint security is on
-            if (clientToken != null && !clientToken.isEmpty()) {
-                final PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
-                config.setPowerAuthClientToken(clientToken);
-                config.setPowerAuthClientSecret(clientSecret);
-                return new PowerAuthRestClient(powerAuthServiceUrl, config);
-            } else {
-                return new PowerAuthRestClient(powerAuthServiceUrl);
-            }
-        } catch (PowerAuthClientException ex) {
-            // Log the error in case Rest client initialization failed
-            logger.error(ex.getMessage(), ex);
-            return null;
+        if (StringUtils.hasText(clientToken)) {
+            final PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
+            config.setPowerAuthClientToken(clientToken);
+            config.setPowerAuthClientSecret(clientSecret);
+            return new PowerAuthRestClient(powerAuthServiceUrl, config);
         }
+        return new PowerAuthRestClient(powerAuthServiceUrl);
     }
 
 }

@@ -26,6 +26,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 /**
  * PowerAuth FIDO2 service configuration class.
@@ -46,22 +47,14 @@ public class PowerAuthFido2WebServiceConfiguration {
     private String clientSecret;
 
     @Bean
-    public PowerAuthFido2Client powerAuthFido2Client() {
-        try {
-            // Endpoint security is on
-            if (clientToken != null && !clientToken.isEmpty()) {
-                final PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
-                config.setPowerAuthClientToken(clientToken);
-                config.setPowerAuthClientSecret(clientSecret);
-                return new PowerAuthFido2RestClient(powerAuthServiceBaseUrl, config);
-            } else {
-                return new PowerAuthFido2RestClient(powerAuthServiceBaseUrl);
-            }
-        } catch (PowerAuthClientException ex) {
-            // Log the error in case Rest client initialization failed
-            logger.error(ex.getMessage(), ex);
-            return null;
+    public PowerAuthFido2Client powerAuthFido2Client() throws PowerAuthClientException {
+        if (StringUtils.hasText(clientToken)) {
+            final PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
+            config.setPowerAuthClientToken(clientToken);
+            config.setPowerAuthClientSecret(clientSecret);
+            return new PowerAuthFido2RestClient(powerAuthServiceBaseUrl, config);
         }
+        return new PowerAuthFido2RestClient(powerAuthServiceBaseUrl);
     }
 
 }
