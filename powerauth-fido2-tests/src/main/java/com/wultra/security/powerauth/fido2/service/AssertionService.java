@@ -52,7 +52,7 @@ public class AssertionService {
 
     private final PowerAuthFido2Client fido2Client;
     private final SharedService sharedService;
-    private final WebAuthnConfiguration webauthnConfig;
+    private final WebAuthnConfiguration webAuthNConfig;
 
     /**
      * Build public key assertion options.
@@ -77,8 +77,8 @@ public class AssertionService {
 
         return AssertionOptionsResponse.builder()
                 .challenge(challenge)
-                .rpId(webauthnConfig.getRpId())
-                .timeout(webauthnConfig.getTimeout().toMillis())
+                .rpId(webAuthNConfig.getRpId())
+                .timeout(webAuthNConfig.getTimeout().toMillis())
                 .allowCredentials(existingCredentials)
                 .userVerification(UserVerificationRequirement.PREFERRED)
                 .extensions(Map.of(OPERATION_DATA_EXTENSION_KEY, operationData))
@@ -99,8 +99,8 @@ public class AssertionService {
         request.setResponse(credential.response());
         request.setApplicationId(credential.applicationId());
         request.setExpectedChallenge(credential.expectedChallenge());
-        request.setRelyingPartyId(webauthnConfig.getRpId());
-        request.setAllowedOrigins(webauthnConfig.getAllowedOrigins());
+        request.setRelyingPartyId(webAuthNConfig.getRpId());
+        request.setAllowedOrigins(webAuthNConfig.getAllowedOrigins());
         request.setRequiresUserVerification(credential.userVerificationRequired());
         return fido2Client.authenticate(request);
     }

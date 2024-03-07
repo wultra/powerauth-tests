@@ -51,7 +51,7 @@ public class RegistrationService {
 
     private final PowerAuthFido2Client fido2Client;
     private final SharedService sharedService;
-    private final WebAuthnConfiguration webauthnConfig;
+    private final WebAuthnConfiguration webAuthNConfig;
 
     /**
      * Build public key registration options.
@@ -67,13 +67,13 @@ public class RegistrationService {
 
         logger.info("Building registration options for userId={}, applicationId={}", userId, applicationId);
         return RegistrationOptionsResponse.builder()
-                .rp(new PublicKeyCredentialRpEntity(webauthnConfig.getRpId(), webauthnConfig.getRpName()))
+                .rp(new PublicKeyCredentialRpEntity(webAuthNConfig.getRpId(), webAuthNConfig.getRpName()))
                 .user(new PublicKeyCredentialUserEntity(userId.getBytes(), userId, userId))
                 .challenge(challengeResponse.getChallenge())
                 .pubKeyCredParams(List.of(
                         new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256)
                 ))
-                .timeout(webauthnConfig.getTimeout().toMillis())
+                .timeout(webAuthNConfig.getTimeout().toMillis())
                 .excludeCredentials(sharedService.fetchExistingCredentials(userId, applicationId))
                 .build();
     }
@@ -107,8 +107,8 @@ public class RegistrationService {
         parameters.setAuthenticatorAttachment(credential.authenticatorAttachment().getValue());
         parameters.setType(credential.type().getValue());
         parameters.setResponse(credential.response());
-        parameters.setAllowedOrigins(webauthnConfig.getAllowedOrigins());
-        parameters.setRelyingPartyId(webauthnConfig.getRpId());
+        parameters.setAllowedOrigins(webAuthNConfig.getAllowedOrigins());
+        parameters.setRelyingPartyId(webAuthNConfig.getRpId());
         parameters.setRequiresUserVerification(credential.userVerificationRequired());
         return parameters;
     }
