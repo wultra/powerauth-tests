@@ -80,7 +80,6 @@ public class AssertionService {
                 .rpId(webAuthNConfig.getRpId())
                 .timeout(webAuthNConfig.getTimeout().toMillis())
                 .allowCredentials(existingCredentials)
-                .userVerification(UserVerificationRequirement.PREFERRED)
                 .extensions(Map.of(OPERATION_DATA_EXTENSION_KEY, operationData))
                 .build();
     }
