@@ -85,10 +85,10 @@ public class RegistrationService {
      * @throws PowerAuthClientException in case of PowerAuth server communication error.
      */
     public RegistrationResponse register(final RegisterCredentialRequest credential) throws PowerAuthClientException {
-        logger.info("Registering created credential of userId={}, applicationId={}", credential.activationName(), credential.applicationId());
+        logger.info("Registering created credential of userId={}, applicationId={}", credential.username(), credential.applicationId());
 
         final RegistrationRequest request = new RegistrationRequest();
-        request.setActivationName(credential.activationName());
+        request.setActivationName(credential.username());
         request.setApplicationId(credential.applicationId());
         request.setAuthenticatorParameters(buildAuthenticatorParameters(credential));
         return fido2Client.register(request);

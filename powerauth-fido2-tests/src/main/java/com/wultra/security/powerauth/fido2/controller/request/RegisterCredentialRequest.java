@@ -34,7 +34,7 @@ public record RegisterCredentialRequest (
         String applicationId,
 
         @NotBlank
-        String activationName,
+        String username,
 
         boolean userVerificationRequired,
 
