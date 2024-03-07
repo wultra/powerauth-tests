@@ -18,7 +18,6 @@
 
 package com.wultra.security.powerauth.fido2.service;
 
-import com.webauthn4j.data.UserVerificationRequirement;
 import com.wultra.security.powerauth.client.PowerAuthFido2Client;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.fido2.AssertionChallengeRequest;
@@ -71,7 +70,7 @@ public class AssertionService {
             throw new IllegalStateException("Not registered yet.");
         }
 
-        final AssertionChallengeResponse challengeResponse = fetchChallenge(applicationId, request.templateName());
+        final AssertionChallengeResponse challengeResponse = fetchChallenge(applicationId, request.templateName(), request.operationParameters());
         final String challenge = challengeResponse.getChallenge();
         final String operationData = extractOperationData(challenge);
 
@@ -104,10 +103,13 @@ public class AssertionService {
         return fido2Client.authenticate(request);
     }
 
-    private AssertionChallengeResponse fetchChallenge(final String applicationId, final String templateName) throws PowerAuthClientException {
+    private AssertionChallengeResponse fetchChallenge(final String applicationId, final String templateName, final Map<String, String> operationParameters) throws PowerAuthClientException {
         final AssertionChallengeRequest request = new AssertionChallengeRequest();
         request.setApplicationIds(List.of(applicationId));
         request.setTemplateName(templateName);
+        if (operationParameters != null) {
+            request.setParameters(operationParameters);
+        }
         return fido2Client.requestAssertionChallenge(request);
     }
 

@@ -20,6 +20,8 @@ package com.wultra.security.powerauth.fido2.controller.request;
 
 import jakarta.validation.constraints.NotBlank;
 
+import java.util.Map;
+
 /**
  * Request for credential assertion options.
  *
@@ -32,5 +34,7 @@ public record AssertionOptionsRequest (
         String applicationId,
 
         @NotBlank
-        String templateName
+        String templateName,
+
+        Map<String, String> operationParameters
 ) { }
