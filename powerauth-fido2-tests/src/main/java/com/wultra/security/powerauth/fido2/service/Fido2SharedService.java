@@ -43,7 +43,7 @@ import java.util.List;
 @Service
 @AllArgsConstructor
 @Slf4j
-public class SharedService {
+public class Fido2SharedService {
 
     private static final String EXTRAS_TRANSPORT_KEY = "transports";
     private static final PublicKeyCredentialType CREDENTIAL_TYPE = PublicKeyCredentialType.PUBLIC_KEY;
@@ -64,7 +64,7 @@ public class SharedService {
         }
 
         return listAuthenticators(userId, applicationId).stream()
-                .map(SharedService::toCredentialDescriptor)
+                .map(Fido2SharedService::toCredentialDescriptor)
                 .toList();
     }
 

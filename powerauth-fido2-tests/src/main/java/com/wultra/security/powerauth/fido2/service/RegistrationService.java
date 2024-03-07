@@ -50,7 +50,7 @@ import java.util.List;
 public class RegistrationService {
 
     private final PowerAuthFido2Client fido2Client;
-    private final SharedService sharedService;
+    private final Fido2SharedService fido2SharedService;
     private final WebAuthnConfiguration webAuthNConfig;
 
     /**
@@ -74,7 +74,7 @@ public class RegistrationService {
                         new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256)
                 ))
                 .timeout(webAuthNConfig.getTimeout().toMillis())
-                .excludeCredentials(sharedService.fetchExistingCredentials(userId, applicationId))
+                .excludeCredentials(fido2SharedService.fetchExistingCredentials(userId, applicationId))
                 .build();
     }
 

@@ -51,7 +51,7 @@ public class AssertionService {
     private static final String OPERATION_DATA_EXTENSION_KEY = "txAuthSimple";
 
     private final PowerAuthFido2Client fido2Client;
-    private final SharedService sharedService;
+    private final Fido2SharedService fido2SharedService;
     private final WebAuthnConfiguration webAuthNConfig;
 
     /**
@@ -66,7 +66,7 @@ public class AssertionService {
 
         logger.info("Building assertion options for userId={}, applicationId={}", userId, applicationId);
 
-        final List<CredentialDescriptor> existingCredentials = sharedService.fetchExistingCredentials(userId, applicationId);
+        final List<CredentialDescriptor> existingCredentials = fido2SharedService.fetchExistingCredentials(userId, applicationId);
         if (existingCredentials.isEmpty() && StringUtils.hasText(userId))  {
             throw new IllegalStateException("Not registered yet.");
         }
