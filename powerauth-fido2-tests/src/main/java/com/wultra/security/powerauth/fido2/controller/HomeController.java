@@ -66,21 +66,14 @@ public class HomeController {
     }
 
     @GetMapping("/login")
-    public String loginPage(Map<String, Object> model) {
-        try {
-            model.put("applications", sharedService.fetchApplicationNameList());
-            model.put("templates", sharedService.fetchTemplateNameList());
-            return LOGIN_PAGE;
-        } catch (PowerAuthClientException ex) {
-            logger.warn(ex.getMessage(), ex);
-            model.put("exception", ex);
-            model.put("errorMessage", ex.getMessage());
-            return ERROR_PAGE;
-        }
+    public String loginPage(Map<String, Object> model) throws PowerAuthClientException {
+        model.put("applications", sharedService.fetchApplicationNameList());
+        model.put("templates", sharedService.fetchTemplateNameList());
+        return LOGIN_PAGE;
     }
 
     @GetMapping("/payment")
-    public String profilePage(Map<String, Object> model, HttpSession session) {
+    public String profilePage(Map<String, Object> model, HttpSession session) throws PowerAuthClientException {
         final String username = (String) session.getAttribute(SESSION_KEY_USERNAME);
         final String applicationId = (String) session.getAttribute(SESSION_KEY_APPLICATION_ID);
         if (!StringUtils.hasText(username)) {
@@ -89,16 +82,8 @@ public class HomeController {
 
         model.put(SESSION_KEY_USERNAME, username);
         model.put(SESSION_KEY_APPLICATION_ID, applicationId);
-
-        try {
-            model.put("templates", sharedService.fetchTemplateNameList());
-            return PAYMENT_PAGE;
-        } catch (PowerAuthClientException ex) {
-            logger.warn(ex.getMessage(), ex);
-            model.put("exception", ex);
-            model.put("errorMessage", ex.getMessage());
-            return ERROR_PAGE;
-        }
+        model.put("templates", sharedService.fetchTemplateNameList());
+        return PAYMENT_PAGE;
     }
 
     @GetMapping("/logout")
