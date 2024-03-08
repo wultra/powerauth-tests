@@ -1,17 +1,38 @@
+/*
+ * PowerAuth test and related software components
+ * Copyright (C) 2024 Wultra s.r.o.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package com.wultra.security.powerauth.test.scenario;
-
 
 import com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon;
 import io.gatling.javaapi.core.ScenarioBuilder;
-import lombok.extern.slf4j.Slf4j;
-
 
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 import static java.util.UUID.randomUUID;
 
-@Slf4j
+/**
+ * Defines a Gatling scenario for creating a new application in the PowerAuth system.
+ * The scenario includes making HTTP requests to the PowerAuth Cloud to create an application,
+ * adding user access to the newly created application, and configuring the application on the Test Server.
+ * Utilizes dynamic values for application name and roles, and stores important response details for future steps.
+ *
+ * @author Jan Dusil, jan.dusil@wultra.com
+ */
 public class CreateApplicationScenario extends SharedSessionScenario {
 
     private static final String APP_NAME = "TEST_APP" + randomUUID();
@@ -21,7 +42,7 @@ public class CreateApplicationScenario extends SharedSessionScenario {
             .exec(
                     http("Create Application PowerAuth Cloud")
                             .post(PowerAuthLoadTestCommon.PAC_URL + "/admin/applications")
-                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC__ADMIN_PASS)
+                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC_ADMIN_PASS)
                             .body(StringBody("""
                                     {
                                       "id": "%s",
@@ -39,7 +60,7 @@ public class CreateApplicationScenario extends SharedSessionScenario {
             .exec(
                     http("Add access to app for user PowerAuth Cloud")
                             .post(PowerAuthLoadTestCommon.PAC_URL + "/admin/users/system-admin/applications/#{appId}")
-                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC__ADMIN_PASS)
+                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC_ADMIN_PASS)
                             .check(status().is(200))
             )
             .exec(
@@ -58,5 +79,4 @@ public class CreateApplicationScenario extends SharedSessionScenario {
                                     }
                                       """.formatted(APP_NAME))))
             .exec(saveSessionData());
-
 }

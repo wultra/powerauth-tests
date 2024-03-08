@@ -6,8 +6,8 @@
         </encoder>
     </appender>
 
-    <logger name="io.gatling.http.request" level="TRACE" />
-    <logger name="io.gatling.http.engine.response" level="TRACE" />
+<!--    <logger name="io.gatling.http.request" level="INFO" />
+    <logger name="io.gatling.http.engine.response" level="INFO" />-->
 
     <root level="INFO">
         <appender-ref ref="STDOUT" />
