@@ -83,15 +83,6 @@ $(function() {
         console.log("There is not operation template 'payment'.");
     }
 
-    // Check if any application is available to select
-    // const n_applications = $('#applicationId option').toArray().length;
-    // if (n_applications < 2) {
-    //     console.log("There is no application to choose from.");
-    //     $("#errorMessage").html("Create an application first.");
-    //     $("#errorDiv").show();
-    //     $(":submit").attr("disabled", true);
-    // }
-
     // Set action on Register button click
     $('#payBtn').click(function(){
         CEREMONY = AUTHENTICATION_CEREMONY;
