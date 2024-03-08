@@ -41,7 +41,10 @@ import java.util.Map;
 @Slf4j
 public class HomeController {
 
+    private static final String SESSION_KEY_USERNAME = "username";
+    private static final String SESSION_KEY_APPLICATION_ID = "applicationId";
     private static final String REDIRECT_LOGIN = "redirect:/login";
+    private static final String REDIRECT_PAYMENT = "redirect:/payment";
     private static final String LOGIN_PAGE = "/login";
     private static final String PAYMENT_PAGE = "/payment";
     private static final String ERROR_PAGE = "/error";
@@ -55,7 +58,10 @@ public class HomeController {
     }
 
     @GetMapping("/")
-    public String homePage(Map<String, Object> model) {
+    public String homePage(Map<String, Object> model, HttpSession session) {
+        if (StringUtils.hasText((String) session.getAttribute(SESSION_KEY_USERNAME))) {
+            return REDIRECT_PAYMENT;
+        }
         return REDIRECT_LOGIN;
     }
 
@@ -74,7 +80,16 @@ public class HomeController {
     }
 
     @GetMapping("/payment")
-    public String profilePage(Map<String, Object> model) {
+    public String profilePage(Map<String, Object> model, HttpSession session) {
+        final String username = (String) session.getAttribute(SESSION_KEY_USERNAME);
+        final String applicationId = (String) session.getAttribute(SESSION_KEY_APPLICATION_ID);
+        if (!StringUtils.hasText(username)) {
+            return REDIRECT_LOGIN;
+        }
+
+        model.put(SESSION_KEY_USERNAME, username);
+        model.put(SESSION_KEY_APPLICATION_ID, applicationId);
+
         try {
             model.put("templates", sharedService.fetchTemplateNameList());
             return PAYMENT_PAGE;
@@ -87,8 +102,9 @@ public class HomeController {
     }
 
     @GetMapping("/logout")
-    public String logoutPage(Map<String, Object> model) {
-        return REDIRECT_LOGIN;
+    public String logoutPage(Map<String, Object> model, HttpSession session) {
+        session.removeAttribute(SESSION_KEY_USERNAME);
+       return REDIRECT_LOGIN;
     }
 
 }

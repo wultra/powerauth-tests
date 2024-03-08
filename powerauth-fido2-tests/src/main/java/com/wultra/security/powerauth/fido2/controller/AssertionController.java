@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.fido2.controller.request.AssertionOptionsRe
 import com.wultra.security.powerauth.fido2.controller.request.VerifyAssertionRequest;
 import com.wultra.security.powerauth.fido2.controller.response.AssertionOptionsResponse;
 import com.wultra.security.powerauth.fido2.service.AssertionService;
+import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -53,8 +54,13 @@ public class AssertionController {
     }
 
     @PostMapping
-    public AssertionVerificationResponse verify(@Valid @RequestBody final VerifyAssertionRequest request) throws PowerAuthClientException {
-        return assertionService.authenticate(request);
+    public AssertionVerificationResponse verify(@Valid @RequestBody final VerifyAssertionRequest request, final HttpSession session) throws PowerAuthClientException {
+        final AssertionVerificationResponse response = assertionService.authenticate(request);
+        if (response.isAssertionValid()) {
+            session.setAttribute("username", response.getUserId());
+            session.setAttribute("applicationId", response.getApplicationId());
+        }
+        return response;
     }
 
 }
