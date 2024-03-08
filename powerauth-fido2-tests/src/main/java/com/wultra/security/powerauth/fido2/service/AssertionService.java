@@ -67,10 +67,11 @@ public class AssertionService {
 
         final List<CredentialDescriptor> existingCredentials = fido2SharedService.fetchExistingCredentials(userId, applicationId);
         if (existingCredentials.isEmpty() && StringUtils.hasText(userId))  {
+            logger.info("User {} is not yet registered.", userId);
             throw new IllegalStateException("Not registered yet.");
         }
 
-        final AssertionChallengeResponse challengeResponse = fetchChallenge(applicationId, request.templateName(), request.operationParameters());
+        final AssertionChallengeResponse challengeResponse = fetchChallenge(userId, applicationId, request.templateName(), request.operationParameters());
         final String challenge = challengeResponse.getChallenge();
         final String operationData = extractOperationData(challenge);
 
@@ -100,23 +101,31 @@ public class AssertionService {
         request.setRelyingPartyId(webAuthNConfig.getRpId());
         request.setAllowedOrigins(webAuthNConfig.getAllowedOrigins());
         request.setRequiresUserVerification(credential.userVerificationRequired());
-        return fido2Client.authenticate(request);
+
+        final AssertionVerificationResponse response = fido2Client.authenticate(request);
+        logger.debug("Credential assertion response of userId={}: {}", response.getUserId(), response);
+        logger.info("Activation ID {} of userId={}: valid={}", response.getActivationId(), response.getUserId(), response.isAssertionValid());
+
+        return response;
     }
 
-    private AssertionChallengeResponse fetchChallenge(final String applicationId, final String templateName, final Map<String, String> operationParameters) throws PowerAuthClientException {
+    private AssertionChallengeResponse fetchChallenge(final String userId, final String applicationId, final String templateName, final Map<String, String> operationParameters) throws PowerAuthClientException {
+        logger.info("Getting registration challenge for userId={}, applicationId={}, template={}, parameters={}", userId, applicationId, templateName, operationParameters);
         final AssertionChallengeRequest request = new AssertionChallengeRequest();
         request.setApplicationIds(List.of(applicationId));
         request.setTemplateName(templateName);
         if (operationParameters != null) {
             request.setParameters(operationParameters);
         }
-        return fido2Client.requestAssertionChallenge(request);
+        final AssertionChallengeResponse response = fido2Client.requestAssertionChallenge(request);
+        logger.debug("Assertion challenge response for userId={}: {}", userId, response);
+        return response;
     }
 
     private static String extractOperationData(final String challenge) {
         final String[] split = challenge.split("&", 2);
         if (split.length != 2) {
-            throw new IllegalStateException("Invalid challenge.");
+            throw new IllegalStateException("Invalid challenge format.");
         }
         return split[1];
     }
