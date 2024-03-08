@@ -17,6 +17,9 @@ async function createCredential(username, applicationId) {
     const registerResponse = await registerCredentials(username, applicationId, credential)
     console.log("PowerAuth Registration Response")
     console.log(JSON.stringify(registerResponse, null, 2));
+    if (registerResponse.activationStatus !== "ACTIVE") {
+        throw Error("Registration process failed, activation is not in state 'ACTIVE'.");
+    }
 }
 
 /**
@@ -34,6 +37,9 @@ async function requestCredential(username, applicationId, templateName, operatio
     const authenticateResponse = await verifyAssertion(applicationId, options.challenge, credential)
     console.log("PowerAuth Authentication Response")
     console.log(JSON.stringify(authenticateResponse, null, 2));
+    if (!authenticateResponse.assertionValid) {
+        throw Error("Assertion is not valid.");
+    }
 }
 
 /**
