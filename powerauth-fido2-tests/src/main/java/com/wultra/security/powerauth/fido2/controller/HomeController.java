@@ -43,11 +43,10 @@ public class HomeController {
 
     private static final String SESSION_KEY_USERNAME = "username";
     private static final String SESSION_KEY_APPLICATION_ID = "applicationId";
-    private static final String REDIRECT_LOGIN = "redirect:/login";
-    private static final String REDIRECT_PAYMENT = "redirect:/payment";
-    private static final String LOGIN_PAGE = "/login";
-    private static final String PAYMENT_PAGE = "/payment";
-    private static final String ERROR_PAGE = "/error";
+    private static final String REDIRECT_LOGIN = "redirect:login";
+    private static final String REDIRECT_PAYMENT = "redirect:payment";
+    private static final String LOGIN_PAGE = "login";
+    private static final String PAYMENT_PAGE = "payment";
 
     private final Fido2SharedService sharedService;
     private final ServletContext context;
