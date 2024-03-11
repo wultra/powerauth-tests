@@ -48,6 +48,12 @@
             <version>${webauthn4j.version}</version>
         </dependency>
 
+        <!-- Logging -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+        </dependency>
+
     </dependencies>
 
     <!-- Build profiles -->
