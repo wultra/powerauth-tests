@@ -91,13 +91,17 @@ public class RegistrationService {
         request.setActivationName(credential.username());
         request.setApplicationId(credential.applicationId());
         request.setAuthenticatorParameters(buildAuthenticatorParameters(credential));
-        return fido2Client.register(request);
+
+        final RegistrationResponse response = fido2Client.register(request);
+        logger.debug("Credential registration response of userId={}: {}", credential.username(), response);
+        logger.info("Activation ID {} of userId={}: status={}", response.getActivationId(), response.getUserId(), response.getActivationStatus());
+        return response;
     }
 
     private RegistrationChallengeResponse fetchChallenge(final String userId, final String applicationId) throws PowerAuthClientException {
-        logger.info("Getting registration challenge for user {}, applicationId={}", userId, applicationId);
+        logger.info("Getting registration challenge for userId={}, applicationId={}", userId, applicationId);
         final RegistrationChallengeResponse response = fido2Client.requestRegistrationChallenge(userId, applicationId);
-        logger.debug("Got response={}", response);
+        logger.debug("Registration challenge response for userId={}: {}", userId, response);
         return response;
     }
 

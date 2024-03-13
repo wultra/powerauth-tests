@@ -47,6 +47,20 @@
             <artifactId>webauthn4j-core</artifactId>
             <version>${webauthn4j.version}</version>
         </dependency>
+        
+        <!-- To run on Apple M1 architecture -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-resolver-dns-native-macos</artifactId>
+            <scope>runtime</scope>
+            <classifier>osx-aarch_64</classifier>
+        </dependency>
+
+        <!-- Logging -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+        </dependency>
 
     </dependencies>
 
