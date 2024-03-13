@@ -137,7 +137,14 @@ async function fetchAssertionOptions(username, applicationId, templateName, oper
         allowCredentials: options.allowCredentials?.map( credentialDescriptor => ({
             ...credentialDescriptor,
             id: toBuffer(credentialDescriptor.id)
-        }) )
+        }) ),
+        extensions: {
+            ...options.extensions,
+            hmacGetSecret: {
+                seed1: toBuffer(options.extensions.hmacGetSecret.seed1),
+                seed2: toBuffer(options.extensions.hmacGetSecret.seed2)
+            }
+        }
     }
 }
 
