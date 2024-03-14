@@ -19,15 +19,11 @@ package com.wultra.security.powerauth.test.scenario;
 
 import com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon;
 import io.gatling.javaapi.core.ScenarioBuilder;
-import io.gatling.javaapi.core.Session;
 
-import java.util.ArrayList;
-import java.util.List;
-
+import static com.wultra.security.powerauth.test.simulation.DataPreparationSimulation.feedData;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
-import static java.util.UUID.randomUUID;
 
 /**
  * Implements a scenario for testing user registration, activation, and commitment in PowerAuth.
@@ -45,11 +41,7 @@ public class CreateRegistrationScenario extends SharedSessionScenario {
 
     public static final ScenarioBuilder createRegistrationScenario = scenario(CreateRegistrationScenario.class.getName())
             .exec(prepareSessionData())
-            .exec(session -> {
-                        Session updated = session.set("testUserId", generateUserId());
-                        return updated;
-                    }
-            )
+            .feed(listFeeder(feedData))
             .exec(
                     http("Create registration PowerAuth Cloud")
                             .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/registrations")
@@ -91,20 +83,6 @@ public class CreateRegistrationScenario extends SharedSessionScenario {
                                     """))
                             .check(status().is(200))
             )
-            .exec(session -> {
-                final List<String> testUserIds = session.contains("testUserIds") && session.get("testUserIds") != null ? session.get("testUserIds") : new ArrayList<>();
-                testUserIds.add(session.get("testUserId"));
-                return session.set("testUserIds", testUserIds);
-            })
             .exec(saveSessionData());
-
-    /**
-     * Generates a unique user ID using a UUID for testing purposes.
-     *
-     * @return A string representing a unique test user ID.
-     */
-    private static String generateUserId() {
-        return "TEST_USER_ID" + randomUUID();
-    }
 
 }

@@ -67,7 +67,15 @@ public class PerformanceTestSimulation extends Simulation {
                                         .protocols(PowerAuthLoadTestCommon.commonProtocol)
                         ).andThen(
                                 /* Stress test  - ramping user engagement */
-
+                                CreateRegistrationScenario.createRegistrationScenario
+                                        .injectOpen(stressPeakUsers(100).during(Duration.ofSeconds(10)))
+                                        .protocols(PowerAuthLoadTestCommon.commonProtocol),
+                                CreateApproveOperationScenario.createApproveOperationScenario
+                                        .injectOpen(stressPeakUsers(100).during(Duration.ofSeconds(10)))
+                                        .protocols(PowerAuthLoadTestCommon.commonProtocol),
+                                ListOperationHistoryScenario.listOperationHistoryScenario
+                                        .injectOpen(stressPeakUsers(100).during(Duration.ofSeconds(10)))
+                                        .protocols(PowerAuthLoadTestCommon.commonProtocol)
                         ));
     }
 }

@@ -25,9 +25,15 @@ import io.gatling.javaapi.core.Simulation;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.core.OpenInjectionStep.atOnceUsers;
+import static java.util.UUID.randomUUID;
 
 @Slf4j
 public class DataPreparationSimulation extends Simulation {
@@ -42,6 +48,15 @@ public class DataPreparationSimulation extends Simulation {
         logger.info("Preparation phase is finished!");
     }
 
+    public static final List<Map<String, Object>> feedData = Stream.generate(() -> {
+                Map<String, Object> stringObjectMap = new HashMap<>();
+                stringObjectMap.put("testUserId", generateUserId());
+                return stringObjectMap;
+            })
+            .limit(PowerAuthLoadTestCommon.PERF_TEST_PREP_N_REG)
+            .collect(Collectors.toList());
+
+
     public DataPreparationSimulation() {
         setUp(
                 CreateApplicationScenario.createApplicationScenario
@@ -49,16 +64,27 @@ public class DataPreparationSimulation extends Simulation {
                         .protocols(PowerAuthLoadTestCommon.commonProtocol)
                         .andThen(
                                 CreateRegistrationScenario.createRegistrationScenario
-                                        .injectClosed(constantConcurrentUsers(PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS).during(Duration.ofSeconds(PowerAuthLoadTestCommon.PERF_TEST_EXE_X_REG / PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS)))
+                                        .feed(listFeeder(feedData))
+                                        .injectClosed(constantConcurrentUsers(PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS).during(Duration.ofSeconds(PowerAuthLoadTestCommon.PERF_TEST_PREP_N_REG / PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS)))
                                         .protocols(PowerAuthLoadTestCommon.commonProtocol)
                                         .andThen(
                                                 CreateOperationScenario.createOperationScenario
+                                                        .feed(listFeeder(feedData))
                                                         .injectClosed(constantConcurrentUsers(PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS).during(
-                                                                Duration.ofSeconds((PowerAuthLoadTestCommon.PERF_TEST_PREP_M_OP * PowerAuthLoadTestCommon.PERF_TEST_EXE_X_REG) / PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS)))
+                                                                Duration.ofSeconds((PowerAuthLoadTestCommon.PERF_TEST_PREP_M_OP * PowerAuthLoadTestCommon.PERF_TEST_PREP_N_REG) / PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS)))
                                                         .protocols(PowerAuthLoadTestCommon.commonProtocol)
                                         )
                         )
 
         );
+    }
+
+    /**
+     * Generates a unique user ID using a UUID for testing purposes.
+     *
+     * @return A string representing a unique test user ID.
+     */
+    private static String generateUserId() {
+        return "TEST_USER_ID" + randomUUID();
     }
 }

@@ -58,7 +58,7 @@ public class PowerAuthLoadTestCommon {
     public static final int PERF_TEST_EXE_MIN = getIntEnv("PERF_TEST_EXE_MIN", 5);
 
     public static final String PAC_ADMIN_USER = getStringEnv("PAC_ADMIN_USER", "system-admin");
-    public static final String PAC_ADMIN_PASS = getStringEnv("PAC_ADMIN_PASS", "MLUteJ+uvi2EOP/F");
+    public static final String PAC_ADMIN_PASS = getStringEnv("PAC_ADMIN_PASS", "");
     public static final String PAC_URL = getStringEnv("PAC_URL", "http://localhost:8089/powerauth-cloud");
     public static final String TEST_SERVER_URL = getStringEnv("TEST_SERVER_URL", "http://localhost:8081");
     public static final String DB_HOST = getStringEnv("DB_HOST", "localhost:5432/powerauth");

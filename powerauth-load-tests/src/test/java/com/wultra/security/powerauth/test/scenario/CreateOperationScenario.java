@@ -18,13 +18,17 @@
 package com.wultra.security.powerauth.test.scenario;
 
 import com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon;
+
+import static com.wultra.security.powerauth.test.simulation.DataPreparationSimulation.feedData;
+
 import io.gatling.javaapi.core.ScenarioBuilder;
+import io.gatling.javaapi.core.Session;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 import java.util.Random;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
-import static io.gatling.javaapi.core.CoreDsl.StringBody;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
@@ -41,15 +45,9 @@ import static io.gatling.javaapi.http.HttpDsl.status;
  */
 public class CreateOperationScenario extends SharedSessionScenario {
 
-    private static final Random rand = new Random();
     public static final ScenarioBuilder createOperationScenario = scenario(CreateOperationScenario.class.getName())
+            .feed(listFeeder(feedData).shuffle().circular())
             .exec(prepareSessionData())
-            .exec(session -> {
-                final List<String> userIds = session.getList("testUserIds");
-                final int index = rand.nextInt(userIds.size());
-                final String selectedUserId = userIds.get(index);
-                return session.set("testUserId", selectedUserId);
-            })
             .exec(
                     http("Create operation PowerAuth Cloud")
                             .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/operations")
@@ -63,5 +61,6 @@ public class CreateOperationScenario extends SharedSessionScenario {
                                     """)
                             )
                             .check(status().is(200))
+
             );
 }
