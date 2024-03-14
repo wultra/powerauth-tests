@@ -34,8 +34,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * Service for WebAuthn authentication tasks.
@@ -48,6 +49,8 @@ import java.util.Map;
 public class AssertionService {
 
     private static final String OPERATION_DATA_EXTENSION_KEY = "txAuthSimple";
+    private static final String HMAC_SECRET_EXTENSION_KEY = "hmacGetSecret";
+    private static final List<String> OPERATION_DATA_FIELDS_PRIORITY = List.of("I", "Q", "A", "R", "D", "N");
 
     private final PowerAuthFido2Client fido2Client;
     private final Fido2SharedService fido2SharedService;
@@ -74,14 +77,17 @@ public class AssertionService {
         final AssertionChallengeResponse challengeResponse = fetchChallenge(userId, applicationId, request.templateName(), request.operationParameters());
         final String challenge = challengeResponse.getChallenge();
         final String operationData = extractOperationData(challenge);
+        final String shrunkOperationData = shrinkToFitByteArray(operationData);
 
         return AssertionOptionsResponse.builder()
                 .challenge(challenge)
                 .rpId(webAuthNConfig.getRpId())
                 .timeout(webAuthNConfig.getTimeout().toMillis())
                 .allowCredentials(existingCredentials)
-                .extensions(Map.of(OPERATION_DATA_EXTENSION_KEY, operationData))
-                .build();
+                .extensions(Map.of(
+                        OPERATION_DATA_EXTENSION_KEY, operationData,
+                        HMAC_SECRET_EXTENSION_KEY, convertToExtension(shrunkOperationData))
+                ).build();
     }
 
     /**
@@ -129,5 +135,74 @@ public class AssertionService {
         }
         return split[1];
     }
+
+    /**
+     * Function takes operation data in PowerAuth format and shrinks them, if necessary, to fit 64 bytes.
+     * If the passed operation data are longer than 64 bytes, they are parsed and rebuild with only subset
+     * of fields. The building process tries to greedy append all fields sorted by priority, until the array is full.
+     * @param operationData Operation data to shrink.
+     * @return Shrunk operation data.
+     */
+    private static String shrinkToFitByteArray(final String operationData) {
+        if (fitsIntoByteArray(operationData)) {
+            logger.debug("Operation data fits into array as is.");
+            return operationData;
+        }
+
+        final Map<String, String> operationDataFields = parseOperationData(operationData);
+        if (operationDataFields.isEmpty()) {
+            throw new IllegalStateException("Operation data are present in unexpected format.");
+        }
+        String cropped = operationDataFields.get("header");
+
+        for (final String fieldKey : OPERATION_DATA_FIELDS_PRIORITY) {
+            cropped = appendIfFitsByteArray(cropped, operationDataFields, fieldKey);
+        }
+
+        logger.debug("Operation data were shrunk to {}", cropped);
+        return cropped;
+    }
+
+    private static Map<String, String> parseOperationData(final String operationData) {
+        final String[] fields = operationData.split("\\*");
+        if (fields.length < 1) {
+            return Collections.emptyMap();
+        }
+
+        final Map<String, String> fieldMap = Arrays.stream(fields)
+                .skip(1)
+                .filter(StringUtils::hasText)
+                .collect(Collectors.toMap(field -> field.substring(0, 1), Function.identity()));
+        fieldMap.put("header", fields[0]);
+        return fieldMap;
+    }
+
+    private static String appendIfFitsByteArray(String croppedData, final Map<String, String> fields, final String fieldKey) {
+        if (fields.containsKey(fieldKey) && fitsIntoByteArray(croppedData + "*" + fields.get(fieldKey))) {
+            croppedData += "*" + fields.get(fieldKey);
+        }
+        return croppedData;
+    }
+
+    private static boolean fitsIntoByteArray(final String operationData) {
+        return operationData.getBytes().length <= 64;
+    }
+
+    private static HMACGetSecretInput convertToExtension(final String operationData) {
+        if (!fitsIntoByteArray(operationData)) {
+            throw new IllegalStateException("Operation data are too long.");
+        }
+
+        final byte[] paddedBytes = new byte[64];
+        Arrays.fill(paddedBytes, (byte) 0x2A);
+        final byte[] operationDataBytes = operationData.getBytes();
+        System.arraycopy(operationDataBytes, 0, paddedBytes, 0, operationDataBytes.length);
+
+        final byte[] seed1 = Arrays.copyOfRange(paddedBytes, 0, 32);
+        final byte[] seed2 = Arrays.copyOfRange(paddedBytes, 32, 64);
+        return new HMACGetSecretInput(Base64.getEncoder().encodeToString(seed1), Base64.getEncoder().encodeToString(seed2));
+    }
+
+    public record HMACGetSecretInput(String seed1, String seed2) {}
 
 }
