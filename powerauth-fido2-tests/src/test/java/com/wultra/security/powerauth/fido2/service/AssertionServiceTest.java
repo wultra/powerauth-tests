@@ -65,7 +65,7 @@ class AssertionServiceTest {
                 "iban", "CZ5508000000001234567899",
                 "amount", "11499.99",
                 "currency", "CZK",
-                "note", "Its a gift!"
+                "note", "It's a gift!"
         );
 
         final AssertionOptionsRequest request = new AssertionOptionsRequest(username, applicationId, templateName, operationParameters);
@@ -77,7 +77,7 @@ class AssertionServiceTest {
 
         final AssertionOptionsResponse response = tested.assertionOptions(request);
         final String rebuildPaymentData = convertHmacSecret((AssertionService.HMACGetSecretInput) response.extensions().get("hmacGetSecret"));
-        assertEquals("A1*ICZ5508000000001234567899*A11499.99CZK*NIts a gift!", rebuildPaymentData);
+        assertEquals("A1*ICZ5508000000001234567899*A11499.99CZK*NIt's a gift!", rebuildPaymentData);
     }
 
     @Test
