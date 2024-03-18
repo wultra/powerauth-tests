@@ -18,7 +18,10 @@
 
 package com.wultra.security.powerauth.fido2.service;
 
+import com.webauthn4j.data.AuthenticatorTransport;
+import com.webauthn4j.data.PublicKeyCredentialType;
 import com.wultra.security.powerauth.client.PowerAuthFido2Client;
+import com.wultra.security.powerauth.client.model.entity.fido2.AllowCredentials;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.fido2.AssertionChallengeRequest;
 import com.wultra.security.powerauth.client.model.request.fido2.AssertionVerificationRequest;
@@ -68,13 +71,18 @@ public class AssertionService {
 
         logger.info("Building assertion options for userId={}, applicationId={}", userId, applicationId);
 
-        final List<CredentialDescriptor> existingCredentials = fido2SharedService.fetchExistingCredentials(userId, applicationId);
-        if (existingCredentials.isEmpty() && StringUtils.hasText(userId))  {
+        final AssertionChallengeResponse challengeResponse = fetchChallenge(userId, applicationId, request.templateName(), request.operationParameters());
+        final var credentialList = Optional.ofNullable(challengeResponse.getAllowCredentials());
+        if (credentialList.isEmpty() && StringUtils.hasText(userId))  {
             logger.info("User {} is not yet registered.", userId);
             throw new IllegalStateException("Not registered yet.");
         }
 
-        final AssertionChallengeResponse challengeResponse = fetchChallenge(userId, applicationId, request.templateName(), request.operationParameters());
+        final List<CredentialDescriptor> existingCredentials = credentialList
+                .orElse(Collections.emptyList())
+                .stream()
+                .map(AssertionService::toCredentialDescriptor).toList();
+
         final String challenge = challengeResponse.getChallenge();
         final String operationData = extractOperationData(challenge);
         final String shrunkOperationData = shrinkToFitByteArray(operationData);
@@ -118,6 +126,9 @@ public class AssertionService {
     private AssertionChallengeResponse fetchChallenge(final String userId, final String applicationId, final String templateName, final Map<String, String> operationParameters) throws PowerAuthClientException {
         logger.info("Getting registration challenge for userId={}, applicationId={}, template={}, parameters={}", userId, applicationId, templateName, operationParameters);
         final AssertionChallengeRequest request = new AssertionChallengeRequest();
+        if (StringUtils.hasText(userId)) {
+            request.setUserId(userId);
+        }
         request.setApplicationIds(List.of(applicationId));
         request.setTemplateName(templateName);
         if (operationParameters != null) {
@@ -134,6 +145,14 @@ public class AssertionService {
             throw new IllegalStateException("Invalid challenge format.");
         }
         return split[1];
+    }
+
+    public static CredentialDescriptor toCredentialDescriptor(final AllowCredentials allowCredentials) {
+        final String credentialId = new String(allowCredentials.getCredentialId());
+        final List<AuthenticatorTransport> transports = allowCredentials.getTransports().stream()
+                .map(AuthenticatorTransport::create)
+                .toList();
+        return new CredentialDescriptor(PublicKeyCredentialType.create(allowCredentials.getType()), credentialId, transports);
     }
 
     /**
