@@ -54,7 +54,7 @@
         <wultra-core.version>1.9.0-SNAPSHOT</wultra-core.version>
 
         <bc.version>1.77</bc.version>
-        <springdoc-openapi-starter-webmvc-ui.version>2.3.0</springdoc-openapi-starter-webmvc-ui.version>
+        <springdoc-openapi-starter-webmvc-ui.version>2.4.0</springdoc-openapi-starter-webmvc-ui.version>
         <logstash.version>7.4</logstash.version>
         <webauthn4j.version>0.22.2.RELEASE</webauthn4j.version>
 
