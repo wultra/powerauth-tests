@@ -107,7 +107,7 @@ public class RegistrationService {
 
     private AuthenticatorParameters buildAuthenticatorParameters(final RegisterCredentialRequest credential) {
         final AuthenticatorParameters parameters = new AuthenticatorParameters();
-        parameters.setId(credential.id());
+        parameters.setCredentialId(credential.id());
         parameters.setAuthenticatorAttachment(credential.authenticatorAttachment().getValue());
         parameters.setType(credential.type().getValue());
         parameters.setResponse(credential.response());

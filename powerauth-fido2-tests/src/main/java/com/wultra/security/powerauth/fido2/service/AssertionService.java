@@ -98,7 +98,7 @@ public class AssertionService {
      */
     public AssertionVerificationResponse authenticate(final VerifyAssertionRequest credential) throws PowerAuthClientException {
         final AssertionVerificationRequest request = new AssertionVerificationRequest();
-        request.setId(credential.id());
+        request.setCredentialId(credential.id());
         request.setType(credential.type().getValue());
         request.setAuthenticatorAttachment(credential.authenticatorAttachment().getValue());
         request.setResponse(credential.response());
