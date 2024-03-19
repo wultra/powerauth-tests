@@ -98,7 +98,7 @@ public class Fido2SharedService {
 
     @SuppressWarnings("unchecked")
     private static CredentialDescriptor toCredentialDescriptor(final AuthenticatorDetail authenticatorDetail) {
-        final String credentialId = authenticatorDetail.getExternalId();
+        final String credentialId = authenticatorDetail.getCredentialId();
         final List<AuthenticatorTransport> transports = (List<AuthenticatorTransport>) authenticatorDetail.getExtras().getOrDefault(EXTRAS_TRANSPORT_KEY, Collections.emptyList());
         return new CredentialDescriptor(CREDENTIAL_TYPE, credentialId, transports);
     }

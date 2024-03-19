@@ -37,6 +37,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Base64;
 import java.util.List;
 
 /**
@@ -107,7 +108,7 @@ public class RegistrationService {
 
     private AuthenticatorParameters buildAuthenticatorParameters(final RegisterCredentialRequest credential) {
         final AuthenticatorParameters parameters = new AuthenticatorParameters();
-        parameters.setId(credential.id());
+        parameters.setCredentialId(Base64.getEncoder().encodeToString(credential.id().getBytes()));
         parameters.setAuthenticatorAttachment(credential.authenticatorAttachment().getValue());
         parameters.setType(credential.type().getValue());
         parameters.setResponse(credential.response());
