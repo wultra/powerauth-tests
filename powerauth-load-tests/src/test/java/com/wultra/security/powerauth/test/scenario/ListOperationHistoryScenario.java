@@ -24,31 +24,26 @@ import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 
+/**
+ * Defines the Gatling scenario for listing operation history.
+ * <p>
+ * This scenario simulates the process of creating a token on the test server and
+ * then using it to list pending operations. It utilizes a circular feeder from
+ * {@link PowerAuthLoadTestCommon} to ensure a continuous flow of user data.
+ *
+ * @author Jan Dusil, jan.dusil@wultra.com
+ */
 public class ListOperationHistoryScenario {
 
     public static final ScenarioBuilder listOperationHistoryScenario = scenario(ListOperationHistoryScenario.class.getName())
-            .feed(PowerAuthLoadTestCommon.powerauthJdbcFeeder(
-                    """
-                            SELECT a.user_id AS "testUserId",
-                            a.activation_id AS "activationId",
-                            p.name AS "appId"
-                            FROM pa_activation a
-                            JOIN pa_application p ON a.application_id = p.id
-                            WHERE application_id = (
-                              SELECT id
-                              FROM pa_application
-                              ORDER BY Id DESC
-                              LIMIT 1
-                            );
-                            """
-            ).random())
+            .exec(feed(PowerAuthLoadTestCommon.getUserDataFeed().circular()))
             .exec(http("Create Token Test Server")
                     .post(PowerAuthLoadTestCommon.TEST_SERVER_URL + "/token/create")
                     .body(StringBody("""
                                {
                                 "requestObject":
                               {
-                              "activationId": "#{activationId}",
+                              "activationId": "#{registrationId}",
                               "applicationId": "#{appId}",
                               "signatureType": "POSSESSION"
                             }}
@@ -64,7 +59,7 @@ public class ListOperationHistoryScenario {
                                           {
                                     "requestObject":
                                           {
-                                          "activationId": "#{activationId}",
+                                          "activationId": "#{registrationId}",
                                           "tokenId": "#{tokenId}",
                                           "tokenSecret": "#{tokenSecret}"
                                         }}

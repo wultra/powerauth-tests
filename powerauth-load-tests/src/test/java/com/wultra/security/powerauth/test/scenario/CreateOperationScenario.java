@@ -19,14 +19,7 @@ package com.wultra.security.powerauth.test.scenario;
 
 import com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon;
 
-import static com.wultra.security.powerauth.test.simulation.DataPreparationSimulation.feedData;
-
 import io.gatling.javaapi.core.ScenarioBuilder;
-import io.gatling.javaapi.core.Session;
-import lombok.extern.slf4j.Slf4j;
-
-import java.util.List;
-import java.util.Random;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
@@ -46,21 +39,22 @@ import static io.gatling.javaapi.http.HttpDsl.status;
 public class CreateOperationScenario extends SharedSessionScenario {
 
     public static final ScenarioBuilder createOperationScenario = scenario(CreateOperationScenario.class.getName())
-            .feed(listFeeder(feedData).shuffle().circular())
             .exec(prepareSessionData())
-            .exec(
-                    http("Create operation PowerAuth Cloud")
-                            .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/operations")
-                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC_ADMIN_PASS)
-                            .body(StringBody("""
-                                      {
-                                      "userId": "#{testUserId}",
-                                      "template": "login",
-                                      "language": "en"
-                                    }
-                                    """)
-                            )
-                            .check(status().is(200))
+            .repeat(PowerAuthLoadTestCommon.PERF_TEST_PREP_M_OP / PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS).on(
+                    feed(PowerAuthLoadTestCommon.getUserDataFeed().shuffle().circular())
+                            .exec(
+                            http("Create operation PowerAuth Cloud")
+                                    .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/operations")
+                                    .basicAuth("#{pac-int-user}", "#{pac-int-user-pass}")
+                                    .body(StringBody("""
+                                              {
+                                              "userId": "#{testUserId}",
+                                              "template": "login",
+                                              "language": "en"
+                                            }
+                                            """)
+                                    )
+                                    .check(status().is(200))
 
-            );
+                    ));
 }

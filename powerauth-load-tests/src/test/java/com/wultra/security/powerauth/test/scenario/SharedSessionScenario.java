@@ -22,6 +22,7 @@ import io.gatling.javaapi.core.ChainBuilder;
 
 import static io.gatling.javaapi.core.CoreDsl.exec;
 
+import com.wultra.security.powerauth.test.model.UserRegistrationInfo;
 import scala.collection.JavaConverters;
 
 import java.util.Map;
@@ -65,6 +66,32 @@ abstract class SharedSessionScenario {
                             SharedSessionData.transferVariable.put(key, value);
                         }
                     });
+            return session;
+        });
+    }
+
+    /**
+     * Captures registration-related data from the current Gatling session and stores it in a shared data structure.
+     * This method constructs a {@link UserRegistrationInfo} object from session variables, including user ID,
+     * application ID, and credentials. It then adds this object to a shared collection in {@link SharedSessionData},
+     * allowing for the aggregation and subsequent use of registration data across different parts of the testing framework.
+     * <p>
+     * This functionality is particularly useful for scenarios where registration data needs to be accessed or verified
+     * in subsequent steps of the simulation, ensuring data consistency and availability throughout the testing process.
+     *
+     * @return A Gatling {@link ChainBuilder} that captures and stores user registration information for future use
+     * in the simulation scenarios.
+     */
+    public static ChainBuilder saveRegistrationData() {
+        return exec(session -> {
+            final UserRegistrationInfo registrationData = UserRegistrationInfo.builder()
+                    .registrationId(session.getString("activationId"))
+                    .appId(session.getString("appId"))
+                    .testUserId(session.getString("testUserId"))
+                    .integrationUser(session.getString("pac-int-user"))
+                    .integrationUserPass(session.getString("pac-int-user-pass"))
+                    .build();
+            SharedSessionData.registrationData.add(registrationData);
             return session;
         });
     }

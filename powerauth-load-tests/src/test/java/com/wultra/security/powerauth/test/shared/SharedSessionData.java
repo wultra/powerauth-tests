@@ -17,20 +17,39 @@
  */
 package com.wultra.security.powerauth.test.shared;
 
+import com.wultra.security.powerauth.test.model.UserRegistrationInfo;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Provides a shared storage mechanism for preserving session data across different simulation scenarios
- * in PowerAuth load testing. This class leverages a thread-safe {@link ConcurrentHashMap} to store and
- * retrieve variables that need to be consistent and accessible throughout the execution of various Gatling simulations.
- * <p>
- * The static {@code transferVariable} map is used to hold any necessary data (e.g., user IDs, activation codes)
- * that must be passed between scenarios.
- * <p>
+ * Manages shared session data for Gatling performance testing scenarios within PowerAuth systems.
+ * Utilizes thread-safe collections to facilitate the consistent transfer and access of critical
+ * test data across various testing scenarios and simulation steps.
+ *
+ * <p>This class contains two main storage structures:</p>
+ *
+ * <ul>
+ *   <li><b>transferVariable:</b> A {@link ConcurrentHashMap} designed to safely store and transfer
+ *   session-related variables, such as user IDs and activation codes, between different parts of
+ *   the simulation. This ensures data consistency and thread safety throughout the test execution.</li>
+ *
+ *   <li><b>registrationData:</b> A synchronized {@link List} of {@link UserRegistrationInfo} objects
+ *   which accumulates detailed registration data gathered during the simulations. This list allows
+ *   for the collection and later analysis of user registration flows, including the capture of user,
+ *   application, and authentication details.</li>
+ * </ul>
+ *
+ * <p>By providing centralized access to shared data, {@code SharedSessionData} plays a crucial role
+ * in orchestrating complex simulation scenarios, enabling the reuse of test data and ensuring the
+ * integrity of performance testing workflows.</p>
  *
  * @author Jan Dusil, jan.dusil@wultra.com
  */
 public class SharedSessionData {
     public static ConcurrentHashMap<String, Object> transferVariable = new ConcurrentHashMap<>();
+    public static List<UserRegistrationInfo> registrationData = Collections.synchronizedList(new ArrayList<>());
 }
 

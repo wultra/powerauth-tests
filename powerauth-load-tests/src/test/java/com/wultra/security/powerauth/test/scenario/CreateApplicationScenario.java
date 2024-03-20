@@ -22,7 +22,6 @@ import io.gatling.javaapi.core.ScenarioBuilder;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
-import static io.gatling.javaapi.http.HttpDsl.status;
 import static java.util.UUID.randomUUID;
 
 /**
@@ -35,7 +34,8 @@ import static java.util.UUID.randomUUID;
  */
 public class CreateApplicationScenario extends SharedSessionScenario {
 
-    private static final String APP_NAME = "TEST_APP" + randomUUID();
+    private static final String APP_NAME = "TEST_APP_" + randomUUID();
+    private static final String INTEGRATION_USER_NAME = "integration-user-" + randomUUID();
     private static final String APP_ROLE = "ROLE_ADMIN";
 
     public static final ScenarioBuilder createApplicationScenario = scenario(CreateApplicationScenario.class.getName())
@@ -57,11 +57,21 @@ public class CreateApplicationScenario extends SharedSessionScenario {
                                     jmesPath("mobileSdkConfig").saveAs("mobileSdkConfig"),
                                     jmesPath("id").saveAs("appId"))
             )
+            .exec(http("Create new integration user")
+                    .post(PowerAuthLoadTestCommon.PAC_URL + "/admin/users")
+                    .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC_ADMIN_PASS)
+                    .body(StringBody("""
+                             {
+                                "username": "%s"
+                                }
+                            }
+                              """.formatted(INTEGRATION_USER_NAME)))
+                    .check(jmesPath("username").saveAs("pac-int-user"))
+                    .check(jmesPath("password").saveAs("pac-int-user-pass")))
             .exec(
-                    http("Add access to app for user PowerAuth Cloud")
-                            .post(PowerAuthLoadTestCommon.PAC_URL + "/admin/users/system-admin/applications/#{appId}")
+                    http("Add app access to integration user")
+                            .post(PowerAuthLoadTestCommon.PAC_URL + "/admin/users/#{pac-int-user}/applications/#{appId}")
                             .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC_ADMIN_PASS)
-                            .check(status().is(200))
             )
             .exec(
                     http("Create application Test Server")

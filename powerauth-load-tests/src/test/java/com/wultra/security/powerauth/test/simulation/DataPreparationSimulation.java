@@ -24,17 +24,25 @@ import com.wultra.security.powerauth.test.scenario.CreateRegistrationScenario;
 import io.gatling.javaapi.core.Simulation;
 import lombok.extern.slf4j.Slf4j;
 
-import java.time.Duration;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.core.OpenInjectionStep.atOnceUsers;
-import static java.util.UUID.randomUUID;
 
+/**
+ * Prepares the data environment for PowerAuth load testing by simulating application creation,
+ * user registrations, and operation creation processes.
+ * <p>
+ * This simulation sequence is critical for setting up a realistic test environment
+ * that mimics actual user and transactional activity. It executes the following steps:
+ * <ol>
+ *     <li>Creates a single application instance.</li>
+ *     <li>Registers multiple users concurrently based on the maximum number of concurrent users defined.</li>
+ *     <li>Creates multiple operations concurrently for the registered users.</li>
+ * </ol>
+ * Each step is crucial for ensuring the subsequent load tests have the necessary data setup for execution.
+ * <p>
+ * The {@code before()} and {@code after()} methods provide logging information to track the start and end of the preparation phase.
+ *
+ * @author Jan Dusil, jan.dusil@wultra.com
+ */
 @Slf4j
 public class DataPreparationSimulation extends Simulation {
 
@@ -45,46 +53,31 @@ public class DataPreparationSimulation extends Simulation {
 
     @Override
     public void after() {
+        PowerAuthLoadTestCommon.saveGeneratedData();
         logger.info("Preparation phase is finished!");
     }
 
-    public static final List<Map<String, Object>> feedData = Stream.generate(() -> {
-                Map<String, Object> stringObjectMap = new HashMap<>();
-                stringObjectMap.put("testUserId", generateUserId());
-                return stringObjectMap;
-            })
-            .limit(PowerAuthLoadTestCommon.PERF_TEST_PREP_N_REG)
-            .collect(Collectors.toList());
-
-
     public DataPreparationSimulation() {
+        PowerAuthLoadTestCommon.setPrep(true);
+        PowerAuthLoadTestCommon.prepareFeedDataUsers();
+
         setUp(
                 CreateApplicationScenario.createApplicationScenario
                         .injectOpen(atOnceUsers(1))
                         .protocols(PowerAuthLoadTestCommon.commonProtocol)
                         .andThen(
                                 CreateRegistrationScenario.createRegistrationScenario
-                                        .feed(listFeeder(feedData))
-                                        .injectClosed(constantConcurrentUsers(PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS).during(Duration.ofSeconds(PowerAuthLoadTestCommon.PERF_TEST_PREP_N_REG / PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS)))
+                                        .injectOpen(atOnceUsers(PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS))
                                         .protocols(PowerAuthLoadTestCommon.commonProtocol)
+                                        .disablePauses()
                                         .andThen(
                                                 CreateOperationScenario.createOperationScenario
-                                                        .feed(listFeeder(feedData))
-                                                        .injectClosed(constantConcurrentUsers(PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS).during(
-                                                                Duration.ofSeconds((PowerAuthLoadTestCommon.PERF_TEST_PREP_M_OP * PowerAuthLoadTestCommon.PERF_TEST_PREP_N_REG) / PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS)))
+                                                        .injectOpen(atOnceUsers(PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS))
                                                         .protocols(PowerAuthLoadTestCommon.commonProtocol)
+                                                        .disablePauses()
                                         )
                         )
 
         );
-    }
-
-    /**
-     * Generates a unique user ID using a UUID for testing purposes.
-     *
-     * @return A string representing a unique test user ID.
-     */
-    private static String generateUserId() {
-        return "TEST_USER_ID" + randomUUID();
     }
 }

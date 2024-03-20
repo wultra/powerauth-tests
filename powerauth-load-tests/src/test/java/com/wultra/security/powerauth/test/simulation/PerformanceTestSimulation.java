@@ -28,10 +28,21 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.core.OpenInjectionStep.atOnceUsers;
 
+/**
+ * Orchestrates the execution of performance testing scenarios for PowerAuth components.
+ * This simulation includes steps for creating callbacks, registering users, approving operations,
+ * and listing operation history to evaluate the performance under various conditions.
+ * <p>
+ * It utilizes WireMock for mocking external service responses during local testing. The simulation sequence
+ * is designed to mimic realistic user behavior and system interactions to identify potential bottlenecks and
+ * performance issues.
+ * </p>
+ *
+ * @author Jan Dusil, jan.dusil@wultra.com
+ */
 @Slf4j
 public class PerformanceTestSimulation extends Simulation {
 
@@ -39,8 +50,10 @@ public class PerformanceTestSimulation extends Simulation {
 
     @Override
     public void before() {
+       /* Uncomment for local testing
         wireMockServer.stubFor(get(urlEqualTo("/mock-callback")).willReturn(aResponse().withBody("Callback ok")));
         wireMockServer.start();
+        */
         logger.info("Execution phase is about to start!");
     }
 
@@ -50,32 +63,34 @@ public class PerformanceTestSimulation extends Simulation {
         wireMockServer.stop();
     }
 
+
     public PerformanceTestSimulation() {
+        PowerAuthLoadTestCommon.prepareFeedDataUsers();
         setUp(
-                /* Load test  - constant user engagement */
+                /* Load test */
                 CreateCallbackScenario.createCallbackScenario
                         .injectOpen(atOnceUsers(1))
                         .protocols(PowerAuthLoadTestCommon.commonProtocol).andThen(
                                 CreateRegistrationScenario.createRegistrationScenario
-                                        .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_X_REG).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)).randomized())
+                                        .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_X_REG).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)))
                                         .protocols(PowerAuthLoadTestCommon.commonProtocol),
                                 CreateApproveOperationScenario.createApproveOperationScenario
-                                        .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_Y_OP).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)).randomized())
+                                        .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_Y_OP).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)))
                                         .protocols(PowerAuthLoadTestCommon.commonProtocol),
                                 ListOperationHistoryScenario.listOperationHistoryScenario
                                         .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_Y_OP * 0.1).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)).randomized())
                                         .protocols(PowerAuthLoadTestCommon.commonProtocol)
                         ).andThen(
-                                /* Stress test  - ramping user engagement */
-                                CreateRegistrationScenario.createRegistrationScenario
-                                        .injectOpen(stressPeakUsers(100).during(Duration.ofSeconds(10)))
-                                        .protocols(PowerAuthLoadTestCommon.commonProtocol),
-                                CreateApproveOperationScenario.createApproveOperationScenario
-                                        .injectOpen(stressPeakUsers(100).during(Duration.ofSeconds(10)))
-                                        .protocols(PowerAuthLoadTestCommon.commonProtocol),
-                                ListOperationHistoryScenario.listOperationHistoryScenario
-                                        .injectOpen(stressPeakUsers(100).during(Duration.ofSeconds(10)))
-                                        .protocols(PowerAuthLoadTestCommon.commonProtocol)
+                                // /* Stress test  - ramping user engagement */
+                                // CreateRegistrationScenario.createRegistrationScenario
+                                //         .injectOpen(stressPeakUsers(100).during(Duration.ofSeconds(10)))
+                                //         .protocols(PowerAuthLoadTestCommon.commonProtocol),
+                                // CreateApproveOperationScenario.createApproveOperationScenario
+                                //         .injectOpen(stressPeakUsers(100).during(Duration.ofSeconds(10)))
+                                //         .protocols(PowerAuthLoadTestCommon.commonProtocol),
+                                // ListOperationHistoryScenario.listOperationHistoryScenario
+                                //         .injectOpen(stressPeakUsers(100).during(Duration.ofSeconds(10)))
+                                //         .protocols(PowerAuthLoadTestCommon.commonProtocol)
                         ));
     }
 }

@@ -20,7 +20,6 @@ package com.wultra.security.powerauth.test.scenario;
 import com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon;
 import io.gatling.javaapi.core.ScenarioBuilder;
 
-import static com.wultra.security.powerauth.test.simulation.DataPreparationSimulation.feedData;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
@@ -41,48 +40,96 @@ public class CreateRegistrationScenario extends SharedSessionScenario {
 
     public static final ScenarioBuilder createRegistrationScenario = scenario(CreateRegistrationScenario.class.getName())
             .exec(prepareSessionData())
-            .feed(listFeeder(feedData))
-            .exec(
-                    http("Create registration PowerAuth Cloud")
-                            .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/registrations")
-                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC_ADMIN_PASS)
-                            .body(StringBody("""
-                                      {
-                                      "userId": "#{testUserId}",
-                                      "appId": "#{appId}"
-                                    }
-                                    """)
+            .doIfOrElse(String.valueOf(PowerAuthLoadTestCommon.isPrep()))
+            .then(repeat((PowerAuthLoadTestCommon.PERF_TEST_PREP_N_REG / PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS)).on(
+                    feed(PowerAuthLoadTestCommon.getUserDataFeed().shuffle())
+                            .exec(
+                                    http("Create registration PowerAuth Cloud")
+                                            .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/registrations")
+                                            .basicAuth("#{pac-int-user}", "#{pac-int-user-pass}")
+                                            .body(StringBody("""
+                                                      {
+                                                      "userId": "#{testUserId}",
+                                                      "appId": "#{appId}"
+                                                    }
+                                                    """)
+                                            )
+                                            .check(status().is(200))
+                                            .check((jmesPath("activationCode").saveAs("activationCode")))
                             )
-                            .check(status().is(200))
-                            .check((jmesPath("activationCode").saveAs("activationCode")))
-            )
-            .exec(
-                    http("Create activation Test Server")
-                            .post(PowerAuthLoadTestCommon.TEST_SERVER_URL + "/activation/create")
-                            .body(StringBody("""
-                                      {
-                                      "requestObject": {
-                                          "applicationId": "#{appId}",
-                                          "activationName": "TEST ACTIVATION",
-                                          "password": "1234",
-                                          "activationCode": "#{activationCode}"
-                                      }
-                                    }""")
+                            .exec(
+                                    http("Create activation Test Server")
+                                            .post(PowerAuthLoadTestCommon.TEST_SERVER_URL + "/activation/create")
+                                            .body(StringBody("""
+                                                      {
+                                                      "requestObject": {
+                                                          "applicationId": "#{appId}",
+                                                          "activationName": "TEST ACTIVATION",
+                                                          "password": "1234",
+                                                          "activationCode": "#{activationCode}"
+                                                      }
+                                                    }""")
+                                            )
+                                            .check(status().is(200))
+                                            .check((jmesPath("responseObject.activationId").saveAs("activationId")))
                             )
-                            .check(status().is(200))
-                            .check((jmesPath("responseObject.activationId").saveAs("activationId")))
-            )
-            .exec(
-                    http("Commit registration PowerAuth Cloud")
-                            .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/registrations/#{activationId}/commit")
-                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC_ADMIN_PASS)
-                            .body(StringBody("""
-                                     {
-                                      "externalUserId": null
-                                    }
-                                    """))
-                            .check(status().is(200))
-            )
-            .exec(saveSessionData());
+                            .exec(
+                                    http("Commit registration PowerAuth Cloud")
+                                            .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/registrations/#{activationId}/commit")
+                                            .basicAuth("#{pac-int-user}", "#{pac-int-user-pass}")
+                                            .body(StringBody("""
+                                                     {
+                                                      "externalUserId": null
+                                                    }
+                                                    """))
+                                            .check(status().is(200))
+                            )
+                            .exec(saveSessionData())
+                            .exec(saveRegistrationData())))
+
+            .orElse(
+                    feed(PowerAuthLoadTestCommon.getUserDataFeed().shuffle())
+                            .exec(
+                                    http("Create registration PowerAuth Cloud")
+                                            .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/registrations")
+                                            .basicAuth("#{integrationUser}", "#{integrationUserPass}")
+                                            .body(StringBody("""
+                                                      {
+                                                      "userId": "#{testUserId}",
+                                                      "appId": "#{appId}"
+                                                    }
+                                                    """)
+                                            )
+                                            .check(status().is(200))
+                                            .check((jmesPath("activationCode").saveAs("activationCode")))
+                            )
+                            .exec(
+                                    http("Create activation Test Server")
+                                            .post(PowerAuthLoadTestCommon.TEST_SERVER_URL + "/activation/create")
+                                            .body(StringBody("""
+                                                      {
+                                                      "requestObject": {
+                                                          "applicationId": "#{appId}",
+                                                          "activationName": "TEST ACTIVATION",
+                                                          "password": "1234",
+                                                          "activationCode": "#{activationCode}"
+                                                      }
+                                                    }""")
+                                            )
+                                            .check(status().is(200))
+                                            .check((jmesPath("responseObject.activationId").saveAs("activationId")))
+                            )
+                            .exec(
+                                    http("Commit registration PowerAuth Cloud")
+                                            .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/registrations/#{activationId}/commit")
+                                            .basicAuth("#{integrationUser}", "#{integrationUserPass}")
+                                            .body(StringBody("""
+                                                     {
+                                                      "externalUserId": null
+                                                    }
+                                                    """))
+                                            .check(status().is(200))
+                            )
+                            .exec(saveSessionData()));
 
 }

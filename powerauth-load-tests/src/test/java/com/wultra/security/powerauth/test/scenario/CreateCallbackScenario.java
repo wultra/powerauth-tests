@@ -21,8 +21,7 @@ import com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon;
 import io.gatling.javaapi.core.ScenarioBuilder;
 
 
-import static io.gatling.javaapi.core.CoreDsl.StringBody;
-import static io.gatling.javaapi.core.CoreDsl.scenario;
+import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
 import static java.util.UUID.randomUUID;
@@ -39,33 +38,33 @@ import static java.util.UUID.randomUUID;
  */
 
 public class CreateCallbackScenario extends SharedSessionScenario {
-    private static final String CALLBACK_NAME = "TEST_CALLBACK" + randomUUID();
+    private static final String CALLBACK_NAME = "TEST_CALLBACK_" + randomUUID();
     public static final ScenarioBuilder createCallbackScenario = scenario(CreateCallbackScenario.class.getName())
-            .exec(prepareSessionData())
+            .feed(PowerAuthLoadTestCommon.getUserDataFeed().shuffle())
             .exec(
-                    http("Create callback PowerAuth Cloud")
+                    http("Create callback PowerAuth Cloud - Operations")
                             .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/admin/applications/#{appId}/callbacks")
-                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC_ADMIN_PASS)
+                            .basicAuth("#{integrationUser}", "#{integrationUserPass}")
                             .body(StringBody("""
                                       {
                                       "name": "%s",
                                       "type": "OPERATION_STATUS_CHANGE",
-                                      "callbackUrl": "http://localhost:8090/mock-callback"
+                                      "callbackUrl": "%s"
                                     }
-                                    """.formatted(CALLBACK_NAME))
+                                    """.formatted(CALLBACK_NAME, PowerAuthLoadTestCommon.CALLBACK_URL))
                             )
                             .check(status().is(200))
             ).exec(
-                    http("Create callback PowerAuth Cloud")
+                    http("Create callback PowerAuth Cloud - Registrations")
                             .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/admin/applications/#{appId}/callbacks")
-                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC_ADMIN_PASS)
+                            .basicAuth("#{integrationUser}", "#{integrationUserPass}")
                             .body(StringBody("""
                                       {
                                       "name": "%s",
                                       "type": "REGISTRATION_STATUS_CHANGE",
-                                      "callbackUrl": "http://localhost:8090/mock-callback"
+                                      "callbackUrl": "%s"
                                     }
-                                    """.formatted(CALLBACK_NAME))
+                                    """.formatted(CALLBACK_NAME, PowerAuthLoadTestCommon.CALLBACK_URL))
                             )
                             .check(status().is(200))
             );
