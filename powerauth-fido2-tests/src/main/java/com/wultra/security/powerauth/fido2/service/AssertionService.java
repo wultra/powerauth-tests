@@ -38,7 +38,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -52,11 +51,8 @@ import java.util.stream.Collectors;
 public class AssertionService {
 
     private static final String OPERATION_DATA_EXTENSION_KEY = "txAuthSimple";
-    private static final String HMAC_SECRET_EXTENSION_KEY = "hmacGetSecret";
-    private static final List<String> OPERATION_DATA_FIELDS_PRIORITY = List.of("I", "Q", "A", "R", "D", "N");
 
     private final PowerAuthFido2Client fido2Client;
-    private final Fido2SharedService fido2SharedService;
     private final WebAuthnConfiguration webAuthNConfig;
 
     /**
@@ -81,11 +77,28 @@ public class AssertionService {
         final List<CredentialDescriptor> existingCredentials = credentialList
                 .orElse(Collections.emptyList())
                 .stream()
-                .map(AssertionService::toCredentialDescriptor).toList();
+                .map(AssertionService::toCredentialDescriptor)
+                .collect(Collectors.toCollection(ArrayList::new));
 
         final String challenge = challengeResponse.getChallenge();
         final String operationData = extractOperationData(challenge);
-        final String shrunkOperationData = shrinkToFitByteArray(operationData);
+
+        // Relevant to Wultra Authenticator 1 only. If there is a credential with usb transport,
+        // append a virtual credential holding operation data with usb transport.
+        final boolean containsUsbTransport = existingCredentials.stream()
+                .map(CredentialDescriptor::transports)
+                .flatMap(Collection::stream)
+                .anyMatch(AuthenticatorTransport.USB::equals);
+
+        if (containsUsbTransport) {
+            logger.debug("Appending operation data as a virtual credential.");
+            existingCredentials.add(
+                    new CredentialDescriptor(
+                            PublicKeyCredentialType.PUBLIC_KEY,
+                            Base64.getEncoder().encodeToString(operationData.getBytes()),
+                            List.of(AuthenticatorTransport.USB))
+            );
+        }
 
         return AssertionOptionsResponse.builder()
                 .challenge(challenge)
@@ -93,8 +106,7 @@ public class AssertionService {
                 .timeout(webAuthNConfig.getTimeout().toMillis())
                 .allowCredentials(existingCredentials)
                 .extensions(Map.of(
-                        OPERATION_DATA_EXTENSION_KEY, operationData,
-                        HMAC_SECRET_EXTENSION_KEY, convertToExtension(shrunkOperationData))
+                        OPERATION_DATA_EXTENSION_KEY, operationData)
                 ).build();
     }
 
@@ -154,74 +166,5 @@ public class AssertionService {
                 .toList();
         return new CredentialDescriptor(PublicKeyCredentialType.create(allowCredentials.getType()), credentialId, transports);
     }
-
-    /**
-     * Function takes operation data in PowerAuth format and shrinks them, if necessary, to fit 64 bytes.
-     * If the passed operation data are longer than 64 bytes, they are parsed and rebuild with only subset
-     * of fields. The building process tries to greedy append all fields sorted by priority, until the array is full.
-     * @param operationData Operation data to shrink.
-     * @return Shrunk operation data.
-     */
-    private static String shrinkToFitByteArray(final String operationData) {
-        if (fitsIntoByteArray(operationData)) {
-            logger.debug("Operation data fits into array as is.");
-            return operationData;
-        }
-
-        final Map<String, String> operationDataFields = parseOperationData(operationData);
-        if (operationDataFields.isEmpty()) {
-            throw new IllegalStateException("Operation data are present in unexpected format.");
-        }
-        String cropped = operationDataFields.get("header");
-
-        for (final String fieldKey : OPERATION_DATA_FIELDS_PRIORITY) {
-            cropped = appendIfFitsByteArray(cropped, operationDataFields, fieldKey);
-        }
-
-        logger.debug("Operation data were shrunk to {}", cropped);
-        return cropped;
-    }
-
-    private static Map<String, String> parseOperationData(final String operationData) {
-        final String[] fields = operationData.split("\\*");
-        if (fields.length < 1) {
-            return Collections.emptyMap();
-        }
-
-        final Map<String, String> fieldMap = Arrays.stream(fields)
-                .skip(1)
-                .filter(StringUtils::hasText)
-                .collect(Collectors.toMap(field -> field.substring(0, 1), Function.identity()));
-        fieldMap.put("header", fields[0]);
-        return fieldMap;
-    }
-
-    private static String appendIfFitsByteArray(String croppedData, final Map<String, String> fields, final String fieldKey) {
-        if (fields.containsKey(fieldKey) && fitsIntoByteArray(croppedData + "*" + fields.get(fieldKey))) {
-            croppedData += "*" + fields.get(fieldKey);
-        }
-        return croppedData;
-    }
-
-    private static boolean fitsIntoByteArray(final String operationData) {
-        return operationData.getBytes().length <= 64;
-    }
-
-    private static HMACGetSecretInput convertToExtension(final String operationData) {
-        if (!fitsIntoByteArray(operationData)) {
-            throw new IllegalStateException("Operation data are too long.");
-        }
-
-        final byte[] paddedBytes = new byte[64];
-        Arrays.fill(paddedBytes, (byte) 0x2A);
-        final byte[] operationDataBytes = operationData.getBytes();
-        System.arraycopy(operationDataBytes, 0, paddedBytes, 0, operationDataBytes.length);
-
-        final byte[] seed1 = Arrays.copyOfRange(paddedBytes, 0, 32);
-        final byte[] seed2 = Arrays.copyOfRange(paddedBytes, 32, 64);
-        return new HMACGetSecretInput(Base64.getEncoder().encodeToString(seed1), Base64.getEncoder().encodeToString(seed2));
-    }
-
-    public record HMACGetSecretInput(String seed1, String seed2) {}
 
 }

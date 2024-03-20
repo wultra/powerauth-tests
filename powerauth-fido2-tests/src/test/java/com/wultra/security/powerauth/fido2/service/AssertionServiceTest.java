@@ -19,6 +19,7 @@
 package com.wultra.security.powerauth.fido2.service;
 
 import com.wultra.security.powerauth.client.PowerAuthFido2Client;
+import com.wultra.security.powerauth.client.model.entity.fido2.AllowCredentials;
 import com.wultra.security.powerauth.client.model.response.fido2.AssertionChallengeResponse;
 import com.wultra.security.powerauth.fido2.configuration.WebAuthnConfiguration;
 import com.wultra.security.powerauth.fido2.controller.request.AssertionOptionsRequest;
@@ -30,9 +31,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -57,63 +60,83 @@ class AssertionServiceTest {
     private AssertionService tested;
 
     @Test
-    void testAssertionOptions_paymentData() throws Exception {
+    void testAssertionOptions_emptyAllowCredential() throws Exception {
         final String username = null;
         final String applicationId = "app";
-        final String templateName = "payment";
-        final Map<String, String> operationParameters = Map.of(
-                "iban", "CZ5508000000001234567899",
-                "amount", "11499.99",
-                "currency", "CZK",
-                "note", "It's a gift!"
-        );
+        final String templateName = "login";
 
-        final AssertionOptionsRequest request = new AssertionOptionsRequest(username, applicationId, templateName, operationParameters);
+        final AssertionOptionsRequest request = new AssertionOptionsRequest(username, applicationId, templateName, null);
 
         final AssertionChallengeResponse challengeResponse = new AssertionChallengeResponse();
-        challengeResponse.setChallenge("operationId&" + buildPaymentData(operationParameters));
+        challengeResponse.setChallenge("operationId&A2");
+        challengeResponse.setAllowCredentials(Collections.emptyList());
         when(fido2Client.requestAssertionChallenge(any()))
                 .thenReturn(challengeResponse);
 
         final AssertionOptionsResponse response = tested.assertionOptions(request);
-        final String rebuildPaymentData = convertHmacSecret((AssertionService.HMACGetSecretInput) response.extensions().get("hmacGetSecret"));
-        assertEquals("A1*ICZ5508000000001234567899*A11499.99CZK*NIt's a gift!", rebuildPaymentData);
+        assertTrue(response.allowCredentials().isEmpty());
+        assertEquals("A2", response.extensions().get("txAuthSimple"));
     }
 
     @Test
-    void testAssertionOptions_longPaymentData() throws Exception {
-        final String username = null;
+    void testAssertionOptions_nonEmptyAllowCredential() throws Exception {
+        final String username = "currentUser";
         final String applicationId = "app";
         final String templateName = "payment";
         final Map<String, String> operationParameters = Map.of(
                 "iban", "CZ5508000000001234567899",
                 "amount", "11499.99",
-                "currency", "CZK",
-                "note", "This is a long story to tell..."
+                "currency", "CZK"
         );
 
         final AssertionOptionsRequest request = new AssertionOptionsRequest(username, applicationId, templateName, operationParameters);
 
+        final AllowCredentials existingCredential = new AllowCredentials();
+        existingCredential.setCredentialId("credentialID".getBytes());
+        existingCredential.setTransports(List.of("internal"));
+
         final AssertionChallengeResponse challengeResponse = new AssertionChallengeResponse();
         challengeResponse.setChallenge("operationId&" + buildPaymentData(operationParameters));
+        challengeResponse.setAllowCredentials(List.of(existingCredential));
         when(fido2Client.requestAssertionChallenge(any()))
                 .thenReturn(challengeResponse);
 
-        final AssertionOptionsResponse response = tested.assertionOptions(request);
-        final String rebuildPaymentData = convertHmacSecret((AssertionService.HMACGetSecretInput) response.extensions().get("hmacGetSecret"));
-        assertEquals("A1*ICZ5508000000001234567899*A11499.99CZK", rebuildPaymentData);
+        final AssertionOptionsResponse assertionOptionsResponse = tested.assertionOptions(request);
+        assertEquals(1, assertionOptionsResponse.allowCredentials().size());
+        assertEquals("credentialID", assertionOptionsResponse.allowCredentials().get(0).id());
+        assertEquals("A1*ICZ5508000000001234567899*A11499.99CZK", assertionOptionsResponse.extensions().get("txAuthSimple"));
     }
 
-    private static String convertHmacSecret(final AssertionService.HMACGetSecretInput hmacSecret) {
-        final byte[] seed1Bytes = Base64.getDecoder().decode(hmacSecret.seed1());
-        final byte[] seed2Bytes = Base64.getDecoder().decode(hmacSecret.seed2());
+    @Test
+    void testAssertionOptions_appendOperationData() throws Exception {
+        final String username = "currentUser";
+        final String applicationId = "app";
+        final String templateName = "payment";
+        final Map<String, String> operationParameters = Map.of(
+                "iban", "CZ5508000000001234567899",
+                "amount", "11499.99",
+                "currency", "CZK"
+        );
 
-        final byte[] operationDataBytes = new byte[64];
-        System.arraycopy(seed1Bytes, 0, operationDataBytes, 0, seed1Bytes.length);
-        System.arraycopy(seed2Bytes, 0, operationDataBytes, 32, seed2Bytes.length);
+        final AssertionOptionsRequest request = new AssertionOptionsRequest(username, applicationId, templateName, operationParameters);
 
-        final String paddedOperationData = new String(operationDataBytes);
-        return String.join("*", paddedOperationData.split("\\*"));
+        final AllowCredentials existingCredential = new AllowCredentials();
+        existingCredential.setCredentialId("credentialID".getBytes());
+        existingCredential.setTransports(List.of("usb"));
+
+        final AssertionChallengeResponse challengeResponse = new AssertionChallengeResponse();
+        challengeResponse.setChallenge("operationId&" + buildPaymentData(operationParameters));
+        challengeResponse.setAllowCredentials(List.of(existingCredential));
+        when(fido2Client.requestAssertionChallenge(any()))
+                .thenReturn(challengeResponse);
+
+        final AssertionOptionsResponse assertionOptionsResponse = tested.assertionOptions(request);
+        assertEquals(2, assertionOptionsResponse.allowCredentials().size());
+        assertEquals("credentialID", assertionOptionsResponse.allowCredentials().get(0).id());
+        assertEquals(Base64.getEncoder().encodeToString("A1*ICZ5508000000001234567899*A11499.99CZK".getBytes()),
+                assertionOptionsResponse.allowCredentials().get(1).id());
+        assertEquals("A1*ICZ5508000000001234567899*A11499.99CZK",
+                assertionOptionsResponse.extensions().get("txAuthSimple"));
     }
 
     private static String buildPaymentData(final Map<String, String> operationParameters) {
