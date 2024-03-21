@@ -140,10 +140,6 @@ async function fetchAssertionOptions(username, applicationId, templateName, oper
         }) ),
         extensions: {
             ...options.extensions,
-            hmacGetSecret: {
-                seed1: toBuffer(options.extensions.hmacGetSecret.seed1),
-                seed2: toBuffer(options.extensions.hmacGetSecret.seed2)
-            }
         }
     }
 }
