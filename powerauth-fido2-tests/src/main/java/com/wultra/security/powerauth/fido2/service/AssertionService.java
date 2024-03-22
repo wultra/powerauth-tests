@@ -51,8 +51,10 @@ import java.util.stream.Collectors;
 public class AssertionService {
 
     private static final String OPERATION_DATA_EXTENSION_KEY = "txAuthSimple";
+    private static final String WA1_AAGUID = "dca09ba7-4992-4be8-9283-ee98cd6fb529";
 
     private final PowerAuthFido2Client fido2Client;
+    private final Fido2SharedService fido2SharedService;
     private final WebAuthnConfiguration webAuthNConfig;
 
     /**
@@ -117,8 +119,10 @@ public class AssertionService {
      * @throws PowerAuthClientException in case of PowerAuth server communication error.
      */
     public AssertionVerificationResponse authenticate(final VerifyAssertionRequest credential) throws PowerAuthClientException {
+        final String credentialId = Base64.getEncoder().encodeToString(credential.id().getBytes());
+
         final AssertionVerificationRequest request = new AssertionVerificationRequest();
-        request.setCredentialId(Base64.getEncoder().encodeToString(credential.id().getBytes()));
+        request.setCredentialId(credentialId);
         request.setType(credential.type().getValue());
         request.setAuthenticatorAttachment(credential.authenticatorAttachment().getValue());
         request.setResponse(credential.response());
@@ -127,6 +131,10 @@ public class AssertionService {
         request.setRelyingPartyId(webAuthNConfig.getRpId());
         request.setAllowedOrigins(webAuthNConfig.getAllowedOrigins());
         request.setRequiresUserVerification(credential.userVerificationRequired());
+
+        final String associatedAaguid = fido2SharedService.fetchAaguid(credential.response().getUserHandle(), credential.applicationId(), credentialId);
+        // TODO: wait for PAS feature merge
+        // request.setVisualSignature(WA1_AAGUID.equals(associatedAaguid));
 
         final AssertionVerificationResponse response = fido2Client.authenticate(request);
         logger.debug("Credential assertion response of userId={}: {}", response.getUserId(), response);

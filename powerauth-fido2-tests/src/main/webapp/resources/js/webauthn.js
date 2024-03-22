@@ -181,6 +181,7 @@ async function registerCredentials(username, applicationId, credential) {
  * @returns JSON response from PowerAuth Server.
  */
 async function verifyAssertion(applicationId, challenge, credential) {
+    const decoder = new TextDecoder();
     const requestBody = {
         applicationId: applicationId,
         id: credential.id,
@@ -190,9 +191,9 @@ async function verifyAssertion(applicationId, challenge, credential) {
             clientDataJSON: toBase64(credential.response.clientDataJSON),
             authenticatorData: toBase64(credential.response.authenticatorData),
             signature: toBase64(credential.response.signature),
-            userHandle: toBase64(credential.response.userHandle)
+            userHandle: decoder.decode(credential.response.userHandle)
         },
-        expectedChallenge: new TextDecoder().decode(challenge),
+        expectedChallenge: decoder.decode(challenge),
         userVerificationRequired: $("#userVerification").val() === "required"
     };
 

@@ -18,13 +18,19 @@
 
 package com.wultra.security.powerauth.fido2.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webauthn4j.data.AuthenticatorTransport;
 import com.webauthn4j.data.PublicKeyCredentialType;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.PowerAuthFido2Client;
+import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.entity.Application;
 import com.wultra.security.powerauth.client.model.entity.fido2.AuthenticatorDetail;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.Protocols;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
 import com.wultra.security.powerauth.fido2.controller.response.CredentialDescriptor;
 import lombok.AllArgsConstructor;
@@ -32,8 +38,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Service shared for registration and authentication.
@@ -50,6 +59,7 @@ public class Fido2SharedService {
 
     private final PowerAuthFido2Client fido2Client;
     private final PowerAuthClient powerAuthClient;
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Fetch all registered credentials.
@@ -94,6 +104,26 @@ public class Fido2SharedService {
 
     private List<AuthenticatorDetail> listAuthenticators(final String userId, final String applicationId) throws PowerAuthClientException {
         return fido2Client.getRegisteredAuthenticatorList(userId, applicationId).getAuthenticators();
+    }
+
+    public String fetchAaguid(final String userId, final String applicationId, final String credentialId) throws PowerAuthClientException {
+        final GetActivationListForUserRequest request = new GetActivationListForUserRequest();
+        request.setUserId(new String(Base64.getDecoder().decode(userId), StandardCharsets.UTF_8));
+        request.setApplicationId(applicationId);
+        request.setProtocols(Set.of(Protocols.FIDO2));
+        request.setActivationStatuses(Set.of(ActivationStatus.ACTIVE));
+        final String extras = powerAuthClient.getActivationListForUser(request).getActivations().stream()
+                .filter(activation -> credentialId.equals(activation.getExternalId()))
+                .map(Activation::getExtras)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("The activation is missing."));
+
+        try {
+            return objectMapper.readTree(extras).get("aaguid").asText();
+        } catch (JsonProcessingException e) {
+            logger.info("AAGUID could not be parsed.", e);
+            throw new IllegalStateException("Aaguid not associated with an activation.");
+        }
     }
 
     @SuppressWarnings("unchecked")
