@@ -59,7 +59,6 @@ public class Fido2SharedService {
 
     private final PowerAuthFido2Client fido2Client;
     private final PowerAuthClient powerAuthClient;
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Fetch all registered credentials.
@@ -104,26 +103,6 @@ public class Fido2SharedService {
 
     private List<AuthenticatorDetail> listAuthenticators(final String userId, final String applicationId) throws PowerAuthClientException {
         return fido2Client.getRegisteredAuthenticatorList(userId, applicationId).getAuthenticators();
-    }
-
-    public String fetchAaguid(final String userId, final String applicationId, final String credentialId) throws PowerAuthClientException {
-        final GetActivationListForUserRequest request = new GetActivationListForUserRequest();
-        request.setUserId(new String(Base64.getDecoder().decode(userId), StandardCharsets.UTF_8));
-        request.setApplicationId(applicationId);
-        request.setProtocols(Set.of(Protocols.FIDO2));
-        request.setActivationStatuses(Set.of(ActivationStatus.ACTIVE));
-        final String extras = powerAuthClient.getActivationListForUser(request).getActivations().stream()
-                .filter(activation -> credentialId.equals(activation.getExternalId()))
-                .map(Activation::getExtras)
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("The activation is missing."));
-
-        try {
-            return objectMapper.readTree(extras).get("aaguid").asText();
-        } catch (JsonProcessingException e) {
-            logger.info("AAGUID could not be parsed.", e);
-            throw new IllegalStateException("Aaguid not associated with an activation.");
-        }
     }
 
     @SuppressWarnings("unchecked")

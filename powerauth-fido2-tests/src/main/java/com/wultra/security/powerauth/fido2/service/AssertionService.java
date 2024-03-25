@@ -38,7 +38,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Service for WebAuthn authentication tasks.
@@ -50,11 +49,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AssertionService {
 
-    private static final String OPERATION_DATA_EXTENSION_KEY = "txAuthSimple";
-    private static final String WA1_AAGUID = "dca09ba7-4992-4be8-9283-ee98cd6fb529";
-
     private final PowerAuthFido2Client fido2Client;
-    private final Fido2SharedService fido2SharedService;
     private final WebAuthnConfiguration webAuthNConfig;
 
     /**
@@ -80,36 +75,14 @@ public class AssertionService {
                 .orElse(Collections.emptyList())
                 .stream()
                 .map(AssertionService::toCredentialDescriptor)
-                .collect(Collectors.toCollection(ArrayList::new));
-
-        final String challenge = challengeResponse.getChallenge();
-        final String operationData = extractOperationData(challenge);
-
-        // Relevant to Wultra Authenticator 1 only. If there is a credential with usb transport,
-        // append a virtual credential holding operation data with usb transport.
-        final boolean containsUsbTransport = existingCredentials.stream()
-                .map(CredentialDescriptor::transports)
-                .flatMap(Collection::stream)
-                .anyMatch(AuthenticatorTransport.USB::equals);
-
-        if (containsUsbTransport) {
-            logger.debug("Appending operation data as a virtual credential.");
-            existingCredentials.add(
-                    new CredentialDescriptor(
-                            PublicKeyCredentialType.PUBLIC_KEY,
-                            Base64.getEncoder().encodeToString(operationData.getBytes()),
-                            List.of(AuthenticatorTransport.USB))
-            );
-        }
+                .toList();
 
         return AssertionOptionsResponse.builder()
-                .challenge(challenge)
+                .challenge(challengeResponse.getChallenge())
                 .rpId(webAuthNConfig.getRpId())
                 .timeout(webAuthNConfig.getTimeout().toMillis())
                 .allowCredentials(existingCredentials)
-                .extensions(Map.of(
-                        OPERATION_DATA_EXTENSION_KEY, operationData)
-                ).build();
+                .extensions(Collections.emptyMap()).build();
     }
 
     /**
@@ -132,10 +105,6 @@ public class AssertionService {
         request.setAllowedOrigins(webAuthNConfig.getAllowedOrigins());
         request.setRequiresUserVerification(credential.userVerificationRequired());
 
-        final String associatedAaguid = fido2SharedService.fetchAaguid(credential.response().getUserHandle(), credential.applicationId(), credentialId);
-        // TODO: wait for PAS feature merge
-        // request.setVisualSignature(WA1_AAGUID.equals(associatedAaguid));
-
         final AssertionVerificationResponse response = fido2Client.authenticate(request);
         logger.debug("Credential assertion response of userId={}: {}", response.getUserId(), response);
         logger.info("Activation ID {} of userId={}: valid={}", response.getActivationId(), response.getUserId(), response.isAssertionValid());
@@ -157,14 +126,6 @@ public class AssertionService {
         final AssertionChallengeResponse response = fido2Client.requestAssertionChallenge(request);
         logger.debug("Assertion challenge response for userId={}: {}", userId, response);
         return response;
-    }
-
-    private static String extractOperationData(final String challenge) {
-        final String[] split = challenge.split("&", 2);
-        if (split.length != 2) {
-            throw new IllegalStateException("Invalid challenge format.");
-        }
-        return split[1];
     }
 
     public static CredentialDescriptor toCredentialDescriptor(final AllowCredentials allowCredentials) {
