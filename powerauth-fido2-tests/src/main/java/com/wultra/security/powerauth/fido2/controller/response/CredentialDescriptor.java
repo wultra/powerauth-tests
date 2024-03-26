@@ -30,6 +30,6 @@ import java.util.List;
  */
 public record CredentialDescriptor(
         PublicKeyCredentialType type,
-        String id,
+        byte[] id,
         List<AuthenticatorTransport> transports
 ) {}

@@ -252,9 +252,6 @@ function toBase64(buffer) {
  * @returns {ArrayBufferLike} Converted array.
  */
 function toBuffer(base64) {
-    base64 = base64
-        .replace(/-/g, '+')
-        .replace(/_/g, '/');
     const binary_string = atob(base64);
     const len = binary_string.length;
     const bytes = new Uint8Array(len);

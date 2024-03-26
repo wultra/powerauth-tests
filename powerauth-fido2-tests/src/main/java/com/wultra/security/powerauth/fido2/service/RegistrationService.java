@@ -107,8 +107,10 @@ public class RegistrationService {
     }
 
     private AuthenticatorParameters buildAuthenticatorParameters(final RegisterCredentialRequest credential) {
+        final byte[] credentialId = Base64.getUrlDecoder().decode(credential.id());
+
         final AuthenticatorParameters parameters = new AuthenticatorParameters();
-        parameters.setCredentialId(Base64.getEncoder().encodeToString(credential.id().getBytes()));
+        parameters.setCredentialId(Base64.getEncoder().encodeToString(credentialId));
         parameters.setAuthenticatorAttachment(credential.authenticatorAttachment().getValue());
         parameters.setType(credential.type().getValue());
         parameters.setResponse(credential.response());
