@@ -191,7 +191,7 @@ async function verifyAssertion(applicationId, challenge, credential) {
             clientDataJSON: toBase64(credential.response.clientDataJSON),
             authenticatorData: toBase64(credential.response.authenticatorData),
             signature: toBase64(credential.response.signature),
-            userHandle: decoder.decode(credential.response.userHandle)
+            userHandle: credential.response.userHandle == null ? null : decoder.decode(credential.response.userHandle)
         },
         expectedChallenge: decoder.decode(challenge),
         userVerificationRequired: $("#userVerification").val() === "required"
