@@ -92,10 +92,10 @@ public class AssertionService {
      * @throws PowerAuthClientException in case of PowerAuth server communication error.
      */
     public AssertionVerificationResponse authenticate(final VerifyAssertionRequest credential) throws PowerAuthClientException {
-        final String credentialId = Base64.getEncoder().encodeToString(credential.id().getBytes());
+        final byte[] credentialId = Base64.getUrlDecoder().decode(credential.id());
 
         final AssertionVerificationRequest request = new AssertionVerificationRequest();
-        request.setCredentialId(credentialId);
+        request.setCredentialId(Base64.getEncoder().encodeToString(credentialId));
         request.setType(credential.type().getValue());
         request.setAuthenticatorAttachment(credential.authenticatorAttachment().getValue());
         request.setResponse(credential.response());
@@ -129,11 +129,10 @@ public class AssertionService {
     }
 
     public static CredentialDescriptor toCredentialDescriptor(final AllowCredentials allowCredentials) {
-        final String credentialId = new String(allowCredentials.getCredentialId());
         final List<AuthenticatorTransport> transports = allowCredentials.getTransports().stream()
                 .map(AuthenticatorTransport::create)
                 .toList();
-        return new CredentialDescriptor(PublicKeyCredentialType.create(allowCredentials.getType()), credentialId, transports);
+        return new CredentialDescriptor(PublicKeyCredentialType.create(allowCredentials.getType()), allowCredentials.getCredentialId(), transports);
     }
 
 }
