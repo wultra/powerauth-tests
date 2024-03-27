@@ -69,7 +69,6 @@ public class CreateApproveOperationScenario extends SharedSessionScenario {
                                                 "operationData": "A2",
                                                 "operationId": "#{operationId}"
                                             }
-                                        }
                                     }
                                     """))
                             .check(status().is(200))
