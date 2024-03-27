@@ -1,0 +1,6 @@
+export PERF_TEST_PREP_N_REG=10 # Number of registrations to prepare - Preparation phase
+export PERF_TEST_PREP_M_OP=100 # Number of operations to prepare - Preparation phase
+export PERF_TEST_EXE_X_REG=1 # Number of registrations to create per sec - Execution phase
+export PERF_TEST_EXE_Y_OP=25 # Number of operations to create per sec - Execution phase
+export PERF_TEST_EXE_MIN=15 # Length of execution phase in mins
+export PERF_TEST_CALLBACK_URL=http://10.101.6.10:9000 # URL for the callback server
