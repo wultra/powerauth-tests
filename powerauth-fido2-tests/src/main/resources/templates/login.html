@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+
+    <link rel="stylesheet" th:href="@{/resources/css/wultra-theme.min.css}">
+    <link rel="stylesheet" th:href="@{/resources/css/wultra-login.css}">
+
+    <!-- API Path Context of the spring controller -->
+    <script>
+        const SERVLET_CONTEXT_PATH = "[[${servletContextPath}]]";
+    </script>
+    <script th:src="@{/resources/js/jquery.min.js}"></script>
+    <script th:src="@{/resources/js/webauthn.js}"></script>
+    <script th:src="@{/resources/js/login.js}"></script>
+</head>
+<body>
+
+<div class="body">
+    <div class="form-wrapper">
+        <div class="form-panel">
+            <!-- On submit, handle form in javascript -->
+            <form class="form-signin" onsubmit="handleLoginSubmit(); return false;">
+
+                <!-- Form Header -->
+                <div class="text-center form-logo-wrapper">
+                    <img th:src="@{/resources/images/logo.png}" class="form-logo">
+                </div>
+                <p class="text-center lead" style="color: white;">PowerAuth FIDO2 Demo</p>
+
+                <!-- Application ID selection -->
+                <div class="form-group">
+                    <select name="applicationId" id="applicationId" class="form-control" required>
+                        <option value="" disabled selected hidden>Select application</option>
+                        <option th:each="option : ${applications}" th:value="${option}" th:text="${option}"></option>
+                    </select>
+                </div>
+
+                <!-- Username input -->
+                <div class="form-group">
+                    <input type="text" id="username" name="username" autoComplete="username webauthn" placeholder="Username" class="form-control" />
+                </div>
+
+                <!-- Info and login banners -->
+                <div id="errorDiv" class="alert alert-danger text-center" hidden="hidden">
+                    <span id="errorMessage"></span>
+                </div>
+                <div id="successDiv" class="alert alert-success text-center" hidden="hidden">
+                   Success
+                </div>
+
+                <!-- Submit buttons -->
+                <div class="form-group btn-group" style="width: 100%;">
+                    <button type="submit" id="loginBtn" class="btn btn-primary " style="width: 50%;">Log in</button>
+                    <button type="submit" id="registerBtn" class="btn btn-danger " style="width: 50%;">Register</button>
+                </div>
+
+                <!-- Advanced settings -->
+                <button type="button" id="settingsBtn" class="btn btn-primary btn-block btn-xs">Settings</button>
+                <div id="settingsBlock" class="info block" hidden="hidden">
+                    <label for="operationTemplate" class="label">Operation Template</label>
+                    <select id="operationTemplate" class="form-control">
+                        <option th:each="option : ${templates}" th:value="${option}" th:text="${option}" th:selected="${option} == login ? true : false"></option>
+                    </select>
+
+                    <label for="authenticatorAttachment" class="label">Authenticator Attachment</label>
+                    <select id="authenticatorAttachment" class="form-control">
+                        <option>platform</option>
+                        <option selected>all supported</option>
+                        <option>cross-platform</option>
+                    </select>
+
+                    <label for="residentKey" class="label">Discoverable Credential</label>
+                    <select id="residentKey" class="form-control">
+                        <option>required</option>
+                        <option selected>preferred</option>
+                        <option>discouraged</option>
+                    </select>
+
+                    <label for="userVerification" class="label">User Verification</label>
+                    <select id="userVerification" class="form-control">
+                        <option selected>required</option>
+                        <option>preferred</option>
+                        <option>discouraged</option>
+                    </select>
+
+                    <label for="attestation" class="label">Attestation</label>
+                    <select id="attestation" class="form-control">
+                        <option>enterprise</option>
+                        <option>none</option>
+                        <option selected>direct</option>
+                        <option>indirect</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

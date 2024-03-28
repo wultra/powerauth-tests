@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.google.common.collect.ImmutableList;
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.*;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.*;
 import com.wultra.app.enrollmentserver.model.enumeration.*;
@@ -99,7 +98,7 @@ public class PowerAuthIdentityVerificationShared {
         approveConsent(ctx, processId);
         initIdentityVerification(ctx, activationId, processId);
 
-        final List<FileSubmit> idCardSubmits = ImmutableList.of(
+        final List<FileSubmit> idCardSubmits = List.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
                 FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
         );
@@ -113,7 +112,7 @@ public class PowerAuthIdentityVerificationShared {
         assertIdentityVerificationStateWithRetries(ctx,
                 new IdentityVerificationState(IdentityVerificationPhase.DOCUMENT_UPLOAD, IdentityVerificationStatus.IN_PROGRESS));
 
-        final List<FileSubmit> drivingLicenseSubmits = ImmutableList.of(
+        final List<FileSubmit> drivingLicenseSubmits = List.of(
                 FileSubmit.createFrom("images/driving_license_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
         );
         final DocumentSubmitRequest driveLicenseSubmitRequest = createDocumentSubmitRequest(processId, drivingLicenseSubmits);
@@ -176,7 +175,7 @@ public class PowerAuthIdentityVerificationShared {
         for (int i = 0; i < 3; i++) {
             initIdentityVerification(ctx, activationId, processId);
 
-            List<FileSubmit> idCardSubmits = ImmutableList.of(
+            final List<FileSubmit> idCardSubmits = List.of(
                     FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
                     FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
             );
@@ -190,7 +189,7 @@ public class PowerAuthIdentityVerificationShared {
             assertIdentityVerificationStateWithRetries(ctx,
                     new IdentityVerificationState(IdentityVerificationPhase.DOCUMENT_UPLOAD, IdentityVerificationStatus.IN_PROGRESS));
 
-            final List<FileSubmit> drivingLicenseSubmits = ImmutableList.of(
+            final List<FileSubmit> drivingLicenseSubmits = List.of(
                     FileSubmit.createFrom("images/driving_license_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
             );
             final DocumentSubmitRequest driveLicenseSubmitRequest = createDocumentSubmitRequest(processId, drivingLicenseSubmits);
@@ -227,14 +226,14 @@ public class PowerAuthIdentityVerificationShared {
         approveConsent(ctx, processId);
         initIdentityVerification(ctx, activationId, processId);
 
-        List<FileSubmit> idCardSubmits = ImmutableList.of(
+        final List<FileSubmit> idCardSubmits = List.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
                 FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
         );
         DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idCardSubmits);
         submitDocuments(ctx, idCardSubmitRequest);
 
-        List<FileSubmit> drivingLicenseSubmits = ImmutableList.of(
+        final List<FileSubmit> drivingLicenseSubmits = List.of(
                 FileSubmit.createFrom("images/driving_license_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
         );
         DocumentSubmitRequest driveLicenseSubmitRequest = createDocumentSubmitRequest(processId, drivingLicenseSubmits);
@@ -268,7 +267,7 @@ public class PowerAuthIdentityVerificationShared {
         approveConsent(ctx, processId);
         initIdentityVerification(ctx, activationId, processId);
 
-        final List<FileSubmit> docSubmits = ImmutableList.of(
+        final List<FileSubmit> docSubmits = List.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
         );
         DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, docSubmits);
@@ -290,7 +289,7 @@ public class PowerAuthIdentityVerificationShared {
         approveConsent(ctx, processId);
         initIdentityVerification(ctx, activationId, processId);
 
-        List<FileSubmit> docSubmits = ImmutableList.of(
+        final List<FileSubmit> docSubmits = List.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.BACK)
         );
         DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, docSubmits);
@@ -312,7 +311,7 @@ public class PowerAuthIdentityVerificationShared {
         approveConsent(ctx, processId);
         initIdentityVerification(ctx, activationId, processId);
 
-        final List<FileSubmit> docSubmits = ImmutableList.of(
+        final List<FileSubmit> docSubmits = List.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
         );
 
@@ -340,7 +339,7 @@ public class PowerAuthIdentityVerificationShared {
         approveConsent(ctx, processId);
         initIdentityVerification(ctx, activationId, processId);
 
-        List<FileSubmit> invalidDocSubmits = ImmutableList.of(
+        final List<FileSubmit> invalidDocSubmits = List.of(
                 FileSubmit.createFrom("images/random_photo_1.png", DocumentType.ID_CARD, CardSide.FRONT),
                 FileSubmit.createFrom("images/random_photo_2.png", DocumentType.ID_CARD, CardSide.BACK)
         );
@@ -360,7 +359,7 @@ public class PowerAuthIdentityVerificationShared {
         approveConsent(ctx, processId);
         initIdentityVerification(ctx, activationId, processId);
 
-        List<FileSubmit> idDocSubmits = ImmutableList.of(
+        final List<FileSubmit> idDocSubmits = List.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
                 FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
         );
@@ -381,7 +380,7 @@ public class PowerAuthIdentityVerificationShared {
         for (int i = 0; i < 5; i++) {
             initIdentityVerification(ctx, activationId, processId);
 
-            List<FileSubmit> idDocSubmits = ImmutableList.of(
+            final List<FileSubmit> idDocSubmits = List.of(
                     FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
                     FileSubmit.createFrom("images/id_card_mock_back.png", DocumentType.ID_CARD, CardSide.BACK)
             );

@@ -18,6 +18,8 @@
 
 package com.wultra.security.powerauth.app.testserver.model.request;
 
+import jakarta.validation.constraints.NotBlank;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,8 +31,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ConfigureApplicationRequest {
-
+    @NotBlank
     private String applicationId;
+    @NotBlank
     private String applicationName;
     private String applicationKey;
     private String applicationSecret;

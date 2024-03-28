@@ -27,7 +27,9 @@ import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnline
 import com.wultra.security.powerauth.app.testserver.service.SignatureService;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -36,6 +38,7 @@ import org.springframework.web.bind.annotation.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @RestController
+@Validated
 @RequestMapping("signature")
 public class SignatureController {
 
@@ -59,7 +62,7 @@ public class SignatureController {
      * @throws AppConfigNotFoundException In case application configuration is not found.
      */
     @PostMapping("compute-online")
-    public ObjectResponse<ComputeOnlineSignatureResponse> computeOnlineSignature(@RequestBody ObjectRequest<ComputeOnlineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
+    public ObjectResponse<ComputeOnlineSignatureResponse> computeOnlineSignature(@Valid @RequestBody ObjectRequest<ComputeOnlineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
         final ComputeOnlineSignatureResponse response = signatureService.computeOnlineSignature(request.getRequestObject());
         return new ObjectResponse<>(response);
     }
@@ -72,7 +75,7 @@ public class SignatureController {
      * @throws ActivationFailedException In case activation is not found.
      */
     @PostMapping("compute-offline")
-    public ObjectResponse<ComputeOfflineSignatureResponse> computeOfflineSignature(@RequestBody ObjectRequest<ComputeOfflineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException {
+    public ObjectResponse<ComputeOfflineSignatureResponse> computeOfflineSignature(@Valid @RequestBody ObjectRequest<ComputeOfflineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException {
         final ComputeOfflineSignatureResponse response = signatureService.computeOfflineSignature(request.getRequestObject());
         return new ObjectResponse<>(response);
     }

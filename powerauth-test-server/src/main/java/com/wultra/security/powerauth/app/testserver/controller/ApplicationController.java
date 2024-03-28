@@ -23,7 +23,9 @@ import com.wultra.security.powerauth.app.testserver.model.request.ConfigureAppli
 import com.wultra.security.powerauth.app.testserver.service.ApplicationService;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.Response;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -32,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @RestController
+@Validated
 @RequestMapping("application")
 public class ApplicationController {
 
@@ -53,7 +56,7 @@ public class ApplicationController {
      * @throws AppConfigInvalidException Thrown in case mobile SDK configuration is invalid.
      */
     @PostMapping("config")
-    public Response createActivation(@RequestBody ObjectRequest<ConfigureApplicationRequest> request) throws AppConfigInvalidException {
+    public Response createActivation(@Valid @RequestBody ObjectRequest<ConfigureApplicationRequest> request) throws AppConfigInvalidException {
         return applicationService.configureApplication(request.getRequestObject());
     }
 

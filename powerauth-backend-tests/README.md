@@ -60,7 +60,6 @@ File `powerauth-java.server.xml`:
     <Parameter name="spring.datasource.url" value="jdbc:postgresql://localhost:5432/powerauth"/>
     <Parameter name="spring.datasource.username" value="powerauth"/>
     <Parameter name="spring.datasource.password" value="[PASSWORD]"/>
-    <Parameter name="spring.datasource.driver-class-name" value="org.postgresql.Driver"/>
 </Context>
 ```
 
@@ -71,7 +70,6 @@ File `enrollment-server.xml`:
     <Parameter name="spring.datasource.url" value="jdbc:postgresql://localhost:5432/powerauth"/>
     <Parameter name="spring.datasource.username" value="powerauth"/>
     <Parameter name="spring.datasource.password" value="[PASSWORD]"/>
-    <Parameter name="spring.datasource.driver-class-name" value="org.postgresql.Driver"/>
     <Parameter name="spring.jpa.database-platform" value="org.hibernate.dialect.PostgreSQLDialect"/>
     <Parameter name="powerauth.service.url" value="http://localhost:8080/powerauth-java-server/rest"/>
     <Parameter name="enrollment-server.activation-spawn.enabled" value="true"/>

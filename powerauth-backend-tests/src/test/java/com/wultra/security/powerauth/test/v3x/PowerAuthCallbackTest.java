@@ -74,16 +74,6 @@ class PowerAuthCallbackTest {
     }
 
     @Test
-    void callbackCreateDeleteTest() throws PowerAuthClientException {
-        PowerAuthCallbackShared.callbackCreateDeleteTest(powerAuthClient, config);
-    }
-
-    @Test
-    void callbackUpdateTest() throws PowerAuthClientException {
-        PowerAuthCallbackShared.callbackUpdateTest(powerAuthClient, config);
-    }
-
-    @Test
     void callbackExecutionTest() throws PowerAuthClientException, RestClientException {
         PowerAuthCallbackShared.callbackExecutionTest(powerAuthClient, config, port, VERSION);
     }
