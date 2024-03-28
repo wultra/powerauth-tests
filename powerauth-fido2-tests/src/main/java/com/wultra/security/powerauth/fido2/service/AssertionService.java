@@ -97,7 +97,9 @@ public class AssertionService {
         final AssertionVerificationRequest request = new AssertionVerificationRequest();
         request.setCredentialId(Base64.getEncoder().encodeToString(credentialId));
         request.setType(credential.type().getValue());
-        request.setAuthenticatorAttachment(credential.authenticatorAttachment().getValue());
+        if (credential.authenticatorAttachment() != null) {
+            request.setAuthenticatorAttachment(credential.authenticatorAttachment().getValue());
+        }
         request.setResponse(credential.response());
         request.setApplicationId(credential.applicationId());
         request.setExpectedChallenge(credential.expectedChallenge());

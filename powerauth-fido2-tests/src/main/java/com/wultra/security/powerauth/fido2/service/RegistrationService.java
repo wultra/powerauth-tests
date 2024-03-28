@@ -111,7 +111,9 @@ public class RegistrationService {
 
         final AuthenticatorParameters parameters = new AuthenticatorParameters();
         parameters.setCredentialId(Base64.getEncoder().encodeToString(credentialId));
-        parameters.setAuthenticatorAttachment(credential.authenticatorAttachment().getValue());
+        if (credential.authenticatorAttachment() != null) {
+            parameters.setAuthenticatorAttachment(credential.authenticatorAttachment().getValue());
+        }
         parameters.setType(credential.type().getValue());
         parameters.setResponse(credential.response());
         parameters.setAllowedOrigins(webAuthNConfig.getAllowedOrigins());

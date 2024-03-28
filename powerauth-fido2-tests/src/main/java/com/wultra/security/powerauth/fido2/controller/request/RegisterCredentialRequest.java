@@ -44,7 +44,6 @@ public record RegisterCredentialRequest (
         @NotNull
         PublicKeyCredentialType type,
 
-        @NotNull
         AuthenticatorAttachment authenticatorAttachment,
 
         @NotNull

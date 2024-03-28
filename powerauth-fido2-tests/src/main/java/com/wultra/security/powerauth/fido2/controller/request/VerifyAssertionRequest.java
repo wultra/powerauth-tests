@@ -39,7 +39,6 @@ public record VerifyAssertionRequest(
         @NotNull
         PublicKeyCredentialType type,
 
-        @NotNull
         AuthenticatorAttachment authenticatorAttachment,
 
         @NotNull
