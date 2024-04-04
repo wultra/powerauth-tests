@@ -20,18 +20,18 @@ package com.wultra.security.powerauth.fido2.service;
 
 import com.webauthn4j.data.AuthenticatorTransport;
 import com.webauthn4j.data.PublicKeyCredentialType;
-import com.wultra.security.powerauth.client.PowerAuthFido2Client;
-import com.wultra.security.powerauth.client.model.entity.fido2.AllowCredentials;
-import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.request.fido2.AssertionChallengeRequest;
-import com.wultra.security.powerauth.client.model.request.fido2.AssertionVerificationRequest;
-import com.wultra.security.powerauth.client.model.response.fido2.AssertionChallengeResponse;
-import com.wultra.security.powerauth.client.model.response.fido2.AssertionVerificationResponse;
+import com.wultra.security.powerauth.fido2.client.PowerAuthFido2Client;
 import com.wultra.security.powerauth.fido2.configuration.WebAuthnConfiguration;
 import com.wultra.security.powerauth.fido2.controller.request.AssertionOptionsRequest;
 import com.wultra.security.powerauth.fido2.controller.request.VerifyAssertionRequest;
 import com.wultra.security.powerauth.fido2.controller.response.AssertionOptionsResponse;
 import com.wultra.security.powerauth.fido2.controller.response.CredentialDescriptor;
+import com.wultra.security.powerauth.fido2.model.entity.AllowCredentials;
+import com.wultra.security.powerauth.fido2.model.error.PowerAuthFido2Exception;
+import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
+import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
+import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
+import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -56,9 +56,9 @@ public class AssertionService {
      * Build public key assertion options.
      * @param request Request form with user input.
      * @return Public key assertion options.
-     * @throws PowerAuthClientException in case of PowerAuth server communication error.
+     * @throws PowerAuthFido2Exception in case of PowerAuth server communication error.
      */
-    public AssertionOptionsResponse assertionOptions(final AssertionOptionsRequest request) throws PowerAuthClientException {
+    public AssertionOptionsResponse assertionOptions(final AssertionOptionsRequest request) throws PowerAuthFido2Exception {
         final String userId = request.username();
         final String applicationId = request.applicationId();
 
@@ -89,9 +89,9 @@ public class AssertionService {
      * Verify credential at PowerAuth server.
      * @param credential Received public key credential.
      * @return PowerAuth authentication response.
-     * @throws PowerAuthClientException in case of PowerAuth server communication error.
+     * @throws PowerAuthFido2Exception in case of PowerAuth server communication error.
      */
-    public AssertionVerificationResponse authenticate(final VerifyAssertionRequest credential) throws PowerAuthClientException {
+    public AssertionVerificationResponse authenticate(final VerifyAssertionRequest credential) throws PowerAuthFido2Exception {
         final byte[] credentialId = Base64.getUrlDecoder().decode(credential.id());
 
         final AssertionVerificationRequest request = new AssertionVerificationRequest();
@@ -114,7 +114,7 @@ public class AssertionService {
         return response;
     }
 
-    private AssertionChallengeResponse fetchChallenge(final String userId, final String applicationId, final String templateName, final Map<String, String> operationParameters) throws PowerAuthClientException {
+    private AssertionChallengeResponse fetchChallenge(final String userId, final String applicationId, final String templateName, final Map<String, String> operationParameters) throws PowerAuthFido2Exception {
         logger.info("Getting registration challenge for userId={}, applicationId={}, template={}, parameters={}", userId, applicationId, templateName, operationParameters);
         final AssertionChallengeRequest request = new AssertionChallengeRequest();
         if (StringUtils.hasText(userId)) {

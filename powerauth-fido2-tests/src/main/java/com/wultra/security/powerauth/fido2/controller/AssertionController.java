@@ -18,11 +18,11 @@
 
 package com.wultra.security.powerauth.fido2.controller;
 
-import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.response.fido2.AssertionVerificationResponse;
 import com.wultra.security.powerauth.fido2.controller.request.AssertionOptionsRequest;
 import com.wultra.security.powerauth.fido2.controller.request.VerifyAssertionRequest;
 import com.wultra.security.powerauth.fido2.controller.response.AssertionOptionsResponse;
+import com.wultra.security.powerauth.fido2.model.error.PowerAuthFido2Exception;
+import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
 import com.wultra.security.powerauth.fido2.service.AssertionService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -49,12 +49,12 @@ public class AssertionController {
     final AssertionService assertionService;
 
     @PostMapping("/options")
-    public AssertionOptionsResponse options(@Valid @RequestBody final AssertionOptionsRequest request) throws PowerAuthClientException {
+    public AssertionOptionsResponse options(@Valid @RequestBody final AssertionOptionsRequest request) throws PowerAuthFido2Exception {
         return assertionService.assertionOptions(request);
     }
 
     @PostMapping
-    public AssertionVerificationResponse verify(@Valid @RequestBody final VerifyAssertionRequest request, final HttpSession session) throws PowerAuthClientException {
+    public AssertionVerificationResponse verify(@Valid @RequestBody final VerifyAssertionRequest request, final HttpSession session) throws PowerAuthFido2Exception {
         final AssertionVerificationResponse response = assertionService.authenticate(request);
         if (response.isAssertionValid()) {
             session.setAttribute("username", response.getUserId());

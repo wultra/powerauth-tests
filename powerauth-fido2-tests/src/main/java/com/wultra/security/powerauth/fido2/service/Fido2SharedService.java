@@ -21,12 +21,13 @@ package com.wultra.security.powerauth.fido2.service;
 import com.webauthn4j.data.AuthenticatorTransport;
 import com.webauthn4j.data.PublicKeyCredentialType;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.PowerAuthFido2Client;
 import com.wultra.security.powerauth.client.model.entity.Application;
-import com.wultra.security.powerauth.client.model.entity.fido2.AuthenticatorDetail;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
+import com.wultra.security.powerauth.fido2.client.PowerAuthFido2Client;
 import com.wultra.security.powerauth.fido2.controller.response.CredentialDescriptor;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorDetail;
+import com.wultra.security.powerauth.fido2.model.error.PowerAuthFido2Exception;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -56,9 +57,9 @@ public class Fido2SharedService {
      * @param userId User to whom the credentials belong.
      * @param applicationId Of the used application.
      * @return List of credentials.
-     * @throws PowerAuthClientException if there is an error in PowerAuth communication.
+     * @throws PowerAuthFido2Exception if there is an error in PowerAuth communication.
      */
-    public List<CredentialDescriptor> fetchExistingCredentials(final String userId, final String applicationId) throws PowerAuthClientException {
+    public List<CredentialDescriptor> fetchExistingCredentials(final String userId, final String applicationId) throws PowerAuthFido2Exception {
         if (!StringUtils.hasText(userId) || !StringUtils.hasText(applicationId)) {
             return Collections.emptyList();
         }
@@ -92,7 +93,7 @@ public class Fido2SharedService {
                 .sorted().toList();
     }
 
-    private List<AuthenticatorDetail> listAuthenticators(final String userId, final String applicationId) throws PowerAuthClientException {
+    private List<AuthenticatorDetail> listAuthenticators(final String userId, final String applicationId) throws PowerAuthFido2Exception {
         return fido2Client.getRegisteredAuthenticatorList(userId, applicationId).getAuthenticators();
     }
 

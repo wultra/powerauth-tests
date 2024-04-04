@@ -23,16 +23,16 @@ import com.webauthn4j.data.PublicKeyCredentialRpEntity;
 import com.webauthn4j.data.PublicKeyCredentialType;
 import com.webauthn4j.data.PublicKeyCredentialUserEntity;
 import com.webauthn4j.data.attestation.statement.COSEAlgorithmIdentifier;
-import com.wultra.security.powerauth.client.PowerAuthFido2Client;
-import com.wultra.security.powerauth.client.model.entity.fido2.AuthenticatorParameters;
-import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.request.fido2.RegistrationRequest;
-import com.wultra.security.powerauth.client.model.response.fido2.RegistrationChallengeResponse;
-import com.wultra.security.powerauth.client.model.response.fido2.RegistrationResponse;
+import com.wultra.security.powerauth.fido2.client.PowerAuthFido2Client;
 import com.wultra.security.powerauth.fido2.configuration.WebAuthnConfiguration;
 import com.wultra.security.powerauth.fido2.controller.request.RegisterCredentialRequest;
 import com.wultra.security.powerauth.fido2.controller.request.RegistrationOptionsRequest;
 import com.wultra.security.powerauth.fido2.controller.response.RegistrationOptionsResponse;
+import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorParameters;
+import com.wultra.security.powerauth.fido2.model.error.PowerAuthFido2Exception;
+import com.wultra.security.powerauth.fido2.model.request.RegistrationRequest;
+import com.wultra.security.powerauth.fido2.model.response.RegistrationChallengeResponse;
+import com.wultra.security.powerauth.fido2.model.response.RegistrationResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -58,9 +58,9 @@ public class RegistrationService {
      * Build public key registration options.
      * @param request Request form with user input.
      * @return Public key registration options.
-     * @throws PowerAuthClientException in case of PowerAuth server communication error.
+     * @throws PowerAuthFido2Exception in case of PowerAuth server communication error.
      */
-    public RegistrationOptionsResponse registerOptions(final RegistrationOptionsRequest request) throws PowerAuthClientException {
+    public RegistrationOptionsResponse registerOptions(final RegistrationOptionsRequest request) throws PowerAuthFido2Exception {
         final String userId = request.username();
         final String applicationId = request.applicationId();
 
@@ -83,9 +83,9 @@ public class RegistrationService {
      * Register credential at PowerAuth server.
      * @param credential Newly created public key credential
      * @return PowerAuth registration response.
-     * @throws PowerAuthClientException in case of PowerAuth server communication error.
+     * @throws PowerAuthFido2Exception in case of PowerAuth server communication error.
      */
-    public RegistrationResponse register(final RegisterCredentialRequest credential) throws PowerAuthClientException {
+    public RegistrationResponse register(final RegisterCredentialRequest credential) throws PowerAuthFido2Exception {
         logger.info("Registering created credential of userId={}, applicationId={}", credential.username(), credential.applicationId());
 
         final RegistrationRequest request = new RegistrationRequest();
@@ -99,7 +99,7 @@ public class RegistrationService {
         return response;
     }
 
-    private RegistrationChallengeResponse fetchChallenge(final String userId, final String applicationId) throws PowerAuthClientException {
+    private RegistrationChallengeResponse fetchChallenge(final String userId, final String applicationId) throws PowerAuthFido2Exception {
         logger.info("Getting registration challenge for userId={}, applicationId={}", userId, applicationId);
         final RegistrationChallengeResponse response = fido2Client.requestRegistrationChallenge(userId, applicationId);
         logger.debug("Registration challenge response for userId={}: {}", userId, response);

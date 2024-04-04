@@ -20,7 +20,7 @@ package com.wultra.security.powerauth.fido2.controller.request;
 
 import com.webauthn4j.data.AuthenticatorAttachment;
 import com.webauthn4j.data.PublicKeyCredentialType;
-import com.wultra.security.powerauth.client.model.entity.fido2.AuthenticatorAssertionResponse;
+import com.wultra.security.powerauth.fido2.model.response.AuthenticatorAssertionResponse;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
