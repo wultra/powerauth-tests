@@ -48,7 +48,7 @@
         <enrollment-server.version>1.7.0-SNAPSHOT</enrollment-server.version>
         <powerauth-cmd.version>1.7.0-SNAPSHOT</powerauth-cmd.version>
         <powerauth-crypto.version>1.7.0-SNAPSHOT</powerauth-crypto.version>
-        <powerauth-restful-integration.version>1.7.0-SNAPSHOT</powerauth-restful-integration.version>
+        <powerauth-restful-integration.version>1.7.0</powerauth-restful-integration.version>
         <powerauth-server.version>1.7.0-SNAPSHOT</powerauth-server.version>
         <powerauth-webflow.version>1.7.0-SNAPSHOT</powerauth-webflow.version>
         <wultra-core.version>1.9.0-SNAPSHOT</wultra-core.version>
