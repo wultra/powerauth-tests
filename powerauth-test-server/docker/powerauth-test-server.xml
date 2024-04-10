@@ -14,7 +14,6 @@
     <Parameter name="spring.datasource.url" value="${POWERAUTH_TEST_SERVER_DATASOURCE_URL:jdbc:postgresql://host.docker.internal:5432/powerauth}"/>
     <Parameter name="spring.datasource.username" value="${POWERAUTH_TEST_SERVER_DATASOURCE_USERNAME:powerauth}"/>
     <Parameter name="spring.datasource.password" value="${POWERAUTH_TEST_SERVER_DATASOURCE_PASSWORD:}"/>
-    <Parameter name="spring.datasource.driver-class-name" value="${POWERAUTH_TEST_SERVER_DATASOURCE_DRIVER:org.postgresql.Driver}"/>
     <Parameter name="spring.jpa.hibernate.ddl-auto" value="${POWERAUTH_TEST_SERVER_JPA_DDL_AUTO:update}"/>
     <Parameter name="spring.datasource.hikari.maximumPoolSize" value="${POWERAUTH_TEST_SERVER_DATASOURCE_POOL_SIZE:5}"/>
     <Parameter name="spring.datasource.hikari.connectionTimeout" value="${POWERAUTH_TEST_SERVER_DATASOURCE_CONNECTION_TIMEOUT:30000}"/>

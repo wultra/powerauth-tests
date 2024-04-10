@@ -31,8 +31,10 @@ import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.core.rest.model.base.response.Response;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -44,6 +46,7 @@ import org.springframework.web.bind.annotation.RestController;
  * @author Petr Dvorak, petr@wultra.com
  */
 @RestController
+@Validated
 @RequestMapping("operations")
 public class OperationsController {
 
@@ -69,7 +72,7 @@ public class OperationsController {
      */
     @Parameter(name = HttpHeaders.ACCEPT_LANGUAGE, in = ParameterIn.HEADER, allowEmptyValue = true, description = "Preferred language in which we want to get the operations.", example = "en")
     @PostMapping("pending")
-    public ObjectResponse<OperationListResponse> fetchOperations(@RequestBody ObjectRequest<GetOperationsRequest> request) throws RemoteExecutionException, RestClientException, SignatureVerificationException, ActivationFailedException {
+    public ObjectResponse<OperationListResponse> fetchOperations(@Valid @RequestBody ObjectRequest<GetOperationsRequest> request) throws RemoteExecutionException, RestClientException, SignatureVerificationException, ActivationFailedException {
         final OperationListResponse response = operationsService.getOperations(request.getRequestObject());
         return new ObjectResponse<>(response);
     }
@@ -84,7 +87,7 @@ public class OperationsController {
      * @throws AppConfigNotFoundException In case app configuration is not found.
      */
     @PostMapping("approve")
-    public Response approveOperations(@RequestBody ObjectRequest<OperationApproveInternalRequest> request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException {
+    public Response approveOperations(@Valid @RequestBody ObjectRequest<OperationApproveInternalRequest> request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException {
         return operationsService.approveOperation(request.getRequestObject());
     }
 
