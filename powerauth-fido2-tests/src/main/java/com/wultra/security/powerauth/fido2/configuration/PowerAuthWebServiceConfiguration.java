@@ -19,8 +19,9 @@
 package com.wultra.security.powerauth.fido2.configuration;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.PowerAuthFido2Client;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.fido2.client.PowerAuthFido2Client;
+import com.wultra.security.powerauth.fido2.model.error.PowerAuthFido2Exception;
 import com.wultra.security.powerauth.rest.client.PowerAuthFido2RestClient;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
@@ -49,7 +50,7 @@ public class PowerAuthWebServiceConfiguration {
     }
 
     @Bean
-    public PowerAuthFido2Client powerAuthFido2Client(final PowerAuthConfigProperties properties) throws PowerAuthClientException {
+    public PowerAuthFido2Client powerAuthFido2Client(final PowerAuthConfigProperties properties) throws PowerAuthFido2Exception {
         if (StringUtils.hasText(properties.getSecurity().clientToken())) {
             final PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
             config.setPowerAuthClientToken(properties.getSecurity().clientToken());
