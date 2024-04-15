@@ -115,7 +115,7 @@ public class AssertionService {
     }
 
     private AssertionChallengeResponse fetchChallenge(final String userId, final String applicationId, final String templateName, final Map<String, String> operationParameters) throws PowerAuthFido2Exception {
-        logger.info("Getting registration challenge for userId={}, applicationId={}, template={}, parameters={}", userId, applicationId, templateName, operationParameters);
+        logger.info("Getting assertion challenge for userId={}, applicationId={}, template={}, parameters={}", userId, applicationId, templateName, operationParameters);
         final AssertionChallengeRequest request = new AssertionChallengeRequest();
         if (StringUtils.hasText(userId)) {
             request.setUserId(userId);
