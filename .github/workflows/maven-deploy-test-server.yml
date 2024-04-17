@@ -11,7 +11,7 @@ jobs:
   maven-deploy-manual:
     if: ${{ github.event_name == 'workflow_dispatch' }}
     name: Manual deploy test-server
-    uses: wultra/wultra-infrastructure/.github/workflows/maven-deploy-test-server.yml@develop
+    uses: wultra/wultra-infrastructure/.github/workflows/maven-deploy.yml@develop
     with:
       environment: internal-publish
       release_type: snapshot
