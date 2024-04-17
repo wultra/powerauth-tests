@@ -56,7 +56,7 @@ public class ApplicationController {
      * @throws AppConfigInvalidException Thrown in case mobile SDK configuration is invalid.
      */
     @PostMapping("config")
-    public Response createActivation(@Valid @RequestBody ObjectRequest<ConfigureApplicationRequest> request) throws AppConfigInvalidException {
+    public Response configActivation(@Valid @RequestBody ObjectRequest<ConfigureApplicationRequest> request) throws AppConfigInvalidException {
         return applicationService.configureApplication(request.getRequestObject());
     }
 
