@@ -154,6 +154,12 @@ async function fetchAssertionOptions(username, applicationId, templateName, oper
 async function registerCredentials(username, applicationId, credential) {
     const userVerification = $("#userVerification").val();
 
+    // Although getTransports() is required by WebAuthn specification, some browsers do not support it
+    let transports = [];
+    if (typeof credential.response.getTransports === 'function') {
+        transports = credential.response.getTransports();
+    }
+
     // RP entity and allowedOrigins are added on backend level
     const requestBody = {
         applicationId: applicationId,
@@ -165,7 +171,7 @@ async function registerCredentials(username, applicationId, credential) {
         response: {
             clientDataJSON: toBase64(credential.response.clientDataJSON),
             attestationObject: toBase64(credential.response.attestationObject),
-            transports: credential.response.getTransports()
+            transports: transports
         }
     };
 
