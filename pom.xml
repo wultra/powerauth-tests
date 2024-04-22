@@ -53,7 +53,6 @@
         <powerauth-webflow.version>1.8.0-SNAPSHOT</powerauth-webflow.version>
         <wultra-core.version>1.10.0-SNAPSHOT</wultra-core.version>
 
-        <bc.version>1.78</bc.version>
         <springdoc-openapi-starter-webmvc-ui.version>2.5.0</springdoc-openapi-starter-webmvc-ui.version>
         <logstash.version>7.4</logstash.version>
         <webauthn4j.version>0.23.0.RELEASE</webauthn4j.version>
@@ -71,12 +70,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.bouncycastle</groupId>
-                <artifactId>bcprov-jdk18on</artifactId>
-                <version>${bc.version}</version>
-            </dependency>
-
             <!-- PowerAuth Webflow -->
             <dependency>
                 <groupId>io.getlime.security</groupId>
