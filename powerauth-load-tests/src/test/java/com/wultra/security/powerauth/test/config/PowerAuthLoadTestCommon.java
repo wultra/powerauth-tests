@@ -103,7 +103,7 @@ public class PowerAuthLoadTestCommon {
      */
     private static int getIntEnv(final String name, final int defaultValue) {
         final String value = System.getenv(name);
-        if (value != null && !value.isEmpty()) {
+        if (StringUtils.isNotBlank(value)) {
             try {
                 return Integer.parseInt(value);
             } catch (NumberFormatException e) {
