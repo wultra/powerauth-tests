@@ -1,0 +1,7 @@
+export PERF_TEST_PREP_N_REG=15000 # Number of registrations to prepare - Preparation phase
+export PERF_TEST_PREP_M_OP=30000 # Number of operations to prepare - Preparation phase
+export PERF_TEST_EXE_X_REG=1 # Number of registrations to create per sec - Execution phase
+export PERF_TEST_EXE_Y_OP=40 # Number of operations to create per sec - Execution phase
+export PERF_TEST_EXE_MIN=60 # Length of execution phase in minutes - Execution phase
+export PERF_TEST_CALLBACK_URL=CALLBACK_URL # URL for the callback server
+export MAVEN_OPTS=-Xmx6000m # OPTIONAL - adding more heap size
