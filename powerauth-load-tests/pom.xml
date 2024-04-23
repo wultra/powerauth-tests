@@ -51,10 +51,6 @@
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-cmd-lib</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk18on</artifactId>
-        </dependency>
 
         <!-- Gatling -->
         <dependency>
