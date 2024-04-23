@@ -15,15 +15,14 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.scenario;
+package com.wultra.security.powerauth.test.shared;
 
-import com.wultra.security.powerauth.test.shared.SharedSessionData;
 import io.gatling.javaapi.core.ChainBuilder;
 
 import static io.gatling.javaapi.core.CoreDsl.exec;
 
 import com.wultra.security.powerauth.test.model.UserRegistrationInfo;
-import scala.collection.JavaConverters;
+import scala.jdk.javaapi.CollectionConverters;
 
 import java.util.Map;
 
@@ -33,7 +32,7 @@ import java.util.Map;
  *
  * @author Jan Dusil, jan.dusil@wultra.com
  */
-abstract class SharedSessionScenario {
+public final class SessionDataUtils {
 
     /**
      * Prepares the Gatling session with pre-stored data from {@link SharedSessionData}.
@@ -60,12 +59,12 @@ abstract class SharedSessionScenario {
      */
     public static ChainBuilder saveSessionData() {
         return exec(session -> {
-            JavaConverters.mapAsJavaMapConverter(session.asScala().attributes()).asJava()
-                    .forEach((key, value) -> {
-                        if (value != null && !key.contains("gatling")) {
-                            SharedSessionData.transferVariable.put(key, value);
-                        }
-                    });
+           CollectionConverters.asJava(session.asScala().attributes()).forEach((key, value) -> {
+                if (value != null && !key.contains("gatling")) {
+                    SharedSessionData.transferVariable.put(key, value);
+                }
+            });
+
             return session;
         });
     }

@@ -18,8 +18,10 @@
 package com.wultra.security.powerauth.test.scenario;
 
 import com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon;
+import com.wultra.security.powerauth.test.shared.SessionDataUtils;
 import io.gatling.javaapi.core.ScenarioBuilder;
 
+import static com.wultra.security.powerauth.test.shared.SessionDataUtils.prepareSessionData;
 import static io.gatling.javaapi.core.CoreDsl.*;
 import static io.gatling.javaapi.http.HttpDsl.http;
 import static io.gatling.javaapi.http.HttpDsl.status;
@@ -36,11 +38,11 @@ import static io.gatling.javaapi.http.HttpDsl.status;
  *
  * @author Jan Dusil, jan.dusil@wultra.com
  */
-public class CreateRegistrationScenario extends SharedSessionScenario {
+public class CreateRegistrationScenario {
 
     public static final ScenarioBuilder createRegistrationScenario = scenario(CreateRegistrationScenario.class.getName())
             .exec(prepareSessionData())
-            .doIfOrElse(String.valueOf(PowerAuthLoadTestCommon.isPrep()))
+            .doIfOrElse(String.valueOf(PowerAuthLoadTestCommon.isPreparationPhase()))
             .then(repeat((PowerAuthLoadTestCommon.PERF_TEST_PREP_N_REG / PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS)).on(
                     feed(PowerAuthLoadTestCommon.getUserDataFeed().shuffle())
                             .exec(
@@ -84,8 +86,8 @@ public class CreateRegistrationScenario extends SharedSessionScenario {
                                                     """))
                                             .check(status().is(200))
                             )
-                            .exec(saveSessionData())
-                            .exec(saveRegistrationData())))
+                            .exec(SessionDataUtils.saveSessionData())
+                            .exec(SessionDataUtils.saveRegistrationData())))
 
             .orElse(
                     feed(PowerAuthLoadTestCommon.getUserDataFeed().shuffle())
@@ -130,6 +132,6 @@ public class CreateRegistrationScenario extends SharedSessionScenario {
                                                     """))
                                             .check(status().is(200))
                             )
-                            .exec(saveSessionData()));
+                            .exec(SessionDataUtils.saveRegistrationData()));
 
 }

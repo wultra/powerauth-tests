@@ -79,18 +79,6 @@ public class PerformanceTestSimulation extends Simulation {
                                         .protocols(PowerAuthLoadTestCommon.commonProtocol),
                                 ListOperationHistoryScenario.listOperationHistoryScenario
                                         .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_Y_OP * 0.1).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)).randomized())
-                                        .protocols(PowerAuthLoadTestCommon.commonProtocol)
-                        ).andThen(
-                                // /* Stress test  - ramping user engagement */
-                                // CreateRegistrationScenario.createRegistrationScenario
-                                //         .injectOpen(stressPeakUsers(100).during(Duration.ofSeconds(10)))
-                                //         .protocols(PowerAuthLoadTestCommon.commonProtocol),
-                                // CreateApproveOperationScenario.createApproveOperationScenario
-                                //         .injectOpen(stressPeakUsers(100).during(Duration.ofSeconds(10)))
-                                //         .protocols(PowerAuthLoadTestCommon.commonProtocol),
-                                // ListOperationHistoryScenario.listOperationHistoryScenario
-                                //         .injectOpen(stressPeakUsers(100).during(Duration.ofSeconds(10)))
-                                //         .protocols(PowerAuthLoadTestCommon.commonProtocol)
-                        ));
+                                        .protocols(PowerAuthLoadTestCommon.commonProtocol)));
     }
 }

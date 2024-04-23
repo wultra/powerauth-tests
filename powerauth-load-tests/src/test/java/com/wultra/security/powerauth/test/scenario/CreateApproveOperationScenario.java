@@ -36,7 +36,7 @@ import static io.gatling.javaapi.http.HttpDsl.status;
  * @author Jan Dusil, jan.dusil@wultra.com
  */
 @Slf4j
-public class CreateApproveOperationScenario extends SharedSessionScenario {
+public class CreateApproveOperationScenario{
 
     public static final ScenarioBuilder createApproveOperationScenario = scenario(CreateApproveOperationScenario.class.getName())
             .feed(PowerAuthLoadTestCommon.getUserDataFeed().circular())

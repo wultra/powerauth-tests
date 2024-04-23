@@ -37,7 +37,7 @@ import static java.util.UUID.randomUUID;
  * @author Jan Dusil, jan.dusil@wultra.com
  */
 
-public class CreateCallbackScenario extends SharedSessionScenario {
+public class CreateCallbackScenario {
     private static final String CALLBACK_NAME = "TEST_CALLBACK_" + randomUUID();
     public static final ScenarioBuilder createCallbackScenario = scenario(CreateCallbackScenario.class.getName())
             .feed(PowerAuthLoadTestCommon.getUserDataFeed().shuffle())

@@ -19,6 +19,7 @@ package com.wultra.security.powerauth.test.scenario;
 
 import com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon;
 
+import com.wultra.security.powerauth.test.shared.SessionDataUtils;
 import io.gatling.javaapi.core.ScenarioBuilder;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
@@ -36,10 +37,10 @@ import static io.gatling.javaapi.http.HttpDsl.status;
  *
  * @author Jan Dusil, jan.dusil@wultra.com
  */
-public class CreateOperationScenario extends SharedSessionScenario {
+public class CreateOperationScenario {
 
     public static final ScenarioBuilder createOperationScenario = scenario(CreateOperationScenario.class.getName())
-            .exec(prepareSessionData())
+            .exec(SessionDataUtils.prepareSessionData())
             .repeat(PowerAuthLoadTestCommon.PERF_TEST_PREP_M_OP / PowerAuthLoadTestCommon.MAX_CONCURRENT_USERS).on(
                     feed(PowerAuthLoadTestCommon.getUserDataFeed().shuffle().circular())
                             .exec(

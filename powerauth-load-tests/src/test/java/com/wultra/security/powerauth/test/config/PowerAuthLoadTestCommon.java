@@ -24,6 +24,7 @@ import io.gatling.javaapi.http.HttpProtocolBuilder;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import wiremock.org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,7 +54,7 @@ public class PowerAuthLoadTestCommon {
 
     @Setter
     @Getter
-    private static boolean isPrep = false;
+    private static boolean isPreparationPhase = false;
 
     private static FeederBuilder<Object> userDataFeedList;
 
@@ -62,7 +63,7 @@ public class PowerAuthLoadTestCommon {
     private static final String DATA_DUMP_FILE = "registrationDataFeed.json";
 
     /* Empirical value from testing */
-    public static final int MAX_CONCURRENT_USERS = 10;
+    public static final int MAX_CONCURRENT_USERS = 20;
 
     /* Total number of registrations to prepare during preparation phase */
     public static final int PERF_TEST_PREP_N_REG = getIntEnv("PERF_TEST_PREP_N_REG", 100);
@@ -121,7 +122,7 @@ public class PowerAuthLoadTestCommon {
      */
     private static String getStringEnv(final String name, final String defaultValue) {
         final String value = System.getenv(name);
-        if (value != null && !value.isEmpty()) {
+        if (StringUtils.isNotBlank(value)) {
             return value;
         } else {
             logger.warn("Environment variable {} is not set correctly: {}. Using default value.", name, defaultValue);
@@ -144,7 +145,7 @@ public class PowerAuthLoadTestCommon {
      * regardless of the phase of the test.
      */
     public static void prepareFeedDataUsers() {
-        if (isPrep()) {
+        if (isPreparationPhase()) {
             final List<Map<String, Object>> userList = Stream.generate(() -> {
                         final Map<String, Object> stringObjectMap = new HashMap<>();
                         stringObjectMap.put("testUserId", generateUserId());
@@ -167,7 +168,7 @@ public class PowerAuthLoadTestCommon {
      * @return A {@link FeederBuilder} object containing user data for the simulation.
      */
     public static FeederBuilder<Object> getUserDataFeed() {
-        if (isPrep()) {
+        if (isPreparationPhase()) {
             return userDataFeedList;
         } else {
             return userDataFeedJson;

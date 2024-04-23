@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.test.scenario;
 
 import com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon;
+import com.wultra.security.powerauth.test.shared.SessionDataUtils;
 import io.gatling.javaapi.core.ScenarioBuilder;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
@@ -32,7 +33,7 @@ import static java.util.UUID.randomUUID;
  *
  * @author Jan Dusil, jan.dusil@wultra.com
  */
-public class CreateApplicationScenario extends SharedSessionScenario {
+public class CreateApplicationScenario {
 
     private static final String APP_NAME = "TEST_APP_" + randomUUID();
     private static final String INTEGRATION_USER_NAME = "integration-user-" + randomUUID();
@@ -57,17 +58,18 @@ public class CreateApplicationScenario extends SharedSessionScenario {
                                     jmesPath("mobileSdkConfig").saveAs("mobileSdkConfig"),
                                     jmesPath("id").saveAs("appId"))
             )
-            .exec(http("Create new integration user")
-                    .post(PowerAuthLoadTestCommon.PAC_URL + "/admin/users")
-                    .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC_ADMIN_PASS)
-                    .body(StringBody("""
-                             {
-                                "username": "%s"
-                                }
-                            }
-                              """.formatted(INTEGRATION_USER_NAME)))
-                    .check(jmesPath("username").saveAs("pac-int-user"))
-                    .check(jmesPath("password").saveAs("pac-int-user-pass")))
+            .exec(
+                    http("Create new integration user")
+                            .post(PowerAuthLoadTestCommon.PAC_URL + "/admin/users")
+                            .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC_ADMIN_PASS)
+                            .body(StringBody("""
+                                     {
+                                        "username": "%s"
+                                        }
+                                    }
+                                      """.formatted(INTEGRATION_USER_NAME)))
+                            .check(jmesPath("username").saveAs("pac-int-user"))
+                            .check(jmesPath("password").saveAs("pac-int-user-pass")))
             .exec(
                     http("Add app access to integration user")
                             .post(PowerAuthLoadTestCommon.PAC_URL + "/admin/users/#{pac-int-user}/applications/#{appId}")
@@ -88,5 +90,5 @@ public class CreateApplicationScenario extends SharedSessionScenario {
                                         }
                                     }
                                       """.formatted(APP_NAME))))
-            .exec(saveSessionData());
+            .exec(SessionDataUtils.saveSessionData());
 }

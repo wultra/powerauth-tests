@@ -58,7 +58,7 @@ public class DataPreparationSimulation extends Simulation {
     }
 
     public DataPreparationSimulation() {
-        PowerAuthLoadTestCommon.setPrep(true);
+        PowerAuthLoadTestCommon.setPreparationPhase(true);
         PowerAuthLoadTestCommon.prepareFeedDataUsers();
 
         setUp(
