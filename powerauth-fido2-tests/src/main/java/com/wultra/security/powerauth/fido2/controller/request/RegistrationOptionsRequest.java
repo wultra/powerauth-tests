@@ -30,5 +30,9 @@ public record RegistrationOptionsRequest(
     String userId,
 
     @NotBlank
-    String applicationId
+    String applicationId,
+
+    String username,
+    String userDisplayName
+
 ) {}

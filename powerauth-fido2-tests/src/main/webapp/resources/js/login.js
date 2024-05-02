@@ -15,7 +15,12 @@ async function handleLoginSubmit() {
 
     try {
         if (CEREMONY === REGISTRATION_CEREMONY) {
-            await createCredential(userId, applicationId);
+            const userDetails = {
+                "username": $("#username").val(),
+                "userDisplayName": $("#userDisplayName").val(),
+                "userId": userId
+            };
+            await createCredential(userDetails, applicationId);
         } else if (CEREMONY === AUTHENTICATION_CEREMONY) {
             const templateName = $("#operationTemplate").val();
             await requestCredential(userId, applicationId, templateName, {});
@@ -80,6 +85,13 @@ $(function() {
         } else {
             settingsBlock.show();
         }
+    });
+
+    // Hint the userId == username == displayName if not overwritten
+    const userIdField = $("#userId");
+    userIdField.keyup(function () {
+        $('#username').attr("placeholder", userIdField.val());
+        $('#userDisplayName').attr("placeholder",  userIdField.val());
     });
 
 });

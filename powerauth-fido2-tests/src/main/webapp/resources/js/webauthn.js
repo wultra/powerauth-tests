@@ -6,15 +6,15 @@ let CEREMONY;
 /**
  * WebAuthn ceremony to create a new credential on register request.
  */
-async function createCredential(userId, applicationId) {
-    const options = await fetchRegistrationOptions(userId, applicationId);
+async function createCredential(userDetails, applicationId) {
+    const options = await fetchRegistrationOptions(userDetails, applicationId);
     const credential = await navigator.credentials.create({
         publicKey: options
     });
     console.log("Public Key Credential")
     console.log(JSON.stringify(credential, null, 2));
 
-    const registerResponse = await registerCredentials(userId, applicationId, credential)
+    const registerResponse = await registerCredentials(userDetails.userId, applicationId, credential)
     console.log("PowerAuth Registration Response")
     console.log(JSON.stringify(registerResponse, null, 2));
     if (registerResponse.activationStatus !== "ACTIVE") {
@@ -44,14 +44,16 @@ async function requestCredential(userId, applicationId, templateName, operationP
 
 /**
  * Fetch and return public key credential creation options.
- * @param userId User ID from user input.
+ * @param userDetails User ID, Username and User Display Name from user input.
  * @param applicationId Application ID from user input.
  * @returns public key credential creation options
  */
-async function fetchRegistrationOptions(userId, applicationId) {
+async function fetchRegistrationOptions(userDetails, applicationId) {
 
     const fetchOptionsRequest = {
-        "userId": userId,
+        "userId": userDetails.userId,
+        "username": userDetails.username,
+        "userDisplayName": userDetails.userDisplayName,
         "applicationId": applicationId
     };
 

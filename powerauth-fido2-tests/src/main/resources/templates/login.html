@@ -59,6 +59,12 @@
                 <!-- Advanced settings -->
                 <button type="button" id="settingsBtn" class="btn btn-primary btn-block btn-xs">Settings</button>
                 <div id="settingsBlock" class="info block" hidden="hidden">
+                    <label for="username" class="label">Username</label>
+                    <input type="text" id="username" name="username" class="form-control" />
+
+                    <label for="userDisplayName" class="label">Display Name</label>
+                    <input type="text" id="userDisplayName" name="displayName" class="form-control" />
+
                     <label for="operationTemplate" class="label">Operation Template</label>
                     <select id="operationTemplate" class="form-control">
                         <option th:each="option : ${templates}" th:value="${option}" th:text="${option}" th:selected="${option} == login ? true : false"></option>

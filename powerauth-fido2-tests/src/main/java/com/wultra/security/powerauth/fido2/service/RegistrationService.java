@@ -64,13 +64,15 @@ public class RegistrationService {
     public RegistrationOptionsResponse registerOptions(final RegistrationOptionsRequest request) throws PowerAuthFido2Exception {
         final String applicationId = request.applicationId();
         final String userId = request.userId();
+        final String username = StringUtils.hasText(request.username()) ? request.username() : userId;
+        final String userDisplayName = StringUtils.hasText(request.userDisplayName()) ? request.userDisplayName() : userId;
 
         final RegistrationChallengeResponse challengeResponse = fetchChallenge(userId, applicationId);
 
         logger.info("Building registration options for userId={}, applicationId={}", userId, applicationId);
         return RegistrationOptionsResponse.builder()
                 .rp(new PublicKeyCredentialRpEntity(webAuthNConfig.getRpId(), webAuthNConfig.getRpName()))
-                .user(new PublicKeyCredentialUserEntity(userId.getBytes(), userId, userId))
+                .user(new PublicKeyCredentialUserEntity(userId.getBytes(), username, userDisplayName))
                 .challenge(challengeResponse.getChallenge())
                 .pubKeyCredParams(List.of(
                         new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256)
