@@ -36,6 +36,7 @@ import com.wultra.security.powerauth.fido2.model.response.RegistrationResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Base64;
 import java.util.List;
@@ -61,8 +62,8 @@ public class RegistrationService {
      * @throws PowerAuthFido2Exception in case of PowerAuth server communication error.
      */
     public RegistrationOptionsResponse registerOptions(final RegistrationOptionsRequest request) throws PowerAuthFido2Exception {
-        final String userId = request.username();
         final String applicationId = request.applicationId();
+        final String userId = request.userId();
 
         final RegistrationChallengeResponse challengeResponse = fetchChallenge(userId, applicationId);
 
@@ -86,15 +87,17 @@ public class RegistrationService {
      * @throws PowerAuthFido2Exception in case of PowerAuth server communication error.
      */
     public RegistrationResponse register(final RegisterCredentialRequest credential) throws PowerAuthFido2Exception {
-        logger.info("Registering created credential of userId={}, applicationId={}", credential.username(), credential.applicationId());
+        final String applicationId = credential.applicationId();
+        final String userId = credential.userId();
+        logger.info("Registering created credential of userId={}, applicationId={}", userId, applicationId);
 
         final RegistrationRequest request = new RegistrationRequest();
-        request.setActivationName(credential.username());
-        request.setApplicationId(credential.applicationId());
+        request.setActivationName(userId);
+        request.setApplicationId(applicationId);
         request.setAuthenticatorParameters(buildAuthenticatorParameters(credential));
 
         final RegistrationResponse response = fido2Client.register(request);
-        logger.debug("Credential registration response of userId={}: {}", credential.username(), response);
+        logger.debug("Credential registration response of userId={}: {}", userId, response);
         logger.info("Activation ID {} of userId={}: status={}", response.getActivationId(), response.getUserId(), response.getActivationStatus());
         return response;
     }

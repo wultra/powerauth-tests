@@ -6,15 +6,15 @@ let CEREMONY;
 /**
  * WebAuthn ceremony to create a new credential on register request.
  */
-async function createCredential(username, applicationId) {
-    const options = await fetchRegistrationOptions(username, applicationId);
+async function createCredential(userId, applicationId) {
+    const options = await fetchRegistrationOptions(userId, applicationId);
     const credential = await navigator.credentials.create({
         publicKey: options
     });
     console.log("Public Key Credential")
     console.log(JSON.stringify(credential, null, 2));
 
-    const registerResponse = await registerCredentials(username, applicationId, credential)
+    const registerResponse = await registerCredentials(userId, applicationId, credential)
     console.log("PowerAuth Registration Response")
     console.log(JSON.stringify(registerResponse, null, 2));
     if (registerResponse.activationStatus !== "ACTIVE") {
@@ -25,8 +25,8 @@ async function createCredential(username, applicationId) {
 /**
  * WebAuthn ceremony to request an existing credential on login request.
  */
-async function requestCredential(username, applicationId, templateName, operationParameters) {
-    const options = await fetchAssertionOptions(username, applicationId, templateName, operationParameters);
+async function requestCredential(userId, applicationId, templateName, operationParameters) {
+    const options = await fetchAssertionOptions(userId, applicationId, templateName, operationParameters);
     const credential = await navigator.credentials.get({
         publicKey: options
     });
@@ -44,14 +44,14 @@ async function requestCredential(username, applicationId, templateName, operatio
 
 /**
  * Fetch and return public key credential creation options.
- * @param username Username from user input.
+ * @param userId User ID from user input.
  * @param applicationId Application ID from user input.
  * @returns public key credential creation options
  */
-async function fetchRegistrationOptions(username, applicationId) {
+async function fetchRegistrationOptions(userId, applicationId) {
 
     const fetchOptionsRequest = {
-        "username": username,
+        "userId": userId,
         "applicationId": applicationId
     };
 
@@ -104,16 +104,16 @@ async function fetchRegistrationOptions(username, applicationId) {
 
 /**
  * Fetch and return public key credential request options.
- * @param username Username from user input, may be empty.
+ * @param userId User ID from user input, may be empty.
  * @param applicationId Application ID from user input.
  * @param templateName Template name to use.
  * @param operationParameters Parameters of the operation.
  * @returns public key credential request options
  */
-async function fetchAssertionOptions(username, applicationId, templateName, operationParameters) {
+async function fetchAssertionOptions(userId, applicationId, templateName, operationParameters) {
 
     const fetchOptionsRequest = {
-        "username": username,
+        "userId": userId,
         "applicationId": applicationId,
         "templateName": templateName,
         "operationParameters": operationParameters
@@ -146,12 +146,12 @@ async function fetchAssertionOptions(username, applicationId, templateName, oper
 
 /**
  * Send register credential request to PowerAuth Server
- * @param username Username from user input.
+ * @param userId User ID from user input.
  * @param applicationId Application ID from user input.
  * @param credential Newly created credential.
  * @returns JSON response from PowerAuth Server.
  */
-async function registerCredentials(username, applicationId, credential) {
+async function registerCredentials(userId, applicationId, credential) {
     const userVerification = $("#userVerification").val();
 
     // Although getTransports() is required by WebAuthn specification, some browsers do not support it
@@ -163,7 +163,7 @@ async function registerCredentials(username, applicationId, credential) {
     // RP entity and allowedOrigins are added on backend level
     const requestBody = {
         applicationId: applicationId,
-        username: username,
+        userId: userId,
         userVerificationRequired: userVerification === "required",
         id: credential.id,
         type: credential.type,

@@ -13,7 +13,7 @@ async function handlePaymentSubmit() {
     errorDiv.hide();
     successDiv.hide();
 
-    const username = $("#username").val();
+    const userId = $("#userId").val();
     const applicationId = $("#applicationId").val();
     const templateName = $("#operationTemplate").val();
     let operationParameters = {
@@ -27,7 +27,7 @@ async function handlePaymentSubmit() {
     }
 
     try {
-        await requestCredential(username, applicationId, templateName, operationParameters);
+        await requestCredential(userId, applicationId, templateName, operationParameters);
         successDiv.show();
 
     } catch (e) {
