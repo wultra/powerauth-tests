@@ -18,15 +18,12 @@
 
 package com.wultra.security.powerauth.fido2.service;
 
-import com.webauthn4j.data.AuthenticatorTransport;
-import com.webauthn4j.data.PublicKeyCredentialType;
 import com.wultra.security.powerauth.fido2.client.PowerAuthFido2Client;
 import com.wultra.security.powerauth.fido2.configuration.WebAuthnConfiguration;
 import com.wultra.security.powerauth.fido2.controller.request.AssertionOptionsRequest;
 import com.wultra.security.powerauth.fido2.controller.request.VerifyAssertionRequest;
 import com.wultra.security.powerauth.fido2.controller.response.AssertionOptionsResponse;
 import com.wultra.security.powerauth.fido2.controller.response.CredentialDescriptor;
-import com.wultra.security.powerauth.fido2.model.entity.AllowCredentials;
 import com.wultra.security.powerauth.fido2.model.error.PowerAuthFido2Exception;
 import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
 import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
@@ -71,17 +68,17 @@ public class AssertionService {
             throw new IllegalStateException("Not registered yet.");
         }
 
-        final List<CredentialDescriptor> existingCredentials = credentialList
+        final List<CredentialDescriptor> allowCredentials = credentialList
                 .orElse(Collections.emptyList())
                 .stream()
-                .map(AssertionService::toCredentialDescriptor)
+                .map(Fido2SharedService::toCredentialDescriptor)
                 .toList();
 
         return AssertionOptionsResponse.builder()
                 .challenge(challengeResponse.getChallenge())
                 .rpId(webAuthNConfig.getRpId())
                 .timeout(webAuthNConfig.getTimeout().toMillis())
-                .allowCredentials(existingCredentials)
+                .allowCredentials(allowCredentials)
                 .extensions(Collections.emptyMap()).build();
     }
 
@@ -128,13 +125,6 @@ public class AssertionService {
         final AssertionChallengeResponse response = fido2Client.requestAssertionChallenge(request);
         logger.debug("Assertion challenge response for userId={}: {}", userId, response);
         return response;
-    }
-
-    public static CredentialDescriptor toCredentialDescriptor(final AllowCredentials allowCredentials) {
-        final List<AuthenticatorTransport> transports = allowCredentials.getTransports().stream()
-                .map(AuthenticatorTransport::create)
-                .toList();
-        return new CredentialDescriptor(PublicKeyCredentialType.create(allowCredentials.getType()), allowCredentials.getCredentialId(), transports);
     }
 
 }
