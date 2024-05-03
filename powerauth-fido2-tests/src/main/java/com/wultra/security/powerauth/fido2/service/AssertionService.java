@@ -59,7 +59,7 @@ public class AssertionService {
      * @throws PowerAuthFido2Exception in case of PowerAuth server communication error.
      */
     public AssertionOptionsResponse assertionOptions(final AssertionOptionsRequest request) throws PowerAuthFido2Exception {
-        final String userId = request.username();
+        final String userId = request.userId();
         final String applicationId = request.applicationId();
 
         logger.info("Building assertion options for userId={}, applicationId={}", userId, applicationId);
@@ -67,7 +67,7 @@ public class AssertionService {
         final AssertionChallengeResponse challengeResponse = fetchChallenge(userId, applicationId, request.templateName(), request.operationParameters());
         final var credentialList = Optional.ofNullable(challengeResponse.getAllowCredentials());
         if (credentialList.isEmpty() && StringUtils.hasText(userId))  {
-            logger.info("User {} is not yet registered.", userId);
+            logger.info("User ID {} is not yet registered.", userId);
             throw new IllegalStateException("Not registered yet.");
         }
 

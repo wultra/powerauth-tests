@@ -10,15 +10,20 @@ async function handleLoginSubmit() {
     errorDiv.hide();
     successDiv.hide();
 
-    const username = $("#username").val();
+    const userId = $("#userId").val();
     const applicationId = $("#applicationId").val();
 
     try {
         if (CEREMONY === REGISTRATION_CEREMONY) {
-            await createCredential(username, applicationId);
+            const userDetails = {
+                "username": $("#username").val(),
+                "userDisplayName": $("#userDisplayName").val(),
+                "userId": userId
+            };
+            await createCredential(userDetails, applicationId);
         } else if (CEREMONY === AUTHENTICATION_CEREMONY) {
             const templateName = $("#operationTemplate").val();
-            await requestCredential(username, applicationId, templateName, {});
+            await requestCredential(userId, applicationId, templateName, {});
             window.location.href = SERVLET_CONTEXT_PATH;
         } else {
             console.error("Unknown ceremony " + CEREMONY);
@@ -62,13 +67,13 @@ $(function() {
 
     // Set action on Register button click
     $('#registerBtn').click(function(){
-        $("#username").prop('required', true);
+        $("#userId").prop('required', true);
         CEREMONY = REGISTRATION_CEREMONY;
     });
 
     // Set action on Login button click
     $('#loginBtn').click(function(){
-        $("#username").prop('required', false);
+        $("#userId").prop('required', false);
         CEREMONY = AUTHENTICATION_CEREMONY;
     });
 
@@ -80,6 +85,13 @@ $(function() {
         } else {
             settingsBlock.show();
         }
+    });
+
+    // Hint the userId == username == displayName if not overwritten
+    const userIdField = $("#userId");
+    userIdField.keyup(function () {
+        $('#username').attr("placeholder", userIdField.val());
+        $('#userDisplayName').attr("placeholder",  userIdField.val());
     });
 
 });

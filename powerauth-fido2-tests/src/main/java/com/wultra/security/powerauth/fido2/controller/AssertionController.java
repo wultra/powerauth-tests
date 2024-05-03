@@ -57,7 +57,7 @@ public class AssertionController {
     public AssertionVerificationResponse verify(@Valid @RequestBody final VerifyAssertionRequest request, final HttpSession session) throws PowerAuthFido2Exception {
         final AssertionVerificationResponse response = assertionService.authenticate(request);
         if (response.isAssertionValid()) {
-            session.setAttribute("username", response.getUserId());
+            session.setAttribute("userId", response.getUserId());
             session.setAttribute("applicationId", response.getApplicationId());
         }
         return response;
