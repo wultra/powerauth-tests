@@ -32,6 +32,7 @@ import com.wultra.security.powerauth.client.model.response.fido2.RegistrationRes
 import com.wultra.security.powerauth.fido2.configuration.WebAuthnConfiguration;
 import com.wultra.security.powerauth.fido2.controller.request.RegisterCredentialRequest;
 import com.wultra.security.powerauth.fido2.controller.request.RegistrationOptionsRequest;
+import com.wultra.security.powerauth.fido2.controller.response.CredentialDescriptor;
 import com.wultra.security.powerauth.fido2.controller.response.RegistrationOptionsResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -51,7 +52,6 @@ import java.util.List;
 public class RegistrationService {
 
     private final PowerAuthFido2Client fido2Client;
-    private final Fido2SharedService fido2SharedService;
     private final WebAuthnConfiguration webAuthNConfig;
 
     /**
@@ -66,6 +66,10 @@ public class RegistrationService {
 
         final RegistrationChallengeResponse challengeResponse = fetchChallenge(userId, applicationId);
 
+        final List<CredentialDescriptor> excludeCredentials = challengeResponse.getExcludeCredentials().stream()
+                .map(Fido2SharedService::toCredentialDescriptor)
+                .toList();
+
         logger.info("Building registration options for userId={}, applicationId={}", userId, applicationId);
         return RegistrationOptionsResponse.builder()
                 .rp(new PublicKeyCredentialRpEntity(webAuthNConfig.getRpId(), webAuthNConfig.getRpName()))
@@ -75,7 +79,7 @@ public class RegistrationService {
                         new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256)
                 ))
                 .timeout(webAuthNConfig.getTimeout().toMillis())
-                .excludeCredentials(fido2SharedService.fetchExistingCredentials(userId, applicationId))
+                .excludeCredentials(excludeCredentials)
                 .build();
     }
 
