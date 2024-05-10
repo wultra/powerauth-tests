@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.request;
 
+import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -31,6 +32,7 @@ public class OperationApproveInternalRequest {
     private String activationId;
     @NotBlank
     private String applicationId;
+    private String signatureType;
     private String password;
     @NotBlank
     private String operationId;

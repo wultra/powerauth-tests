@@ -51,6 +51,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -180,8 +181,13 @@ public class OperationsService extends BaseService {
         model.setHttpMethod("POST");
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
+        final String signatureType = request.getSignatureType();
+        if (StringUtils.hasText(signatureType)) {
+            model.setSignatureType(PowerAuthSignatureTypes.getEnumFromString(signatureType));
+        } else { // default for 2FA with password
+            model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
+        }
         model.setPassword(request.getPassword());
-        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
         model.setVersion(config.getVersion());
         model.setResultStatusObject(resultStatusObject);
 
