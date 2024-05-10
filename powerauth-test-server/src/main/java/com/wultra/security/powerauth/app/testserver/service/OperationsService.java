@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFail
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.SignatureVerificationException;
+import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
@@ -51,7 +52,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -181,12 +181,7 @@ public class OperationsService extends BaseService {
         model.setHttpMethod("POST");
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
-        final String signatureType = request.getSignatureType();
-        if (StringUtils.hasText(signatureType)) {
-            model.setSignatureType(PowerAuthSignatureTypes.getEnumFromString(signatureType));
-        } else { // default for 2FA with password
-            model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
-        }
+        model.setSignatureType(convert(request.getSignatureType()));
         model.setPassword(request.getPassword());
         model.setVersion(config.getVersion());
         model.setResultStatusObject(resultStatusObject);
@@ -213,6 +208,17 @@ public class OperationsService extends BaseService {
             throw new SignatureVerificationException("Signature verification failed");
         }
         return new Response();
+    }
+
+    private static PowerAuthSignatureTypes convert(final SignatureType source) {
+        return switch (source) {
+            case POSSESSION -> PowerAuthSignatureTypes.POSSESSION;
+            case KNOWLEDGE-> PowerAuthSignatureTypes.KNOWLEDGE;
+            case BIOMETRY-> PowerAuthSignatureTypes.BIOMETRY;
+            case POSSESSION_KNOWLEDGE-> PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE;
+            case POSSESSION_BIOMETRY-> PowerAuthSignatureTypes.POSSESSION_BIOMETRY;
+            case POSSESSION_KNOWLEDGE_BIOMETRY-> PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY;
+        };
     }
 
 }

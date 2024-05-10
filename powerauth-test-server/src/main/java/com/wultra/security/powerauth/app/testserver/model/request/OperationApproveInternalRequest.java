@@ -17,7 +17,10 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.request;
 
-import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
+import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -28,14 +31,22 @@ import lombok.Data;
  */
 @Data
 public class OperationApproveInternalRequest {
+
     @NotBlank
     private String activationId;
+
     @NotBlank
     private String applicationId;
-    private String signatureType;
+
+    @Schema(defaultValue = "possession_knowledge")
+    @JsonSetter(nulls = Nulls.SKIP)
+    private SignatureType signatureType = SignatureType.POSSESSION_KNOWLEDGE;
+
     private String password;
+
     @NotBlank
     private String operationId;
+
     @NotBlank
     private String operationData;
 
