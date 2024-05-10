@@ -23,6 +23,8 @@ import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEn
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
+import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
+import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeOfflineSignatureRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineSignatureRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineSignatureResponse;
@@ -91,7 +93,7 @@ public class SignatureService extends BaseService {
         final VerifySignatureStepModel model = new VerifySignatureStepModel();
         model.setHttpMethod(request.getHttpMethod());
         model.setResourceId(request.getResourceId());
-        model.setSignatureType(PowerAuthSignatureTypes.getEnumFromString(request.getSignatureType()));
+        model.setSignatureType(SignatureTypeConverter.convert(request.getSignatureType()));
         if (request.getRequestBody() != null) {
             model.setData(Base64.getDecoder().decode(request.getRequestBody()));
         }
@@ -168,4 +170,5 @@ public class SignatureService extends BaseService {
         response.setOtp(otpCode);
         return response;
     }
+
 }
