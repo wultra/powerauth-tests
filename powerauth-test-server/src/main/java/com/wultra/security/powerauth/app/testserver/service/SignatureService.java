@@ -121,7 +121,7 @@ public class SignatureService extends BaseService {
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
         final ComputeOnlineSignatureResponse response = new ComputeOnlineSignatureResponse();
@@ -163,7 +163,7 @@ public class SignatureService extends BaseService {
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
         final ComputeOfflineSignatureResponse response = new ComputeOfflineSignatureResponse();

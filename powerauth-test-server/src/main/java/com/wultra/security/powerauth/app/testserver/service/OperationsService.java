@@ -128,7 +128,7 @@ public class OperationsService extends BaseService {
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
         resultStatusUtil.persistResultStatus(resultStatusObject);
@@ -173,7 +173,7 @@ public class OperationsService extends BaseService {
             String payloadString = new ObjectMapper().writeValueAsString(new ObjectRequest<>(map));
             payload = payloadString.getBytes(StandardCharsets.UTF_8);
         } catch (JsonProcessingException e) {
-            throw new SignatureVerificationException("Unable to serialize data");
+            throw new SignatureVerificationException("Unable to serialize data", e);
         }
 
         final VerifySignatureStepModel model = new VerifySignatureStepModel();
@@ -201,7 +201,7 @@ public class OperationsService extends BaseService {
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
         resultStatusUtil.persistResultStatus(resultStatusObject);
@@ -240,7 +240,7 @@ public class OperationsService extends BaseService {
             String payloadString = new ObjectMapper().writeValueAsString(new ObjectRequest<>(map));
             payload = payloadString.getBytes(StandardCharsets.UTF_8);
         } catch (JsonProcessingException e) {
-            throw new SignatureVerificationException("Unable to serialize data");
+            throw new SignatureVerificationException("Unable to serialize data", e);
         }
 
         final VerifySignatureStepModel model = new VerifySignatureStepModel();
@@ -267,7 +267,7 @@ public class OperationsService extends BaseService {
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
         resultStatusUtil.persistResultStatus(resultStatusObject);
