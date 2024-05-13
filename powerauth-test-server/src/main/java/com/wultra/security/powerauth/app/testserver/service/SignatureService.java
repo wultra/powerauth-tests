@@ -23,6 +23,8 @@ import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEn
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
+import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
+import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeOfflineSignatureRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineSignatureRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineSignatureResponse;
@@ -91,7 +93,7 @@ public class SignatureService extends BaseService {
         final VerifySignatureStepModel model = new VerifySignatureStepModel();
         model.setHttpMethod(request.getHttpMethod());
         model.setResourceId(request.getResourceId());
-        model.setSignatureType(PowerAuthSignatureTypes.getEnumFromString(request.getSignatureType()));
+        model.setSignatureType(SignatureTypeConverter.convert(request.getSignatureType()));
         if (request.getRequestBody() != null) {
             model.setData(Base64.getDecoder().decode(request.getRequestBody()));
         }
@@ -119,7 +121,7 @@ public class SignatureService extends BaseService {
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
         final ComputeOnlineSignatureResponse response = new ComputeOnlineSignatureResponse();
@@ -161,11 +163,12 @@ public class SignatureService extends BaseService {
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
         final ComputeOfflineSignatureResponse response = new ComputeOfflineSignatureResponse();
         response.setOtp(otpCode);
         return response;
     }
+
 }

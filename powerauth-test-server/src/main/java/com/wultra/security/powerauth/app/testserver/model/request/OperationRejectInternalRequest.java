@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2022 Wultra s.r.o.
+ * Copyright (C) 2024 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -17,23 +17,26 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.request;
 
-import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * Request for creating a token.
+ * Request for rejecting an operation.
  *
  * @author Petr Dvorak, petr@wultra.com
  */
 @Data
-public class CreateTokenRequest {
+public class OperationRejectInternalRequest {
+
     @NotBlank
     private String activationId;
+
     @NotBlank
     private String applicationId;
-    private String password;
-    @NotNull
-    private SignatureType signatureType;
+
+    @NotBlank
+    private String operationId;
+
+    private String reason;
+
 }

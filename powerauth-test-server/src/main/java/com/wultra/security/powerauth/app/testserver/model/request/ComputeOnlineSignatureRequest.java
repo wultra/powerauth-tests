@@ -17,7 +17,9 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.request;
 
+import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -37,8 +39,8 @@ public class ComputeOnlineSignatureRequest {
     private String httpMethod;
     @NotBlank
     private String resourceId;
-    @NotBlank
-    private String signatureType;
+    @NotNull
+    private SignatureType signatureType;
     private String requestBody;
     private String password;
 

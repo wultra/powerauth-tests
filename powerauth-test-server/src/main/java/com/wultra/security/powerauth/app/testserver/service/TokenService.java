@@ -24,6 +24,8 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFail
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
+import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
+import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeTokenDigestRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.CreateTokenRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeTokenDigestResponse;
@@ -93,7 +95,7 @@ public class TokenService extends BaseService {
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
         final PublicKey publicKey = getMasterPublicKey(appConfig);
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
-        PowerAuthSignatureTypes signatureType = PowerAuthSignatureTypes.getEnumFromString(request.getSignatureType());
+        PowerAuthSignatureTypes signatureType = SignatureTypeConverter.convert(request.getSignatureType());
         if (signatureType == null) {
             // Fallback to previous behavior when there was no signatureType property in the request.
             signatureType = PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE;
@@ -124,7 +126,7 @@ public class TokenService extends BaseService {
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
         resultStatusUtil.persistResultStatus(resultStatusObject);
@@ -171,11 +173,12 @@ public class TokenService extends BaseService {
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
         final ComputeTokenDigestResponse response = new ComputeTokenDigestResponse();
         response.setAuthHeader(authHeader);
         return response;
     }
+
 }
