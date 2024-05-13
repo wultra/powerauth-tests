@@ -21,18 +21,15 @@ package com.wultra.security.powerauth.fido2.service;
 import com.webauthn4j.data.AuthenticatorTransport;
 import com.webauthn4j.data.PublicKeyCredentialType;
 import com.wultra.security.powerauth.client.PowerAuthClient;
-import com.wultra.security.powerauth.client.PowerAuthFido2Client;
 import com.wultra.security.powerauth.client.model.entity.Application;
-import com.wultra.security.powerauth.client.model.entity.fido2.AuthenticatorDetail;
+import com.wultra.security.powerauth.client.model.entity.fido2.Credential;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
 import com.wultra.security.powerauth.fido2.controller.response.CredentialDescriptor;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -45,28 +42,7 @@ import java.util.List;
 @Slf4j
 public class Fido2SharedService {
 
-    private static final String EXTRAS_TRANSPORT_KEY = "transports";
-    private static final PublicKeyCredentialType CREDENTIAL_TYPE = PublicKeyCredentialType.PUBLIC_KEY;
-
-    private final PowerAuthFido2Client fido2Client;
     private final PowerAuthClient powerAuthClient;
-
-    /**
-     * Fetch all registered credentials.
-     * @param userId User to whom the credentials belong.
-     * @param applicationId Of the used application.
-     * @return List of credentials.
-     * @throws PowerAuthClientException if there is an error in PowerAuth communication.
-     */
-    public List<CredentialDescriptor> fetchExistingCredentials(final String userId, final String applicationId) throws PowerAuthClientException {
-        if (!StringUtils.hasText(userId) || !StringUtils.hasText(applicationId)) {
-            return Collections.emptyList();
-        }
-
-        return listAuthenticators(userId, applicationId).stream()
-                .map(Fido2SharedService::toCredentialDescriptor)
-                .toList();
-    }
 
     /**
      * Fetch list of all existing applications.
@@ -92,14 +68,16 @@ public class Fido2SharedService {
                 .sorted().toList();
     }
 
-    private List<AuthenticatorDetail> listAuthenticators(final String userId, final String applicationId) throws PowerAuthClientException {
-        return fido2Client.getRegisteredAuthenticatorList(userId, applicationId).getAuthenticators();
-    }
-
-    @SuppressWarnings("unchecked")
-    private static CredentialDescriptor toCredentialDescriptor(final AuthenticatorDetail authenticatorDetail) {
-        final List<AuthenticatorTransport> transports = (List<AuthenticatorTransport>) authenticatorDetail.getExtras().getOrDefault(EXTRAS_TRANSPORT_KEY, Collections.emptyList());
-        return new CredentialDescriptor(CREDENTIAL_TYPE, authenticatorDetail.getCredentialId().getBytes(), transports);
+    /**
+     * Map Credential from PowerAuth Server to WebAuthN Credential Descriptor.
+     * @param credential To be mapped to Credential Descriptor.
+     * @return Credential Descriptor.
+     */
+    public static CredentialDescriptor toCredentialDescriptor(final Credential credential) {
+        final List<AuthenticatorTransport> transports = credential.getTransports().stream()
+                .map(AuthenticatorTransport::create)
+                .toList();
+        return new CredentialDescriptor(PublicKeyCredentialType.create(credential.getType()), credential.getCredentialId(), transports);
     }
 
 }

@@ -18,10 +18,7 @@
 
 package com.wultra.security.powerauth.fido2.service;
 
-import com.webauthn4j.data.AuthenticatorTransport;
-import com.webauthn4j.data.PublicKeyCredentialType;
 import com.wultra.security.powerauth.client.PowerAuthFido2Client;
-import com.wultra.security.powerauth.client.model.entity.fido2.AllowCredentials;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.fido2.AssertionChallengeRequest;
 import com.wultra.security.powerauth.client.model.request.fido2.AssertionVerificationRequest;
@@ -71,17 +68,17 @@ public class AssertionService {
             throw new IllegalStateException("Not registered yet.");
         }
 
-        final List<CredentialDescriptor> existingCredentials = credentialList
+        final List<CredentialDescriptor> allowCredentials = credentialList
                 .orElse(Collections.emptyList())
                 .stream()
-                .map(AssertionService::toCredentialDescriptor)
+                .map(Fido2SharedService::toCredentialDescriptor)
                 .toList();
 
         return AssertionOptionsResponse.builder()
                 .challenge(challengeResponse.getChallenge())
                 .rpId(webAuthNConfig.getRpId())
                 .timeout(webAuthNConfig.getTimeout().toMillis())
-                .allowCredentials(existingCredentials)
+                .allowCredentials(allowCredentials)
                 .extensions(Collections.emptyMap()).build();
     }
 
@@ -128,13 +125,6 @@ public class AssertionService {
         final AssertionChallengeResponse response = fido2Client.requestAssertionChallenge(request);
         logger.debug("Assertion challenge response for userId={}: {}", userId, response);
         return response;
-    }
-
-    public static CredentialDescriptor toCredentialDescriptor(final AllowCredentials allowCredentials) {
-        final List<AuthenticatorTransport> transports = allowCredentials.getTransports().stream()
-                .map(AuthenticatorTransport::create)
-                .toList();
-        return new CredentialDescriptor(PublicKeyCredentialType.create(allowCredentials.getType()), allowCredentials.getCredentialId(), transports);
     }
 
 }
