@@ -104,7 +104,7 @@ public class PowerAuthCustomActivationShared {
         assertNotNull(layer2Response.getServerPublicKey());
 
         // Verify activation status - activation was not automatically committed
-        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
         assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseActive.getActivationStatus());
         assertEquals("static_username", statusResponseActive.getUserId());
 
@@ -137,7 +137,7 @@ public class PowerAuthCustomActivationShared {
         assertNotNull(layer2Response.getServerPublicKey());
 
         // Verify activation status - activation was automatically committed
-        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
         assertEquals("12345678", statusResponseActive.getUserId());
 
@@ -344,7 +344,7 @@ public class PowerAuthCustomActivationShared {
         assertNotNull(layer2Response.getServerPublicKey());
 
         // Verify activation status - activation was automatically committed
-        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
 
         fetchLayer1Response(stepLogger);

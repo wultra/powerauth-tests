@@ -348,7 +348,7 @@ public class PowerAuthOnboardingShared {
         assertNotNull(layer2Response.getServerPublicKey());
 
         // Verify activation status - activation was automatically committed
-        GetActivationStatusResponse statusResponseActive = ctx.powerAuthClient.getActivationStatus(activationId);
+        final GetActivationStatusResponse statusResponseActive = ctx.powerAuthClient.getActivationStatus(activationId);
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
         assertEquals("mockuser_" + clientId, statusResponseActive.getUserId());
         assertEquals(Collections.singletonList("VERIFICATION_PENDING"), statusResponseActive.getActivationFlags());
