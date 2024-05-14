@@ -262,7 +262,7 @@ public class PowerAuthOnboardingShared {
         final OnboardingStartResponse response = stepLogger.getItems().stream()
                 .filter(item -> "Decrypted Response".equals(item.name()))
                 .map(item -> item.object().toString())
-                .map(item -> PowerAuthOnboardingShared.<ObjectResponse<OnboardingStartResponse>>read(ctx.objectMapper, item))
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OnboardingStartResponse>>() {}))
                 .map(ObjectResponse::getResponseObject)
                 .findAny()
                 .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
@@ -306,7 +306,7 @@ public class PowerAuthOnboardingShared {
         final OnboardingStatusResponse response = stepLogger.getItems().stream()
                 .filter(item -> "Decrypted Response".equals(item.name()))
                 .map(item -> item.object().toString())
-                .map(item -> PowerAuthOnboardingShared.<ObjectResponse<OnboardingStatusResponse>>read(ctx.objectMapper, item))
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OnboardingStatusResponse>>() {}))
                 .map(ObjectResponse::getResponseObject)
                 .findAny()
                 .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
@@ -387,7 +387,7 @@ public class PowerAuthOnboardingShared {
         final String otpCode = stepLogger.getItems().stream()
                 .filter(item -> "Decrypted Response".equals(item.name()))
                 .map(item -> item.object().toString())
-                .map(item -> PowerAuthOnboardingShared.<ObjectResponse<OtpDetailResponse>>read(ctx.objectMapper, item))
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OtpDetailResponse>>() {}))
                 .map(ObjectResponse::getResponseObject)
                 .map(OtpDetailResponse::getOtpCode)
                 .findAny()
@@ -397,9 +397,9 @@ public class PowerAuthOnboardingShared {
         return otpCode;
     }
 
-    private static <T> T read(final ObjectMapper objectMapper, final String source) {
+    private static <T> T read(final ObjectMapper objectMapper, final String source, final TypeReference<T> type) {
         try {
-            final T result = objectMapper.readValue(source, new TypeReference<>() {});
+            final T result = objectMapper.readValue(source, type);
             assertNotNull(result);
             return result;
         } catch (JsonProcessingException e) {

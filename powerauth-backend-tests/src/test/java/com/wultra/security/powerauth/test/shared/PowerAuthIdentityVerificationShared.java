@@ -20,7 +20,6 @@ package com.wultra.security.powerauth.test.shared;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.*;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.*;
 import com.wultra.app.enrollmentserver.model.enumeration.*;
@@ -71,8 +70,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 public class PowerAuthIdentityVerificationShared {
-
-    private final ObjectMapper objectMapper = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
     public static void testSuccessfulIdentityVerification(final TestContext ctx) throws Exception {
         final TestProcessContext processCtx = prepareActivation(ctx);
@@ -443,7 +440,7 @@ public class PowerAuthIdentityVerificationShared {
         final String uploadIdFront = stepLogger.getItems().stream()
                 .filter(item -> "Decrypted Response".equals(item.name()))
                 .map(item -> item.object().toString())
-                .map(item -> PowerAuthIdentityVerificationShared.<ObjectResponse<DocumentUploadResponse>>read(ctx.objectMapper, item))
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<DocumentUploadResponse>>() {}))
                 .map(ObjectResponse::getResponseObject)
                 .map(DocumentUploadResponse::getId)
                 .findAny()
@@ -476,7 +473,7 @@ public class PowerAuthIdentityVerificationShared {
         final String uploadIdBack = stepLogger.getItems().stream()
                 .filter(item -> "Decrypted Response".equals(item.name()))
                 .map(item -> item.object().toString())
-                .map(item -> PowerAuthIdentityVerificationShared.<ObjectResponse<DocumentUploadResponse>>read(ctx.objectMapper, item))
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<DocumentUploadResponse>>() {}))
                 .map(ObjectResponse::getResponseObject)
                 .map(DocumentUploadResponse::getId)
                 .findAny()
@@ -635,7 +632,7 @@ public class PowerAuthIdentityVerificationShared {
         final OnboardingStartResponse response = stepLogger.getItems().stream()
                 .filter(item -> "Decrypted Response".equals(item.name()))
                 .map(item -> item.object().toString())
-                .map(item -> PowerAuthIdentityVerificationShared.<ObjectResponse<OnboardingStartResponse>>read(ctx.objectMapper, item))
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OnboardingStartResponse>>() {}))
                 .map(ObjectResponse::getResponseObject)
                 .findAny()
                 .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
@@ -739,7 +736,7 @@ public class PowerAuthIdentityVerificationShared {
         final String otpCode = stepLogger.getItems().stream()
                 .filter(item -> "Decrypted Response".equals(item.name()))
                 .map(item -> item.object().toString())
-                .map(item -> PowerAuthIdentityVerificationShared.<ObjectResponse<OtpDetailResponse>>read(ctx.objectMapper, item))
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OtpDetailResponse>>() {}))
                 .map(ObjectResponse::getResponseObject)
                 .map(OtpDetailResponse::getOtpCode)
                 .findAny()
@@ -1003,7 +1000,7 @@ public class PowerAuthIdentityVerificationShared {
         final OnboardingStatus status = stepLogger.getItems().stream()
                 .filter(item -> "Decrypted Response".equals(item.name()))
                 .map(item -> item.object().toString())
-                .map(item -> PowerAuthIdentityVerificationShared.<ObjectResponse<OnboardingStatusResponse>>read(ctx.objectMapper, item))
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OnboardingStatusResponse>>() {}))
                 .map(ObjectResponse::getResponseObject)
                 .map(OnboardingStatusResponse::getOnboardingStatus)
                 .findAny()
@@ -1168,9 +1165,9 @@ public class PowerAuthIdentityVerificationShared {
         private String processId;
     }
 
-    private static <T> T read(final ObjectMapper objectMapper, final String source) {
+    private static <T> T read(final ObjectMapper objectMapper, final String source, final TypeReference<T> type) {
         try {
-            final T result = objectMapper.readValue(source, new TypeReference<>() {});
+            final T result = objectMapper.readValue(source, type);
             assertNotNull(result);
             return result;
         } catch (JsonProcessingException e) {

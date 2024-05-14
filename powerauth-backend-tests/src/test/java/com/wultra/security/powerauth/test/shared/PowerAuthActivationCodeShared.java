@@ -21,6 +21,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
@@ -83,8 +84,8 @@ public class PowerAuthActivationCodeShared {
         final Map<String, String> response = stepLogger.getItems().stream()
                 .filter(item -> "Decrypted Response".equals(item.name()))
                 .map(item -> item.object().toString())
-                .map(item -> PowerAuthActivationCodeShared.<Map<String, Object>>read(config.getObjectMapper(), item))
-                .map(item -> (Map<String, String>) item.get("responseObject"))
+                .map(item -> read(config.getObjectMapper(), item, new TypeReference<ObjectResponse<Map<String, String>>>() {}))
+                .map(ObjectResponse::getResponseObject)
                 .findAny()
                 .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
@@ -113,9 +114,9 @@ public class PowerAuthActivationCodeShared {
         // Activations with OTP on key exchange are committed automatically
     }
 
-    private static <T> T read(final ObjectMapper objectMapper, final String source) {
+    private static <T> T read(final ObjectMapper objectMapper, final String source, final TypeReference<T> type) {
         try {
-            final T result = objectMapper.readValue(source, new TypeReference<>() {});
+            final T result = objectMapper.readValue(source, type);
             assertNotNull(result);
             return result;
         } catch (JsonProcessingException e) {
