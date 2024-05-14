@@ -73,11 +73,7 @@ public class PowerAuthCustomActivationOtpShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        final ActivationLayer2Response layer2Response = stepLogger.getItems().stream()
-                .filter(item -> "Decrypted Layer 2 Response".equals(item.name()))
-                .map(item -> (ActivationLayer2Response) item.object())
-                .findAny()
-                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+        final ActivationLayer2Response layer2Response = fetchLayer2Response(stepLogger);
 
         final String activationId = layer2Response.getActivationId();
         assertNotNull(activationId);
@@ -89,11 +85,7 @@ public class PowerAuthCustomActivationOtpShared {
         assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseActive.getActivationStatus());
         assertEquals("static_username", statusResponseActive.getUserId());
 
-        final ActivationLayer1Response layer1Response = stepLogger.getItems().stream()
-                .filter(item -> "Decrypted Layer 1 Response".equals(item.name()))
-                .map(item -> (ActivationLayer1Response) item.object())
-                .findAny()
-                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+        final ActivationLayer1Response layer1Response = fetchLayer1Response(stepLogger);
 
         // Verify custom attributes, there should be no change
         assertEquals("value", layer1Response.getCustomAttributes().get("key"));
@@ -154,11 +146,7 @@ public class PowerAuthCustomActivationOtpShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        final ActivationLayer2Response layer2Response = stepLogger.getItems().stream()
-                .filter(item -> "Decrypted Layer 2 Response".equals(item.name()))
-                .map(item -> (ActivationLayer2Response) item.object())
-                .findAny()
-                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+        final ActivationLayer2Response layer2Response = fetchLayer2Response(stepLogger);
 
         final String activationId = layer2Response.getActivationId();
         assertNotNull(activationId);
@@ -170,11 +158,7 @@ public class PowerAuthCustomActivationOtpShared {
         assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseActive.getActivationStatus());
         assertEquals("static_username", statusResponseActive.getUserId());
 
-        final ActivationLayer1Response layer1Response = stepLogger.getItems().stream()
-                .filter(item -> "Decrypted Layer 1 Response".equals(item.name()))
-                .map(item -> (ActivationLayer1Response) item.object())
-                .findAny()
-                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+        final ActivationLayer1Response layer1Response = fetchLayer1Response(stepLogger);
 
         // Verify custom attributes, there should be no change
         assertEquals("value", layer1Response.getCustomAttributes().get("key"));
@@ -407,4 +391,19 @@ public class PowerAuthCustomActivationOtpShared {
         return activationRecovery;
     }
 
+    private static ActivationLayer1Response fetchLayer1Response(final ObjectStepLogger stepLogger) {
+        return stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Layer 1 Response".equals(item.name()))
+                .map(item -> (ActivationLayer1Response) item.object())
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+    }
+
+    private static ActivationLayer2Response fetchLayer2Response(final ObjectStepLogger stepLogger) {
+        return stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Layer 2 Response".equals(item.name()))
+                .map(item -> (ActivationLayer2Response) item.object())
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+    }
 }
