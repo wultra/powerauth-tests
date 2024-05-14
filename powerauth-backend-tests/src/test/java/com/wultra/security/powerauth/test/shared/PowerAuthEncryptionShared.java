@@ -41,6 +41,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.SignAndEncryptStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
 import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
+import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
@@ -75,15 +76,9 @@ public class PowerAuthEncryptionShared {
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
-        boolean responseSuccessfullyDecrypted = false;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                assertEquals("{\"data\":\"Server successfully decrypted signed data: hello, scope: ACTIVATION_SCOPE\"}", item.object());
-                responseSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseSuccessfullyDecrypted);
+        final Object result = fetchDecryptedResponse(stepLogger);
+
+        assertEquals("{\"data\":\"Server successfully decrypted signed data: hello, scope: ACTIVATION_SCOPE\"}", result);
     }
 
     public static void encryptInApplicationScopeTest(PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger) throws Exception {
@@ -98,15 +93,9 @@ public class PowerAuthEncryptionShared {
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
-        boolean responseSuccessfullyDecrypted = false;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                assertEquals("{\"data\":\"Server successfully decrypted signed data: hello, scope: APPLICATION_SCOPE\"}", item.object());
-                responseSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseSuccessfullyDecrypted);
+        final Object result = fetchDecryptedResponse(stepLogger);
+
+        assertEquals("{\"data\":\"Server successfully decrypted signed data: hello, scope: APPLICATION_SCOPE\"}", result);
     }
 
     public static void encryptInInvalidScope1Test(PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger) throws Exception {
@@ -190,15 +179,9 @@ public class PowerAuthEncryptionShared {
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
-        boolean responseSuccessfullyDecrypted = false;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                assertEquals("{\"data\":\"Server successfully decrypted data and verified signature, request data: hello, user ID: " + config.getUser(version) + "\"}", item.object());
-                responseSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseSuccessfullyDecrypted);
+        final Object result = fetchDecryptedResponse(stepLogger);
+
+        assertEquals("{\"data\":\"Server successfully decrypted data and verified signature, request data: hello, user ID: " + config.getUser(version) + "\"}", result);
     }
 
     public static void signAndEncryptWeakSignatureTypeTest(PowerAuthTestConfiguration config, VerifySignatureStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
@@ -281,15 +264,9 @@ public class PowerAuthEncryptionShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        boolean responseSuccessfullyDecrypted = false;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                assertEquals("\"Server successfully decrypted data and verified signature, request data: "+requestData+", user ID: " + config.getUser(version) + "\"", item.object());
-                responseSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseSuccessfullyDecrypted);
+        final Object result = fetchDecryptedResponse(stepLogger);
+
+        assertEquals("\"Server successfully decrypted data and verified signature, request data: " + requestData + ", user ID: " + config.getUser(version) + "\"", result);
     }
 
     public static void signAndEncryptRawDataTest(PowerAuthTestConfiguration config, VerifySignatureStepModel signatureModel, ObjectStepLogger stepLogger, String version) throws Exception {
@@ -310,15 +287,9 @@ public class PowerAuthEncryptionShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        boolean responseSuccessfullyDecrypted = false;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                assertEquals(requestData, item.object());
-                responseSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseSuccessfullyDecrypted);
+        final Object result = fetchDecryptedResponse(stepLogger);
+
+        assertEquals(requestData, result);
     }
 
     public static void signAndEncryptGenerifiedDataTest(PowerAuthTestConfiguration config, VerifySignatureStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
@@ -336,15 +307,17 @@ public class PowerAuthEncryptionShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        boolean responseSuccessfullyDecrypted = false;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                assertEquals("{\"status\":\"OK\",\"responseObject\":{\"data\":\"test-data\"}}", item.object());
-                responseSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseSuccessfullyDecrypted);
+        final Object result = fetchDecryptedResponse(stepLogger);
+
+        assertEquals("{\"status\":\"OK\",\"responseObject\":{\"data\":\"test-data\"}}", result);
+    }
+
+    private static Object fetchDecryptedResponse(final ObjectStepLogger stepLogger) {
+        return stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Response".equals(item.name()))
+                .map(StepItem::object)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
     }
 
     public static void signAndEncryptInvalidResourceIdTest(PowerAuthTestConfiguration config, VerifySignatureStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {

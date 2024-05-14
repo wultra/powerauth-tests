@@ -25,7 +25,6 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFo
 import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
 import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
-import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeTokenDigestRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.CreateTokenRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeTokenDigestResponse;
@@ -33,7 +32,6 @@ import com.wultra.security.powerauth.app.testserver.model.response.CreateTokenRe
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
@@ -45,6 +43,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.security.PublicKey;
+import java.util.Collections;
 import java.util.Map;
 
 /**
@@ -110,19 +109,12 @@ public class TokenService extends BaseService {
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatusObject(resultStatusObject);
 
-        String tokenId = null;
-        String tokenSecret = null;
+        final ObjectStepLogger stepLogger;
         try {
-            final ObjectStepLogger stepLogger = new ObjectStepLogger();
+            stepLogger = new ObjectStepLogger();
             createTokenStep.execute(stepLogger, model.toMap());
-            for (StepItem item: stepLogger.getItems()) {
-                StepItemLogger.log(logger, item);
-                if ("Token successfully obtained".equals(item.name())) {
-                    final Map<String, Object> responseMap = (Map<String, Object>) item.object();
-                    tokenId = (String) responseMap.get("tokenId");
-                    tokenSecret = (String) responseMap.get("tokenSecret");
-                }
-            }
+            stepLogger.getItems()
+                    .forEach(item -> StepItemLogger.log(logger, item));
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
@@ -130,6 +122,15 @@ public class TokenService extends BaseService {
         }
 
         resultStatusUtil.persistResultStatus(resultStatusObject);
+
+        final Map<String, Object> responseMap = stepLogger.getItems().stream()
+                .filter(item -> "Token successfully obtained".equals(item.name()))
+                .map(item -> (Map<String, Object>) item.object())
+                .findAny()
+                .orElse(Collections.emptyMap());
+
+        final String tokenId = (String) responseMap.get("tokenId");
+        final String tokenSecret = (String) responseMap.get("tokenSecret");
 
         final CreateTokenResponse result = new CreateTokenResponse();
         result.setTokenId(tokenId);
@@ -158,23 +159,25 @@ public class TokenService extends BaseService {
         model.setResultStatusObject(resultStatusObject);
         model.setDryRun(true);
 
-        String authHeader = null;
+        final ObjectStepLogger stepLogger;
         try {
-            final ObjectStepLogger stepLogger = new ObjectStepLogger();
+            stepLogger = new ObjectStepLogger();
             verifyTokenStep.execute(stepLogger, model.toMap());
-            for (StepItem item: stepLogger.getItems()) {
-                StepItemLogger.log(logger, item);
-                if ("token-validate-request-sent".equals(item.id())) {
-                    final Map<String, Object> responseMap = (Map<String, Object>) item.object();
-                    final Map<String, Object> requestHeadersMap = (Map<String, Object>) responseMap.get("requestHeaders");
-                    authHeader = requestHeadersMap.get("X-PowerAuth-Token").toString();
-                }
-            }
+            stepLogger.getItems()
+                    .forEach(item -> StepItemLogger.log(logger, item));
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
             throw new RemoteExecutionException("Remote execution failed", ex);
         }
+
+        final String authHeader = stepLogger.getItems().stream()
+                .filter(item -> "token-validate-request-sent".equals(item.id()))
+                .map(item -> (Map<String, Object>) item.object())
+                .map(item -> (Map<String, Object>) item.get("requestHeaders"))
+                .map(item -> item.get("X-PowerAuth-Token").toString())
+                .findAny()
+                .orElse(null);
 
         final ComputeTokenDigestResponse response = new ComputeTokenDigestResponse();
         response.setAuthHeader(authHeader);

@@ -17,6 +17,7 @@
  */
 package com.wultra.security.powerauth.test.shared;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingCleanupRequest;
@@ -37,8 +38,6 @@ import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import io.getlime.security.powerauth.lib.cmd.logging.StepLogger;
-import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
@@ -48,6 +47,7 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationStatusResponse;
 import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
+import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.opentest4j.AssertionFailedError;
 
 import java.math.BigInteger;
@@ -259,21 +259,17 @@ public class PowerAuthOnboardingShared {
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
-        boolean responseSuccessfullyDecrypted = false;
-        String processId = null;
-        OnboardingStatus onboardingStatus = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                final String responseData = item.object().toString();
-                final ObjectResponse<OnboardingStartResponse> objectResponse = ctx.objectMapper.readValue(responseData, new TypeReference<>() {});
-                OnboardingStartResponse response = objectResponse.getResponseObject();
-                processId = response.getProcessId();
-                onboardingStatus = response.getOnboardingStatus();
-                responseSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseSuccessfullyDecrypted);
+        final OnboardingStartResponse response = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Response".equals(item.name()))
+                .map(item -> item.object().toString())
+                .map(item -> PowerAuthOnboardingShared.<ObjectResponse<OnboardingStartResponse>>read(ctx.objectMapper, item))
+                .map(ObjectResponse::getResponseObject)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+
+        final String processId = response.getProcessId();
+        final OnboardingStatus onboardingStatus = response.getOnboardingStatus();
+
         assertNotNull(processId);
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, onboardingStatus);
         return processId;
@@ -297,7 +293,6 @@ public class PowerAuthOnboardingShared {
     }
 
     private static OnboardingStatus getProcessStatus(final TestContext ctx, final String processId) throws Exception {
-        OnboardingStatus onboardingStatus = null;
         ObjectStepLogger stepLogger = new ObjectStepLogger();
         ctx.encryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/status");
         OnboardingStatusRequest requestStatus = new OnboardingStatusRequest();
@@ -308,21 +303,17 @@ public class PowerAuthOnboardingShared {
         assertNotNull(responseStatusOK.getEncryptedData());
         assertNotNull(responseStatusOK.getMac());
 
-        String processIdResponse = null;
+        final OnboardingStatusResponse response = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Response".equals(item.name()))
+                .map(item -> item.object().toString())
+                .map(item -> PowerAuthOnboardingShared.<ObjectResponse<OnboardingStatusResponse>>read(ctx.objectMapper, item))
+                .map(ObjectResponse::getResponseObject)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
-        boolean responseStatusSuccessfullyDecrypted = false;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                final String responseData = item.object().toString();
-                final ObjectResponse<OnboardingStatusResponse> objectResponse = ctx.objectMapper.readValue(responseData, new TypeReference<>() {});
-                OnboardingStatusResponse response = objectResponse.getResponseObject();
-                processIdResponse = response.getProcessId();
-                onboardingStatus = response.getOnboardingStatus();
-                responseStatusSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseStatusSuccessfullyDecrypted);
+        final String processIdResponse = response.getProcessId();
+        final OnboardingStatus onboardingStatus = response.getOnboardingStatus();
+
         assertNotNull(processIdResponse);
         return onboardingStatus;
     }
@@ -345,26 +336,23 @@ public class PowerAuthOnboardingShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        String activationId = null;
-        boolean responseOk = false;
-        // Verify decrypted responses
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Layer 2 Response")) {
-                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
-                activationId = layer2Response.getActivationId();
-                assertNotNull(activationId);
-                assertNotNull(layer2Response.getCtrData());
-                assertNotNull(layer2Response.getServerPublicKey());
-                // Verify activation status - activation was automatically committed
-                GetActivationStatusResponse statusResponseActive = ctx.powerAuthClient.getActivationStatus(activationId);
-                assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
-                assertEquals("mockuser_" + clientId, statusResponseActive.getUserId());
-                assertEquals(Collections.singletonList("VERIFICATION_PENDING"), statusResponseActive.getActivationFlags());
-                responseOk = true;
-            }
-        }
+        final ActivationLayer2Response layer2Response = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Layer 2 Response".equals(item.name()))
+                .map(item -> (ActivationLayer2Response) item.object())
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
-        assertTrue(responseOk);
+        final String activationId = layer2Response.getActivationId();
+        assertNotNull(activationId);
+        assertNotNull(layer2Response.getCtrData());
+        assertNotNull(layer2Response.getServerPublicKey());
+
+        // Verify activation status - activation was automatically committed
+        GetActivationStatusResponse statusResponseActive = ctx.powerAuthClient.getActivationStatus(activationId);
+        assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
+        assertEquals("mockuser_" + clientId, statusResponseActive.getUserId());
+        assertEquals(Collections.singletonList("VERIFICATION_PENDING"), statusResponseActive.getActivationFlags());
+
         return activationId;
     }
 
@@ -396,21 +384,30 @@ public class PowerAuthOnboardingShared {
         assertNotNull(responseOtpOK.getEncryptedData());
         assertNotNull(responseOtpOK.getMac());
 
-        boolean responseOtpSuccessfullyDecrypted = false;
-        String otpCode = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                final String responseData = item.object().toString();
-                final ObjectResponse<OtpDetailResponse> objectResponse = ctx.objectMapper.readValue(responseData, new TypeReference<>() {});
-                OtpDetailResponse response = objectResponse.getResponseObject();
-                otpCode = response.getOtpCode();
-                responseOtpSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseOtpSuccessfullyDecrypted);
+        final String otpCode = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Response".equals(item.name()))
+                .map(item -> item.object().toString())
+                .map(item -> PowerAuthOnboardingShared.<ObjectResponse<OtpDetailResponse>>read(ctx.objectMapper, item))
+                .map(ObjectResponse::getResponseObject)
+                .map(OtpDetailResponse::getOtpCode)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+
         assertNotNull(otpCode);
         return otpCode;
+    }
+
+    private static <T> T read(final ObjectMapper objectMapper, final String source) {
+        try {
+            final T result = objectMapper.readValue(source, new TypeReference<>() {});
+            assertNotNull(result);
+            return result;
+        } catch (JsonProcessingException e) {
+            throw AssertionFailureBuilder.assertionFailure()
+                    .message("Unable to parse JSON.")
+                    .cause(e)
+                    .build();
+        }
     }
 
     public record TestContext(

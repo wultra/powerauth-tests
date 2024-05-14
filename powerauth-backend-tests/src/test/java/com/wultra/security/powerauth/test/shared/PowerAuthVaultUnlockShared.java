@@ -26,11 +26,11 @@ import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.VaultUnlockStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
 import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
+import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
@@ -53,14 +53,14 @@ public class PowerAuthVaultUnlockShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        boolean keyDecryptionSuccessful = false;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Vault Unlocked")) {
-                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
-                assertEquals("true", responseMap.get("privateKeyDecryptionSuccessful"));
-                keyDecryptionSuccessful = true;
-            }
-        }
+        final boolean keyDecryptionSuccessful = stepLogger.getItems().stream()
+                .filter(item -> item.name().equals("Vault Unlocked"))
+                .map(item -> (Map<String, Object>) item.object())
+                .map(item -> (String) item.get("privateKeyDecryptionSuccessful"))
+                .map(Boolean::valueOf)
+                .findAny()
+                .orElse(false);
+
         assertTrue(keyDecryptionSuccessful);
     }
 
@@ -180,126 +180,76 @@ public class PowerAuthVaultUnlockShared {
     }
 
     public static void vaultUnlockAndECDSASignatureValidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
-        byte[] dataBytes = ("test_data_v" + version).getBytes(StandardCharsets.UTF_8);
-        String data = Base64.getEncoder().encodeToString(dataBytes);
+        final byte[] dataBytes = ("test_data_v" + version).getBytes(StandardCharsets.UTF_8);
+        final String data = Base64.getEncoder().encodeToString(dataBytes);
 
-        // Obtain the device private key using vault unlock
-        new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().success());
-        assertEquals(200, stepLogger.getResponse().statusCode());
+        final PrivateKey devicePrivateKey = obtainDevicePrivateKeyUsingVaultUnlock(stepLogger, model, config);
 
-        boolean keyDecryptionSuccessful = false;
-        String devicePrivateKeyBase64 = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Vault Unlocked")) {
-                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
-                assertEquals("true", responseMap.get("privateKeyDecryptionSuccessful"));
-                keyDecryptionSuccessful = true;
-                devicePrivateKeyBase64 = (String) responseMap.get("devicePrivateKey");
-            }
-        }
-        assertTrue(keyDecryptionSuccessful);
-
-        PrivateKey devicePrivateKey = config.getKeyConvertor().convertBytesToPrivateKey(Base64.getDecoder().decode(devicePrivateKeyBase64));
-
-        byte[] signature = SIGNATURE_UTILS.computeECDSASignature(dataBytes, devicePrivateKey);
+        final byte[] signature = SIGNATURE_UTILS.computeECDSASignature(dataBytes, devicePrivateKey);
 
         final VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(config.getActivationId(version), data, Base64.getEncoder().encodeToString(signature));
         assertTrue(verifyResponse.isSignatureValid());
     }
 
     public static void vaultUnlockAndECDSASignatureInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
-        byte[] dataBytes = ("test_data_v" + version).getBytes(StandardCharsets.UTF_8);
-        String data = Base64.getEncoder().encodeToString(dataBytes);
+        final byte[] dataBytes = ("test_data_v" + version).getBytes(StandardCharsets.UTF_8);
+        final String data = Base64.getEncoder().encodeToString(dataBytes);
 
-        // Obtain the device private key using vault unlock
-        new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().success());
-        assertEquals(200, stepLogger.getResponse().statusCode());
+        final PrivateKey devicePrivateKey = obtainDevicePrivateKeyUsingVaultUnlock(stepLogger, model, config);
 
-        boolean keyDecryptionSuccessful = false;
-        String devicePrivateKeyBase64 = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Vault Unlocked")) {
-                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
-                assertEquals("true", responseMap.get("privateKeyDecryptionSuccessful"));
-                keyDecryptionSuccessful = true;
-                devicePrivateKeyBase64 = (String) responseMap.get("devicePrivateKey");
-            }
-        }
-        assertTrue(keyDecryptionSuccessful);
+        final byte[] signature = SIGNATURE_UTILS.computeECDSASignature("test_data_crippled".getBytes(StandardCharsets.UTF_8), devicePrivateKey);
 
-        PrivateKey devicePrivateKey = config.getKeyConvertor().convertBytesToPrivateKey(Base64.getDecoder().decode(devicePrivateKeyBase64));
-
-        byte[] signature = SIGNATURE_UTILS.computeECDSASignature("test_data_crippled".getBytes(StandardCharsets.UTF_8), devicePrivateKey);
-
-        VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(config.getActivationIdV32(), data, Base64.getEncoder().encodeToString(signature));
+        final VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(config.getActivationIdV32(), data, Base64.getEncoder().encodeToString(signature));
         assertFalse(verifyResponse.isSignatureValid());
     }
 
     public static void vaultUnlockAndECDSASignatureInvalidActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
-        byte[] dataBytes = ("test_data_v" + version).getBytes(StandardCharsets.UTF_8);
-        String data = Base64.getEncoder().encodeToString(dataBytes);
+        final byte[] dataBytes = ("test_data_v" + version).getBytes(StandardCharsets.UTF_8);
+        final String data = Base64.getEncoder().encodeToString(dataBytes);
 
-        // Obtain the device private key using vault unlock
-        new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().success());
-        assertEquals(200, stepLogger.getResponse().statusCode());
+        final PrivateKey devicePrivateKey = obtainDevicePrivateKeyUsingVaultUnlock(stepLogger, model, config);
 
-        boolean keyDecryptionSuccessful = false;
-        String devicePrivateKeyBase64 = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Vault Unlocked")) {
-                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
-                assertEquals("true", responseMap.get("privateKeyDecryptionSuccessful"));
-                keyDecryptionSuccessful = true;
-                devicePrivateKeyBase64 = (String) responseMap.get("devicePrivateKey");
-            }
-        }
-        assertTrue(keyDecryptionSuccessful);
+        final byte[] signature = SIGNATURE_UTILS.computeECDSASignature(dataBytes, devicePrivateKey);
 
-        PrivateKey devicePrivateKey = config.getKeyConvertor().convertBytesToPrivateKey(Base64.getDecoder().decode(devicePrivateKeyBase64));
-
-        byte[] signature = SIGNATURE_UTILS.computeECDSASignature(dataBytes, devicePrivateKey);
-
-        String activationIdInvalid = switch (version) {
+        final String activationIdInvalid = switch (version) {
             case "3.0" -> config.getActivationIdV31();
             case "3.1" -> config.getActivationIdV32();
             case "3.2" -> config.getActivationIdV3();
             default -> null;
         };
 
-        VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(activationIdInvalid, data, Base64.getEncoder().encodeToString(signature));
+        final VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(activationIdInvalid, data, Base64.getEncoder().encodeToString(signature));
         assertFalse(verifyResponse.isSignatureValid());
     }
 
     public static void vaultUnlockAndECDSASignatureNonExistentActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
-        byte[] dataBytes = ("test_data_v" + version).getBytes(StandardCharsets.UTF_8);
-        String data = Base64.getEncoder().encodeToString(dataBytes);
+        final byte[] dataBytes = ("test_data_v" + version).getBytes(StandardCharsets.UTF_8);
+        final String data = Base64.getEncoder().encodeToString(dataBytes);
 
-        // Obtain the device private key using vault unlock
+        final PrivateKey devicePrivateKey = obtainDevicePrivateKeyUsingVaultUnlock(stepLogger, model, config);
+        final byte[] signature = SIGNATURE_UTILS.computeECDSASignature(dataBytes, devicePrivateKey);
+
+        final VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature("AAAAA-BBBBB-CCCCC-DDDDD", data, Base64.getEncoder().encodeToString(signature));
+        assertFalse(verifyResponse.isSignatureValid());
+    }
+
+    private static PrivateKey obtainDevicePrivateKeyUsingVaultUnlock(final ObjectStepLogger stepLogger, final VaultUnlockStepModel model, final PowerAuthTestConfiguration config) throws Exception {
         new VaultUnlockStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        boolean keyDecryptionSuccessful = false;
-        String devicePrivateKeyBase64 = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Vault Unlocked")) {
-                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
-                assertEquals("true", responseMap.get("privateKeyDecryptionSuccessful"));
-                keyDecryptionSuccessful = true;
-                devicePrivateKeyBase64 = (String) responseMap.get("devicePrivateKey");
-            }
-        }
-        assertTrue(keyDecryptionSuccessful);
+        final Map<String, Object> responseMap = stepLogger.getItems().stream()
+                .filter(item -> item.name().equals("Vault Unlocked"))
+                .map(item -> (Map<String, Object>) item.object())
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure()
+                        .message("Key decryption has not been successful")
+                        .build());
 
-        PrivateKey devicePrivateKey = config.getKeyConvertor().convertBytesToPrivateKey(Base64.getDecoder().decode(devicePrivateKeyBase64));
+        assertEquals("true", responseMap.get("privateKeyDecryptionSuccessful"));
+        final String devicePrivateKeyBase64 = (String) responseMap.get("devicePrivateKey");
 
-        byte[] signature = SIGNATURE_UTILS.computeECDSASignature(dataBytes, devicePrivateKey);
-
-        VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature("AAAAA-BBBBB-CCCCC-DDDDD", data, Base64.getEncoder().encodeToString(signature));
-        assertFalse(verifyResponse.isSignatureValid());
+        return config.getKeyConvertor().convertBytesToPrivateKey(Base64.getDecoder().decode(devicePrivateKeyBase64));
     }
 
     private static void checkSignatureError(ErrorResponse errorResponse) {
