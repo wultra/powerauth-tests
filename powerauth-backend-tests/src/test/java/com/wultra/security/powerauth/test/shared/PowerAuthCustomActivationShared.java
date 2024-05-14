@@ -29,7 +29,6 @@ import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
@@ -372,7 +371,7 @@ public class PowerAuthCustomActivationShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        final ActivationLayer2Response layer2Response = fetchLayer2Response(stepLogger)
+        final ActivationLayer2Response layer2Response = fetchLayer2Response(stepLogger);
         final String activationId = layer2Response.getActivationId();
         assertNotNull(activationId);
 
