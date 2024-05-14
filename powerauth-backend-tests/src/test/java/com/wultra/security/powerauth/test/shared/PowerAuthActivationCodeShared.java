@@ -21,7 +21,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
@@ -84,8 +83,8 @@ public class PowerAuthActivationCodeShared {
         final Map<String, String> response = stepLogger.getItems().stream()
                 .filter(item -> "Decrypted Response".equals(item.name()))
                 .map(item -> item.object().toString())
-                .map(item -> PowerAuthActivationCodeShared.<ObjectResponse<Map<String, String>>>read(config.getObjectMapper(), item))
-                .map(ObjectResponse::getResponseObject)
+                .map(item -> PowerAuthActivationCodeShared.<Map<String, Object>>read(config.getObjectMapper(), item))
+                .map(item -> (Map<String, String>) item.get("responseObject"))
                 .findAny()
                 .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
