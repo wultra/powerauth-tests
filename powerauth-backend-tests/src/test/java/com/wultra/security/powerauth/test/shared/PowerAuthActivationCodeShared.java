@@ -26,6 +26,7 @@ import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientAct
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
+import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.SignAndEncryptStep;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
@@ -35,11 +36,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static com.wultra.security.powerauth.test.shared.PowerAuthInfoShared.objectMapper;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 
