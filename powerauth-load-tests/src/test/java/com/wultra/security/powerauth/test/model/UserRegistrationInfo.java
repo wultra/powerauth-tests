@@ -29,4 +29,6 @@ public class UserRegistrationInfo {
     private String appId;
     private String integrationUser;
     private String integrationUserPass;
+    private String tokenId;
+    private String tokenSecret;
 }

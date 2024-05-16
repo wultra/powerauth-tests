@@ -86,6 +86,22 @@ public class CreateRegistrationScenario {
                                                     """))
                                             .check(status().is(200))
                             )
+                            .exec(
+                                    http("Create Token Test Server")
+                                            .post(PowerAuthLoadTestCommon.TEST_SERVER_URL + "/token/create")
+                                            .body(StringBody("""
+                                                       {
+                                                        "requestObject":
+                                                      {
+                                                      "activationId": "#{activationId}",
+                                                      "applicationId": "#{appId}",
+                                                      "signatureType": "POSSESSION"
+                                                    }}
+                                                    """)
+                                            )
+                                            .check(status().is(200))
+                                            .check((jmesPath("responseObject.tokenId").saveAs("tokenId")))
+                                            .check((jmesPath("responseObject.tokenSecret").saveAs("tokenSecret"))))
                             .exec(SessionDataUtils.saveSessionData())
                             .exec(SessionDataUtils.saveRegistrationData())))
 

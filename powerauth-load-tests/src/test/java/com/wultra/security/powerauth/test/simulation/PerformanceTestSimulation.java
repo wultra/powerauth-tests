@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.test.simulation;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
 import com.wultra.security.powerauth.test.config.PowerAuthLoadTestCommon;
 import com.wultra.security.powerauth.test.scenario.CreateApproveOperationScenario;
 import com.wultra.security.powerauth.test.scenario.CreateCallbackScenario;
@@ -46,7 +45,7 @@ import static io.gatling.javaapi.core.OpenInjectionStep.atOnceUsers;
 @Slf4j
 public class PerformanceTestSimulation extends Simulation {
 
-    private final WireMockServer wireMockServer = new WireMockServer(8090);
+    /*private final WireMockServer wireMockServer = new WireMockServer(8090);*/
 
     @Override
     public void before() {
@@ -60,7 +59,7 @@ public class PerformanceTestSimulation extends Simulation {
     @Override
     public void after() {
         logger.info("Execution phase is finished!");
-        wireMockServer.stop();
+       /* wireMockServer.stop();*/
     }
 
 
@@ -78,7 +77,7 @@ public class PerformanceTestSimulation extends Simulation {
                                         .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_Y_OP).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)))
                                         .protocols(PowerAuthLoadTestCommon.commonProtocol),
                                 ListOperationHistoryScenario.listOperationHistoryScenario
-                                        .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_Y_OP * 0.1).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)).randomized())
+                                        .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_PREP_N_REG * PowerAuthLoadTestCommon.PERF_TEST_EXE_PENDING_OP_POOLING).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)).randomized())
                                         .protocols(PowerAuthLoadTestCommon.commonProtocol)));
     }
 }
