@@ -30,7 +30,6 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFo
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.SignatureVerificationException;
 import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
-import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationRejectInternalRequest;
@@ -113,18 +112,12 @@ public class OperationsService extends BaseService {
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatusObject(resultStatusObject);
 
-        String header = null;
+        final ObjectStepLogger stepLogger;
         try {
-            final ObjectStepLogger stepLogger = new ObjectStepLogger();
+            stepLogger = new ObjectStepLogger();
             verifyTokenStep.execute(stepLogger, model.toMap());
-            for (StepItem item: stepLogger.getItems()) {
-                StepItemLogger.log(logger, item);
-                if ("Sending Request".equals(item.name())) {
-                    final Map<String, Object> responseMap = (Map<String, Object>) item.object();
-                    final Map<String, String> headerMap = (Map<String, String>) responseMap.get("requestHeaders");
-                    header = headerMap.get("X-PowerAuth-Token");
-                }
-            }
+            stepLogger.getItems()
+                    .forEach(item -> StepItemLogger.log(logger, item));
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
@@ -133,9 +126,13 @@ public class OperationsService extends BaseService {
 
         resultStatusUtil.persistResultStatus(resultStatusObject);
 
-        if (header == null) {
-            throw new SignatureVerificationException("Unable to generate token");
-        }
+        final String header = stepLogger.getItems().stream()
+                .filter(item -> "Sending Request".equals(item.name()))
+                .map(item -> (Map<String, Object>) item.object())
+                .map(item -> (Map<String, String>) item.get("requestHeaders"))
+                .map(item -> item.get("X-PowerAuth-Token"))
+                .findAny()
+                .orElseThrow(() -> new SignatureVerificationException("Unable to generate token"));
 
         final HttpHeaders headers = new HttpHeaders();
         headers.put("X-PowerAuth-Token", Collections.singletonList(header));
@@ -188,27 +185,8 @@ public class OperationsService extends BaseService {
         model.setVersion(config.getVersion());
         model.setResultStatusObject(resultStatusObject);
 
-        boolean success = false;
-        try {
-            final ObjectStepLogger stepLogger = new ObjectStepLogger();
-            verifySignatureStep.execute(stepLogger, model.toMap());
-            for (StepItem item: stepLogger.getItems()) {
-                StepItemLogger.log(logger, item);
-                if ("Signature verified".equals(item.name())) {
-                    success = true;
-                }
-            }
-        } catch (Exception ex) {
-            logger.warn("Remote execution failed, reason: {}", ex.getMessage());
-            logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed", ex);
-        }
+        verifySignature(model, resultStatusObject);
 
-        resultStatusUtil.persistResultStatus(resultStatusObject);
-
-        if (!success) {
-            throw new SignatureVerificationException("Signature verification failed");
-        }
         return new Response();
     }
 
@@ -254,27 +232,30 @@ public class OperationsService extends BaseService {
         model.setVersion(config.getVersion());
         model.setResultStatusObject(resultStatusObject);
 
-        boolean success = false;
+        verifySignature(model, resultStatusObject);
+
+        return new Response();
+    }
+
+    @SuppressWarnings("java:S2201")
+    private void verifySignature(final VerifySignatureStepModel model, final JSONObject resultStatusObject) throws RemoteExecutionException, SignatureVerificationException {
+        final ObjectStepLogger stepLogger;
         try {
-            final ObjectStepLogger stepLogger = new ObjectStepLogger();
+            stepLogger = new ObjectStepLogger();
             verifySignatureStep.execute(stepLogger, model.toMap());
-            for (StepItem item: stepLogger.getItems()) {
-                StepItemLogger.log(logger, item);
-                if ("Signature verified".equals(item.name())) {
-                    success = true;
-                }
-            }
+            stepLogger.getItems()
+                    .forEach(item -> StepItemLogger.log(logger, item));
         } catch (Exception ex) {
-            logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
             throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
         resultStatusUtil.persistResultStatus(resultStatusObject);
 
-        if (!success) {
-            throw new SignatureVerificationException("Signature verification failed");
-        }
-        return new Response();
+        stepLogger.getItems().stream()
+                .map(StepItem::name)
+                .filter("Signature verified"::equals)
+                .findAny()
+                .orElseThrow(() -> new SignatureVerificationException("Signature verification failed"));
     }
 }
