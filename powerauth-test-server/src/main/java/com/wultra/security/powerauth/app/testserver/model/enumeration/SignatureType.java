@@ -17,8 +17,6 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.enumeration;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * Enum with signature type values.
  *
@@ -27,38 +25,32 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public enum SignatureType {
 
     /**
-     * 1FA signature using possession factor key, value = {@code possession}.
+     * 1FA signature using possession factor key.
      */
-    @JsonProperty("possession")
     POSSESSION,
 
     /**
-     * 1FA signature using knowledge factor key, value = {@code knowledge}.
+     * 1FA signature using knowledge factor key.
      */
-    @JsonProperty("knowledge")
     KNOWLEDGE,
 
     /**
-     * 1FA signature using biometry factor key, value = {@code biometry}.
+     * 1FA signature using biometry factor key.
      */
-    @JsonProperty("biometry")
     BIOMETRY,
 
     /**
-     * 2FA signature using possession and knowledge factor key, value = {@code possession_knowledge}.
+     * 2FA signature using possession and knowledge factor key.
      */
-    @JsonProperty("possession_knowledge")
     POSSESSION_KNOWLEDGE,
 
     /**
-     * 2FA signature using possession and biometry factor key, value = {@code possession_biometry}.
+     * 2FA signature using possession and biometry factor key.
      */
-    @JsonProperty("possession_biometry")
     POSSESSION_BIOMETRY,
 
     /**
-     * 3FA signature using possession, knowledge and biometry factor key, value = {@code possession_knowledge_biometry}.
+     * 3FA signature using possession, knowledge and biometry factor key.
      */
-    @JsonProperty("possession_knowledge_biometry")
-    POSSESSION_KNOWLEDGE_BIOMETRY;
+    POSSESSION_KNOWLEDGE_BIOMETRY
 }
