@@ -17,8 +17,10 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.enumeration;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+
 /**
- * Enum with signature type values.
+ * Enum with signature type values. For backward compatibility is not case-sensitive, see {@link #fromString(String)}.
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
@@ -52,5 +54,17 @@ public enum SignatureType {
     /**
      * 3FA signature using possession, knowledge and biometry factor key.
      */
-    POSSESSION_KNOWLEDGE_BIOMETRY
+    POSSESSION_KNOWLEDGE_BIOMETRY;
+
+    /**
+     * Case-insensitive deserializer.
+     *
+     * @param value Value to deserialize.
+     * @return signature type
+     */
+    @JsonCreator
+    public static SignatureType fromString(String value) {
+        return value == null ? null : SignatureType.valueOf(value.toUpperCase());
+    }
+
 }
