@@ -129,7 +129,7 @@
                 <configuration>
                     <resultsFolder>${project.basedir}/target/test-results/gatling</resultsFolder>
                     <simulationsFolder>${project.basedir}/src/test/scala</simulationsFolder>
-                    <runDescription>Wultra PowerAuth Load Test Scala</runDescription>
+                    <runDescription>Wultra PowerAuth Load Test</runDescription>
                 </configuration>
             </plugin>
 

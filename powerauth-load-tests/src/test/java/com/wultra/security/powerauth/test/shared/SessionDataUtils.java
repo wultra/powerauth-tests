@@ -89,6 +89,8 @@ public final class SessionDataUtils {
                     .testUserId(session.getString("testUserId"))
                     .integrationUser(session.getString("pac-int-user"))
                     .integrationUserPass(session.getString("pac-int-user-pass"))
+                    .tokenId(session.getString("tokenId"))
+                    .tokenSecret(session.getString("tokenSecret"))
                     .build();
             SharedSessionData.registrationData.add(registrationData);
             return session;

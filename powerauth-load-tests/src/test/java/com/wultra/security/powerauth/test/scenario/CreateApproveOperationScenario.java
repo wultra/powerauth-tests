@@ -41,7 +41,6 @@ public class CreateApproveOperationScenario{
     public static final ScenarioBuilder createApproveOperationScenario = scenario(CreateApproveOperationScenario.class.getName())
             .feed(PowerAuthLoadTestCommon.getUserDataFeed().circular())
             .exec(
-                    /* This works assuming template in pa_operation_template is defined */
                     http("Create operation PowerAuth Cloud")
                             .post(PowerAuthLoadTestCommon.PAC_URL + "/v2/operations")
                             .basicAuth("#{integrationUser}", "#{integrationUserPass}")
@@ -49,7 +48,8 @@ public class CreateApproveOperationScenario{
                                       {
                                       "userId": "#{testUserId}",
                                       "template": "login",
-                                      "language": "en"
+                                      "language": "en",
+                                      "silent": true
                                     }
                                     """)
                             )

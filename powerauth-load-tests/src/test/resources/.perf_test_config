@@ -1,7 +1,11 @@
 export PERF_TEST_PREP_N_REG=15000 # Number of registrations to prepare - Preparation phase
 export PERF_TEST_PREP_M_OP=30000 # Number of operations to prepare - Preparation phase
 export PERF_TEST_EXE_X_REG=1 # Number of registrations to create per sec - Execution phase
-export PERF_TEST_EXE_Y_OP=40 # Number of operations to create per sec - Execution phase
-export PERF_TEST_EXE_MIN=60 # Length of execution phase in minutes - Execution phase
+export PERF_TEST_EXE_Y_OP=10 # Number of operations to create per sec - Execution phase
+export PERF_TEST_EXE_MIN=1 # Length of execution phase in minutes - Execution phase
+export PERF_TEST_EXE_PENDING_OP_POOLING=0.001 # Percentage of registered users that each second request the pending operation list. It is dependent on number of created registrations during prep phase - Execution phase
+export PERF_TEST_USE_CALLBACKS=false # Variable that controls whether to use callbacks for registration and operations created during execution phase - Execution phase
 export PERF_TEST_CALLBACK_URL=CALLBACK_URL # URL for the callback server
+export USE_OIDC_AUTH=false # Variable that controls whether to use OIDC auth for the testing - Preparation and Execution phase
+export OIDC_BEARER = # OIDC bearer token for the OIDC auth if set - Preparation and Execution phase
 export MAVEN_OPTS=-Xmx6000m # OPTIONAL - adding more heap size

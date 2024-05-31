@@ -80,19 +80,38 @@ public class PowerAuthLoadTestCommon {
     /* The length of the execution phase in minutes */
     public static final int PERF_TEST_EXE_MIN = getIntEnv("PERF_TEST_EXE_MIN", 1);
 
+    /* Percentage of registered users that each second request the pending operation list. It is dependent on number of created registrations during prep phase */
+    public static final double PERF_TEST_EXE_PENDING_OP_POOLING = getDoubleEnv("PERF_TEST_EXE_PENDING_OP_POOLING", 0.1);
+
     public static final String PAC_ADMIN_USER = getStringEnv("PAC_ADMIN_USER", "system-admin");
     public static final String PAC_ADMIN_PASS = getStringEnv("PAC_ADMIN_PASS", "");
     public static final String PAC_URL = getStringEnv("PAC_URL", "http://localhost:8089/powerauth-cloud");
     public static final String TEST_SERVER_URL = getStringEnv("TEST_SERVER_URL", "http://localhost:8081");
     public static final String CALLBACK_URL = getStringEnv("PERF_TEST_CALLBACK_URL", "http://localhost:8090/mock-callback");
-
+    public static final boolean PERF_TEST_USE_CALLBACKS = getBooleanEnv("PERF_TEST_USE_CALLBACKS", false);
+    public static final boolean USE_OIDC_AUTH = getBooleanEnv("USE_OIDC_AUTH", false);
+    public static final String OIDC_BEARER = getStringEnv("OIDC_BEARER", "");
     /**
      * Common HTTP protocol configuration for Gatling tests.
      */
-    public final static HttpProtocolBuilder commonProtocol = http
-            .contentTypeHeader("application/json")
-            .acceptHeader("application/json")
-            .userAgentHeader("PowerAuth-LoadTest/gatling").check();
+    public final static HttpProtocolBuilder commonProtocol;
+
+    static {
+        HttpProtocolBuilder builder = http
+                .contentTypeHeader("application/json")
+                .acceptHeader("application/json")
+                .userAgentHeader("PowerAuth-LoadTest/gatling");
+
+        if (USE_OIDC_AUTH) {
+            if (OIDC_BEARER == null || OIDC_BEARER.isBlank()) {
+                logger.warn("OIDC auth is set but the OIDC bearer token is empty. Using default basic auth.");
+            } else {
+                builder = builder.header("Authorization", "Bearer " + OIDC_BEARER);
+            }
+        }
+
+        commonProtocol = builder.check();
+    }
 
     /**
      * Fetches an integer environment variable by name, or returns the default value if not found or invalid.
@@ -107,7 +126,45 @@ public class PowerAuthLoadTestCommon {
             try {
                 return Integer.parseInt(value);
             } catch (NumberFormatException e) {
-                logger.warn("Environment variable {} is not a valid integer: {}. Using default value.", name, defaultValue);
+                logger.warn("Environment variable {} is not a valid integer: {}. Using default value.", name, value);
+            }
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Fetches a boolean environment variable by name, or returns the default value if not found or invalid.
+     *
+     * @param name         The name of the environment variable.
+     * @param defaultValue The default value to use if the environment variable is not found or invalid.
+     * @return The environment variable value as a boolean, or the default value.
+     */
+    private static boolean getBooleanEnv(final String name, final boolean defaultValue) {
+        final String value = System.getenv(name);
+        if (StringUtils.isNotBlank(value)) {
+            if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                return Boolean.parseBoolean(value);
+            } else {
+                logger.warn("Environment variable {} is not a valid boolean: {}. Using default value.", name, value);
+            }
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Fetches a double environment variable by name, or returns the default value if not found or invalid.
+     *
+     * @param name         The name of the environment variable.
+     * @param defaultValue The default value to use if the environment variable is not found or invalid.
+     * @return The environment variable value as a double, or the default value.
+     */
+    private static double getDoubleEnv(final String name, final double defaultValue) {
+        final String value = System.getenv(name);
+        if (StringUtils.isNotBlank(value)) {
+            try {
+                return Double.parseDouble(value);
+            } catch (NumberFormatException e) {
+                logger.warn("Environment variable {} is not a valid double: {}. Using default value.", name, value);
             }
         }
         return defaultValue;
@@ -125,9 +182,9 @@ public class PowerAuthLoadTestCommon {
         if (StringUtils.isNotBlank(value)) {
             return value;
         } else {
-            logger.warn("Environment variable {} is not set correctly: {}. Using default value.", name, defaultValue);
-            return defaultValue;
+            logger.warn("Environment variable {} is not set correctly: {}. Using default value.", name, value);
         }
+        return defaultValue;
     }
 
     /**
