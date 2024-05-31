@@ -6,113 +6,116 @@ This document serves as an internal guide for running performance tests.
 
 Before running the tests there are several steps that need to be taken:
 
-1) **Create Admin User in PAC**
+### 1. Create Admin User in PAC
 
-   Postgresql
-   ```postgresql
-    INSERT INTO pa_cloud_user (id, username, userpassword, enabled)
-   VALUES (nextval('pa_cloud_user_seq'), 'system-admin', '{GENERATED_PWD_ENCODED}', true);
+Postgresql
 
-   INSERT INTO pa_cloud_user_authority (id, user_id, authority)
+```sql
+INSERT INTO pa_cloud_user (id, username, userpassword, enabled)
+    VALUES (nextval('pa_cloud_user_seq'), 'system-admin', '{GENERATED_PWD_ENCODED}', true);
+
+INSERT INTO pa_cloud_user_authority (id, user_id, authority)
    VALUES (nextval('pa_cloud_user_seq'), (SELECT id FROM pa_cloud_user WHERE username = 'system-admin'), 'ROLE_ADMIN');
-   ```
+```
 
-   MSSQL
-   ```tsql
-   INSERT INTO pa_cloud_user (id, username, userpassword, enabled)
+MSSQL
+
+```sql
+INSERT INTO pa_cloud_user (id, username, userpassword, enabled) 
    VALUES (NEXT VALUE FOR pa_cloud_user_seq, 'system-admin', '{GENERATED_PWD_ENCODED}', 1);
 
-   INSERT INTO pa_cloud_user_authority (id, user_id, authority)
+INSERT INTO pa_cloud_user_authority (id, user_id, authority)
    VALUES (NEXT VALUE FOR pa_cloud_user_seq, (SELECT id FROM pa_cloud_user WHERE username = 'system-admin'), 'ROLE_ADMIN');
-   ```
+```
 
-   ORACLE
-   ```oracle
-   INSERT INTO pa_cloud_user (ID, USERNAME, userpassword, ENABLED)
+ORACLE
+
+```sql
+INSERT INTO pa_cloud_user (ID, USERNAME, userpassword, ENABLED)
    SELECT pa_cloud_user_seq.NEXTVAL, 'system-admin', '{GENERATED_PWD_ENCODED}', 1 FROM DUAL;
+    INSERT INTO pa_cloud_user_authority (id, user_id, authority)
+        SELECT pa_cloud_user_seq.NEXTVAL, id, 'ROLE_ADMIN'
+        FROM pa_cloud_user
+        WHERE username = 'system-admin';
+```
 
-   INSERT INTO pa_cloud_user_authority (id, user_id, authority)
-   SELECT pa_cloud_user_seq.NEXTVAL, id, 'ROLE_ADMIN'
-   FROM pa_cloud_user
-   WHERE username = 'system-admin';
-   ```
+To create the password follow steps
+from https://developers.wultra.com/components/powerauth-cloud/develop/documentation/
 
-   To create the password follow steps
-   from https://developers.wultra.com/components/powerauth-cloud/1.6.x/documentation/Configuration
+### 2. Create template in pa_operation_template
 
-2) **Create template in pa_operation_template**
+Postgresql
 
-   Postgresql
-   ```postgresql
-   INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration)
-   VALUES (1, 'login', 'login', 'A2', 'possession_knowledge,possession_biometry', 5, 300);
+```sql
+INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration)
+    VALUES (1, 'login', 'login', 'A2', 'possession_knowledge,possession_biometry', 5, 300);
 
-   INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration)
-   VALUES (2, 'payment', 'authorize_payment', 'A1*A${amount}${currency}*I${iban}', 'possession_knowledge,possession_biometry', 5, 300);
-   ```
+INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration)
+    VALUES (2, 'payment', 'authorize_payment', 'A1*A${amount}${currency}*I${iban}', 'possession_knowledge,possession_biometry', 5, 300);
+```
 
-   MSSQL
+MSSQL
 
-   ```tsql
-   INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration)
-   VALUES (1, 'login', 'login', 'A2', 'possession_knowledge,possession_biometry', 5, 300);
+```sql
+INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration) 
+    VALUES (1, 'login', 'login', 'A2', 'possession_knowledge,possession_biometry', 5, 300);
 
-   INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration)
-   VALUES (2, 'payment', 'authorize_payment', 'A1*A${amount}${currency}*I${iban}', 'possession_knowledge,possession_biometry', 5, 300);
-   ```
+INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration)
+    VALUES (2, 'payment', 'authorize_payment', 'A1*A${amount}${currency}*I${iban}', 'possession_knowledge,possession_biometry', 5, 300);
+```
 
-   ORACLE
+ORACLE
 
-   ```oracle
-   INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration)
-   VALUES (1, 'login', 'login', 'A2', 'possession_knowledge,possession_biometry', 5, 300);
+```sql
+INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration)
+    VALUES (1, 'login', 'login', 'A2', 'possession_knowledge,possession_biometry', 5, 300);
 
-   INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration)
-   VALUES (2, 'payment', 'authorize_payment', 'A1*A${amount}${currency}*I${iban}', 'possession_knowledge,possession_biometry', 5, 300);
-   ```
+INSERT INTO pa_operation_template (id, template_name, operation_type, data_template, signature_type, max_failure_count, expiration)
+    VALUES (2, 'payment', 'authorize_payment', 'A1*A${amount}${currency}*I${iban}', 'possession_knowledge,possession_biometry', 5, 300);
+```
 
-3) **Create operation summary localization**
+### 3. Create operation summary localization
 
-   Postgresql
+Postgresql
 
-   ```postgresql
-   INSERT INTO pa_cloud_localization (id, placeholder, language, title, summary)
+```sql
+INSERT INTO pa_cloud_localization (id, placeholder, language, title, summary)
    VALUES (1, 'login', 'en', 'Approve Login', 'Please confirm the login request.');
 
-   INSERT INTO pa_cloud_localization (id, placeholder, language, title, summary)
-   VALUES (2, 'payment', 'en', 'Approve Payment', 'Please approve the payment of ${amount} ${currency} to account ${iban}.');
-   ```
+INSERT INTO pa_cloud_localization (id, placeholder, language, title, summary)
+    VALUES (2, 'payment', 'en', 'Approve Payment', 'Please approve the payment of ${amount} ${currency} to account ${iban}.');
+```
 
-   MSSQL
+MSSQL
 
-   ```tsql
-   INSERT INTO pa_cloud_localization (id, placeholder, language, title, summary)
-   VALUES (1, 'login', 'en', 'Approve Login', 'Please confirm the login request.');
+```sql
+INSERT INTO pa_cloud_localization (id, placeholder, language, title, summary)
+    VALUES (1, 'login', 'en', 'Approve Login', 'Please confirm the login request.');
 
-   INSERT INTO pa_cloud_localization (id, placeholder, language, title, summary)
-   VALUES (2, 'payment', 'en', 'Approve Payment', 'Please approve the payment of ${amount} ${currency} to account ${iban}.');
-   ```
+INSERT INTO pa_cloud_localization (id, placeholder, language, title, summary)
+    VALUES (2, 'payment', 'en', 'Approve Payment', 'Please approve the payment of ${amount} ${currency} to account ${iban}.');
+```
 
-   ORACLE
+ORACLE
 
-   ```oracle
-   INSERT INTO pa_cloud_localization (id, placeholder, language, title, summary)
-   VALUES (1, 'login', 'en', 'Approve Login', 'Please confirm the login request.');
+```sql
+INSERT INTO pa_cloud_localization (id, placeholder, language, title, summary)
+    VALUES (1, 'login', 'en', 'Approve Login', 'Please confirm the login request.');
 
-   INSERT INTO pa_cloud_localization (id, placeholder, language, title, summary)
-   VALUES (2, 'payment', 'en', 'Approve Payment', 'Please approve the payment of ${amount} ${currency} to account ${iban}.');
-   ```
+INSERT INTO pa_cloud_localization (id, placeholder, language, title, summary)
+    VALUES (2, 'payment', 'en', 'Approve Payment', 'Please approve the payment of ${amount} ${currency} to account ${iban}.');
+```
 
-4) **Create mobile token operation localization**
+### 4. Create mobile token operation localization
 
-   Postgresql
+Postgresql
 
-   ```postgresql
-   INSERT INTO es_operation_template (id, placeholder, language, title, message, attributes, ui)
-   VALUES (1, 'login', 'en', 'Login Approval', 'Are you logging in to the internet banking?', null, null);
+```sql
+INSERT INTO es_operation_template (id, placeholder, language, title, message, attributes, ui)
+    VALUES (1, 'login', 'en', 'Login Approval', 'Are you logging in to the internet banking?', null, null);
 
-   INSERT INTO es_operation_template (id, placeholder, language, title, message, attributes, ui)
-   VALUES (2, 'authorize_payment', 'en', 'Payment Approval', 'Please confirm the payment', '[
+INSERT INTO es_operation_template (id, placeholder, language, title, message, attributes, ui)
+    VALUES (2, 'authorize_payment', 'en', 'Payment Approval', 'Please confirm the payment', '[
    {
     "id": "operation.amount",
     "type": "AMOUNT",
@@ -131,16 +134,16 @@ Before running the tests there are several steps that need to be taken:
     }
    }
    ]', null);
-   ```
+```
 
-   MSSQL
+MSSQL
 
-   ```tsql
-   INSERT INTO es_operation_template (id, placeholder, language, title, message, attributes, ui)
-   VALUES (1, 'login', 'en', 'Login Approval', 'Are you logging in to the internet banking?', NULL, NULL);
+```sql
+INSERT INTO es_operation_template (id, placeholder, language, title, message, attributes, ui)
+    VALUES (1, 'login', 'en', 'Login Approval', 'Are you logging in to the internet banking?', NULL, NULL);
 
-   INSERT INTO es_operation_template (id, placeholder, language, title, message, attributes, ui)
-   VALUES (2, 'authorize_payment', 'en', 'Payment Approval', 'Please confirm the payment', '[
+INSERT INTO es_operation_template (id, placeholder, language, title, message, attributes, ui)
+    VALUES (2, 'authorize_payment', 'en', 'Payment Approval', 'Please confirm the payment', '[
    {
     "id": "operation.amount",
     "type": "AMOUNT",
@@ -159,17 +162,17 @@ Before running the tests there are several steps that need to be taken:
     }
    }
    ]', NULL);
-   ```
+```
 
-   Oracle
+Oracle
 
-   ```oracle
-    INSERT INTO es_operation_template (id, placeholder, language, title, message, attributes, ui)
+```sql
+INSERT INTO es_operation_template (id, placeholder, language, title, message, attributes, ui)
     VALUES (1, 'login', 'en', 'Login Approval', 'Are you logging in to the internet banking?', NULL, NULL);
 
-    INSERT INTO es_operation_template (id, placeholder, language, title, message, attributes, ui)
+INSERT INTO es_operation_template (id, placeholder, language, title, message, attributes, ui)
     VALUES (2, 'authorize_payment', 'en', 'Payment Approval', 'Please confirm the payment', '[{"id": "operation.amount", "type": "AMOUNT", "text": "Amount", "params": {"amount": "amount", "currency": "currency"}}, {"id": "operation.account", "type": "KEY_VALUE", "text": "To Account", "params": {"value": "iban"}}]', NULL);
-   ```
+```
 
 ## Running the tests
 
@@ -198,6 +201,6 @@ The reports are by default generated to `/results/`.
 - Link to Gatling docs - https://docs.gatling.io
 
 - Generating reports from failed/unfinished tests
-  ```Bash
+  ```bash
   mvn gatling:test -Dgatling.reportsOnly={PATH_TO_SIMULATION_OUTPUT_FOLDER}
   ```

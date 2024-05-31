@@ -126,7 +126,7 @@ public class PowerAuthLoadTestCommon {
             try {
                 return Integer.parseInt(value);
             } catch (NumberFormatException e) {
-                logger.warn("Environment variable {} is not a valid integer: {}. Using default value.", name, defaultValue);
+                logger.warn("Environment variable {} is not a valid integer: {}. Using default value.", name, value);
             }
         }
         return defaultValue;
@@ -145,7 +145,7 @@ public class PowerAuthLoadTestCommon {
             if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
                 return Boolean.parseBoolean(value);
             } else {
-                logger.warn("Environment variable {} is not a valid boolean: {}. Using default value.", name, defaultValue);
+                logger.warn("Environment variable {} is not a valid boolean: {}. Using default value.", name, value);
             }
         }
         return defaultValue;
@@ -164,7 +164,7 @@ public class PowerAuthLoadTestCommon {
             try {
                 return Double.parseDouble(value);
             } catch (NumberFormatException e) {
-                logger.warn("Environment variable {} is not a valid double: {}. Using default value.", name, defaultValue);
+                logger.warn("Environment variable {} is not a valid double: {}. Using default value.", name, value);
             }
         }
         return defaultValue;
@@ -182,9 +182,9 @@ public class PowerAuthLoadTestCommon {
         if (StringUtils.isNotBlank(value)) {
             return value;
         } else {
-            logger.warn("Environment variable {} is not set correctly: {}. Using default value.", name, defaultValue);
-            return defaultValue;
+            logger.warn("Environment variable {} is not set correctly: {}. Using default value.", name, value);
         }
+        return defaultValue;
     }
 
     /**
