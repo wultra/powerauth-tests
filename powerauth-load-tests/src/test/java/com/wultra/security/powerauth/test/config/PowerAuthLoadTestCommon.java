@@ -89,13 +89,29 @@ public class PowerAuthLoadTestCommon {
     public static final String TEST_SERVER_URL = getStringEnv("TEST_SERVER_URL", "http://localhost:8081");
     public static final String CALLBACK_URL = getStringEnv("PERF_TEST_CALLBACK_URL", "http://localhost:8090/mock-callback");
     public static final boolean PERF_TEST_USE_CALLBACKS = getBooleanEnv("PERF_TEST_USE_CALLBACKS", false);
+    public static final boolean USE_OIDC_AUTH = getBooleanEnv("USE_OIDC_AUTH", false);
+    public static final String OIDC_BEARER = getStringEnv("OIDC_BEARER", "");
     /**
      * Common HTTP protocol configuration for Gatling tests.
      */
-    public final static HttpProtocolBuilder commonProtocol = http
-            .contentTypeHeader("application/json")
-            .acceptHeader("application/json")
-            .userAgentHeader("PowerAuth-LoadTest/gatling").check();
+    public final static HttpProtocolBuilder commonProtocol;
+
+    static {
+        HttpProtocolBuilder builder = http
+                .contentTypeHeader("application/json")
+                .acceptHeader("application/json")
+                .userAgentHeader("PowerAuth-LoadTest/gatling");
+
+        if (USE_OIDC_AUTH) {
+            if (OIDC_BEARER == null || OIDC_BEARER.isBlank()) {
+                logger.warn("OIDC auth is set but the OIDC bearer token is empty. Using default basic auth.");
+            } else {
+                builder = builder.header("Authorization", "Bearer " + OIDC_BEARER);
+            }
+        }
+
+        commonProtocol = builder.check();
+    }
 
     /**
      * Fetches an integer environment variable by name, or returns the default value if not found or invalid.
