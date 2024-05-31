@@ -22,13 +22,13 @@ import com.wultra.security.powerauth.test.scenario.CreateApproveOperationScenari
 import com.wultra.security.powerauth.test.scenario.CreateCallbackScenario;
 import com.wultra.security.powerauth.test.scenario.CreateRegistrationScenario;
 import com.wultra.security.powerauth.test.scenario.ListOperationHistoryScenario;
+import io.gatling.javaapi.core.PopulationBuilder;
 import io.gatling.javaapi.core.Simulation;
 import lombok.extern.slf4j.Slf4j;
 
 import java.time.Duration;
 
 import static io.gatling.javaapi.core.CoreDsl.*;
-import static io.gatling.javaapi.core.OpenInjectionStep.atOnceUsers;
 
 /**
  * Orchestrates the execution of performance testing scenarios for PowerAuth components.
@@ -45,39 +45,54 @@ import static io.gatling.javaapi.core.OpenInjectionStep.atOnceUsers;
 @Slf4j
 public class PerformanceTestSimulation extends Simulation {
 
-    /*private final WireMockServer wireMockServer = new WireMockServer(8090);*/
-
     @Override
     public void before() {
-       /* Uncomment for local testing
-        wireMockServer.stubFor(get(urlEqualTo("/mock-callback")).willReturn(aResponse().withBody("Callback ok")));
-        wireMockServer.start();
-        */
         logger.info("Execution phase is about to start!");
     }
 
     @Override
     public void after() {
         logger.info("Execution phase is finished!");
-       /* wireMockServer.stop();*/
     }
 
 
     public PerformanceTestSimulation() {
         PowerAuthLoadTestCommon.prepareFeedDataUsers();
-        setUp(
-                /* Load test */
-                CreateCallbackScenario.createCallbackScenario
-                        .injectOpen(atOnceUsers(1))
-                        .protocols(PowerAuthLoadTestCommon.commonProtocol).andThen(
-                                CreateRegistrationScenario.createRegistrationScenario
-                                        .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_X_REG).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)))
-                                        .protocols(PowerAuthLoadTestCommon.commonProtocol),
-                                CreateApproveOperationScenario.createApproveOperationScenario
-                                        .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_Y_OP).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)))
-                                        .protocols(PowerAuthLoadTestCommon.commonProtocol),
-                                ListOperationHistoryScenario.listOperationHistoryScenario
-                                        .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_PREP_N_REG * PowerAuthLoadTestCommon.PERF_TEST_EXE_PENDING_OP_POOLING).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)).randomized())
-                                        .protocols(PowerAuthLoadTestCommon.commonProtocol)));
+        setUp(prepareSimulationRun());
+    }
+
+
+    private PopulationBuilder[] prepareSimulationRun() {
+        if (PowerAuthLoadTestCommon.PERF_TEST_USE_CALLBACKS) {
+            return new PopulationBuilder[]{
+                    CreateCallbackScenario.createCallbackScenario
+                            .injectOpen(atOnceUsers(1))
+                            .protocols(PowerAuthLoadTestCommon.commonProtocol).andThen(
+                            CreateRegistrationScenario.createRegistrationScenario
+                                    .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_X_REG).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)))
+                                    .protocols(PowerAuthLoadTestCommon.commonProtocol),
+                            CreateApproveOperationScenario.createApproveOperationScenario
+                                    .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_Y_OP).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)))
+                                    .protocols(PowerAuthLoadTestCommon.commonProtocol),
+                            ListOperationHistoryScenario.listOperationHistoryScenario
+                                    .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_PREP_N_REG * PowerAuthLoadTestCommon.PERF_TEST_EXE_PENDING_OP_POOLING).during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)).randomized())
+                                    .protocols(PowerAuthLoadTestCommon.commonProtocol))
+            };
+        } else {
+            return new PopulationBuilder[]{
+                    CreateRegistrationScenario.createRegistrationScenario
+                            .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_X_REG)
+                                    .during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)))
+                            .protocols(PowerAuthLoadTestCommon.commonProtocol),
+                    CreateApproveOperationScenario.createApproveOperationScenario
+                            .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_EXE_Y_OP)
+                                    .during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)))
+                            .protocols(PowerAuthLoadTestCommon.commonProtocol),
+                    ListOperationHistoryScenario.listOperationHistoryScenario
+                            .injectOpen(constantUsersPerSec(PowerAuthLoadTestCommon.PERF_TEST_PREP_N_REG * PowerAuthLoadTestCommon.PERF_TEST_EXE_PENDING_OP_POOLING)
+                                    .during(Duration.ofMinutes(PowerAuthLoadTestCommon.PERF_TEST_EXE_MIN)).randomized())
+                            .protocols(PowerAuthLoadTestCommon.commonProtocol)
+            };
+        }
     }
 }

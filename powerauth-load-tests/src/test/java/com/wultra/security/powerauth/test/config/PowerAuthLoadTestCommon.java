@@ -88,7 +88,7 @@ public class PowerAuthLoadTestCommon {
     public static final String PAC_URL = getStringEnv("PAC_URL", "http://localhost:8089/powerauth-cloud");
     public static final String TEST_SERVER_URL = getStringEnv("TEST_SERVER_URL", "http://localhost:8081");
     public static final String CALLBACK_URL = getStringEnv("PERF_TEST_CALLBACK_URL", "http://localhost:8090/mock-callback");
-
+    public static final boolean PERF_TEST_USE_CALLBACKS = getBooleanEnv("PERF_TEST_USE_CALLBACKS", false);
     /**
      * Common HTTP protocol configuration for Gatling tests.
      */
@@ -111,6 +111,25 @@ public class PowerAuthLoadTestCommon {
                 return Integer.parseInt(value);
             } catch (NumberFormatException e) {
                 logger.warn("Environment variable {} is not a valid integer: {}. Using default value.", name, defaultValue);
+            }
+        }
+        return defaultValue;
+    }
+
+    /**
+     * Fetches a boolean environment variable by name, or returns the default value if not found or invalid.
+     *
+     * @param name         The name of the environment variable.
+     * @param defaultValue The default value to use if the environment variable is not found or invalid.
+     * @return The environment variable value as a boolean, or the default value.
+     */
+    private static boolean getBooleanEnv(final String name, final boolean defaultValue) {
+        final String value = System.getenv(name);
+        if (StringUtils.isNotBlank(value)) {
+            if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("false")) {
+                return Boolean.parseBoolean(value);
+            } else {
+                logger.warn("Environment variable {} is not a valid boolean: {}. Using default value.", name, defaultValue);
             }
         }
         return defaultValue;

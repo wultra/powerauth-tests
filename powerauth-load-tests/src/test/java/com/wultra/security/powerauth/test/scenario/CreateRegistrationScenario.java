@@ -95,7 +95,7 @@ public class CreateRegistrationScenario {
                                                       {
                                                       "activationId": "#{activationId}",
                                                       "applicationId": "#{appId}",
-                                                      "signatureType": "POSSESSION"
+                                                      "signatureType": "possession"
                                                     }}
                                                     """)
                                             )

@@ -51,7 +51,8 @@ public class CreateOperationScenario {
                                               {
                                               "userId": "#{testUserId}",
                                               "template": "login",
-                                              "language": "en"
+                                              "language": "en",
+                                              "silent": true
                                             }
                                             """)
                                     )

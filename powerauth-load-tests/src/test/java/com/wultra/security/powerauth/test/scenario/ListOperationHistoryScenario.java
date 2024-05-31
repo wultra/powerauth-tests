@@ -37,21 +37,6 @@ public class ListOperationHistoryScenario {
 
     public static final ScenarioBuilder listOperationHistoryScenario = scenario(ListOperationHistoryScenario.class.getName())
             .exec(feed(PowerAuthLoadTestCommon.getUserDataFeed().circular()))
-            .exec(http("Create Token Test Server")
-                    .post(PowerAuthLoadTestCommon.TEST_SERVER_URL + "/token/create")
-                    .body(StringBody("""
-                               {
-                                "requestObject":
-                              {
-                              "activationId": "#{registrationId}",
-                              "applicationId": "#{appId}",
-                              "signatureType": "POSSESSION"
-                            }}
-                            """)
-                    )
-                    .check(status().is(200))
-                    .check((jmesPath("responseObject.tokenId").saveAs("tokenId")))
-                    .check((jmesPath("responseObject.tokenSecret").saveAs("tokenSecret"))))
             .exec(
                     http("List Operation History Test Server")
                             .post(PowerAuthLoadTestCommon.TEST_SERVER_URL + "/operations/pending")
