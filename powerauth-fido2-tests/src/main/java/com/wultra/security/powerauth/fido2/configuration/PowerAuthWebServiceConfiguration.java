@@ -23,8 +23,10 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.fido2.client.PowerAuthFido2Client;
 import com.wultra.security.powerauth.fido2.model.error.PowerAuthFido2Exception;
 import com.wultra.security.powerauth.rest.client.PowerAuthFido2RestClient;
+import com.wultra.security.powerauth.rest.client.PowerAuthFido2RestClientConfiguration;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClient;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
@@ -35,6 +37,7 @@ import org.springframework.util.StringUtils;
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @Configuration
+@Slf4j
 public class PowerAuthWebServiceConfiguration {
 
     @Bean
@@ -51,13 +54,13 @@ public class PowerAuthWebServiceConfiguration {
 
     @Bean
     public PowerAuthFido2Client powerAuthFido2Client(final PowerAuthConfigProperties properties) throws PowerAuthFido2Exception {
+        final PowerAuthFido2RestClientConfiguration config = new PowerAuthFido2RestClientConfiguration();
         if (StringUtils.hasText(properties.getSecurity().clientToken())) {
-            final PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
+            logger.info("Configuring security for PowerAuthFido2RestClient.");
             config.setPowerAuthClientToken(properties.getSecurity().clientToken());
             config.setPowerAuthClientSecret(properties.getSecurity().clientSecret());
-            return new PowerAuthFido2RestClient(properties.getBaseUrl(), config);
         }
-        return new PowerAuthFido2RestClient(properties.getBaseUrl());
+        return new PowerAuthFido2RestClient(properties.getBaseUrl(), config);
     }
 
 }
