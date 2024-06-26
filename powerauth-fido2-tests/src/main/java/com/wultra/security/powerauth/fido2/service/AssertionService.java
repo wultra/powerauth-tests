@@ -18,20 +18,17 @@
 
 package com.wultra.security.powerauth.fido2.service;
 
-import com.webauthn4j.data.AuthenticatorTransport;
-import com.webauthn4j.data.PublicKeyCredentialType;
-import com.wultra.security.powerauth.client.PowerAuthFido2Client;
-import com.wultra.security.powerauth.client.model.entity.fido2.AllowCredentials;
-import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.request.fido2.AssertionChallengeRequest;
-import com.wultra.security.powerauth.client.model.request.fido2.AssertionVerificationRequest;
-import com.wultra.security.powerauth.client.model.response.fido2.AssertionChallengeResponse;
-import com.wultra.security.powerauth.client.model.response.fido2.AssertionVerificationResponse;
+import com.wultra.security.powerauth.fido2.client.PowerAuthFido2Client;
 import com.wultra.security.powerauth.fido2.configuration.WebAuthnConfiguration;
 import com.wultra.security.powerauth.fido2.controller.request.AssertionOptionsRequest;
 import com.wultra.security.powerauth.fido2.controller.request.VerifyAssertionRequest;
 import com.wultra.security.powerauth.fido2.controller.response.AssertionOptionsResponse;
 import com.wultra.security.powerauth.fido2.controller.response.CredentialDescriptor;
+import com.wultra.security.powerauth.fido2.model.error.PowerAuthFido2Exception;
+import com.wultra.security.powerauth.fido2.model.request.AssertionChallengeRequest;
+import com.wultra.security.powerauth.fido2.model.request.AssertionVerificationRequest;
+import com.wultra.security.powerauth.fido2.model.response.AssertionChallengeResponse;
+import com.wultra.security.powerauth.fido2.model.response.AssertionVerificationResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -56,10 +53,10 @@ public class AssertionService {
      * Build public key assertion options.
      * @param request Request form with user input.
      * @return Public key assertion options.
-     * @throws PowerAuthClientException in case of PowerAuth server communication error.
+     * @throws PowerAuthFido2Exception in case of PowerAuth server communication error.
      */
-    public AssertionOptionsResponse assertionOptions(final AssertionOptionsRequest request) throws PowerAuthClientException {
-        final String userId = request.username();
+    public AssertionOptionsResponse assertionOptions(final AssertionOptionsRequest request) throws PowerAuthFido2Exception {
+        final String userId = request.userId();
         final String applicationId = request.applicationId();
 
         logger.info("Building assertion options for userId={}, applicationId={}", userId, applicationId);
@@ -67,21 +64,21 @@ public class AssertionService {
         final AssertionChallengeResponse challengeResponse = fetchChallenge(userId, applicationId, request.templateName(), request.operationParameters());
         final var credentialList = Optional.ofNullable(challengeResponse.getAllowCredentials());
         if (credentialList.isEmpty() && StringUtils.hasText(userId))  {
-            logger.info("User {} is not yet registered.", userId);
+            logger.info("User ID {} is not yet registered.", userId);
             throw new IllegalStateException("Not registered yet.");
         }
 
-        final List<CredentialDescriptor> existingCredentials = credentialList
+        final List<CredentialDescriptor> allowCredentials = credentialList
                 .orElse(Collections.emptyList())
                 .stream()
-                .map(AssertionService::toCredentialDescriptor)
+                .map(Fido2SharedService::toCredentialDescriptor)
                 .toList();
 
         return AssertionOptionsResponse.builder()
                 .challenge(challengeResponse.getChallenge())
                 .rpId(webAuthNConfig.getRpId())
                 .timeout(webAuthNConfig.getTimeout().toMillis())
-                .allowCredentials(existingCredentials)
+                .allowCredentials(allowCredentials)
                 .extensions(Collections.emptyMap()).build();
     }
 
@@ -89,9 +86,9 @@ public class AssertionService {
      * Verify credential at PowerAuth server.
      * @param credential Received public key credential.
      * @return PowerAuth authentication response.
-     * @throws PowerAuthClientException in case of PowerAuth server communication error.
+     * @throws PowerAuthFido2Exception in case of PowerAuth server communication error.
      */
-    public AssertionVerificationResponse authenticate(final VerifyAssertionRequest credential) throws PowerAuthClientException {
+    public AssertionVerificationResponse authenticate(final VerifyAssertionRequest credential) throws PowerAuthFido2Exception {
         final byte[] credentialId = Base64.getUrlDecoder().decode(credential.id());
 
         final AssertionVerificationRequest request = new AssertionVerificationRequest();
@@ -114,8 +111,8 @@ public class AssertionService {
         return response;
     }
 
-    private AssertionChallengeResponse fetchChallenge(final String userId, final String applicationId, final String templateName, final Map<String, String> operationParameters) throws PowerAuthClientException {
-        logger.info("Getting registration challenge for userId={}, applicationId={}, template={}, parameters={}", userId, applicationId, templateName, operationParameters);
+    private AssertionChallengeResponse fetchChallenge(final String userId, final String applicationId, final String templateName, final Map<String, String> operationParameters) throws PowerAuthFido2Exception {
+        logger.info("Getting assertion challenge for userId={}, applicationId={}, template={}, parameters={}", userId, applicationId, templateName, operationParameters);
         final AssertionChallengeRequest request = new AssertionChallengeRequest();
         if (StringUtils.hasText(userId)) {
             request.setUserId(userId);
@@ -128,13 +125,6 @@ public class AssertionService {
         final AssertionChallengeResponse response = fido2Client.requestAssertionChallenge(request);
         logger.debug("Assertion challenge response for userId={}: {}", userId, response);
         return response;
-    }
-
-    public static CredentialDescriptor toCredentialDescriptor(final AllowCredentials allowCredentials) {
-        final List<AuthenticatorTransport> transports = allowCredentials.getTransports().stream()
-                .map(AuthenticatorTransport::create)
-                .toList();
-        return new CredentialDescriptor(PublicKeyCredentialType.create(allowCredentials.getType()), allowCredentials.getCredentialId(), transports);
     }
 
 }

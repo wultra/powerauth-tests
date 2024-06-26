@@ -27,8 +27,12 @@ import jakarta.validation.constraints.NotBlank;
  */
 public record RegistrationOptionsRequest(
     @NotBlank
-    String username,
+    String userId,
 
     @NotBlank
-    String applicationId
+    String applicationId,
+
+    String username,
+    String userDisplayName
+
 ) {}

@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutio
 import com.wultra.security.powerauth.app.testserver.errorhandling.SignatureVerificationException;
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
+import com.wultra.security.powerauth.app.testserver.model.request.OperationRejectInternalRequest;
 import com.wultra.security.powerauth.app.testserver.service.OperationsService;
 import com.wultra.security.powerauth.lib.mtoken.model.response.OperationListResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
@@ -89,6 +90,20 @@ public class OperationsController {
     @PostMapping("approve")
     public Response approveOperations(@Valid @RequestBody ObjectRequest<OperationApproveInternalRequest> request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException {
         return operationsService.approveOperation(request.getRequestObject());
+    }
+
+    /**
+     * Reject operation with given ID and data.
+     * @param request Operation approval request.
+     * @return Response with operation approval result.
+     * @throws RemoteExecutionException In case internal calls fail.
+     * @throws SignatureVerificationException In case signature verification fails.
+     * @throws ActivationFailedException In case activation is not found.
+     * @throws AppConfigNotFoundException In case app configuration is not found.
+     */
+    @PostMapping("reject")
+    public Response rejectOperations(@Valid @RequestBody ObjectRequest<OperationRejectInternalRequest> request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException {
+        return operationsService.rejectOperation(request.getRequestObject());
     }
 
 }

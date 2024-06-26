@@ -23,14 +23,13 @@ import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEn
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
+import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeOfflineSignatureRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineSignatureRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineSignatureResponse;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnlineSignatureResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
-import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.ComputeOfflineSignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.ComputeOfflineSignatureStepModel;
@@ -42,6 +41,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Base64;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Service for calculating PowerAuth signatures.
@@ -91,7 +91,7 @@ public class SignatureService extends BaseService {
         final VerifySignatureStepModel model = new VerifySignatureStepModel();
         model.setHttpMethod(request.getHttpMethod());
         model.setResourceId(request.getResourceId());
-        model.setSignatureType(PowerAuthSignatureTypes.getEnumFromString(request.getSignatureType()));
+        model.setSignatureType(SignatureTypeConverter.convert(request.getSignatureType()));
         if (request.getRequestBody() != null) {
             model.setData(Base64.getDecoder().decode(request.getRequestBody()));
         }
@@ -103,27 +103,31 @@ public class SignatureService extends BaseService {
         model.setApplicationSecret(appConfig.getApplicationSecret());
         model.setDryRun(true);
 
-        String authHeader = null;
+        final ObjectStepLogger stepLogger;
         try {
-            final ObjectStepLogger stepLogger = new ObjectStepLogger();
+            stepLogger = new ObjectStepLogger();
             verifySignatureStep.execute(stepLogger, model.toMap());
-            for (StepItem item: stepLogger.getItems()) {
-                StepItemLogger.log(logger, item);
-                if ("signature-verify-request-sent".equals(item.id())) {
-                    final Map<String, Object> requestMap = (Map<String, Object>) item.object();
-                    final Map<String, Object> requestHeadersMap = (Map<String, Object>) requestMap.get("requestHeaders");
-                    authHeader = requestHeadersMap.get("X-PowerAuth-Authorization").toString();
-                    resultStatusUtil.incrementCounter(request.getActivationId());
-                }
-            }
+            stepLogger.getItems()
+                    .forEach(item -> StepItemLogger.log(logger, item));
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
+        }
+
+        final Optional<String> authHeader = stepLogger.getItems().stream()
+                .filter(item -> "signature-verify-request-sent".equals(item.id()))
+                .map(item -> (Map<String, Object>) item.object())
+                .map(item -> (Map<String, Object>) item.get("requestHeaders"))
+                .map(item -> item.get("X-PowerAuth-Authorization").toString())
+                .findAny();
+
+        if (authHeader.isPresent()) {
+            resultStatusUtil.incrementCounter(request.getActivationId());
         }
 
         final ComputeOnlineSignatureResponse response = new ComputeOnlineSignatureResponse();
-        response.setAuthHeader(authHeader);
+        response.setAuthHeader(authHeader.orElse(null));
         return response;
     }
 
@@ -146,26 +150,31 @@ public class SignatureService extends BaseService {
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatusObject(resultStatusObject);
 
-        String otpCode = null;
+        final ObjectStepLogger stepLogger;
         try {
-            final ObjectStepLogger stepLogger = new ObjectStepLogger();
+            stepLogger = new ObjectStepLogger();
             computeOfflineSignatureStep.execute(stepLogger, model.toMap());
-            for (StepItem item: stepLogger.getItems()) {
-                StepItemLogger.log(logger, item);
-                if ("signature-offline-compute-finished".equals(item.id())) {
-                    final Map<String, Object> resultMap = (Map<String, Object>) item.object();
-                    otpCode = resultMap.get("offlineSignature").toString();
-                    resultStatusUtil.incrementCounter(request.getActivationId());
-                }
-            }
+            stepLogger.getItems()
+                    .forEach(item -> StepItemLogger.log(logger, item));
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
+        }
+
+        final Optional<String> otpCode = stepLogger.getItems().stream()
+                .filter(item -> "signature-offline-compute-finished".equals(item.id()))
+                .map(item -> (Map<String, Object>) item.object())
+                .map(item -> item.get("offlineSignature").toString())
+                .findAny();
+
+        if (otpCode.isPresent()) {
+            resultStatusUtil.incrementCounter(request.getActivationId());
         }
 
         final ComputeOfflineSignatureResponse response = new ComputeOfflineSignatureResponse();
-        response.setOtp(otpCode);
+        response.setOtp(otpCode.orElse(null));
         return response;
     }
+
 }

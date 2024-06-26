@@ -41,7 +41,7 @@ import java.util.Map;
 @Slf4j
 public class HomeController {
 
-    private static final String SESSION_KEY_USERNAME = "username";
+    private static final String SESSION_KEY_USER_ID = "userId";
     private static final String SESSION_KEY_APPLICATION_ID = "applicationId";
     private static final String REDIRECT_LOGIN = "redirect:login";
     private static final String REDIRECT_PAYMENT = "redirect:payment";
@@ -58,7 +58,7 @@ public class HomeController {
 
     @GetMapping("/")
     public String homePage(Map<String, Object> model, HttpSession session) {
-        if (StringUtils.hasText((String) session.getAttribute(SESSION_KEY_USERNAME))) {
+        if (StringUtils.hasText((String) session.getAttribute(SESSION_KEY_USER_ID))) {
             return REDIRECT_PAYMENT;
         }
         return REDIRECT_LOGIN;
@@ -73,13 +73,13 @@ public class HomeController {
 
     @GetMapping("/payment")
     public String profilePage(Map<String, Object> model, HttpSession session) throws PowerAuthClientException {
-        final String username = (String) session.getAttribute(SESSION_KEY_USERNAME);
+        final String userId = (String) session.getAttribute(SESSION_KEY_USER_ID);
         final String applicationId = (String) session.getAttribute(SESSION_KEY_APPLICATION_ID);
-        if (!StringUtils.hasText(username)) {
+        if (!StringUtils.hasText(userId)) {
             return REDIRECT_LOGIN;
         }
 
-        model.put(SESSION_KEY_USERNAME, username);
+        model.put(SESSION_KEY_USER_ID, userId);
         model.put(SESSION_KEY_APPLICATION_ID, applicationId);
         model.put("templates", sharedService.fetchTemplateNameList());
         return PAYMENT_PAGE;
@@ -87,7 +87,7 @@ public class HomeController {
 
     @GetMapping("/logout")
     public String logoutPage(Map<String, Object> model, HttpSession session) {
-        session.removeAttribute(SESSION_KEY_USERNAME);
+        session.removeAttribute(SESSION_KEY_USER_ID);
        return REDIRECT_LOGIN;
     }
 

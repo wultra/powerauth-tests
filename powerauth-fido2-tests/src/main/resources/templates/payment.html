@@ -27,11 +27,11 @@
                 <div class="text-center form-logo-wrapper">
                     <img th:src="@{/resources/images/logo.png}" class="form-logo">
                 </div>
-                <p class="text-center lead small" style="color: white;" th:text="${'Hello ' + username + ', you can now make a payment in the ' + applicationId + '.'}">Hello!</p>
+                <p class="text-center lead small" style="color: white;" th:text="${'Hello ' + userId + ', you can now make a payment in the ' + applicationId + '.'}">Hello!</p>
 
                 <!-- Main form fields -->
                 <div class="form-group" id="divFormFields">
-                    <input type="text" id="username" th:value="${username}" hidden/>
+                    <input type="text" id="userId" th:value="${userId}" hidden/>
                     <input type="text" id="applicationId" th:value="${applicationId}" hidden/>
 
                     <label for="iban" class="label">IBAN</label>

@@ -17,17 +17,18 @@
  */
 package com.wultra.security.powerauth.test.shared;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.SignAndEncryptStep;
+import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -35,7 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Base64;
-import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -80,23 +81,18 @@ public class PowerAuthActivationCodeShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        boolean responseSuccessfullyDecrypted = false;
-        String activationId = null;
-        String activationCode = null;
-        String activationSignature = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                ObjectMapper objectMapper = config.getObjectMapper();
-                final TypeReference<ObjectResponse<LinkedHashMap<String, String>>> responseType = new TypeReference<>(){};
-                final ObjectResponse<LinkedHashMap<String, String>> responseData = objectMapper.readValue(item.object().toString(), responseType);
-                activationId = responseData.getResponseObject().get("activationId");
-                activationCode = responseData.getResponseObject().get("activationCode");
-                activationSignature = responseData.getResponseObject().get("activationSignature");
-                responseSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseSuccessfullyDecrypted);
+        final Map<String, String> response = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Response".equals(item.name()))
+                .map(item -> item.object().toString())
+                .map(item -> read(config.getObjectMapper(), item, new TypeReference<ObjectResponse<Map<String, String>>>() {}))
+                .map(ObjectResponse::getResponseObject)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+
+        final String activationId = response.get("activationId");
+        final String activationCode = response.get("activationCode");
+        final String activationSignature = response.get("activationSignature");
+
         assertNotNull(activationId);
         assertNotNull(activationCode);
         assertNotNull(activationSignature);
@@ -116,5 +112,18 @@ public class PowerAuthActivationCodeShared {
         assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Activations with OTP on key exchange are committed automatically
+    }
+
+    private static <T> T read(final ObjectMapper objectMapper, final String source, final TypeReference<T> type) {
+        try {
+            final T result = objectMapper.readValue(source, type);
+            assertNotNull(result);
+            return result;
+        } catch (JsonProcessingException e) {
+            throw AssertionFailureBuilder.assertionFailure()
+                    .message("Unable to parse JSON.")
+                    .cause(e)
+                    .build();
+        }
     }
 }

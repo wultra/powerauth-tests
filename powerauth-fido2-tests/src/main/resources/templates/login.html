@@ -37,9 +37,9 @@
                     </select>
                 </div>
 
-                <!-- Username input -->
+                <!-- User ID input -->
                 <div class="form-group">
-                    <input type="text" id="username" name="username" autoComplete="username webauthn" placeholder="Username" class="form-control" />
+                    <input type="text" id="userId" name="userId" autoComplete="username webauthn" placeholder="User ID" class="form-control" />
                 </div>
 
                 <!-- Info and login banners -->
@@ -59,6 +59,12 @@
                 <!-- Advanced settings -->
                 <button type="button" id="settingsBtn" class="btn btn-primary btn-block btn-xs">Settings</button>
                 <div id="settingsBlock" class="info block" hidden="hidden">
+                    <label for="username" class="label">Username</label>
+                    <input type="text" id="username" name="username" class="form-control" />
+
+                    <label for="userDisplayName" class="label">Display Name</label>
+                    <input type="text" id="userDisplayName" name="displayName" class="form-control" />
+
                     <label for="operationTemplate" class="label">Operation Template</label>
                     <select id="operationTemplate" class="form-control">
                         <option th:each="option : ${templates}" th:value="${option}" th:text="${option}" th:selected="${option} == login ? true : false"></option>
@@ -67,15 +73,15 @@
                     <label for="authenticatorAttachment" class="label">Authenticator Attachment</label>
                     <select id="authenticatorAttachment" class="form-control">
                         <option>platform</option>
-                        <option selected>all supported</option>
-                        <option>cross-platform</option>
+                        <option>all supported</option>
+                        <option selected>cross-platform</option>
                     </select>
 
                     <label for="residentKey" class="label">Discoverable Credential</label>
                     <select id="residentKey" class="form-control">
                         <option>required</option>
-                        <option selected>preferred</option>
-                        <option>discouraged</option>
+                        <option>preferred</option>
+                        <option selected>discouraged</option>
                     </select>
 
                     <label for="userVerification" class="label">User Verification</label>

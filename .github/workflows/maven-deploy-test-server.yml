@@ -1,4 +1,4 @@
-name: Deploy with Maven
+name: Deploy Test Server with Maven
 
 on:
   workflow_dispatch:
@@ -10,7 +10,7 @@ on:
 jobs:
   maven-deploy-manual:
     if: ${{ github.event_name == 'workflow_dispatch' }}
-    name: Manual deploy
+    name: Manual deploy test-server
     uses: wultra/wultra-infrastructure/.github/workflows/maven-deploy.yml@develop
     with:
       environment: internal-publish

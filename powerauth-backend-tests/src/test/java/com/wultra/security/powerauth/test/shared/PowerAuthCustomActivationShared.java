@@ -29,13 +29,13 @@ import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer1Response;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer2Response;
+import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -64,34 +64,21 @@ public class PowerAuthCustomActivationShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        String activationId = null;
-        boolean layer2ResponseOk = false;
-        boolean layer1ResponseOk = false;
-        // Verify decrypted responses
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Layer 2 Response")) {
-                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
-                activationId = layer2Response.getActivationId();
-                assertNotNull(activationId);
-                assertNotNull(layer2Response.getCtrData());
-                assertNotNull(layer2Response.getServerPublicKey());
-                // Verify activation status - activation was automatically committed
-                final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
-                assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
-                assertEquals("TestUser1", statusResponseActive.getUserId());
-                layer2ResponseOk = true;
-                continue;
-            }
-            if (item.name().equals("Decrypted Layer 1 Response")) {
-                final ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.object();
-                // Verify custom attributes after processing
-                assertEquals("value_new", layer1Response.getCustomAttributes().get("key_new"));
-                layer1ResponseOk = true;
-            }
-        }
+        final ActivationLayer2Response layer2Response = fetchLayer2Response(stepLogger);
+        final String activationId = layer2Response.getActivationId();
 
-        assertTrue(layer1ResponseOk);
-        assertTrue(layer2ResponseOk);
+        assertNotNull(activationId);
+        assertNotNull(layer2Response.getCtrData());
+        assertNotNull(layer2Response.getServerPublicKey());
+
+        // Verify activation status - activation was automatically committed
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+        assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
+        assertEquals("TestUser1", statusResponseActive.getUserId());
+
+        final ActivationLayer1Response layer1Response = fetchLayer1Response(stepLogger);
+        // Verify custom attributes after processing
+        assertEquals("value_new", layer1Response.getCustomAttributes().get("key_new"));
 
         powerAuthClient.removeActivation(activationId, "test");
     }
@@ -110,34 +97,20 @@ public class PowerAuthCustomActivationShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        String activationId = null;
-        boolean layer2ResponseOk = false;
-        boolean layer1ResponseOk = false;
-        // Verify decrypted responses
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Layer 2 Response")) {
-                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
-                activationId = layer2Response.getActivationId();
-                assertNotNull(activationId);
-                assertNotNull(layer2Response.getCtrData());
-                assertNotNull(layer2Response.getServerPublicKey());
-                // Verify activation status - activation was not automatically committed
-                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
-                assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseActive.getActivationStatus());
-                assertEquals("static_username", statusResponseActive.getUserId());
-                layer2ResponseOk = true;
-                continue;
-            }
-            if (item.name().equals("Decrypted Layer 1 Response")) {
-                final ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.object();
-                // Verify custom attributes, there should be no change
-                assertEquals("value", layer1Response.getCustomAttributes().get("key"));
-                layer1ResponseOk = true;
-            }
-        }
+        final ActivationLayer2Response layer2Response = fetchLayer2Response(stepLogger);
+        final String activationId = layer2Response.getActivationId();
+        assertNotNull(activationId);
+        assertNotNull(layer2Response.getCtrData());
+        assertNotNull(layer2Response.getServerPublicKey());
 
-        assertTrue(layer1ResponseOk);
-        assertTrue(layer2ResponseOk);
+        // Verify activation status - activation was not automatically committed
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+        assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseActive.getActivationStatus());
+        assertEquals("static_username", statusResponseActive.getUserId());
+
+        final ActivationLayer1Response layer1Response = fetchLayer1Response(stepLogger);
+        // Verify custom attributes, there should be no change
+        assertEquals("value", layer1Response.getCustomAttributes().get("key"));
 
         powerAuthClient.removeActivation(activationId, "test");
     }
@@ -157,34 +130,20 @@ public class PowerAuthCustomActivationShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        String activationId = null;
-        boolean layer2ResponseOk = false;
-        boolean layer1ResponseOk = false;
-        // Verify decrypted responses
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Layer 2 Response")) {
-                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
-                activationId = layer2Response.getActivationId();
-                assertNotNull(activationId);
-                assertNotNull(layer2Response.getCtrData());
-                assertNotNull(layer2Response.getServerPublicKey());
-                // Verify activation status - activation was automatically committed
-                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
-                assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
-                assertEquals("12345678", statusResponseActive.getUserId());
-                layer2ResponseOk = true;
-                continue;
-            }
-            if (item.name().equals("Decrypted Layer 1 Response")) {
-                final ActivationLayer1Response layer1Response = (ActivationLayer1Response) item.object();
-                // Verify custom attributes, there should be no change
-                assertEquals("value", layer1Response.getCustomAttributes().get("key"));
-                layer1ResponseOk = true;
-            }
-        }
+        final ActivationLayer2Response layer2Response = fetchLayer2Response(stepLogger);
+        final String activationId = layer2Response.getActivationId();
+        assertNotNull(activationId);
+        assertNotNull(layer2Response.getCtrData());
+        assertNotNull(layer2Response.getServerPublicKey());
 
-        assertTrue(layer1ResponseOk);
-        assertTrue(layer2ResponseOk);
+        // Verify activation status - activation was automatically committed
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+        assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
+        assertEquals("12345678", statusResponseActive.getUserId());
+
+        final ActivationLayer1Response layer1Response = fetchLayer1Response(stepLogger);
+        // Verify custom attributes, there should be no change
+        assertEquals("value", layer1Response.getCustomAttributes().get("key"));
 
         powerAuthClient.removeActivation(activationId, "test");
     }
@@ -378,30 +337,17 @@ public class PowerAuthCustomActivationShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        String activationId = null;
-        boolean layer2ResponseOk = false;
-        boolean layer1ResponseOk = false;
-        // Verify decrypted responses
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Layer 2 Response")) {
-                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
-                activationId = layer2Response.getActivationId();
-                assertNotNull(activationId);
-                assertNotNull(layer2Response.getCtrData());
-                assertNotNull(layer2Response.getServerPublicKey());
-                // Verify activation status - activation was automatically committed
-                GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
-                assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
-                layer2ResponseOk = true;
-                continue;
-            }
-            if (item.name().equals("Decrypted Layer 1 Response")) {
-                layer1ResponseOk = true;
-            }
-        }
+        final ActivationLayer2Response layer2Response = fetchLayer2Response(stepLogger);
+        final String activationId = layer2Response.getActivationId();
+        assertNotNull(activationId);
+        assertNotNull(layer2Response.getCtrData());
+        assertNotNull(layer2Response.getServerPublicKey());
 
-        assertTrue(layer1ResponseOk);
-        assertTrue(layer2ResponseOk);
+        // Verify activation status - activation was automatically committed
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+        assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
+
+        fetchLayer1Response(stepLogger);
 
         // Commit activation
         try {
@@ -425,25 +371,11 @@ public class PowerAuthCustomActivationShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        String activationId = null;
-        boolean layer2ResponseOk = false;
-        boolean layer1ResponseOk = false;
-        // Verify decrypted responses
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Layer 2 Response")) {
-                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
-                activationId = layer2Response.getActivationId();
-                assertNotNull(activationId);
-                layer2ResponseOk = true;
-                continue;
-            }
-            if (item.name().equals("Decrypted Layer 1 Response")) {
-                layer1ResponseOk = true;
-            }
-        }
+        final ActivationLayer2Response layer2Response = fetchLayer2Response(stepLogger);
+        final String activationId = layer2Response.getActivationId();
+        assertNotNull(activationId);
 
-        assertTrue(layer1ResponseOk);
-        assertTrue(layer2ResponseOk);
+        fetchLayer1Response(stepLogger);
 
         VerifySignatureStepModel signatureModel = new VerifySignatureStepModel();
         signatureModel.setApplicationKey(config.getApplicationKey());
@@ -490,5 +422,21 @@ public class PowerAuthCustomActivationShared {
         assertEquals(ActivationStatus.BLOCKED, statusResponseBlocked.getActivationStatus());
 
         powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    private static ActivationLayer1Response fetchLayer1Response(final ObjectStepLogger stepLogger) {
+        return stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Layer 1 Response".equals(item.name()))
+                .map(item -> (ActivationLayer1Response) item.object())
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+    }
+
+    private static ActivationLayer2Response fetchLayer2Response(final ObjectStepLogger stepLogger) {
+        return stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Layer 2 Response".equals(item.name()))
+                .map(item -> (ActivationLayer2Response) item.object())
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
     }
 }

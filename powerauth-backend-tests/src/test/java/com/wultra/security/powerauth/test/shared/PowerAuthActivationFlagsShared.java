@@ -23,7 +23,6 @@ import com.wultra.security.powerauth.client.model.request.LookupActivationsReque
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
@@ -163,15 +162,12 @@ public class PowerAuthActivationFlagsShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        String activationId = null;
-        // Verify decrypted responses
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Layer 2 Response")) {
-                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
-                activationId = layer2Response.getActivationId();
-                break;
-            }
-        }
+        final String activationId = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Layer 2 Response".equals(item.name()))
+                .map(item -> (ActivationLayer2Response) item.object())
+                .map(ActivationLayer2Response::getActivationId)
+                .findAny()
+                .orElse(null);
 
         LookupActivationsRequest lookupRequest = new LookupActivationsRequest();
         lookupRequest.getUserIds().add(userId);
