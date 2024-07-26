@@ -26,8 +26,6 @@ import com.wultra.security.powerauth.test.PowerAuthTestSetUp;
 import com.wultra.security.powerauth.test.PowerAuthTestTearDown;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientConfiguration;
-import io.getlime.security.powerauth.lib.nextstep.client.NextStepClient;
-import io.getlime.security.powerauth.lib.nextstep.client.NextStepClientException;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -170,18 +168,6 @@ public class PowerAuthTestConfiguration {
         } catch (PowerAuthClientException ex) {
             // Log the error in case Rest client initialization failed
             logger.error(ex.getMessage(), ex);
-            return null;
-        }
-    }
-
-    @Bean
-    public NextStepClient nextStepClient() {
-        if (nextStepServiceUrl.isEmpty()) {
-            return null;
-        }
-        try {
-            return new NextStepClient(nextStepServiceUrl.get());
-        } catch (NextStepClientException ex) {
             return null;
         }
     }

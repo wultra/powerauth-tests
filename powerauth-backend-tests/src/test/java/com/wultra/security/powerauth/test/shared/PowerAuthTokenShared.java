@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
-import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
@@ -30,9 +29,6 @@ import io.getlime.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateTokenStep;
 import io.getlime.security.powerauth.lib.cmd.util.CounterUtil;
-import io.getlime.security.powerauth.lib.nextstep.client.NextStepClient;
-import io.getlime.security.powerauth.lib.nextstep.model.enumeration.AuthMethod;
-import io.getlime.security.powerauth.lib.nextstep.model.response.GetAuthMethodsResponse;
 import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 
 import java.io.File;
@@ -50,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthTokenShared {
 
-    public static void tokenCreateAndVerifyTest(final PowerAuthTestConfiguration config, final CreateTokenStepModel model, final NextStepClient nextStepClient, final File dataFile, final String version) throws Exception {
+    public static void tokenCreateAndVerifyTest(final PowerAuthTestConfiguration config, final CreateTokenStepModel model, final File dataFile, final String version) throws Exception {
         ObjectStepLogger stepLogger1 = new ObjectStepLogger();
         new CreateTokenStep().execute(stepLogger1, model.toMap());
         assertTrue(stepLogger1.getResult().success());
@@ -69,13 +65,6 @@ public class PowerAuthTokenShared {
 
         assertNotNull(tokenId);
         assertNotNull(tokenSecret);
-
-        if (isWebFlowRunning(config)) {
-            Map<String, String> configNS = new HashMap<>();
-            configNS.put("activationId", config.getActivationId(version));
-            ObjectResponse<GetAuthMethodsResponse> responseNS = nextStepClient.enableAuthMethodForUser(config.getUser(version), AuthMethod.POWERAUTH_TOKEN, configNS);
-            assertEquals("OK", responseNS.getStatus());
-        }
 
         VerifyTokenStepModel modelVerify = new VerifyTokenStepModel();
         modelVerify.setTokenId(tokenId);
@@ -131,7 +120,7 @@ public class PowerAuthTokenShared {
         checkSignatureError(errorResponse);
     }
 
-    public static void tokenVerifyRemovedTokenTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final CreateTokenStepModel model, final NextStepClient nextStepClient, final File dataFile, final String version) throws Exception {
+    public static void tokenVerifyRemovedTokenTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final CreateTokenStepModel model, final File dataFile, final String version) throws Exception {
         ObjectStepLogger stepLogger1 = new ObjectStepLogger();
         new CreateTokenStep().execute(stepLogger1, model.toMap());
         assertTrue(stepLogger1.getResult().success());
@@ -150,13 +139,6 @@ public class PowerAuthTokenShared {
 
         assertNotNull(tokenId);
         assertNotNull(tokenSecret);
-
-        if (isWebFlowRunning(config)) {
-            Map<String, String> configNS = new HashMap<>();
-            configNS.put("activationId", config.getActivationId(version));
-            ObjectResponse<GetAuthMethodsResponse> responseNS = nextStepClient.enableAuthMethodForUser(config.getUser(version), AuthMethod.POWERAUTH_TOKEN, configNS);
-            assertEquals("OK", responseNS.getStatus());
-        }
 
         powerAuthClient.removeToken(tokenId, config.getActivationId(version));
 
@@ -247,7 +229,4 @@ public class PowerAuthTokenShared {
         return config.getPowerAuthIntegrationUrl() + "/api/auth/token/app/operation/list";
     }
 
-    private static boolean isWebFlowRunning(final PowerAuthTestConfiguration config) {
-        return config.getPowerAuthIntegrationUrl().contains("powerauth-webflow");
-    }
 }
