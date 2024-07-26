@@ -36,7 +36,7 @@ Command line parameters:
 - `configFile` - file with application configuration, defaults to `./config.json`
 - `powerAuthJavaServerUrl` - base url of the PowerAuth Java server
 - `powerAuthRestServerUrl` - base url of the PowerAuth REST server
-- `powerAuthTokenVerifyUrl` - full url to verify token with
+- `powerAuthTokenVerifyUrl` - full url to verify token with (optional)
 - `countOfDevices` - count of simulated devices, defaults to 100
 - `maxDevicesPerSecond` - maximum allowed number of active devices in one second, defaults to 80
 - `testDuration` - duration of the load test, defaults to `15 minutes`
