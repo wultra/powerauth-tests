@@ -42,7 +42,6 @@ import java.security.PublicKey;
 import java.security.Security;
 import java.time.Duration;
 import java.util.Base64;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -60,9 +59,6 @@ public class PowerAuthTestConfiguration {
 
     @Value("${powerauth.integration.service.url:http://localhost:8080/enrollment-server}")
     private String powerAuthIntegrationUrl;
-
-    @Value("${powerauth.nextstep.service.url:http://localhost:8080/powerauth-nextstep}")
-    private Optional<String> nextStepServiceUrl;
 
     @Value("${powerauth.enrollment.service.url:http://localhost:8080/enrollment-server}")
     private String enrollmentServiceUrl;

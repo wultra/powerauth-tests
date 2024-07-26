@@ -6,7 +6,6 @@ PowerAuth backend end-to-end tests cover testing of the PowerAuth protocol using
 - [powerauth-restful-integration](https://github.com/wultra/powerauth-restful-integration)
 - [powerauth-cmd-tool](https://github.com/wultra/powerauth-cmd-tool)
 - [enrollment-server](https://github.com/wultra/enrollment-server-wultra)
-- [powerauth-webflow](https://github.com/wultra/powerauth-webflow) (optional, can replace `enrollment-server`)
 
 _Note: most of the above listed components contain unit tests, however such low level tests do not cover possible defects found when testing the solution as a whole, which is why this project was introduced._
 
@@ -36,18 +35,16 @@ Clone the following repositories and use the default `develop` branch to build t
 | https://github.com/wultra/powerauth-restful-integration | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) |
 | https://github.com/wultra/enrollment-server-wultra | `mvn clean install` | the Enrollment Server artifact is available in `enrollment-server/target` |
 | https://github.com/wultra/powerauth-cmd-tool | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) |
-| https://github.com/wultra/powerauth-webflow | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) and the artifacts are available in `powerauth-nextstep/target` and `powerauth-webflow/target` folders |
 
 ## Deploying PowerAuth Components
 
 We assume the tests will run on a local Tomcat instance. If you prefer to use Docker for running the server components, you can use the [PowerAuth Docker project](https://github.com/wultra/powerauth-docker). Do not run the applications directly from command line using `java -jar` command, this is not supported.
 
-1. Copy the previously built war files `powerauth-java-server.war` and `enrollment-server.war` into the `webapps` folder of Tomcat. In case you want to test Web Flow and Next Step (optional), copy the `powerauth-webflow.war` and `powerauth-nextstep.war` files, too.
+1. Copy the previously built war files `powerauth-java-server.war` and `enrollment-server.war` into the `webapps` folder of Tomcat.
 
 2. Run the DDL scripts for these two components:
  - [PowerAuth server DDL scripts](https://github.com/wultra/powerauth-server/tree/develop/docs/sql)
  - [Enrollment server DDL scripts](https://github.com/wultra/enrollment-server/tree/develop/docs/sql)
- - (Optional) [Web Flow DDL scripts](https://github.com/wultra/powerauth-webflow/tree/develop/docs/sql) - run the `initial_data.sql` script, too
 
 _Note: if you want to avoid additional configuration, use database, schema and user `powerauth` when setting up the database._ 
 
@@ -82,8 +79,6 @@ Once you start the Tomcat server, you should see both applications up and runnin
 
 - PowerAuth server URL: http://localhost:8080/powerauth-java-server
 - Enrollment server URL: http://localhost:8080/enrollment-server
-- PowerAuth Web Flow URL (optional): http://localhost:8080/powerauth-webflow/api/service/status
-- PowerAuth Next Step URL (optional): http://localhost:8080/powerauth-nextstep/api/service/status
 
 ## Test Configuration
 
@@ -108,13 +103,6 @@ In case authentication is enabled on the server, you can configure it using foll
 ```properties
 powerauth.service.security.clientToken=
 powerauth.service.security.clientSecret=
-```
-
-In case you want to test Web Flow and Next Step instead of Enrollment server, use the following configuration:
-```properties
-# URLs used when testing Web Flow and Next Step
-powerauth.integration.service.url=http://localhost:8080/powerauth-webflow
-powerauth.nextstep.service.url=http://localhost:8080/powerauth-nextstep
 ```
 
 ## Running Tests from Console
