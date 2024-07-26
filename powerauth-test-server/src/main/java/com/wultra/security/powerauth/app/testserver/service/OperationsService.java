@@ -29,8 +29,10 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFail
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.SignatureVerificationException;
+import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
+import com.wultra.security.powerauth.app.testserver.model.request.OperationRejectInternalRequest;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import com.wultra.security.powerauth.lib.mtoken.model.response.OperationListResponse;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
@@ -110,29 +112,27 @@ public class OperationsService extends BaseService {
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatusObject(resultStatusObject);
 
-        String header = null;
+        final ObjectStepLogger stepLogger;
         try {
-            final ObjectStepLogger stepLogger = new ObjectStepLogger();
+            stepLogger = new ObjectStepLogger();
             verifyTokenStep.execute(stepLogger, model.toMap());
-            for (StepItem item: stepLogger.getItems()) {
-                StepItemLogger.log(logger, item);
-                if ("Sending Request".equals(item.name())) {
-                    final Map<String, Object> responseMap = (Map<String, Object>) item.object();
-                    final Map<String, String> headerMap = (Map<String, String>) responseMap.get("requestHeaders");
-                    header = headerMap.get("X-PowerAuth-Token");
-                }
-            }
+            stepLogger.getItems()
+                    .forEach(item -> StepItemLogger.log(logger, item));
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
         resultStatusUtil.persistResultStatus(resultStatusObject);
 
-        if (header == null) {
-            throw new SignatureVerificationException("Unable to generate token");
-        }
+        final String header = stepLogger.getItems().stream()
+                .filter(item -> "Sending Request".equals(item.name()))
+                .map(item -> (Map<String, Object>) item.object())
+                .map(item -> (Map<String, String>) item.get("requestHeaders"))
+                .map(item -> item.get("X-PowerAuth-Token"))
+                .findAny()
+                .orElseThrow(() -> new SignatureVerificationException("Unable to generate token"));
 
         final HttpHeaders headers = new HttpHeaders();
         headers.put("X-PowerAuth-Token", Collections.singletonList(header));
@@ -170,7 +170,7 @@ public class OperationsService extends BaseService {
             String payloadString = new ObjectMapper().writeValueAsString(new ObjectRequest<>(map));
             payload = payloadString.getBytes(StandardCharsets.UTF_8);
         } catch (JsonProcessingException e) {
-            throw new SignatureVerificationException("Unable to serialize data");
+            throw new SignatureVerificationException("Unable to serialize data", e);
         }
 
         final VerifySignatureStepModel model = new VerifySignatureStepModel();
@@ -180,33 +180,82 @@ public class OperationsService extends BaseService {
         model.setHttpMethod("POST");
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
+        model.setSignatureType(SignatureTypeConverter.convert(request.getSignatureType()));
         model.setPassword(request.getPassword());
-        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
         model.setVersion(config.getVersion());
         model.setResultStatusObject(resultStatusObject);
 
-        boolean success = false;
+        verifySignature(model, resultStatusObject);
+
+        return new Response();
+    }
+
+    /**
+     * Service to reject an operation.
+     * @param request Operation approval request.
+     * @return Operation approval response.
+     * @throws RemoteExecutionException In case internal calls fail.
+     * @throws SignatureVerificationException In case signature verification fails.
+     * @throws ActivationFailedException In case activation is not found.
+     * @throws AppConfigNotFoundException In case app configuration is not found.
+     */
+    public Response rejectOperation(OperationRejectInternalRequest request) throws AppConfigNotFoundException, ActivationFailedException, SignatureVerificationException, RemoteExecutionException {
+        final String applicationId = request.getApplicationId();
+        final TestConfigEntity appConfig = getTestAppConfig(applicationId);
+        final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        final String operationId = request.getOperationId();
+        final String reason = request.getReason();
+
+        final Map<String, String> map = new HashMap<>();
+        map.put("id", operationId);
+        if (reason != null) {
+            map.put("reason", reason);
+        }
+
+        final byte[] payload;
         try {
-            final ObjectStepLogger stepLogger = new ObjectStepLogger();
+            String payloadString = new ObjectMapper().writeValueAsString(new ObjectRequest<>(map));
+            payload = payloadString.getBytes(StandardCharsets.UTF_8);
+        } catch (JsonProcessingException e) {
+            throw new SignatureVerificationException("Unable to serialize data", e);
+        }
+
+        final VerifySignatureStepModel model = new VerifySignatureStepModel();
+        model.setData(payload);
+        model.setResourceId("/operation/cancel");
+        model.setUriString(config.getEnrollmentServiceUrl() + "/api/auth/token/app/operation/cancel");
+        model.setHttpMethod("POST");
+        model.setApplicationKey(appConfig.getApplicationKey());
+        model.setApplicationSecret(appConfig.getApplicationSecret());
+        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
+        model.setVersion(config.getVersion());
+        model.setResultStatusObject(resultStatusObject);
+
+        verifySignature(model, resultStatusObject);
+
+        return new Response();
+    }
+
+    @SuppressWarnings("java:S2201")
+    private void verifySignature(final VerifySignatureStepModel model, final JSONObject resultStatusObject) throws RemoteExecutionException, SignatureVerificationException {
+        final ObjectStepLogger stepLogger;
+        try {
+            stepLogger = new ObjectStepLogger();
             verifySignatureStep.execute(stepLogger, model.toMap());
-            for (StepItem item: stepLogger.getItems()) {
-                StepItemLogger.log(logger, item);
-                if ("Signature verified".equals(item.name())) {
-                    success = true;
-                }
-            }
+            stepLogger.getItems()
+                    .forEach(item -> StepItemLogger.log(logger, item));
         } catch (Exception ex) {
-            logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
         resultStatusUtil.persistResultStatus(resultStatusObject);
 
-        if (!success) {
-            throw new SignatureVerificationException("Signature verification failed");
-        }
-        return new Response();
+        stepLogger.getItems().stream()
+                .map(StepItem::name)
+                .filter("Signature verified"::equals)
+                .findAny()
+                .orElseThrow(() -> new SignatureVerificationException("Signature verification failed"));
     }
-
 }

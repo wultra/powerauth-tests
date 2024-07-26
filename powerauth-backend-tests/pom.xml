@@ -8,7 +8,7 @@
     <parent>
         <groupId>com.wultra</groupId>
         <artifactId>powerauth-backend-tests-parent</artifactId>
-        <version>1.7.0</version>
+        <version>1.8.0</version>
     </parent>
 
     <groupId>com.wultra</groupId>
@@ -45,10 +45,6 @@
         <dependency>
             <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-restful-model</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.getlime.security</groupId>
-            <artifactId>powerauth-nextstep-client</artifactId>
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
@@ -90,11 +86,6 @@
                     <artifactId>android-json</artifactId>
                 </exclusion>
             </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>org.bouncycastle</groupId>
-            <artifactId>bcprov-jdk18on</artifactId>
         </dependency>
 
         <!-- For run at Apple M1 architecture -->

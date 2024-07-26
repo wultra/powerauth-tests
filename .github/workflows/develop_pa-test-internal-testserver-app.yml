@@ -46,7 +46,7 @@ jobs:
         INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
         INTERNAL_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
     - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+      uses: docker/setup-buildx-action@v3
 
     - name: Log in to ACR
       if:  ${{ github.actor != 'dependabot[bot]' }}
@@ -60,7 +60,7 @@ jobs:
         cd powerauth-test-server
         ./copy_liquibase.sh
     - name: Build and push container image to ACR
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         push:  ${{ github.actor != 'dependabot[bot]' }}
         platforms: linux/amd64,linux/arm64
@@ -78,7 +78,7 @@ jobs:
         password: ${{ secrets.JFROG_CONTAINER_REGISTRY_PASSWORD }}
     - name: Build and push container image to JFrog
       if: ${{ github.event_name == 'workflow_dispatch' && inputs.jfrog_deploy == true }}
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         push: ${{ github.event_name == 'workflow_dispatch' && inputs.jfrog_deploy == true }}
         platforms: linux/amd64,linux/arm64

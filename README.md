@@ -4,7 +4,7 @@ This project contains various tests for PowerAuth backends:
 
 - [PowerAuth End-To-End Tests](./powerauth-backend-tests/README.md)
 - [PowerAuth Load Tests](./powerauth-load-tests/README.md)
-- [PowerAuth Web Flow UI Tests](./powerauth-webflow-tests/README.md)
+- [PowerAuth FIDO2 Tests](./powerauth-fido2-tests/README.md)
 
 # License
 

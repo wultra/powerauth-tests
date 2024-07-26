@@ -28,7 +28,7 @@ import java.util.Map;
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 public record AssertionOptionsRequest (
-        String username,
+        String userId,
 
         @NotBlank
         String applicationId,

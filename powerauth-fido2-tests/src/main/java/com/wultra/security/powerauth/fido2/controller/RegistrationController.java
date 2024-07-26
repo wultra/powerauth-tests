@@ -18,11 +18,11 @@
 
 package com.wultra.security.powerauth.fido2.controller;
 
-import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.response.fido2.RegistrationResponse;
 import com.wultra.security.powerauth.fido2.controller.request.RegisterCredentialRequest;
 import com.wultra.security.powerauth.fido2.controller.request.RegistrationOptionsRequest;
 import com.wultra.security.powerauth.fido2.controller.response.RegistrationOptionsResponse;
+import com.wultra.security.powerauth.fido2.model.error.PowerAuthFido2Exception;
+import com.wultra.security.powerauth.fido2.model.response.RegistrationResponse;
 import com.wultra.security.powerauth.fido2.service.RegistrationService;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -46,12 +46,12 @@ public class RegistrationController {
     private final RegistrationService registrationService;
 
     @PostMapping("/options")
-    public RegistrationOptionsResponse options(@Valid @RequestBody final RegistrationOptionsRequest request) throws PowerAuthClientException {
+    public RegistrationOptionsResponse options(@Valid @RequestBody final RegistrationOptionsRequest request) throws PowerAuthFido2Exception {
         return registrationService.registerOptions(request);
     }
 
     @PostMapping
-    public RegistrationResponse register(@Valid @RequestBody final RegisterCredentialRequest request) throws PowerAuthClientException {
+    public RegistrationResponse register(@Valid @RequestBody final RegisterCredentialRequest request) throws PowerAuthFido2Exception {
         return registrationService.register(request);
     }
 

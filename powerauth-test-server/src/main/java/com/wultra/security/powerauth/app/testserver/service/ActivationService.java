@@ -29,7 +29,6 @@ import com.wultra.security.powerauth.app.testserver.model.request.CreateActivati
 import com.wultra.security.powerauth.app.testserver.model.response.CreateActivationResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import lombok.extern.slf4j.Slf4j;
@@ -100,27 +99,24 @@ public class ActivationService extends BaseService {
         model.setVersion(config.getVersion());
         model.setDeviceInfo("backend-tests");
 
-        String activationId = null;
+        final ObjectStepLogger stepLogger;
         try {
-            final ObjectStepLogger stepLogger = new ObjectStepLogger();
+            stepLogger = new ObjectStepLogger();
             prepareActivationStep.execute(stepLogger, model.toMap());
-            for (StepItem item: stepLogger.getItems()) {
-                StepItemLogger.log(logger, item);
-                if ("Activation Done".equals(item.name())) {
-                    final Map<String, Object> responseMap = (Map<String, Object>) item.object();
-                    activationId = (String) responseMap.get("activationId");
-                }
-            }
+            stepLogger.getItems()
+                    .forEach(item -> StepItemLogger.log(logger, item));
         } catch (Exception ex) {
             logger.warn("Remote execution failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
-            throw new RemoteExecutionException("Remote execution failed");
+            throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
-        if (activationId == null) {
-            logger.warn("Activation failed");
-            throw new ActivationFailedException("Activation failed");
-        }
+        final String activationId = stepLogger.getItems().stream()
+                .filter(item -> "Activation Done".equals(item.name()))
+                .map(item -> (Map<String, Object>) item.object())
+                .map(item -> (String) item.get("activationId"))
+                .findAny()
+                .orElseThrow(() -> new ActivationFailedException("Activation failed"));
 
         resultStatusUtil.persistResultStatus(resultStatusObject);
 

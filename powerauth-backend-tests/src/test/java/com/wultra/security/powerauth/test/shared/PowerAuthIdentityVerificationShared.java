@@ -20,7 +20,6 @@ package com.wultra.security.powerauth.test.shared;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.*;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.*;
 import com.wultra.app.enrollmentserver.model.enumeration.*;
@@ -45,6 +44,7 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.core.io.ClassPathResource;
 
@@ -70,8 +70,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 public class PowerAuthIdentityVerificationShared {
-
-    private final ObjectMapper objectMapper = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
     public static void testSuccessfulIdentityVerification(final TestContext ctx) throws Exception {
         final TestProcessContext processCtx = prepareActivation(ctx);
@@ -439,16 +437,14 @@ public class PowerAuthIdentityVerificationShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        String uploadIdFront = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                final String responseData = item.object().toString();
-                final ObjectResponse<DocumentUploadResponse> objectResponse = ctx.objectMapper.readValue(responseData, new TypeReference<>() {});
-                DocumentUploadResponse response = objectResponse.getResponseObject();
-                uploadIdFront = response.getId();
-                break;
-            }
-        }
+        final String uploadIdFront = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Response".equals(item.name()))
+                .map(item -> item.object().toString())
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<DocumentUploadResponse>>() {}))
+                .map(ObjectResponse::getResponseObject)
+                .map(DocumentUploadResponse::getId)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
         assertNotNull(uploadIdFront);
 
@@ -474,16 +470,14 @@ public class PowerAuthIdentityVerificationShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        String uploadIdBack = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                final String responseData = item.object().toString();
-                final ObjectResponse<DocumentUploadResponse> objectResponse = ctx.objectMapper.readValue(responseData, new TypeReference<>() {});
-                DocumentUploadResponse response = objectResponse.getResponseObject();
-                uploadIdBack = response.getId();
-                break;
-            }
-        }
+        final String uploadIdBack = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Response".equals(item.name()))
+                .map(item -> item.object().toString())
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<DocumentUploadResponse>>() {}))
+                .map(ObjectResponse::getResponseObject)
+                .map(DocumentUploadResponse::getId)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
         assertNotNull(uploadIdBack);
 
@@ -635,21 +629,17 @@ public class PowerAuthIdentityVerificationShared {
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
-        boolean responseSuccessfullyDecrypted = false;
-        String processId = null;
-        OnboardingStatus onboardingStatus = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                final String responseData = item.object().toString();
-                final ObjectResponse<OnboardingStartResponse> objectResponse = ctx.objectMapper.readValue(responseData, new TypeReference<>() {});
-                OnboardingStartResponse response = objectResponse.getResponseObject();
-                processId = response.getProcessId();
-                onboardingStatus = response.getOnboardingStatus();
-                responseSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseSuccessfullyDecrypted);
+        final OnboardingStartResponse response = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Response".equals(item.name()))
+                .map(item -> item.object().toString())
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OnboardingStartResponse>>() {}))
+                .map(ObjectResponse::getResponseObject)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+
+        final String processId = response.getProcessId();
+        final OnboardingStatus onboardingStatus = response.getOnboardingStatus();
+
         assertNotNull(processId);
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, onboardingStatus);
         return processId;
@@ -683,26 +673,23 @@ public class PowerAuthIdentityVerificationShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        String activationId = null;
-        boolean responseOk = false;
-        // Verify decrypted responses
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Layer 2 Response")) {
-                final ActivationLayer2Response layer2Response = (ActivationLayer2Response) item.object();
-                activationId = layer2Response.getActivationId();
-                assertNotNull(activationId);
-                assertNotNull(layer2Response.getCtrData());
-                assertNotNull(layer2Response.getServerPublicKey());
-                // Verify activation status - activation was automatically committed
-                final GetActivationStatusResponse statusResponseActive = ctx.powerAuthClient.getActivationStatus(activationId);
-                assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
-                assertEquals("mockuser_" + clientId, statusResponseActive.getUserId());
-                assertEquals(Collections.singletonList("VERIFICATION_PENDING"), statusResponseActive.getActivationFlags());
-                responseOk = true;
-            }
-        }
+        final ActivationLayer2Response layer2Response = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Layer 2 Response".equals(item.name()))
+                .map(item -> (ActivationLayer2Response) item.object())
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
-        assertTrue(responseOk);
+        final String activationId = layer2Response.getActivationId();
+        assertNotNull(activationId);
+        assertNotNull(layer2Response.getCtrData());
+        assertNotNull(layer2Response.getServerPublicKey());
+
+        // Verify activation status - activation was automatically committed
+        final GetActivationStatusResponse statusResponseActive = ctx.powerAuthClient.getActivationStatus(activationId);
+        assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
+        assertEquals("mockuser_" + clientId, statusResponseActive.getUserId());
+        assertEquals(Collections.singletonList("VERIFICATION_PENDING"), statusResponseActive.getActivationFlags());
+
         return activationId;
     }
 
@@ -746,19 +733,15 @@ public class PowerAuthIdentityVerificationShared {
         assertNotNull(responseOtpOK.getEncryptedData());
         assertNotNull(responseOtpOK.getMac());
 
-        boolean responseOtpSuccessfullyDecrypted = false;
-        String otpCode = null;
-        for (StepItem item: stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                final String responseData = item.object().toString();
-                final ObjectResponse<OtpDetailResponse> objectResponse = ctx.objectMapper.readValue(responseData, new TypeReference<>() {});
-                OtpDetailResponse response = objectResponse.getResponseObject();
-                otpCode = response.getOtpCode();
-                responseOtpSuccessfullyDecrypted = true;
-                break;
-            }
-        }
-        assertTrue(responseOtpSuccessfullyDecrypted);
+        final String otpCode = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Response".equals(item.name()))
+                .map(item -> item.object().toString())
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OtpDetailResponse>>() {}))
+                .map(ObjectResponse::getResponseObject)
+                .map(OtpDetailResponse::getOtpCode)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());;
+
         assertNotNull(otpCode);
         return otpCode;
     }
@@ -1013,15 +996,16 @@ public class PowerAuthIdentityVerificationShared {
         new EncryptStep().execute(stepLogger, ctx.encryptModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
-        OnboardingStatus status = null;
-        for (StepItem item : stepLogger.getItems()) {
-            if (item.name().equals("Decrypted Response")) {
-                final String responseData = item.object().toString();
-                final ObjectResponse<OnboardingStatusResponse> objectResponse = ctx.objectMapper.readValue(responseData, new TypeReference<>() {});
-                OnboardingStatusResponse response = objectResponse.getResponseObject();
-                status = response.getOnboardingStatus();
-            }
-        }
+
+        final OnboardingStatus status = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Response".equals(item.name()))
+                .map(item -> item.object().toString())
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OnboardingStatusResponse>>() {}))
+                .map(ObjectResponse::getResponseObject)
+                .map(OnboardingStatusResponse::getOnboardingStatus)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+
         assertNotNull(status);
         return status;
     }
@@ -1181,5 +1165,17 @@ public class PowerAuthIdentityVerificationShared {
         private String processId;
     }
 
+    private static <T> T read(final ObjectMapper objectMapper, final String source, final TypeReference<T> type) {
+        try {
+            final T result = objectMapper.readValue(source, type);
+            assertNotNull(result);
+            return result;
+        } catch (JsonProcessingException e) {
+            throw AssertionFailureBuilder.assertionFailure()
+                    .message("Unable to parse JSON.")
+                    .cause(e)
+                    .build();
+        }
+    }
 
 }
