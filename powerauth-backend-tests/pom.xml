@@ -48,10 +48,6 @@
         </dependency>
         <dependency>
             <groupId>io.getlime.security</groupId>
-            <artifactId>powerauth-nextstep-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.getlime.security</groupId>
             <artifactId>powerauth-java-crypto</artifactId>
         </dependency>
         <dependency>

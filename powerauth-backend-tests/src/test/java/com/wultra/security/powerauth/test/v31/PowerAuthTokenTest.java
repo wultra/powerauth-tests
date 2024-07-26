@@ -23,7 +23,6 @@ import com.wultra.security.powerauth.test.shared.PowerAuthTokenShared;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
-import io.getlime.security.powerauth.lib.nextstep.client.NextStepClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,7 +48,6 @@ class PowerAuthTokenTest {
     private static final String VERSION = "3.1";
 
     private PowerAuthTestConfiguration config;
-    private NextStepClient nextStepClient;
     private PowerAuthClient powerAuthClient;
     private CreateTokenStepModel model;
     private ObjectStepLogger stepLogger;
@@ -59,11 +57,6 @@ class PowerAuthTokenTest {
     @Autowired
     public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {
         this.config = config;
-    }
-
-    @Autowired
-    public void setNextStepClient(NextStepClient nextStepClient) {
-        this.nextStepClient = nextStepClient;
     }
 
     @Autowired
@@ -103,7 +96,7 @@ class PowerAuthTokenTest {
 
     @Test
     void tokenCreateAndVerifyTest() throws Exception {
-        PowerAuthTokenShared.tokenCreateAndVerifyTest(config, model, nextStepClient, dataFile, VERSION);
+        PowerAuthTokenShared.tokenCreateAndVerifyTest(config, model, dataFile, VERSION);
     }
 
     @Test
@@ -118,7 +111,7 @@ class PowerAuthTokenTest {
 
     @Test
     void tokenVerifyRemovedTokenTest() throws Exception {
-        PowerAuthTokenShared.tokenVerifyRemovedTokenTest(powerAuthClient, config, model, nextStepClient, dataFile, VERSION);
+        PowerAuthTokenShared.tokenVerifyRemovedTokenTest(powerAuthClient, config, model, dataFile, VERSION);
     }
 
     @Test
