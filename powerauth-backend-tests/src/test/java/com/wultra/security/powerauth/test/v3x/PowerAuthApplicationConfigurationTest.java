@@ -21,15 +21,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.wultra.app.enrollmentserver.api.model.enrollment.request.OidcApplicationConfigurationRequest;
+import com.wultra.app.enrollmentserver.api.model.enrollment.response.OidcApplicationConfigurationResponse;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
-import io.getlime.security.powerauth.rest.api.model.request.OidcApplicationConfigurationRequest;
 import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
-import io.getlime.security.powerauth.rest.api.model.response.OidcApplicationConfigurationResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -48,7 +49,7 @@ import java.util.function.Predicate;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Test for {@code /pa/v3/config/oidc}.
+ * Test for {@code /api/config/oidc}.
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
@@ -83,7 +84,7 @@ class PowerAuthApplicationConfigurationTest {
                 "providerId", "xyz999",
                 "clientId", "jabberwocky",
                 "clientSecret", "top secret",
-                "scopes", List.of("openid"),
+                "scopes", "openid",
                 "authorizeUri", "https://authorize.example.com",
                 "redirectUri", "https://redirect.example.com",
                 "tokenUri", "https://...",
@@ -98,7 +99,7 @@ class PowerAuthApplicationConfigurationTest {
         final OidcApplicationConfigurationRequest request = new OidcApplicationConfigurationRequest();
         request.setProviderId("xyz999");
 
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/pa/v3/config/oidc");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/config/oidc");
         encryptModel.setScope("application");
         encryptModel.setData(objectMapper.writeValueAsBytes(request));
 
@@ -115,14 +116,15 @@ class PowerAuthApplicationConfigurationTest {
                 .filter(isStepItemDecryptedResponse())
                 .map(StepItem::object)
                 .map(Object::toString)
-                .map(it -> safeReadValue(it, new TypeReference<OidcApplicationConfigurationResponse>() {}))
+                .map(it -> safeReadValue(it, new TypeReference<ObjectResponse<OidcApplicationConfigurationResponse>>() {}))
                 .filter(Objects::nonNull)
+                .map(ObjectResponse::getResponseObject)
                 .findFirst()
                 .orElseThrow(() -> new AssertionFailedError("Decrypted data not found"));
 
         assertEquals("xyz999", decryptedData.getProviderId());
         assertEquals("jabberwocky", decryptedData.getClientId());
-        assertEquals(List.of("openid"), decryptedData.getScopes());
+        assertEquals("openid", decryptedData.getScopes());
         assertEquals("https://authorize.example.com", decryptedData.getAuthorizeUri());
         assertEquals("https://redirect.example.com", decryptedData.getRedirectUri());
     }
