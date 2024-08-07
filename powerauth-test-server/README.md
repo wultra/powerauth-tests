@@ -81,7 +81,8 @@ curl --request POST \
         "applicationId": "1",
         "activationName": "test-activation",
         "password": "1234",
-        "activationCode": "3A33O-3XMFZ-ORDKE-XJOYQ"
+        "activationCode": "3A33O-3XMFZ-ORDKE-XJOYQ",
+        "activationOtp": "otp"
     }
 }'
 ```
@@ -94,6 +95,7 @@ The following request parameters are used:
 | `activationName` | PowerAuth application name  |
 | `password` | PIN code for future signature verifications (knowledge factor) |
 | `activationCode` | Activation code, created using the previous initialization request |
+| `activationOtp` | Activation OTP used for the activation initialization. Required if the OTP validation of the activation is set to `ON_KEY_EXCHANGE`. |
 
 The response contains the `activationId` parameter which is the activation identifier:
 
