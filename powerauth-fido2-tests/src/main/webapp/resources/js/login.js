@@ -58,7 +58,13 @@ $(function() {
 
     // Check if any application is available to select
     const n_applications = $('#applicationId option').toArray().length;
-    if (n_applications < 2) {
+    const applicationIdSelector = $('#applicationId');
+    if (applicationIdSelector.is(":hidden") && applicationIdSelector.val() == null) {
+        console.error("Application selector is hidden, but applicationId is null.")
+        $("#errorMessage").html("No application is selected.");
+        $("#errorDiv").show();
+        $(":submit").attr("disabled", true);
+    } else if (n_applications < 2) {
         console.log("There is no application to choose from.");
         $("#errorMessage").html("Create an application first.");
         $("#errorDiv").show();
