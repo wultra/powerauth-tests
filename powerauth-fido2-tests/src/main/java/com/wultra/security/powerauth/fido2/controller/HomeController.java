@@ -20,12 +20,12 @@ package com.wultra.security.powerauth.fido2.controller;
 
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.fido2.configuration.PowerAuthConfigProperties;
+import com.wultra.security.powerauth.fido2.configuration.PowerAuthFido2TestsConfigProperties;
 import com.wultra.security.powerauth.fido2.service.Fido2SharedService;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,7 +40,7 @@ import java.util.Map;
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @Controller
-@RequiredArgsConstructor
+@AllArgsConstructor
 @Slf4j
 public class HomeController {
 
@@ -51,9 +51,7 @@ public class HomeController {
     private static final String LOGIN_PAGE = "login";
     private static final String PAYMENT_PAGE = "payment";
 
-    @Value("${powerauth.fido2.test.service.hideDeveloperOptions:false}")
-    private Boolean hideDeveloperOption;
-
+    private final PowerAuthFido2TestsConfigProperties powerAuthFido2TestsConfigProperties;
     private final PowerAuthConfigProperties powerAuthConfigProperties;
     private final Fido2SharedService sharedService;
     private final ServletContext context;
@@ -61,7 +59,7 @@ public class HomeController {
     @ModelAttribute
     public void addAttributes(Map<String, Object> model) {
         model.put("servletContextPath", context.getContextPath());
-        model.put("hideDeveloperOption", Boolean.TRUE.equals(hideDeveloperOption));
+        model.put("hideDeveloperOption", powerAuthFido2TestsConfigProperties.shouldHideDeveloperOptions());
     }
 
     @GetMapping("/")
