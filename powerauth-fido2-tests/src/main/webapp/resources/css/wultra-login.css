@@ -1,59 +1,108 @@
-.body {
-    background-image: url("../images/background.png");
-    background-position: center center;
-    background-size: cover;
-    margin: 0; padding: 0;
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
+
+body {
+    background-color: #053751;
+    background-image: url("../images/wultra_shapes.webp");
+    font-family:"Source Sans 3",sans-serif;
+    color: white;
+    font-size:14px;
+    font-weight:700;
+}
+
+.alert {
+    padding:0;
+    border:1px solid transparent;
+    border-radius: 0;
+    margin-bottom: 0;
+}
+
+.alert-danger {
+    background-color: inherit;
+    color:#c0007f;
+}
+
+.alert-success {
+    background-color: inherit;
+    color:#7fc000
+}
+
+.header-logo {
+    width:220px;
+    padding-top:40px;
+    padding-left: 40px
+}
+
+.headline {
+    font-size: 48px;
+    font-weight:700;
+}
+
+.header {
+    color: #09f;
+    font-size: 32px;
+    font-weight:700;
+}
+
+.flex-grid {
+    padding-top: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 40px;
+    margin: 0 auto;
+}
+
+.body-copy {
+    text-transform: none;
+    font-size: 20px;
+    font-weight: 300;
+    line-height: 160%;
+}
+
+h2 {
+    margin-top: 20px;
+    font-size: 32px;
+    line-height: 36px
+}
+
+.flex-grid .col1 {
+    display: flex;
+}
+
+.flex-grid .col2 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding-left: 40px;
+}
+
+.content-wrapper {
+    flex: none;
+    justify-content: center;
+    width: 100%;
+    padding: 30px 80px;
+    display:block
 }
 
 .form-wrapper {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    padding-top: 120px;
-    padding-bottom: 120px;
-    background-color: rgba(5, 55, 81, 0.8);
+    flex: 1;
+    width: 100%;
+    justify-content: center;
+    align-items: center;
 }
 
 .form-panel {
-    max-width: 330px;
-    margin: 0 auto;
-    border-radius: 8px;
-    background-color: rgba(0, 0, 0, 1);
-}
-
-.form-panel .alert .close {
-    margin-top: -2px !important;
-}
-
-.form-logo {
-    width: 140px;
-}
-
-.form-logo-wrapper {
-    margin-top: 10px;
-    margin-bottom: 20px;
-    margin-right: 20px;
+    flex: 1;
+    max-width: 530px;
+    min-width: 300px;
+    width: 100%;
+    background-color: #021b28;
+    padding:8px;
+    justify-content: center;
+    align-items: center;
 }
 
 .form-signin {
     padding: 20px;
-}
-
-.form-signin .form-signin-heading, .form-signin .checkbox {
-    margin-bottom: 10px;
-    color: #FFF;
-    text-align: center;
-}
-
-.form-signin .checkbox {
-    font-weight: normal;
 }
 
 .form-signin .form-control {
@@ -66,18 +115,79 @@
     font-size: 14px;
 }
 
+.form-group {
+    margin-bottom: 0
+}
+
+.btn-group{
+    margin-top: 15px;
+    margin-bottom: 0p;
+}
+
+.input-text{
+    border:1px solid #096799;
+    background-color:#021b28;
+    color:#09f;
+    height:49px;
+    padding-top:12px;
+    padding-bottom:12px;
+    font-weight:700;
+    border-radius: 0;
+}
+
+.input-text:focus{
+    border-color:#09f;
+    color:#09f;
+    background-color:#0099ff1a;
+    font-weight:700
+}
+
+.input-text::placeholder{
+    color:#096799;
+    font-weight:400
+}
+
+select:invalid {
+    color:#096799;
+    font-weight:400
+}
+
 .form-signin .form-control:focus {
     z-index: 2;
 }
 
-.form-signin input[type="text"] {
-    margin-bottom: -1px;
-    border-bottom-right-radius: 0;
-    border-bottom-left-radius: 0;
+.btn {
+    color: white;
+    text-align: center;
+    text-transform: uppercase;
+    flex: 0 auto;
+    order: 0;
+    align-self: flex-start;
+    padding: 14px 32px 12px;
+    font-family: "Source Sans 3",sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    transition: background-color .2s;
+    border-radius: 0
 }
 
-.form-signin input[type="password"] {
-    margin-bottom: 10px;
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
+.btn-xs {
+    padding: 1px 5px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+    margin-top: 15px;
+    margin-bottom: 0;
+}
+
+.space{
+    height: 16px;
+}
+
+.tiny {
+    font-size: 75%;
 }

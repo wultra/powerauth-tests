@@ -16,9 +16,9 @@ the PowerAuth Server on the [Developer Portal](https://developers.wultra.com/com
 
 ### PowerAuth FIDO2 Tests Configuration
 
-| Property                                           | Default | Note                                         |
-|----------------------------------------------------|---------|----------------------------------------------|
-| `powerauth.fido2.test.service.hideDeveloperOption` | `false` | Whether to hide advanced settings in the UI. |
+| Property                                            | Default | Note                                         |
+|-----------------------------------------------------|---------|----------------------------------------------|
+| `powerauth.fido2.test.service.hideDeveloperOptions` | `false` | Whether to hide advanced settings in the UI. |
 
 ### PowerAuth Service Configuration
 
