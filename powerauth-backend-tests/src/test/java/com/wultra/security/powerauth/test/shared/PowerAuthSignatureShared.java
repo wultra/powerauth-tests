@@ -428,7 +428,7 @@ public class PowerAuthSignatureShared {
                 new RandomStringGenerator.Builder()
                         .withinRange('0', 'z')
                         .filteredBy(CharacterPredicates.LETTERS, CharacterPredicates.DIGITS)
-                        .build();
+                        .get();
         final String randomString = randomStringGenerator.generate(10000);
         fw.write(randomString);
         fw.close();
