@@ -476,7 +476,7 @@ public class PowerAuthEncryptionShared {
         String requestData = "test_data";
         ClientEncryptor clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.APPLICATION_SCOPE_GENERIC,
-                new EncryptorParameters(version, config.getApplicationKey(), null),
+                new EncryptorParameters(version, config.getApplicationKey(), null, null),
                 new ClientEncryptorSecrets(config.getMasterPublicKey(), config.getApplicationSecret())
         );
         EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
