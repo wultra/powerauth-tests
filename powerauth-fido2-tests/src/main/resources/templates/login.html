@@ -30,9 +30,10 @@
                 <p class="text-center lead" style="color: white;">PowerAuth FIDO2 Demo</p>
 
                 <!-- Application ID selection -->
-                <div class="form-group">
+                <div class="form-group" th:attr="hidden=${hideDeveloperOption ? 'hidden' : null}">
                     <select name="applicationId" id="applicationId" class="form-control" required>
-                        <option value="" disabled selected hidden>Select application</option>
+                        <option value="" disabled selected hidden th:if="${applicationId == null}">Select application</option>
+                        <option th:value="${applicationId}" selected th:text="${applicationId}" th:if="${applicationId != null}"></option>
                         <option th:each="option : ${applications}" th:value="${option}" th:text="${option}"></option>
                     </select>
                 </div>
@@ -57,7 +58,7 @@
                 </div>
 
                 <!-- Advanced settings -->
-                <button type="button" id="settingsBtn" class="btn btn-primary btn-block btn-xs">Settings</button>
+                <button type="button" id="settingsBtn" class="btn btn-primary btn-block btn-xs" th:unless="${hideDeveloperOption}">Settings</button>
                 <div id="settingsBlock" class="info block" hidden="hidden">
                     <label for="username" class="label">Username</label>
                     <input type="text" id="username" name="username" class="form-control" />

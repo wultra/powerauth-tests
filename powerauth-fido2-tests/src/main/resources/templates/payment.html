@@ -27,7 +27,7 @@
                 <div class="text-center form-logo-wrapper">
                     <img th:src="@{/resources/images/logo.png}" class="form-logo">
                 </div>
-                <p class="text-center lead small" style="color: white;" th:text="${'Hello ' + userId + ', you can now make a payment in the ' + applicationId + '.'}">Hello!</p>
+                <p class="text-center lead small" th:unless="${hideDeveloperOption}" style="color: white;" th:text="${'Hello ' + userId + ', you can now make a payment in the ' + applicationId + '.'}">Hello!</p>
 
                 <!-- Main form fields -->
                 <div class="form-group" id="divFormFields">
@@ -43,13 +43,13 @@
                     <label for="currency" class="label">Currency</label>
                     <input type="text" id="currency" value="CZK" placeholder="Currency" class="form-control" required />
 
-                    <div class="form-group">
+                    <div class="form-group" th:unless="${hideDeveloperOption}">
                         <button type="button" id="addFieldBtn" class="btn btn-primary btn-block btn-xs">Add operation parameter</button>
                     </div>
                 </div>
 
                 <!-- Operation template and user verification selection -->
-                <div class="form-group">
+                <div class="form-group" th:attr="hidden=${hideDeveloperOption ? 'hidden' : null}">
                     <label for="operationTemplate" class="label">Operation Template</label>
                     <select id="operationTemplate" class="form-control">
                         <option th:each="option : ${templates}" th:value="${option}" th:text="${option}" th:selected="${option} == payment ? true : false"></option>

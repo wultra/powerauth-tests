@@ -19,6 +19,8 @@
 package com.wultra.security.powerauth.fido2.controller;
 
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.fido2.configuration.PowerAuthConfigProperties;
+import com.wultra.security.powerauth.fido2.configuration.PowerAuthFido2TestsConfigProperties;
 import com.wultra.security.powerauth.fido2.service.Fido2SharedService;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.http.HttpSession;
@@ -29,6 +31,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -48,12 +51,15 @@ public class HomeController {
     private static final String LOGIN_PAGE = "login";
     private static final String PAYMENT_PAGE = "payment";
 
+    private final PowerAuthFido2TestsConfigProperties powerAuthFido2TestsConfigProperties;
+    private final PowerAuthConfigProperties powerAuthConfigProperties;
     private final Fido2SharedService sharedService;
     private final ServletContext context;
 
     @ModelAttribute
     public void addAttributes(Map<String, Object> model) {
         model.put("servletContextPath", context.getContextPath());
+        model.put("hideDeveloperOption", powerAuthFido2TestsConfigProperties.shouldHideDeveloperOptions());
     }
 
     @GetMapping("/")
@@ -66,6 +72,11 @@ public class HomeController {
 
     @GetMapping("/login")
     public String loginPage(Map<String, Object> model) throws PowerAuthClientException {
+        final List<String> applicationList = sharedService.fetchApplicationNameList();
+        final String defaultApplicationId = powerAuthConfigProperties.getApplicationId();
+        if (StringUtils.hasText(defaultApplicationId) && applicationList.contains(defaultApplicationId)) {
+            model.put(SESSION_KEY_APPLICATION_ID, powerAuthConfigProperties.getApplicationId());
+        }
         model.put("applications", sharedService.fetchApplicationNameList());
         model.put("templates", sharedService.fetchTemplateNameList());
         return LOGIN_PAGE;

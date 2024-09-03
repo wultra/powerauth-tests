@@ -23,19 +23,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * PowerAuth clients configuration properties.
+ * Configuration of the PowerAuth FIDO2 Tests application.
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 @Configuration
-@ConfigurationProperties(prefix = "powerauth.service")
+@ConfigurationProperties(prefix = "powerauth.fido2.test.service")
 @Data
-public class PowerAuthConfigProperties {
+public class PowerAuthFido2TestsConfigProperties {
 
-    private String baseUrl;
-    private String applicationId;
-    private SecurityProperties security;
+    private boolean hideDeveloperOptions = false;
 
-    public record SecurityProperties(String clientToken, String clientSecret) {}
+    public boolean shouldHideDeveloperOptions() {
+        return hideDeveloperOptions;
+    }
 
 }
