@@ -145,7 +145,7 @@ public class PowerAuthApiShared {
         final PublicKey serverPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(serverPublicKeyBytes);
         final ClientEncryptor clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.VAULT_UNLOCK,
-                new EncryptorParameters(version, config.getApplicationKey(), config.getActivationId(version)),
+                new EncryptorParameters(version, config.getApplicationKey(), config.getActivationId(version), null),
                 new ClientEncryptorSecrets(serverPublicKey, config.getApplicationSecret(), transportMasterKeyBytes)
         );
         VaultUnlockRequestPayload requestPayload = new VaultUnlockRequestPayload();
@@ -224,7 +224,7 @@ public class PowerAuthApiShared {
         requestL2.setDevicePublicKey(devicePublicKeyBase64);
         ClientEncryptor clientEncryptorL2 = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.ACTIVATION_LAYER_2,
-                new EncryptorParameters(version, config.getApplicationKey(), null),
+                new EncryptorParameters(version, config.getApplicationKey(), null, null),
                 new ClientEncryptorSecrets(config.getMasterPublicKey(), config.getApplicationSecret())
         );
         ByteArrayOutputStream baosL2 = new ByteArrayOutputStream();
@@ -255,7 +255,7 @@ public class PowerAuthApiShared {
         // Confirm recovery code
         ClientEncryptor encryptorConfirmRC = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.CONFIRM_RECOVERY_CODE,
-                new EncryptorParameters(version, config.getApplicationKey(), activationId),
+                new EncryptorParameters(version, config.getApplicationKey(), activationId, null),
                 new ClientEncryptorSecrets(serverPublicKey, config.getApplicationSecret(), transportMasterKeyBytes)
         );
         ConfirmRecoveryRequestPayload confirmRequestPayload = new ConfirmRecoveryRequestPayload();
@@ -307,7 +307,7 @@ public class PowerAuthApiShared {
         final PublicKey serverPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(serverPublicKeyBytes);
         final ClientEncryptor clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.CREATE_TOKEN,
-                new EncryptorParameters(version, config.getApplicationKey(), config.getActivationId(version)),
+                new EncryptorParameters(version, config.getApplicationKey(), config.getActivationId(version), null),
                 new ClientEncryptorSecrets(serverPublicKey, config.getApplicationSecret(), transportMasterKeyBytes)
         );
         final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest("{}".getBytes(StandardCharsets.UTF_8));
