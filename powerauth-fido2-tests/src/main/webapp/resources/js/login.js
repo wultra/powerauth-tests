@@ -24,7 +24,7 @@ async function handleLoginSubmit() {
         } else if (CEREMONY === AUTHENTICATION_CEREMONY) {
             const templateName = $("#operationTemplate").val();
             await requestCredential(userId, applicationId, templateName, {});
-            window.location.href = SERVLET_CONTEXT_PATH;
+            window.location.href = SERVLET_CONTEXT_PATH + QUERY_PARAMS
         } else {
             console.error("Unknown ceremony " + CEREMONY);
         }
