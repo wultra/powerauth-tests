@@ -11,6 +11,7 @@
     <!-- API Path Context of the spring controller -->
     <script>
         const SERVLET_CONTEXT_PATH = "[[${servletContextPath}]]";
+        const QUERY_PARAMS = "";
     </script>
     <script th:src="@{/resources/js/jquery.min.js}"></script>
     <script th:src="@{/resources/js/webauthn.js}"></script>
@@ -45,68 +46,7 @@
         </div>
 
         <div class="col2">
-            <div class="form-wrapper">
-                <div class="form-panel">
-
-                    <!-- On submit, handle form in javascript -->
-                    <form class="form-signin" onsubmit="handlePaymentSubmit(); return false;">
-                        <p class="body-copy">Try to process a payment now.</p>
-                        <p class="body-copy tiny" th:unless="${hideDeveloperOption}">
-                            Logged in as <strong th:text="${userId}"></strong>
-                            in application <strong th:text="${applicationId}"></strong>.
-                        </p>
-
-                        <!-- Main form fields -->
-                        <div class="form-group" id="divFormFields">
-                            <input type="text" id="userId" th:value="${userId}" hidden/>
-
-                            <input type="text" id="applicationId" th:value="${applicationId}" hidden/>
-
-                            <label for="iban" class="label">IBAN</label>
-                            <input type="text" id="iban" value="CZ5508000000001234567899" placeholder="IBAN" class="form-control input-text" required/>
-
-                            <label for="amount" class="label">Amount</label>
-                            <input type="text" id="amount" value="21" placeholder="Amount" class="form-control input-text" required/>
-
-                            <label for="currency" class="label">Currency</label>
-                            <input type="text" id="currency" value="CZK" placeholder="Currency" class="form-control input-text" required/>
-
-                            <div class="form-group" th:unless="${hideDeveloperOption}">
-                                <button type="button" id="addFieldBtn" class="btn btn-primary btn-block btn-xs">Add operation parameter</button>
-                            </div>
-                        </div>
-
-                        <!-- Operation template and user verification selection -->
-                        <div class="form-group" th:attr="hidden=${hideDeveloperOption ? 'hidden' : null}">
-                            <label for="operationTemplate" class="label">Operation Template</label>
-                            <select id="operationTemplate" class="form-control input-text">
-                                <option th:each="option : ${templates}" th:value="${option}" th:text="${option}" th:selected="${option} == payment ? true : false"></option>
-                            </select>
-
-                            <label for="userVerification" class="label">User Verification</label>
-                            <select id="userVerification" class="form-control input-text">
-                                <option selected>required</option>
-                                <option>preferred</option>
-                                <option>discouraged</option>
-                            </select>
-                        </div>
-
-                        <!-- Info and error banners -->
-                        <div id="errorDiv" class="alert alert-danger" hidden="hidden">
-                            <span id="errorMessage"></span>
-                        </div>
-                        <div id="successDiv" class="alert alert-success" hidden="hidden">
-                            Success!
-                        </div>
-
-                        <!-- Submit or logout button -->
-                        <div class="form-group">
-                            <button type="submit" id="payBtn" class="btn btn-primary btn-block">Pay</button>
-                        </div>
-
-                        <button type="button" id="logoutBtn" class="btn btn-danger btn-block btn-xs">Logout</button>
-                    </form>
-                </div>
+            <div class="form-wrapper" th:insert="forms/paymentForm.html">
             </div>
         </div>
     </div>

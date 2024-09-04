@@ -30,6 +30,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Map;
@@ -50,6 +51,8 @@ public class HomeController {
     private static final String REDIRECT_PAYMENT = "redirect:payment";
     private static final String LOGIN_PAGE = "login";
     private static final String PAYMENT_PAGE = "payment";
+    private static final String EMBEDDED_LOGIN_PAGE = "embeddedLogin";
+    private static final String EMBEDDED_PAYMENT_PAGE = "embeddedPayment";
 
     private final PowerAuthFido2TestsConfigProperties powerAuthFido2TestsConfigProperties;
     private final PowerAuthConfigProperties powerAuthConfigProperties;
@@ -62,16 +65,16 @@ public class HomeController {
         model.put("hideDeveloperOption", powerAuthFido2TestsConfigProperties.shouldHideDeveloperOptions());
     }
 
-    @GetMapping("/")
-    public String homePage(Map<String, Object> model, HttpSession session) {
+    @GetMapping
+    public String homePage(@RequestParam(required = false, defaultValue = "false") boolean embedded, Map<String, Object> model, HttpSession session) {
         if (StringUtils.hasText((String) session.getAttribute(SESSION_KEY_USER_ID))) {
-            return REDIRECT_PAYMENT;
+            return redirectToPaymentEndpoint(embedded);
         }
-        return REDIRECT_LOGIN;
+        return redirectToLoginEndpoint(embedded);
     }
 
     @GetMapping("/login")
-    public String loginPage(Map<String, Object> model) throws PowerAuthClientException {
+    public String loginPage(@RequestParam(required = false, defaultValue = "false") boolean embedded, Map<String, Object> model) throws PowerAuthClientException {
         final List<String> applicationList = sharedService.fetchApplicationNameList();
         final String defaultApplicationId = powerAuthConfigProperties.getApplicationId();
         if (StringUtils.hasText(defaultApplicationId) && applicationList.contains(defaultApplicationId)) {
@@ -79,27 +82,43 @@ public class HomeController {
         }
         model.put("applications", sharedService.fetchApplicationNameList());
         model.put("templates", sharedService.fetchTemplateNameList());
-        return LOGIN_PAGE;
+        return showLoginPage(embedded);
     }
 
     @GetMapping("/payment")
-    public String profilePage(Map<String, Object> model, HttpSession session) throws PowerAuthClientException {
+    public String paymentPage(@RequestParam(required = false, defaultValue = "false") boolean embedded, Map<String, Object> model, HttpSession session) throws PowerAuthClientException {
         final String userId = (String) session.getAttribute(SESSION_KEY_USER_ID);
         final String applicationId = (String) session.getAttribute(SESSION_KEY_APPLICATION_ID);
         if (!StringUtils.hasText(userId)) {
-            return REDIRECT_LOGIN;
+            return redirectToLoginEndpoint(embedded);
         }
 
         model.put(SESSION_KEY_USER_ID, userId);
         model.put(SESSION_KEY_APPLICATION_ID, applicationId);
         model.put("templates", sharedService.fetchTemplateNameList());
-        return PAYMENT_PAGE;
+        return showPaymentPage(embedded);
     }
 
     @GetMapping("/logout")
-    public String logoutPage(Map<String, Object> model, HttpSession session) {
+    public String logoutPage(@RequestParam(required = false, defaultValue = "false") boolean embedded, Map<String, Object> model, HttpSession session) {
         session.removeAttribute(SESSION_KEY_USER_ID);
-       return REDIRECT_LOGIN;
+        return redirectToLoginEndpoint(embedded);
+    }
+
+    private static String redirectToLoginEndpoint(final boolean embedded) {
+        return embedded ? (REDIRECT_LOGIN + "?embedded=true") : REDIRECT_LOGIN;
+    }
+
+    private static String redirectToPaymentEndpoint(final boolean embedded) {
+        return embedded ? (REDIRECT_PAYMENT + "?embedded=true") : REDIRECT_PAYMENT;
+    }
+
+    private static String showLoginPage(final boolean embedded) {
+        return embedded ? EMBEDDED_LOGIN_PAGE : LOGIN_PAGE;
+    }
+
+    private static String showPaymentPage(final boolean embedded) {
+        return embedded ? EMBEDDED_PAYMENT_PAGE : PAYMENT_PAGE;
     }
 
 }

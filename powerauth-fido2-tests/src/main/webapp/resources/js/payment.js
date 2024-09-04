@@ -90,7 +90,7 @@ $(function() {
 
     // Set action on Logout button click
     $('#logoutBtn').click(function(){
-        window.location.href = SERVLET_CONTEXT_PATH + "/logout";
+        window.location.href = SERVLET_CONTEXT_PATH + "/logout" + QUERY_PARAMS;
     });
 
     // Set action on Add operation parameter button click
