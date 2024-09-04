@@ -63,6 +63,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test direct activation via OIDC.
+ * <p>
+ * Mind that {@code powerauth.test.activation.*} properties must be filled, otherwise the test is ignored.
+ * Also a database entry must exist in the table {@code pa_application_config} with a config key {@code oauth2_providers} and appropriate config values.
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
@@ -73,6 +76,8 @@ import static org.junit.jupiter.api.Assertions.*;
 class PowerAuthOidcActivationTest {
 
     private static final String VERSION = "3.2";
+
+    private static File dataFile;
 
     @Autowired
     private PowerAuthTestConfiguration config;
@@ -87,7 +92,6 @@ class PowerAuthOidcActivationTest {
     private int port;
 
     private CreateActivationStepModel model;
-    private static File dataFile;
     private ObjectStepLogger stepLogger;
 
     @BeforeAll
