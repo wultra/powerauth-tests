@@ -16,7 +16,8 @@
 
         <!-- User ID input -->
         <div class="form-group">
-            <input type="text" id="userId" name="userId" autoComplete="username webauthn" th:placeholder="${hideDeveloperOption ? 'Username' : 'User ID'}" class="form-control input-text"/>
+            <input type="text" th:unless="${emailRequired}" id="userId" name="userId" autoComplete="username webauthn" th:placeholder="${hideDeveloperOption ? 'Username' : 'User ID'}" class="form-control input-text"/>
+            <input type="email" th:if="${emailRequired}" id="userId" name="userId" autoComplete="username webauthn" placeholder="Email address" class="form-control input-text" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" title="Enter email address."/>
         </div>
 
         <!-- Info and login banners -->
