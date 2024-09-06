@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 public class PowerAuthFido2TestsConfigProperties {
 
     private boolean hideDeveloperOptions = false;
+    private boolean emailAddressRequired = false;
 
     public boolean shouldHideDeveloperOptions() {
         return hideDeveloperOptions;

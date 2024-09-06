@@ -63,6 +63,7 @@ public class HomeController {
     public void addAttributes(Map<String, Object> model) {
         model.put("servletContextPath", context.getContextPath());
         model.put("hideDeveloperOption", powerAuthFido2TestsConfigProperties.shouldHideDeveloperOptions());
+        model.put("emailRequired", powerAuthFido2TestsConfigProperties.isEmailAddressRequired());
     }
 
     @GetMapping

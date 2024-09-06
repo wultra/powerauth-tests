@@ -16,24 +16,28 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package com.wultra.security.powerauth.fido2.controller.request;
+package com.wultra.security.powerauth.fido2.controller.validation;
 
-import com.wultra.security.powerauth.fido2.controller.validation.EmailConditional;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Constraint;
+import jakarta.validation.Payload;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Request for credential registration options.
+ * Validation annotation to validate email address. Allow null or empty values.
  *
  * @author Jan Pesek, jan.pesek@wultra.com
  */
-public record RegistrationOptionsRequest(
-    @NotBlank @EmailConditional
-    String userId,
+@Constraint(validatedBy = EmailConditionalValidator.class)
+@Target({ ElementType.FIELD, ElementType.PARAMETER })
+@Retention(RetentionPolicy.RUNTIME)
+public @interface EmailConditional {
+    String message() default "Invalid email address.";
 
-    @NotBlank
-    String applicationId,
+    Class<?>[] groups() default {};
 
-    String username,
-    String userDisplayName
-
-) {}
+    Class<? extends Payload>[] payload() default {};
+}
