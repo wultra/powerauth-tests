@@ -206,10 +206,11 @@ class PowerAuthOidcActivationTest {
                 "redirectUri", oidcConfig.getRedirectUri(),
                 "state", generateRandomString(),
                 "nonce", nonce,
+                "scope", oidcConfig.getScopes(),
                 "code_challenge", codeChallenge,
                 "code_challenge_method", "S256"
         );
-        final String authorizationUrl = oidcConfig.getIssuerUrl() + "/authorize?client_id={clientId}&redirect_uri={redirectUri}&scope=openid&state={state}&nonce={nonce}&response_type=code&code_challenge={code_challenge}&code_challenge_method={code_challenge_method}";
+        final String authorizationUrl = oidcConfig.getIssuerUri() + "/authorize?client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}&response_type=code&code_challenge={code_challenge}&code_challenge_method={code_challenge_method}";
         final WebClient.ResponseSpec responseSpec = webClient.get().uri(authorizationUrl, uriVariables).retrieve();
         return UriComponentsBuilder.fromUri(fetchRedirectUri(responseSpec)).build();
     }
