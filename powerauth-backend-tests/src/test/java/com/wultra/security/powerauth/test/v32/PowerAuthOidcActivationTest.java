@@ -59,6 +59,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.*;
 
@@ -148,7 +151,40 @@ class PowerAuthOidcActivationTest {
         final String code = login(webClient, authorizeUriComponents);
         assertNotNull(code);
 
-        createActivation(nonce, code);
+        final Map<String, String> identityAttributes = Map.of(
+                "method", "oidc",
+                "providerId", oidcConfig.getProviderId(),
+                "code", code,
+                "nonce", nonce
+        );
+        createActivation(identityAttributes);
+    }
+
+    @Test
+    void testOidcPkceActivation() throws Exception {
+        final String nonce = generateRandomString();
+        final String codeVerifier = generateRandomString();
+        final String codeChallenge = convertToCodeChallenge(codeVerifier);
+
+        final WebClient webClient = createWebClient();
+        final UriComponents authorizeUriComponents = authorizeWithPkce(webClient, nonce, codeChallenge);
+        final String code = login(webClient, authorizeUriComponents);
+        assertNotNull(code);
+
+        final Map<String, String> identityAttributes = Map.of(
+                "method", "oidc",
+                "providerId", oidcConfig.getProviderId(),
+                "code", code,
+                "nonce", nonce,
+                "codeVerifier", codeVerifier
+        );
+        createActivation(identityAttributes);
+    }
+
+    private static String convertToCodeChallenge(final String codeVerifier) throws NoSuchAlgorithmException {
+        final MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        final byte[] hash = digest.digest(codeVerifier.getBytes(StandardCharsets.US_ASCII));
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(hash);
     }
 
     private UriComponents authorize(final WebClient webClient, final String nonce) {
@@ -160,6 +196,21 @@ class PowerAuthOidcActivationTest {
                 "scope", oidcConfig.getScopes()
         );
         final String authorizationUrl = oidcConfig.getIssuerUri() + "/authorize?client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}&response_type=code";
+        final WebClient.ResponseSpec responseSpec = webClient.get().uri(authorizationUrl, uriVariables).retrieve();
+        return UriComponentsBuilder.fromUri(fetchRedirectUri(responseSpec)).build();
+    }
+
+    private UriComponents authorizeWithPkce(final WebClient webClient, final String nonce, final String codeChallenge) {
+        final Map<String, String> uriVariables = Map.of(
+                "clientId", oidcConfig.getClientId(),
+                "redirectUri", oidcConfig.getRedirectUri(),
+                "state", generateRandomString(),
+                "nonce", nonce,
+                "scope", oidcConfig.getScopes(),
+                "code_challenge", codeChallenge,
+                "code_challenge_method", "S256"
+        );
+        final String authorizationUrl = oidcConfig.getIssuerUri() + "/authorize?client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}&response_type=code&code_challenge={code_challenge}&code_challenge_method={code_challenge_method}";
         final WebClient.ResponseSpec responseSpec = webClient.get().uri(authorizationUrl, uriVariables).retrieve();
         return UriComponentsBuilder.fromUri(fetchRedirectUri(responseSpec)).build();
     }
@@ -226,17 +277,10 @@ class PowerAuthOidcActivationTest {
         final SecureRandom secureRandom = new SecureRandom();
         final byte[] randomBytes = new byte[32];
         secureRandom.nextBytes(randomBytes);
-        return Base64.getUrlEncoder().encodeToString(randomBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
 
-    private void createActivation(final String nonce, final String code) throws Exception {
-        final Map<String, String> identityAttributes = Map.of(
-                "method", "oidc",
-                "providerId", oidcConfig.getProviderId(),
-                "code", code,
-                "nonce", nonce
-        );
-
+    private void createActivation(final Map<String, String> identityAttributes) throws Exception {
         model.setIdentityAttributes(identityAttributes);
 
         new CreateOidcActivationStep().execute(stepLogger, model.toMap());
