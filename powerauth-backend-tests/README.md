@@ -105,6 +105,22 @@ powerauth.service.security.clientToken=
 powerauth.service.security.clientSecret=
 ```
 
+
+### OIDC Activation
+
+OpenID Connect activation requires the provider configuration.
+If the properties are not filled, the test is ignored.
+Also a database entry must exist in the table `pa_application_config` with a config key `oauth2_providers` and appropriate config values.
+
+```properties
+# OIDC activation
+powerauth.test.activation.oidc.username=
+powerauth.test.activation.oidc.password=
+powerauth.test.activation.oidc.providerId=
+powerauth.test.activation.oidc.sub=
+```
+
+
 ## Running Tests from Console
 
 You can simply run the tests using Maven in folder `powerauth-backend-tests`:
