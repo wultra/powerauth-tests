@@ -33,13 +33,11 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
 import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.EnabledIf;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -52,8 +50,7 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = PowerAuthTestConfiguration.class)
+@SpringBootTest(classes = {PowerAuthTestConfiguration.class, PowerAuthOidcActivationConfigurationProperties.class})
 @EnableConfigurationProperties
 @EnabledIf(expression = "#{T(org.springframework.util.StringUtils).hasText('${powerauth.test.activation.oidc.providerId}')}", loadContext = true)
 class PowerAuthApplicationConfigurationTest {
