@@ -127,6 +127,8 @@ class PowerAuthApplicationConfigurationTest {
         assertEquals("openid", decryptedData.getScopes());
         assertEquals("https://authorize.example.com", decryptedData.getAuthorizeUri());
         assertEquals("https://redirect.example.com", decryptedData.getRedirectUri());
+        assertEquals("https://redirect.example.com", decryptedData.getRedirectUri());
+        assertFalse(decryptedData.isPkceEnabled());
     }
 
     private static Predicate<StepItem> isStepItemDecryptedResponse() {
