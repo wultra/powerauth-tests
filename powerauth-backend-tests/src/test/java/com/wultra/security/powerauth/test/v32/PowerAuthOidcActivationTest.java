@@ -31,6 +31,9 @@ import io.getlime.security.powerauth.rest.api.model.request.ActivationLayer1Requ
 import io.getlime.security.powerauth.rest.api.model.request.EciesEncryptedRequest;
 import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer2Response;
 import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
+import io.getlime.security.powerauth.rest.api.spring.service.oidc.OidcApplicationConfiguration;
+import io.getlime.security.powerauth.rest.api.spring.service.oidc.OidcApplicationConfigurationService;
+import io.getlime.security.powerauth.rest.api.spring.service.oidc.OidcConfigurationQuery;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -83,7 +86,10 @@ class PowerAuthOidcActivationTest {
     private PowerAuthTestConfiguration config;
 
     @Autowired
-    private PowerAuthOidcActivationConfigurationProperties oidcConfig;
+    private PowerAuthOidcActivationConfigurationProperties oidcConfigProperties;
+
+    @Autowired
+    private OidcApplicationConfigurationService oidcApplicationConfigurationService;
 
     @Autowired
     private PowerAuthClient powerAuthClient;
@@ -93,6 +99,7 @@ class PowerAuthOidcActivationTest {
 
     private CreateActivationStepModel model;
     private ObjectStepLogger stepLogger;
+    private OidcApplicationConfiguration oidcConfig;
 
     @BeforeAll
     static void setUpBeforeClass() throws IOException {
@@ -108,7 +115,7 @@ class PowerAuthOidcActivationTest {
     }
 
     @BeforeEach
-    void setUp() throws IOException {
+    void setUp() throws Exception {
         final File tempStatusFile = File.createTempFile("pa_status_v" + VERSION.replace(".", ""), ".json");
 
         model = new CreateActivationStepModel();
@@ -125,6 +132,11 @@ class PowerAuthOidcActivationTest {
         model.setDeviceInfo("backend-tests");
 
         stepLogger = new ObjectStepLogger(System.out);
+
+        oidcConfig = oidcApplicationConfigurationService.fetchOidcApplicationConfiguration(OidcConfigurationQuery.builder()
+                .applicationKey(config.getApplicationKey())
+                .providerId(oidcConfigProperties.getProviderId())
+                .build());
     }
 
     @Test
@@ -144,9 +156,10 @@ class PowerAuthOidcActivationTest {
                 "clientId", oidcConfig.getClientId(),
                 "redirectUri", oidcConfig.getRedirectUri(),
                 "state", generateRandomString(),
-                "nonce", nonce
+                "nonce", nonce,
+                "scope", oidcConfig.getScopes()
         );
-        final String authorizationUrl = oidcConfig.getIssuerUrl() + "/authorize?client_id={clientId}&redirect_uri={redirectUri}&scope=openid&state={state}&nonce={nonce}&response_type=code";
+        final String authorizationUrl = oidcConfig.getIssuerUri() + "/authorize?client_id={clientId}&redirect_uri={redirectUri}&scope={scope}&state={state}&nonce={nonce}&response_type=code";
         final WebClient.ResponseSpec responseSpec = webClient.get().uri(authorizationUrl, uriVariables).retrieve();
         return UriComponentsBuilder.fromUri(fetchRedirectUri(responseSpec)).build();
     }
@@ -156,11 +169,11 @@ class PowerAuthOidcActivationTest {
         assertNotNull(authorizeState);
 
         final MultiValueMap<String, String> requestBody = new LinkedMultiValueMap<>();
-        requestBody.add("username", oidcConfig.getUsername());
-        requestBody.add("password", oidcConfig.getPassword());
+        requestBody.add("username", oidcConfigProperties.getUsername());
+        requestBody.add("password", oidcConfigProperties.getPassword());
         requestBody.add("state", authorizeState);
 
-        final String loginUrl = oidcConfig.getIssuerUrl() + authorizeUriComponents.getPath();
+        final String loginUrl = oidcConfig.getIssuerUri() + authorizeUriComponents.getPath();
         final WebClient.ResponseSpec responseSpec = webClient
                 .post()
                 .uri(loginUrl)
@@ -168,7 +181,7 @@ class PowerAuthOidcActivationTest {
                 .body(BodyInserters.fromFormData(requestBody))
                 .retrieve();
         final URI redirectUri = fetchRedirectUri(responseSpec);
-        return resumeLogin(webClient, oidcConfig.getIssuerUrl() + redirectUri);
+        return resumeLogin(webClient, oidcConfig.getIssuerUri() + redirectUri);
     }
 
     private String resumeLogin(final WebClient webClient, final String uri) {
@@ -240,7 +253,7 @@ class PowerAuthOidcActivationTest {
         // Verify activation status - activation was automatically committed
         final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
-        assertEquals(oidcConfig.getSub(), statusResponseActive.getUserId());
+        assertEquals(oidcConfigProperties.getSub(), statusResponseActive.getUserId());
 
         powerAuthClient.removeActivation(activationId, "test");
     }

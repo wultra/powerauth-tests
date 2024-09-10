@@ -35,9 +35,6 @@ public class PowerAuthOidcActivationConfigurationProperties {
 
     private String username;
     private String password;
-    private String issuerUrl;
-    private String clientId;
-    private String redirectUri;
     private String providerId;
     private String sub;
 }

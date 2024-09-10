@@ -116,9 +116,6 @@ Also a database entry must exist in the table `pa_application_config` with a con
 # OIDC activation
 powerauth.test.activation.oidc.username=
 powerauth.test.activation.oidc.password=
-powerauth.test.activation.oidc.issuerUrl=
-powerauth.test.activation.oidc.clientId=
-powerauth.test.activation.oidc.redirectUri=
 powerauth.test.activation.oidc.providerId=
 powerauth.test.activation.oidc.sub=
 ```
