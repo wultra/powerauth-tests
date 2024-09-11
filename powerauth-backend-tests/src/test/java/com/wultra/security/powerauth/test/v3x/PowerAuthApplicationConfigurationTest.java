@@ -23,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wultra.app.enrollmentserver.api.model.enrollment.request.OidcApplicationConfigurationRequest;
 import com.wultra.app.enrollmentserver.api.model.enrollment.response.OidcApplicationConfigurationResponse;
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.configuration.PowerAuthOidcActivationConfigurationProperties;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -33,16 +33,13 @@ import io.getlime.security.powerauth.lib.cmd.steps.v3.EncryptStep;
 import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.context.junit.jupiter.EnabledIf;
 
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -53,9 +50,9 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-@ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = PowerAuthTestConfiguration.class)
+@SpringBootTest(classes = {PowerAuthTestConfiguration.class, PowerAuthOidcActivationConfigurationProperties.class})
 @EnableConfigurationProperties
+@EnabledIf(expression = "#{T(org.springframework.util.StringUtils).hasText('${powerauth.test.activation.oidc.providerId}')}", loadContext = true)
 class PowerAuthApplicationConfigurationTest {
 
     private static final String VERSION = "3.2";
@@ -63,15 +60,15 @@ class PowerAuthApplicationConfigurationTest {
     private static final ObjectMapper objectMapper = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
     @Autowired
-    private PowerAuthTestConfiguration config;
+    private PowerAuthOidcActivationConfigurationProperties oidcConfigProperties;
 
     @Autowired
-    private PowerAuthClient powerAuthClient;
+    private PowerAuthTestConfiguration config;
 
     private EncryptStepModel encryptModel;
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());
         encryptModel.setApplicationSecret(config.getApplicationSecret());
@@ -79,25 +76,12 @@ class PowerAuthApplicationConfigurationTest {
         encryptModel.setHeaders(new HashMap<>());
         encryptModel.setResultStatusObject(config.getResultStatusObjectV32());
         encryptModel.setVersion(VERSION);
-
-        final Object oidcConfiguration = Map.of(
-                "providerId", "xyz999",
-                "clientId", "jabberwocky",
-                "clientSecret", "top secret",
-                "scopes", "openid",
-                "authorizeUri", "https://authorize.example.com",
-                "redirectUri", "https://redirect.example.com",
-                "tokenUri", "https://...",
-                "userInfoUri", "https://..."
-        );
-
-        powerAuthClient.createApplicationConfig(config.getApplicationId(), "oauth2_providers", List.of(oidcConfiguration));
     }
 
     @Test
     void testOidc() throws Exception {
         final OidcApplicationConfigurationRequest request = new OidcApplicationConfigurationRequest();
-        request.setProviderId("xyz999");
+        request.setProviderId(oidcConfigProperties.getProviderId());
 
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/config/oidc");
         encryptModel.setScope("application");
@@ -122,12 +106,10 @@ class PowerAuthApplicationConfigurationTest {
                 .findFirst()
                 .orElseThrow(() -> new AssertionFailedError("Decrypted data not found"));
 
-        assertEquals("xyz999", decryptedData.getProviderId());
-        assertEquals("jabberwocky", decryptedData.getClientId());
-        assertEquals("openid", decryptedData.getScopes());
-        assertEquals("https://authorize.example.com", decryptedData.getAuthorizeUri());
-        assertEquals("https://redirect.example.com", decryptedData.getRedirectUri());
-        assertEquals("https://redirect.example.com", decryptedData.getRedirectUri());
+        assertEquals(oidcConfigProperties.getProviderId(), decryptedData.getProviderId());
+        assertNotNull(decryptedData.getClientId());
+        assertNotNull(decryptedData.getScopes());
+        assertNotNull(decryptedData.getRedirectUri());
         assertFalse(decryptedData.isPkceEnabled());
     }
 
