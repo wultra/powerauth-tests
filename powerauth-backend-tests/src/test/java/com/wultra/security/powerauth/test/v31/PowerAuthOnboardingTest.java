@@ -76,7 +76,7 @@ class PowerAuthOnboardingTest {
 
         // Create temp status file
         File tempStatusFile = File.createTempFile("pa_status_v" + VERSION.replace(".", ""), ".json");
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Model shared among tests
         CreateActivationStepModel activationModel = new CreateActivationStepModel();

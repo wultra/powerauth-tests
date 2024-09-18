@@ -42,7 +42,7 @@ object ActivationInitScenario {
       .body(StringBody(session => {
         s"""{
 			    "requestObject": {
-					  "activationOtpValidation": "NONE",
+					  "commitPhase": "ON_COMMIT",
 						"applicationId": "${ClientConfig.applicationId}",
 						"userId": "${session("userId").as[String]}"
 					}

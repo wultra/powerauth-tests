@@ -139,18 +139,12 @@ class PowerAuthActivationOtpTest {
 
     @Test
     void wrongActivationInitParamTest3() {
-        PowerAuthActivationOtpShared.wrongActivationInitParamTest3(powerAuthClient, config, validOtpValue, VERSION);
-
+        PowerAuthActivationOtpShared.wrongActivationInitParamTest3(powerAuthClient, config, VERSION);
     }
 
     @Test
     void wrongActivationInitParamTest4() {
         PowerAuthActivationOtpShared.wrongActivationInitParamTest4(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void wrongActivationInitParamTest5() {
-        PowerAuthActivationOtpShared.wrongActivationInitParamTest5(powerAuthClient, config, VERSION);
     }
 
     @Test

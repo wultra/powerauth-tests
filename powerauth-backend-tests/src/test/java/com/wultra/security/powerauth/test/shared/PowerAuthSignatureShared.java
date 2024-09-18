@@ -258,7 +258,7 @@ public class PowerAuthSignatureShared {
         File tempStatusFile = File.createTempFile("pa_status", ".json");
         tempStatusFile.deleteOnExit();
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         final InitActivationRequest initRequest = new InitActivationRequest();
@@ -332,7 +332,7 @@ public class PowerAuthSignatureShared {
         File tempStatusFile = File.createTempFile("pa_status_lookahead", ".json");
         tempStatusFile.deleteOnExit();
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();

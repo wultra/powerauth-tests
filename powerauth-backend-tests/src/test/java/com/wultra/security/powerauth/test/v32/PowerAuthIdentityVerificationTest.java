@@ -69,7 +69,7 @@ class PowerAuthIdentityVerificationTest {
         File tempStatusFile = File.createTempFile("pa_status_v" + VERSION.replace(".", ""), ".json");
 
         // Create result status object
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         EncryptStepModel encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());

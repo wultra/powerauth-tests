@@ -271,7 +271,7 @@ public class PowerAuthActivationShared {
 
     public static void activationStatusTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                             PrepareActivationStepModel model, String version) throws Exception {
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -549,7 +549,7 @@ public class PowerAuthActivationShared {
 
     public static void updateActivationStatusTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                                   PrepareActivationStepModel model, String version) throws Exception {
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();

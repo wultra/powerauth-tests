@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2020 Wultra s.r.o.
+ * Copyright (C) 2024 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -19,7 +19,8 @@ package com.wultra.security.powerauth.test.v31;
 
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.PowerAuthActivationOtpShared;
+import com.wultra.security.powerauth.test.shared.PowerAuthActivationCommitPhaseShared;
+import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import org.junit.jupiter.api.AfterEach;
@@ -37,10 +38,15 @@ import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Tests for commit phase.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-class PowerAuthActivationOtpTest {
+class PowerAuthActivationCommitPhaseTest {
 
     private static final String VERSION = "3.1";
 
@@ -52,6 +58,8 @@ class PowerAuthActivationOtpTest {
 
     private final String validOtpValue = "1234-5678";
     private final String invalidOtpValue = "8765-4321";
+
+    private static final PowerAuthClientActivation activation = new PowerAuthClientActivation();
 
     @Autowired
     public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
@@ -70,21 +78,21 @@ class PowerAuthActivationOtpTest {
 
         // Models shared among tests
         model = new PrepareActivationStepModel();
-        model.setActivationName("test v31");
+        model.setActivationName("test v" + VERSION);
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(config.getResultStatusObjectV31());
+        model.setResultStatusObject(config.getResultStatusObjectV32());
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion(VERSION);
         model.setDeviceInfo("backend-tests");
 
         statusModel = new GetStatusStepModel();
         statusModel.setHeaders(new HashMap<>());
-        statusModel.setResultStatusObject(config.getResultStatusObjectV31());
+        statusModel.setResultStatusObject(config.getResultStatusObjectV32());
         statusModel.setUriString(config.getPowerAuthIntegrationUrl());
         statusModel.setVersion(VERSION);
     }
@@ -96,62 +104,37 @@ class PowerAuthActivationOtpTest {
 
     @Test
     void validOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationOtpShared.validOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
+        PowerAuthActivationCommitPhaseShared.validOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
     }
 
     @Test
     void invalidOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationOtpShared.invalidOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
+        PowerAuthActivationCommitPhaseShared.invalidOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
     }
 
     @Test
     void validOtpOnCommitTest() throws Exception {
-        PowerAuthActivationOtpShared.validOtpOnCommitTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
+        PowerAuthActivationCommitPhaseShared.validOtpOnCommitTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
     }
 
     @Test
     void invalidOtpOnCommitTest() throws Exception {
-        PowerAuthActivationOtpShared.invalidOtpOnCommitTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
+        PowerAuthActivationCommitPhaseShared.invalidOtpOnCommitTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
     }
 
     @Test
     void updateValidOtpOnCommitTest() throws Exception {
-        PowerAuthActivationOtpShared.updateValidOtpOnCommitTest(powerAuthClient, config, model, statusModel, validOtpValue, invalidOtpValue, VERSION);
+        PowerAuthActivationCommitPhaseShared.updateValidOtpOnCommitTest(powerAuthClient, config, model, statusModel, validOtpValue, invalidOtpValue, VERSION);
     }
 
     @Test
     void updateInvalidOtpOnCommitTest() throws Exception {
-        PowerAuthActivationOtpShared.updateInvalidOtpOnCommitTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
+        PowerAuthActivationCommitPhaseShared.updateInvalidOtpOnCommitTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
     }
 
     @Test
-    void wrongActivationInitParamTest1() {
-        PowerAuthActivationOtpShared.wrongActivationInitParamTest1(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void wrongActivationInitParamTest2() {
-        PowerAuthActivationOtpShared.wrongActivationInitParamTest2(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void wrongActivationInitParamTest3() {
-        PowerAuthActivationOtpShared.wrongActivationInitParamTest3(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void wrongActivationInitParamTest4() {
-        PowerAuthActivationOtpShared.wrongActivationInitParamTest4(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void missingOtpOnCommitTest() throws Exception {
-        PowerAuthActivationOtpShared.missingOtpOnCommitTest(powerAuthClient, config, model, validOtpValue, VERSION);
-    }
-
-    @Test
-    void missingOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationOtpShared.missingOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
+    void wrongActivationInitParamTest() {
+        PowerAuthActivationCommitPhaseShared.wrongActivationInitParamTest(powerAuthClient, config, VERSION);
     }
 
 }
