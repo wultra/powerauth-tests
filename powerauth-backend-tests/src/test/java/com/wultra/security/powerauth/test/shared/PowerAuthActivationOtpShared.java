@@ -51,7 +51,7 @@ public class PowerAuthActivationOtpShared {
     public static void validOtpOnKeysExchangeTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                                   PrepareActivationStepModel model, String validOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         final InitActivationRequest initRequest = new InitActivationRequest();
@@ -89,7 +89,7 @@ public class PowerAuthActivationOtpShared {
                                                     PrepareActivationStepModel model, String validOtpValue,
                                                     String invalidOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -122,7 +122,7 @@ public class PowerAuthActivationOtpShared {
     public static void validOtpOnCommitTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PrepareActivationStepModel model,
                                             String validOtpValue, String invalidOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -175,7 +175,7 @@ public class PowerAuthActivationOtpShared {
                                               PrepareActivationStepModel model, String validOtpValue,
                                               String invalidOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -226,7 +226,7 @@ public class PowerAuthActivationOtpShared {
                                                   PrepareActivationStepModel model, GetStatusStepModel statusModel,
                                                   String validOtpValue, String invalidOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -292,7 +292,7 @@ public class PowerAuthActivationOtpShared {
                                                     PrepareActivationStepModel model, String validOtpValue,
                                                     String invalidOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -395,7 +395,7 @@ public class PowerAuthActivationOtpShared {
     public static void missingOtpOnCommitTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                               PrepareActivationStepModel model, String validOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -448,7 +448,7 @@ public class PowerAuthActivationOtpShared {
     public static void missingOtpOnKeysExchangeTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                                     PrepareActivationStepModel model, String validOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();

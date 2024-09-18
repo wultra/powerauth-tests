@@ -332,7 +332,7 @@ public class PowerAuthCustomActivationOtpShared {
      */
     private static ActivationRecovery getRecoveryData(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, File tempStatusFile, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         final InitActivationRequest initRequest = new InitActivationRequest();

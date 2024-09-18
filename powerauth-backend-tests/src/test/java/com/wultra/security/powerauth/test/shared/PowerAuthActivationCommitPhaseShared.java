@@ -52,7 +52,7 @@ public class PowerAuthActivationCommitPhaseShared {
     public static void validOtpOnKeysExchangeTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                                   PrepareActivationStepModel model, String validOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         final InitActivationRequest initRequest = new InitActivationRequest();
@@ -90,7 +90,7 @@ public class PowerAuthActivationCommitPhaseShared {
                                                     PrepareActivationStepModel model, String validOtpValue,
                                                     String invalidOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -123,7 +123,7 @@ public class PowerAuthActivationCommitPhaseShared {
     public static void validOtpOnCommitTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PrepareActivationStepModel model,
                                             String validOtpValue, String invalidOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -176,7 +176,7 @@ public class PowerAuthActivationCommitPhaseShared {
                                               PrepareActivationStepModel model, String validOtpValue,
                                               String invalidOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -227,7 +227,7 @@ public class PowerAuthActivationCommitPhaseShared {
                                                   PrepareActivationStepModel model, GetStatusStepModel statusModel,
                                                   String validOtpValue, String invalidOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -293,7 +293,7 @@ public class PowerAuthActivationCommitPhaseShared {
                                                     PrepareActivationStepModel model, String validOtpValue,
                                                     String invalidOtpValue, String version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();

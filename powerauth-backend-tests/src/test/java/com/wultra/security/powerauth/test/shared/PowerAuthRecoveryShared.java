@@ -68,7 +68,7 @@ public class PowerAuthRecoveryShared {
     private static final String PRIVATE_KEY_RECOVERY_POSTCARD_BASE64 = "ALvtO6YEISVuCKugiltkUKgJaJbHRrdT77+9OhS79Gvm";
 
     public static void activationRecoveryTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final String version) throws Exception {
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         final InitActivationRequest initRequest = new InitActivationRequest();
@@ -230,7 +230,7 @@ public class PowerAuthRecoveryShared {
             final RecoveryCodeStatus expectedRecoveryCodeStatusAfterRemove = revokeRecoveryCode ? RecoveryCodeStatus.REVOKED : RecoveryCodeStatus.ACTIVE;
             final RecoveryPukStatus expectedRecoveryPukStatusAfterRemove = revokeRecoveryCode ? RecoveryPukStatus.INVALID : RecoveryPukStatus.VALID;
 
-            JSONObject resultStatusObject = new JSONObject();
+            final JSONObject resultStatusObject = new JSONObject();
 
             // Init activation
             InitActivationRequest initRequest = new InitActivationRequest();
@@ -311,7 +311,7 @@ public class PowerAuthRecoveryShared {
     }
 
     public static void activationRecoveryInvalidPukTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final String version) throws Exception {
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -416,7 +416,7 @@ public class PowerAuthRecoveryShared {
     }
 
     public static void recoveryPostcardTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final String version) throws Exception {
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
         String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
         final String randomUserId = "TestUser_" + UUID.randomUUID();
         CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L);
@@ -609,7 +609,7 @@ public class PowerAuthRecoveryShared {
     }
 
     public static void recoveryPostcardInvalidPukIndexTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, String version) throws Exception {
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
         String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
         final String randomUserId = "TestUser_" + UUID.randomUUID();
         CreateRecoveryCodeResponse response = powerAuthClient.createRecoveryCode(config.getApplicationId(), randomUserId, 10L);
