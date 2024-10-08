@@ -50,7 +50,7 @@
         <powerauth-crypto.version>1.9.0-SNAPSHOT</powerauth-crypto.version>
         <powerauth-restful-integration.version>1.9.0-SNAPSHOT</powerauth-restful-integration.version>
         <powerauth-server.version>1.9.0-SNAPSHOT</powerauth-server.version>
-        <wultra-core.version>1.11.0-SNAPSHOT</wultra-core.version>
+        <wultra-core.version>1.11.0</wultra-core.version>
 
         <springdoc-openapi-starter-webmvc-ui.version>2.6.0</springdoc-openapi-starter-webmvc-ui.version>
         <logstash.version>8.0</logstash.version>
