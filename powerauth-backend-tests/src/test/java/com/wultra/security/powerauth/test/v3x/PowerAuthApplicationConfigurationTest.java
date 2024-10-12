@@ -26,6 +26,7 @@ import com.wultra.app.enrollmentserver.api.model.enrollment.response.OidcApplica
 import com.wultra.security.powerauth.configuration.PowerAuthOidcActivationConfigurationProperties;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
@@ -55,7 +56,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnabledIf(expression = "#{T(org.springframework.util.StringUtils).hasText('${powerauth.test.activation.oidc.providerId}')}", loadContext = true)
 class PowerAuthApplicationConfigurationTest {
 
-    private static final String VERSION = "3.2";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_3;
 
     private static final ObjectMapper objectMapper = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
 
@@ -74,7 +75,7 @@ class PowerAuthApplicationConfigurationTest {
         encryptModel.setApplicationSecret(config.getApplicationSecret());
         encryptModel.setMasterPublicKey(config.getMasterPublicKey());
         encryptModel.setHeaders(new HashMap<>());
-        encryptModel.setResultStatusObject(config.getResultStatusObjectV32());
+        encryptModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         encryptModel.setVersion(VERSION);
     }
 

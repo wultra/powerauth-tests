@@ -21,6 +21,7 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthSignatureShared;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
 import org.junit.jupiter.api.AfterAll;
@@ -47,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @EnableConfigurationProperties
 class PowerAuthSignatureTest {
 
-    private static final String VERSION = "3.1";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_1;
 
     private PowerAuthTestConfiguration config;
     private static File dataFile;
@@ -89,9 +90,9 @@ class PowerAuthSignatureTest {
         model.setHttpMethod("POST");
         model.setPassword(config.getPassword());
         model.setResourceId("/pa/signature/validate");
-        model.setResultStatusObject(config.getResultStatusObjectV31());
+        model.setResultStatusObject(config.getResultStatusObject(VERSION));
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
-        model.setStatusFileName(config.getStatusFileV31().getAbsolutePath());
+        model.setStatusFileName(config.getStatusFile(VERSION).getAbsolutePath());
         model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
         model.setVersion(VERSION);
 

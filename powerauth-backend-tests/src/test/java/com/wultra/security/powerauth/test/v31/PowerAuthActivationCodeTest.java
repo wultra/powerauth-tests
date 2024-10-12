@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.test.v31;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthActivationCodeShared;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
@@ -45,7 +46,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @EnableConfigurationProperties
 public class PowerAuthActivationCodeTest {
 
-    private static final String VERSION = "3.1";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_1;
 
     private PowerAuthTestConfiguration config;
     private PrepareActivationStepModel activationModel;
@@ -61,7 +62,7 @@ public class PowerAuthActivationCodeTest {
     @BeforeEach
     void setUp() throws IOException {
         // Create temp status file
-        tempStatusFile = File.createTempFile("pa_status_v" + VERSION.replace(".", ""), ".json");
+        tempStatusFile = File.createTempFile("pa_status_" + VERSION, ".json");
 
         // Model shared among tests
         activationModel = new PrepareActivationStepModel();
@@ -85,7 +86,7 @@ public class PowerAuthActivationCodeTest {
         signatureModel.setHttpMethod("POST");
         signatureModel.setHeaders(new HashMap<>());
         signatureModel.setStatusFileName(tempStatusFile.getAbsolutePath());
-        signatureModel.setResultStatusObject(config.getResultStatusObjectV31());
+        signatureModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         signatureModel.setVersion(VERSION);
         signatureModel.setDryRun(false);
 

@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.client.model.response.InitActivationRespons
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.provider.CustomActivationProviderForTests;
 import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.ActivationRecoveryStepModel;
@@ -194,7 +195,7 @@ public class PowerAuthCustomActivationOtpShared {
 
     public static void activationRecoveryOtpValidTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, File tempStatusFile,
                                         ActivationRecoveryStepModel recoveryModel, GetStatusStepModel statusModel,
-                                        String validOtpValue, String invalidOtpValue, String version) throws Exception {
+                                        String validOtpValue, String invalidOtpValue, PowerAuthVersion version) throws Exception {
 
         ActivationRecovery activationRecovery = getRecoveryData(powerAuthClient, config, tempStatusFile, version);
 
@@ -266,8 +267,7 @@ public class PowerAuthCustomActivationOtpShared {
     }
 
     public static void activationRecoveryOtpInvalidTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, File tempStatusFile,
-                                          ActivationRecoveryStepModel recoveryModel, String validOtpValue, String invalidOtpValue,
-                                          String version) throws Exception {
+                                          ActivationRecoveryStepModel recoveryModel, String validOtpValue, String invalidOtpValue, PowerAuthVersion version) throws Exception {
 
         ActivationRecovery activationRecovery = getRecoveryData(powerAuthClient, config, tempStatusFile, version);
 
@@ -330,7 +330,7 @@ public class PowerAuthCustomActivationOtpShared {
      * @return Object containing recovery code and recovery puk.
      * @throws Exception In case of failure.
      */
-    private static ActivationRecovery getRecoveryData(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, File tempStatusFile, String version) throws Exception {
+    private static ActivationRecovery getRecoveryData(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, File tempStatusFile, PowerAuthVersion version) throws Exception {
 
         final JSONObject resultStatusObject = new JSONObject();
 
@@ -343,7 +343,7 @@ public class PowerAuthCustomActivationOtpShared {
         // Prepare activation, assume recovery is enabled on server
         PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
 
-        prepareModel.setActivationName("test_recovery_v" + version);
+        prepareModel.setActivationName("test_recovery" + version);
         prepareModel.setApplicationKey(config.getApplicationKey());
         prepareModel.setApplicationSecret(config.getApplicationSecret());
         prepareModel.setMasterPublicKey(config.getMasterPublicKey());

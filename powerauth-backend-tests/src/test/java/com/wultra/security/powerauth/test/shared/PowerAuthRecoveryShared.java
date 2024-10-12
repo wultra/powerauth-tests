@@ -33,6 +33,7 @@ import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.model.RecoveryInfo;
 import io.getlime.security.powerauth.crypto.lib.model.RecoverySeed;
 import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.ActivationRecoveryStepModel;
@@ -67,7 +68,7 @@ public class PowerAuthRecoveryShared {
 
     private static final String PRIVATE_KEY_RECOVERY_POSTCARD_BASE64 = "ALvtO6YEISVuCKugiltkUKgJaJbHRrdT77+9OhS79Gvm";
 
-    public static void activationRecoveryTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final String version) throws Exception {
+    public static void activationRecoveryTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final PowerAuthVersion version) throws Exception {
         final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
@@ -78,7 +79,7 @@ public class PowerAuthRecoveryShared {
 
         // Prepare activation, assume recovery is enabled on server
         PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
-        prepareModel.setActivationName("test_recovery_v" + version);
+        prepareModel.setActivationName("test_recovery" + version);
         prepareModel.setApplicationKey(config.getApplicationKey());
         prepareModel.setApplicationSecret(config.getApplicationSecret());
         prepareModel.setMasterPublicKey(config.getMasterPublicKey());
@@ -223,7 +224,7 @@ public class PowerAuthRecoveryShared {
 
     }
 
-    public static void removeActivationAndRevokeRecoveryCodeTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final String version) throws Exception {
+    public static void removeActivationAndRevokeRecoveryCodeTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final PowerAuthVersion version) throws Exception {
         for (int loop = 1; loop <= 2; loop++) {
             // We'll perform two iterations and revoke Recovery Code on activationRemove() in the second one.
             final boolean revokeRecoveryCode = loop == 2;
@@ -240,7 +241,7 @@ public class PowerAuthRecoveryShared {
 
             // Prepare activation, assume recovery is enabled on server
             PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
-            prepareModel.setActivationName("test_recovery_v" + version);
+            prepareModel.setActivationName("test_recovery" + version);
             prepareModel.setApplicationKey(config.getApplicationKey());
             prepareModel.setApplicationSecret(config.getApplicationSecret());
             prepareModel.setMasterPublicKey(config.getMasterPublicKey());
@@ -310,7 +311,7 @@ public class PowerAuthRecoveryShared {
         }
     }
 
-    public static void activationRecoveryInvalidPukTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final String version) throws Exception {
+    public static void activationRecoveryInvalidPukTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final PowerAuthVersion version) throws Exception {
         final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
@@ -321,7 +322,7 @@ public class PowerAuthRecoveryShared {
 
         // Prepare activation, assume recovery is enabled on server
         PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
-        prepareModel.setActivationName("test_recovery_invalid_puk_v" + version);
+        prepareModel.setActivationName("test_recovery_invalid_puk" + version);
         prepareModel.setApplicationKey(config.getApplicationKey());
         prepareModel.setApplicationSecret(config.getApplicationSecret());
         prepareModel.setMasterPublicKey(config.getMasterPublicKey());
@@ -415,7 +416,7 @@ public class PowerAuthRecoveryShared {
         assertEquals(RecoveryPukStatus.INVALID, rcStatusResponse2.getRecoveryCodes().get(0).getPuks().get(0).getStatus());
     }
 
-    public static void recoveryPostcardTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final String version) throws Exception {
+    public static void recoveryPostcardTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, final PowerAuthVersion version) throws Exception {
         final JSONObject resultStatusObject = new JSONObject();
         String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
         final String randomUserId = "TestUser_" + UUID.randomUUID();
@@ -456,7 +457,7 @@ public class PowerAuthRecoveryShared {
 
         // Prepare activation, assume recovery is enabled on server
         PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
-        prepareModel.setActivationName("test_recovery_postcard_v" + version);
+        prepareModel.setActivationName("test_recovery_postcard" + version);
         prepareModel.setApplicationKey(config.getApplicationKey());
         prepareModel.setApplicationSecret(config.getApplicationSecret());
         prepareModel.setMasterPublicKey(config.getMasterPublicKey());
@@ -608,7 +609,7 @@ public class PowerAuthRecoveryShared {
         assertEquals(RecoveryPukStatus.VALID, response2.getRecoveryCodes().get(0).getPuks().get(0).getStatus());
     }
 
-    public static void recoveryPostcardInvalidPukIndexTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, String version) throws Exception {
+    public static void recoveryPostcardInvalidPukIndexTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final File tempStatusFile, PowerAuthVersion version) throws Exception {
         final JSONObject resultStatusObject = new JSONObject();
         String publicKeyServerBase64 = powerAuthClient.getRecoveryConfig(config.getApplicationId()).getPostcardPublicKey();
         final String randomUserId = "TestUser_" + UUID.randomUUID();
@@ -640,7 +641,7 @@ public class PowerAuthRecoveryShared {
 
         // Prepare activation, assume recovery is enabled on server
         PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
-        prepareModel.setActivationName("test_recovery_postcard_v" + version);
+        prepareModel.setActivationName("test_recovery_postcard" + version);
         prepareModel.setApplicationKey(config.getApplicationKey());
         prepareModel.setApplicationSecret(config.getApplicationSecret());
         prepareModel.setMasterPublicKey(config.getMasterPublicKey());

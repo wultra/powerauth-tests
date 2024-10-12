@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthOidcActivationConfigurationProperties;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.context.StepContext;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
@@ -81,7 +82,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnabledIf(expression = "#{T(org.springframework.util.StringUtils).hasText('${powerauth.test.activation.oidc.providerId}')}", loadContext = true)
 class PowerAuthOidcActivationTest {
 
-    private static final String VERSION = "3.2";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_2;
 
     private static File dataFile;
 
@@ -119,7 +120,7 @@ class PowerAuthOidcActivationTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        final File tempStatusFile = File.createTempFile("pa_status_v" + VERSION.replace(".", ""), ".json");
+        final File tempStatusFile = File.createTempFile("pa_status_" + VERSION, ".json");
 
         model = new CreateActivationStepModel();
         model.setActivationName("test v" + VERSION);
@@ -129,7 +130,7 @@ class PowerAuthOidcActivationTest {
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(config.getResultStatusObjectV32());
+        model.setResultStatusObject(config.getResultStatusObject(VERSION));
         model.setUriString("http://localhost:" + port);
         model.setVersion(VERSION);
         model.setDeviceInfo("backend-tests");

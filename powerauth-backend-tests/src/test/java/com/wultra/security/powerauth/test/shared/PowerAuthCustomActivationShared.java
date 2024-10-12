@@ -25,9 +25,11 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.test.shared.util.ResponseVerificationUtil;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
@@ -230,14 +232,18 @@ public class PowerAuthCustomActivationShared {
         // Create activation
         new CreateActivationStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().success());
-        assertEquals(400, stepLogger.getResponse().statusCode());
-
-        // Verify error response
-        ObjectMapper objectMapper = config.getObjectMapper();
-        final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
-        assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+        if (model.getVersion().useTemporaryKeys()) {
+            // JWT signature error, cannot obtain server response
+            assertNull(stepLogger.getResponse());
+        } else {
+            assertEquals(400, stepLogger.getResponse().statusCode());
+            // Verify error response
+            ObjectMapper objectMapper = config.getObjectMapper();
+            final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
+            assertEquals("ERROR", errorResponse.getStatus());
+            assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
+            assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+        }
 
         // Revert master public key change
         model.setMasterPublicKey(originalKey);
@@ -268,8 +274,7 @@ public class PowerAuthCustomActivationShared {
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+        ResponseVerificationUtil.verifyErrorResponse(model, errorResponse);
 
         // Support application version
         powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
@@ -299,8 +304,7 @@ public class PowerAuthCustomActivationShared {
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+        ResponseVerificationUtil.verifyErrorResponse(model, errorResponse);
 
         model.setApplicationKey(config.getApplicationKey());
     }
@@ -321,8 +325,7 @@ public class PowerAuthCustomActivationShared {
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+        ResponseVerificationUtil.verifyErrorResponse(model, errorResponse);
 
         model.setApplicationSecret(config.getApplicationSecret());
     }
@@ -360,7 +363,7 @@ public class PowerAuthCustomActivationShared {
 
     public static void customActivationSignatureMaxFailedTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                                               CreateActivationStepModel model, ObjectStepLogger stepLogger,
-                                                              File dataFile, File tempStatusFile, Integer port, String version) throws Exception {
+                                                              File dataFile, File tempStatusFile, Integer port, PowerAuthVersion version) throws Exception {
         Map<String, String> identityAttributes = new HashMap<>();
         identityAttributes.put("test_id", "TEST_10_SIGNATURES_MAX_FAILED");
         identityAttributes.put("username", "TestUser1");

@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.test.v31;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthActivationOtpShared;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import org.junit.jupiter.api.AfterEach;
@@ -42,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @EnableConfigurationProperties
 class PowerAuthActivationOtpTest {
 
-    private static final String VERSION = "3.1";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_1;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -66,7 +67,7 @@ class PowerAuthActivationOtpTest {
     @BeforeEach
     void setUp() throws IOException {
         // Create temp status file
-        tempStatusFile = File.createTempFile("pa_status_v" + VERSION.replace(".", ""), ".json");
+        tempStatusFile = File.createTempFile("pa_status_" + VERSION, ".json");
 
         // Models shared among tests
         model = new PrepareActivationStepModel();
@@ -77,14 +78,14 @@ class PowerAuthActivationOtpTest {
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(config.getResultStatusObjectV31());
+        model.setResultStatusObject(config.getResultStatusObject(VERSION));
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setVersion(VERSION);
         model.setDeviceInfo("backend-tests");
 
         statusModel = new GetStatusStepModel();
         statusModel.setHeaders(new HashMap<>());
-        statusModel.setResultStatusObject(config.getResultStatusObjectV31());
+        statusModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         statusModel.setUriString(config.getPowerAuthIntegrationUrl());
         statusModel.setVersion(VERSION);
     }

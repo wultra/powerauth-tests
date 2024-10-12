@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.test.v30;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthCustomActivationShared;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import org.junit.jupiter.api.*;
@@ -44,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
 class PowerAuthCustomActivationTest {
 
-    private static final String VERSION = "3.0";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_0;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -82,18 +83,18 @@ class PowerAuthCustomActivationTest {
     @BeforeEach
     void setUp() throws IOException {
         // Create temp status file
-        tempStatusFile = File.createTempFile("pa_status_v" + VERSION.replace(".", ""), ".json");
+        tempStatusFile = File.createTempFile("pa_status_" + VERSION, ".json");
 
         // Model shared among tests
         model = new CreateActivationStepModel();
-        model.setActivationName("test v" + VERSION);
+        model.setActivationName("test " + VERSION);
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(config.getResultStatusObjectV3());
+        model.setResultStatusObject(config.getResultStatusObject(VERSION));
         model.setUriString("http://localhost:" + port);
         model.setVersion(VERSION);
         model.setDeviceInfo("backend-tests");

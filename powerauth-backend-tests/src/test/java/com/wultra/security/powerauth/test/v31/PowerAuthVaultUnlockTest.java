@@ -21,6 +21,7 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthVaultUnlockShared;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +39,7 @@ import java.util.HashMap;
 @EnableConfigurationProperties
 class PowerAuthVaultUnlockTest {
 
-    private static final String VERSION = "3.1";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_1;
 
     private PowerAuthTestConfiguration config;
     private PowerAuthClient powerAuthClient;
@@ -62,8 +63,8 @@ class PowerAuthVaultUnlockTest {
         model.setApplicationSecret(config.getApplicationSecret());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
-        model.setResultStatusObject(config.getResultStatusObjectV31());
-        model.setStatusFileName(config.getStatusFileV31().getAbsolutePath());
+        model.setResultStatusObject(config.getResultStatusObject(VERSION));
+        model.setStatusFileName(config.getStatusFile(VERSION).getAbsolutePath());
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setReason("TEST_" + VERSION);

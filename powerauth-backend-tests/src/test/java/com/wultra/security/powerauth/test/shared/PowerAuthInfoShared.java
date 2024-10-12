@@ -26,6 +26,7 @@ import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
@@ -53,7 +54,7 @@ public class PowerAuthInfoShared {
     // Tolerate 60 seconds time difference between client and server in tests
     private static final long SERVER_CLIENT_TIME_DIFF_TOLERANCE_MILLIS = 60000;
 
-    public static void testUserInfo(final PowerAuthTestConfiguration config, final EncryptStepModel encryptModel, final String version) throws Exception {
+    public static void testUserInfo(final PowerAuthTestConfiguration config, final EncryptStepModel encryptModel, final PowerAuthVersion version) throws Exception {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/pa/v3/user/info");
         encryptModel.setScope("activation");
         encryptModel.setData(objectMapper.writeValueAsBytes(new UserInfoRequest()));
