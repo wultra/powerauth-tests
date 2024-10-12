@@ -23,8 +23,8 @@ import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.wultra.core.rest.client.base.RestClient;
-import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.model.TemporaryKey;
 import io.getlime.core.rest.model.base.request.ObjectRequest;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorScope;
@@ -71,9 +71,10 @@ public class TemporaryKeyFetchUtil {
      * Fetch temporary key for encryption from the server.
      * @param version Protocol version.
      * @param scope Encryption scope.
+     * @param config Test configuration.
      * @throws Exception Thrown in case temporary key fetch fails.
      */
-    public static String fetchTemporaryKey(PowerAuthVersion version, EncryptorScope scope, PowerAuthTestConfiguration config) throws Exception {
+    public static TemporaryKey fetchTemporaryKey(PowerAuthVersion version, EncryptorScope scope, PowerAuthTestConfiguration config) throws Exception {
         final RestClient restClient = RestClientFactory.getRestClient();
         if (restClient == null) {
             return null;
@@ -84,7 +85,7 @@ public class TemporaryKeyFetchUtil {
         return null;
     }
 
-    private static String fetchTemporaryKeyImpl(PowerAuthVersion version, EncryptorScope scope, PowerAuthTestConfiguration config) throws Exception {
+    private static TemporaryKey fetchTemporaryKeyImpl(PowerAuthVersion version, EncryptorScope scope, PowerAuthTestConfiguration config) throws Exception {
         final String baseUri = config.getEnrollmentServiceUrl();
         final Map<String, String> headers = prepareHeaders();
         final String uri = baseUri + "/pa/v3/keystore/create";
@@ -146,7 +147,7 @@ public class TemporaryKeyFetchUtil {
         return encodedHeader + "." + encodedPayload + "." + signature;
     }
 
-    private static String handleTemporaryKeyResponse(PowerAuthVersion version, ObjectResponse<TemporaryKeyResponse> response, EncryptorScope scope, PowerAuthTestConfiguration config) throws Exception {
+    private static TemporaryKey handleTemporaryKeyResponse(PowerAuthVersion version, ObjectResponse<TemporaryKeyResponse> response, EncryptorScope scope, PowerAuthTestConfiguration config) throws Exception {
         final String jwtResponse = response.getResponseObject().getJwt();
         final SignedJWT decodedJWT = SignedJWT.parse(jwtResponse);
         final ECPublicKey publicKey = switch (scope) {
@@ -160,7 +161,13 @@ public class TemporaryKeyFetchUtil {
         if (!validateJwtSignature(decodedJWT, publicKey)) {
             return null;
         }
-        return (String) decodedJWT.getJWTClaimsSet().getClaim("sub");
+        final TemporaryKey temporaryKey = new TemporaryKey();
+        temporaryKey.setId((String) decodedJWT.getJWTClaimsSet().getClaim("sub"));
+        final String temporaryPublicKeyBase64 = (String) decodedJWT.getJWTClaimsSet().getClaim("publicKey");
+        final byte[] temporaryPublicKeyBytes = Base64.getDecoder().decode(temporaryPublicKeyBase64);
+        final PublicKey temporaryPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(temporaryPublicKeyBytes);
+        temporaryKey.setPublicKey(temporaryPublicKey);
+        return temporaryKey;
     }
 
     private static boolean validateJwtSignature(SignedJWT jwt, PublicKey publicKey) throws Exception {

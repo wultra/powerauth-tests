@@ -23,10 +23,10 @@ import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.request.CreateTokenRequest;
-import com.wultra.security.powerauth.client.model.request.VaultUnlockRequest;
+import com.wultra.security.powerauth.client.model.request.*;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.model.TemporaryKey;
 import com.wultra.security.powerauth.test.shared.util.TemporaryKeyFetchUtil;
 import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import io.getlime.security.powerauth.crypto.client.keyfactory.PowerAuthClientKeyFactory;
@@ -138,11 +138,11 @@ public class PowerAuthApiShared {
         byte[] encryptedDevicePrivateKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "encryptedDevicePrivateKey"));
         byte[] nonceBytes = KEY_GENERATOR.generateRandomBytes(16);
         final PublicKey serverPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(serverPublicKeyBytes);
-        final String temporaryKeyId = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.ACTIVATION_SCOPE, config);
+        final TemporaryKey temporaryKey = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.ACTIVATION_SCOPE, config);
         final ClientEncryptor clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.VAULT_UNLOCK,
-                new EncryptorParameters(version.value(), config.getApplicationKey(), config.getActivationId(version), temporaryKeyId),
-                new ClientEncryptorSecrets(serverPublicKey, config.getApplicationSecret(), transportMasterKeyBytes)
+                new EncryptorParameters(version.value(), config.getApplicationKey(), config.getActivationId(version), temporaryKey != null ? temporaryKey.getId() : null),
+                new ClientEncryptorSecrets(temporaryKey != null ? temporaryKey.getPublicKey() : serverPublicKey, config.getApplicationSecret(), transportMasterKeyBytes)
         );
         VaultUnlockRequestPayload requestPayload = new VaultUnlockRequestPayload();
         requestPayload.setReason("TEST");
@@ -154,7 +154,7 @@ public class PowerAuthApiShared {
         eciesRequest.setMac(encryptedRequest.getMac());
         eciesRequest.setNonce(encryptedRequest.getNonce());
         eciesRequest.setTimestamp(encryptedRequest.getTimestamp());
-        eciesRequest.setTemporaryKeyId(temporaryKeyId);
+        eciesRequest.setTemporaryKeyId(temporaryKey != null ? temporaryKey.getId() : null);
         final byte[] requestBytes = OBJECT_MAPPER.writeValueAsBytes(eciesRequest);
         String normalizedData = PowerAuthHttpBody.getSignatureBaseString("POST", "/pa/signature/validate", nonceBytes, requestBytes);
         String normalizedDataWithSecret = normalizedData + "&" + config.getApplicationSecret();
@@ -231,18 +231,26 @@ public class PowerAuthApiShared {
         ActivationLayer2Request requestL2 = new ActivationLayer2Request();
         requestL2.setActivationName(activationName);
         requestL2.setDevicePublicKey(devicePublicKeyBase64);
-        final String temporaryKeyId = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.APPLICATION_SCOPE, config);
+        final TemporaryKey temporaryKey = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.APPLICATION_SCOPE, config);
         ClientEncryptor clientEncryptorL2 = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.ACTIVATION_LAYER_2,
-                new EncryptorParameters(version.value(), config.getApplicationKey(), null, temporaryKeyId),
-                new ClientEncryptorSecrets(config.getMasterPublicKey(), config.getApplicationSecret())
+                new EncryptorParameters(version.value(), config.getApplicationKey(), null, temporaryKey != null ? temporaryKey.getId() : null),
+                new ClientEncryptorSecrets(temporaryKey != null ? temporaryKey.getPublicKey() : config.getMasterPublicKey(), config.getApplicationSecret())
         );
         ByteArrayOutputStream baosL2 = new ByteArrayOutputStream();
         OBJECT_MAPPER.writeValue(baosL2, requestL2);
         EncryptedRequest encryptedRequestL2 = clientEncryptorL2.encryptRequest(baosL2.toByteArray());
-        CreateActivationResponse createResponse = powerAuthClient.createActivation(config.getUser(version), null,
-                null, config.getApplicationKey(), encryptedRequestL2.getEphemeralPublicKey(),
-                encryptedRequestL2.getEncryptedData(), encryptedRequestL2.getMac(), encryptedRequestL2.getNonce(), version.value(), encryptedRequestL2.getTimestamp());
+        final CreateActivationRequest activationRequest = new CreateActivationRequest();
+        activationRequest.setUserId(config.getUser(version));
+        activationRequest.setApplicationKey(config.getApplicationKey());
+        activationRequest.setEphemeralPublicKey(encryptedRequestL2.getEphemeralPublicKey());
+        activationRequest.setEncryptedData(encryptedRequestL2.getEncryptedData());
+        activationRequest.setMac(encryptedRequestL2.getMac());
+        activationRequest.setNonce(encryptedRequestL2.getNonce());
+        activationRequest.setTimestamp(encryptedRequestL2.getTimestamp());
+        activationRequest.setTemporaryKeyId(encryptedRequestL2.getTemporaryKeyId());
+        activationRequest.setProtocolVersion(version.value());
+        CreateActivationResponse createResponse = powerAuthClient.createActivation(activationRequest);
         String activationId = createResponse.getActivationId();
         assertNotNull(activationId);
         byte[] responseRaw = clientEncryptorL2.decryptResponse(new EncryptedResponse(
@@ -263,50 +271,83 @@ public class PowerAuthApiShared {
         SecretKey transportMasterKey = KEY_FACTORY.generateServerTransportKey(masterSecretKey);
         byte[] transportMasterKeyBytes = KEY_CONVERTOR.convertSharedSecretKeyToBytes(transportMasterKey);
         // Confirm recovery code
-        final String temporaryKeyId2 = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.ACTIVATION_SCOPE, config);
-        ClientEncryptor encryptorConfirmRC = ENCRYPTOR_FACTORY.getClientEncryptor(
-                EncryptorId.CONFIRM_RECOVERY_CODE,
-                new EncryptorParameters(version.value(), config.getApplicationKey(), activationId, temporaryKeyId2),
-                new ClientEncryptorSecrets(serverPublicKey, config.getApplicationSecret(), transportMasterKeyBytes)
-        );
-        ConfirmRecoveryRequestPayload confirmRequestPayload = new ConfirmRecoveryRequestPayload();
-        confirmRequestPayload.setRecoveryCode(recoveryCode);
+        final String activationIdOrig = config.getActivationId(version);
+        final String transportMasterKeyOrig = (String) config.getResultStatusObject(version).get("transportMasterKey");
+        final String serverPublicKeyOrig = (String) config.getResultStatusObject(version).get("serverPublicKey");
+        try {
+            config.setActivationId(activationId, version);
+            config.getResultStatusObject(version).put("transportMasterKey", Base64.getEncoder().encodeToString(transportMasterKeyBytes));
+            config.getResultStatusObject(version).put("serverPublicKey", responseL2.getServerPublicKey());
+            final TemporaryKey temporaryKey2 = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.ACTIVATION_SCOPE, config);
+            System.out.println(temporaryKey2);
+            System.out.println(temporaryKey2.getId());
+            System.out.println(new EncryptorParameters(version.value(), config.getApplicationKey(), activationId, temporaryKey2 != null ? temporaryKey2.getId() : null));
+            ClientEncryptor encryptorConfirmRC = ENCRYPTOR_FACTORY.getClientEncryptor(
+                    EncryptorId.CONFIRM_RECOVERY_CODE,
+                    new EncryptorParameters(version.value(), config.getApplicationKey(), activationId, temporaryKey2 != null ? temporaryKey2.getId() : null),
+                    new ClientEncryptorSecrets(temporaryKey2 != null ? temporaryKey2.getPublicKey() : serverPublicKey, config.getApplicationSecret(), transportMasterKeyBytes)
+            );
+            ConfirmRecoveryRequestPayload confirmRequestPayload = new ConfirmRecoveryRequestPayload();
+            confirmRequestPayload.setRecoveryCode(recoveryCode);
 
-        EncryptedRequest encryptedRequestConfirm = encryptorConfirmRC.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(confirmRequestPayload));
-        ConfirmRecoveryCodeResponse confirmResponse = powerAuthClient.confirmRecoveryCode(activationId, config.getApplicationKey(), encryptedRequestConfirm.getEphemeralPublicKey(),
-                encryptedRequestConfirm.getEncryptedData(), encryptedRequestConfirm.getMac(), encryptedRequestConfirm.getNonce(), version.value(), encryptedRequestConfirm.getTimestamp());
-        byte[] confirmResponseRaw = encryptorConfirmRC.decryptResponse(new EncryptedResponse(
-                confirmResponse.getEncryptedData(),
-                confirmResponse.getMac(),
-                confirmResponse.getNonce(),
-                confirmResponse.getTimestamp()
-        ));
-        final ConfirmRecoveryResponsePayload confirmResponsePayload = RestClientConfiguration.defaultMapper().readValue(confirmResponseRaw, ConfirmRecoveryResponsePayload.class);
-        assertTrue(confirmResponsePayload.isAlreadyConfirmed());
-        // Create recovery activation
-        KeyPair deviceKeyPairR = CLIENT_ACTIVATION.generateDeviceKeyPair();
-        byte[] devicePublicKeyBytesR = KEY_CONVERTOR.convertPublicKeyToBytes(deviceKeyPairR.getPublic());
-        String devicePublicKeyBase64R = Base64.getEncoder().encodeToString(devicePublicKeyBytesR);
-        ActivationLayer2Request requestL2R = new ActivationLayer2Request();
-        requestL2R.setActivationName(activationName + "_2");
-        requestL2R.setDevicePublicKey(devicePublicKeyBase64R);
-        // Note: we reuse clientEncryptorL2
-        ByteArrayOutputStream baosL2R = new ByteArrayOutputStream();
-        OBJECT_MAPPER.writeValue(baosL2R, requestL2R);
-        clientEncryptorL2.encryptRequest(baosL2R.toByteArray());
-        EncryptedRequest encryptedRequestL2R = clientEncryptorL2.encryptRequest(baosL2R.toByteArray());
-        RecoveryCodeActivationResponse createResponseR = powerAuthClient.createActivationUsingRecoveryCode(recoveryCode, recoveryPuk,
-                config.getApplicationKey(), null, encryptedRequestL2R.getEphemeralPublicKey(),
-                encryptedRequestL2R.getEncryptedData(), encryptedRequestL2R.getMac(), encryptedRequestL2R.getNonce(), version.value(), encryptedRequestL2R.getTimestamp());
-        String activationIdNew = createResponseR.getActivationId();
-        GetActivationStatusResponse statusResponseR1 = powerAuthClient.getActivationStatus(activationIdNew);
-        assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseR1.getActivationStatus());
-        CommitActivationResponse commitResponseR = powerAuthClient.commitActivation(activationIdNew, config.getUser(version));
-        assertTrue(commitResponseR.isActivated());
-        GetActivationStatusResponse statusResponseR2 = powerAuthClient.getActivationStatus(activationIdNew);
-        assertEquals(ActivationStatus.ACTIVE, statusResponseR2.getActivationStatus());
-        GetActivationStatusResponse statusResponseR3 = powerAuthClient.getActivationStatus(activationId);
-        assertEquals(ActivationStatus.REMOVED, statusResponseR3.getActivationStatus());
+            EncryptedRequest encryptedRequestConfirm = encryptorConfirmRC.encryptRequest(OBJECT_MAPPER.writeValueAsBytes(confirmRequestPayload));
+            final ConfirmRecoveryCodeRequest confirmRequest = new ConfirmRecoveryCodeRequest();
+            confirmRequest.setActivationId(activationId);
+            confirmRequest.setApplicationKey(config.getApplicationKey());
+            confirmRequest.setEphemeralPublicKey(encryptedRequestConfirm.getEphemeralPublicKey());
+            confirmRequest.setEncryptedData(encryptedRequestConfirm.getEncryptedData());
+            confirmRequest.setMac(encryptedRequestConfirm.getMac());
+            confirmRequest.setNonce(encryptedRequestConfirm.getNonce());
+            confirmRequest.setTimestamp(encryptedRequestConfirm.getTimestamp());
+            confirmRequest.setTemporaryKeyId(encryptedRequestConfirm.getTemporaryKeyId());
+            confirmRequest.setProtocolVersion(version.value());
+            ConfirmRecoveryCodeResponse confirmResponse = powerAuthClient.confirmRecoveryCode(confirmRequest);
+            byte[] confirmResponseRaw = encryptorConfirmRC.decryptResponse(new EncryptedResponse(
+                    confirmResponse.getEncryptedData(),
+                    confirmResponse.getMac(),
+                    confirmResponse.getNonce(),
+                    confirmResponse.getTimestamp()
+            ));
+            final ConfirmRecoveryResponsePayload confirmResponsePayload = RestClientConfiguration.defaultMapper().readValue(confirmResponseRaw, ConfirmRecoveryResponsePayload.class);
+            assertTrue(confirmResponsePayload.isAlreadyConfirmed());
+            // Create recovery activation
+            KeyPair deviceKeyPairR = CLIENT_ACTIVATION.generateDeviceKeyPair();
+            byte[] devicePublicKeyBytesR = KEY_CONVERTOR.convertPublicKeyToBytes(deviceKeyPairR.getPublic());
+            String devicePublicKeyBase64R = Base64.getEncoder().encodeToString(devicePublicKeyBytesR);
+            ActivationLayer2Request requestL2R = new ActivationLayer2Request();
+            requestL2R.setActivationName(activationName + "_2");
+            requestL2R.setDevicePublicKey(devicePublicKeyBase64R);
+            // Note: we reuse clientEncryptorL2
+            ByteArrayOutputStream baosL2R = new ByteArrayOutputStream();
+            OBJECT_MAPPER.writeValue(baosL2R, requestL2R);
+            clientEncryptorL2.encryptRequest(baosL2R.toByteArray());
+            EncryptedRequest encryptedRequestL2R = clientEncryptorL2.encryptRequest(baosL2R.toByteArray());
+            final RecoveryCodeActivationRequest activationRequestRecovery = new RecoveryCodeActivationRequest();
+            activationRequestRecovery.setRecoveryCode(recoveryCode);
+            activationRequestRecovery.setPuk(recoveryPuk);
+            activationRequestRecovery.setApplicationKey(config.getApplicationKey());
+            activationRequestRecovery.setEphemeralPublicKey(encryptedRequestL2R.getEphemeralPublicKey());
+            activationRequestRecovery.setEncryptedData(encryptedRequestL2R.getEncryptedData());
+            activationRequestRecovery.setMac(encryptedRequestL2R.getMac());
+            activationRequestRecovery.setNonce(encryptedRequestL2R.getNonce());
+            activationRequestRecovery.setTimestamp(encryptedRequestL2R.getTimestamp());
+            activationRequestRecovery.setTemporaryKeyId(encryptedRequestL2R.getTemporaryKeyId());
+            activationRequestRecovery.setProtocolVersion(version.value());
+            RecoveryCodeActivationResponse createResponseR = powerAuthClient.createActivationUsingRecoveryCode(activationRequestRecovery);
+            String activationIdNew = createResponseR.getActivationId();
+            GetActivationStatusResponse statusResponseR1 = powerAuthClient.getActivationStatus(activationIdNew);
+            assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseR1.getActivationStatus());
+            CommitActivationResponse commitResponseR = powerAuthClient.commitActivation(activationIdNew, config.getUser(version));
+            assertTrue(commitResponseR.isActivated());
+            GetActivationStatusResponse statusResponseR2 = powerAuthClient.getActivationStatus(activationIdNew);
+            assertEquals(ActivationStatus.ACTIVE, statusResponseR2.getActivationStatus());
+            GetActivationStatusResponse statusResponseR3 = powerAuthClient.getActivationStatus(activationId);
+            assertEquals(ActivationStatus.REMOVED, statusResponseR3.getActivationStatus());
+        } finally {
+            config.setActivationId(activationIdOrig, version);
+            config.getResultStatusObject(version).put("transportMasterKey", transportMasterKeyOrig);
+            config.getResultStatusObject(version).put("serverPublicKey", serverPublicKeyOrig);
+        }
     }
 
     // Activation flags are tested using PowerAuthActivationFlagsTest
@@ -316,11 +357,11 @@ public class PowerAuthApiShared {
         byte[] transportMasterKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "transportMasterKey"));
         byte[] serverPublicKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "serverPublicKey"));
         final PublicKey serverPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(serverPublicKeyBytes);
-        final String temporaryKeyId = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.ACTIVATION_SCOPE, config);
+        final TemporaryKey temporaryKey = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.ACTIVATION_SCOPE, config);
         final ClientEncryptor clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.CREATE_TOKEN,
-                new EncryptorParameters(version.value(), config.getApplicationKey(), config.getActivationId(version), temporaryKeyId),
-                new ClientEncryptorSecrets(serverPublicKey, config.getApplicationSecret(), transportMasterKeyBytes)
+                new EncryptorParameters(version.value(), config.getApplicationKey(), config.getActivationId(version), temporaryKey != null ? temporaryKey.getId() : null),
+                new ClientEncryptorSecrets(temporaryKey != null ? temporaryKey.getPublicKey() :serverPublicKey, config.getApplicationSecret(), transportMasterKeyBytes)
         );
         final EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest("{}".getBytes(StandardCharsets.UTF_8));
         final CreateTokenRequest tokenRequest = new CreateTokenRequest();
