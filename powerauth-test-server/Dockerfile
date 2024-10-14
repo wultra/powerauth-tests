@@ -21,7 +21,7 @@ RUN apt-get -y update  \
 
 # Install tomcat
 RUN curl -jkSL -o /tmp/apache-tomcat.tar.gz http://archive.apache.org/dist/tomcat/tomcat-${TOMCAT_MAJOR}/v${TOMCAT_VERSION}/bin/apache-tomcat-${TOMCAT_VERSION}.tar.gz \
-    && [ "919eb7b8d81ab6ba1c8634846509c0e9214c89c2645eb283c16701a7863502f65cd00549ec0c24ad4fc29dc64b3398dcca7440308715b7e0e8f06553c59a3449  /tmp/apache-tomcat.tar.gz" = "$(sha512sum /tmp/apache-tomcat.tar.gz)" ] \
+    && [ "0e3d423a843e2d9ba4f28a9f0a2f1073d5a1389557dfda041759f8df968bace63cd6948bd76df2727b5133ddb7c33e05dab43cea1d519ca0b6d519461152cce9  /tmp/apache-tomcat.tar.gz" = "$(sha512sum /tmp/apache-tomcat.tar.gz)" ] \
     && gunzip /tmp/apache-tomcat.tar.gz \
     && tar -C /opt -xf /tmp/apache-tomcat.tar \
     && ln -s /opt/apache-tomcat-$TOMCAT_VERSION $TOMCAT_HOME
