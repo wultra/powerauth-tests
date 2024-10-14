@@ -75,10 +75,6 @@ public class TemporaryKeyFetchUtil {
      * @throws Exception Thrown in case temporary key fetch fails.
      */
     public static TemporaryKey fetchTemporaryKey(PowerAuthVersion version, EncryptorScope scope, PowerAuthTestConfiguration config) throws Exception {
-        final RestClient restClient = RestClientFactory.getRestClient();
-        if (restClient == null) {
-            return null;
-        }
         if (version.useTemporaryKeys()) {
             return fetchTemporaryKeyImpl(version, scope, config);
         }
