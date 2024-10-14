@@ -17,32 +17,10 @@
  */
 package com.wultra.security.powerauth.test.shared.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
-import io.getlime.core.rest.model.base.response.ObjectResponse;
-import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
-import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.BaseStepModel;
-import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
-import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
-import io.getlime.security.powerauth.lib.cmd.steps.v3.SignAndEncryptStep;
-import org.junit.jupiter.api.AssertionFailureBuilder;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Base64;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * Utilities for verifying server responses dependent on protocol versions.

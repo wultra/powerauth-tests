@@ -43,6 +43,11 @@ import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * PowerAuth signature tests.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties

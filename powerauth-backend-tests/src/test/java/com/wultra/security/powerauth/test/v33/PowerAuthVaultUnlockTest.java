@@ -34,6 +34,11 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.HashMap;
 
+/**
+ * PowerAuth vault unlock tests.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties

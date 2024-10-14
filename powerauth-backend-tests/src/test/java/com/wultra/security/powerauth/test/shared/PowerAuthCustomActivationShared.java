@@ -49,6 +49,11 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Custom activation test shared logic.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 public class PowerAuthCustomActivationShared {
 
     public static void customActivationValidTest(PowerAuthClient powerAuthClient, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {

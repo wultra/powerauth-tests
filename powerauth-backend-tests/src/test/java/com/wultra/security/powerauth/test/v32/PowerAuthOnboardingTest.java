@@ -40,6 +40,11 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
+/**
+ * PowerAuth onboarding tests.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
