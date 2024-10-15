@@ -22,14 +22,16 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.enumeration.CallbackUrlType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.model.request.CreateCallbackUrlRequest;
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientFactory;
 import org.springframework.core.ParameterizedTypeReference;
 
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
@@ -39,12 +41,19 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  */
 public class PowerAuthCallbackShared {
 
-    public static void callbackExecutionTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, Integer port, String version) throws PowerAuthClientException, RestClientException {
+    public static void callbackExecutionTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, Integer port, PowerAuthVersion version) throws PowerAuthClientException, RestClientException {
         // Skip test when the tested PA server is not running on localhost
         assumeTrue(config.getPowerAuthRestUrl().contains("localhost:8080"));
-        String callbackName = UUID.randomUUID().toString();
-        String callbackUrlPost = "http://localhost:" + port + "/callback/post";
-        powerAuthClient.createCallbackUrl(config.getApplicationId(), callbackName, CallbackUrlType.ACTIVATION_STATUS_CHANGE, callbackUrlPost, Arrays.asList("activationId", "userId", "activationName", "deviceInfo", "platform", "activationFlags", "activationStatus", "blockedReason", "applicationId"), null);
+
+        final CreateCallbackUrlRequest pasCreateCallbackUrlRequest = new CreateCallbackUrlRequest();
+        pasCreateCallbackUrlRequest.setApplicationId(config.getApplicationId());
+        pasCreateCallbackUrlRequest.setName(UUID.randomUUID().toString());
+        pasCreateCallbackUrlRequest.setType(CallbackUrlType.ACTIVATION_STATUS_CHANGE);
+        pasCreateCallbackUrlRequest.setCallbackUrl("http://localhost:" + port + "/callback/post");
+        pasCreateCallbackUrlRequest.setAttributes(List.of("activationId", "userId", "activationName", "deviceInfo",
+                "platform", "activationFlags", "activationStatus", "blockedReason", "applicationId"));
+        powerAuthClient.createCallbackUrl(pasCreateCallbackUrlRequest);
+
         final GetCallbackUrlListResponse callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
         // Update activation status
         powerAuthClient.blockActivation(config.getActivationId(version), "TEST_CALLBACK", config.getUser(version));
@@ -61,10 +70,15 @@ public class PowerAuthCallbackShared {
         request.put("blockedReason", "TEST_CALLBACK");
         request.put("applicationId", config.getApplicationId());
         RestClientFactory.getRestClient().post(callbackUrlVerify, request, new ParameterizedTypeReference<String>() {});
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         powerAuthClient.unblockActivation(config.getActivationId(version), config.getUser(version));
         boolean callbackFound = false;
         for (CallbackUrl callback: callbacks.getCallbackUrlList()) {
-            if (callbackName.equals(callback.getName())) {
+            if (Objects.equals(pasCreateCallbackUrlRequest.getName(), callback.getName())) {
                 callbackFound = true;
                 powerAuthClient.removeCallbackUrl(callback.getId());
             }

@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.test;
 
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,13 +50,18 @@ public class PowerAuthConfigurationTest {
         assertNotEquals("", config.getApplicationKey());
         assertNotNull(config.getApplicationSecret());
         assertNotEquals("", config.getApplicationSecret());
-        assertNotNull(config.getActivationIdV3());
+        for (PowerAuthVersion version: PowerAuthVersion.values()) {
+            assertNotNull(config.getActivationId(version));
+        }
     }
 
     @Test
     public void activationSetUpTest() {
-        assertNotNull(config.getStatusFileV3());
-        assertNotNull(config.getResultStatusObjectV3());
+        for (PowerAuthVersion version: PowerAuthVersion.values()) {
+            assertNotNull(config.getStatusFile(version));
+            assertNotNull(config.getResultStatusObject(version));
+            assertNotNull(config.getUser(version));
+        }
     }
 
 }

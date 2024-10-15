@@ -21,6 +21,7 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthTokenShared;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
 import org.junit.jupiter.api.AfterAll;
@@ -40,12 +41,17 @@ import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * PowerAuth token tests.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 class PowerAuthTokenTest {
 
-    private static final String VERSION = "3.1";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_1;
 
     private PowerAuthTestConfiguration config;
     private PowerAuthClient powerAuthClient;
@@ -85,8 +91,8 @@ class PowerAuthTokenTest {
         model.setHeaders(new HashMap<>());
         model.setMasterPublicKey(config.getMasterPublicKey());
         model.setPassword(config.getPassword());
-        model.setResultStatusObject(config.getResultStatusObjectV31());
-        model.setStatusFileName(config.getStatusFileV31().getAbsolutePath());
+        model.setResultStatusObject(config.getResultStatusObject(VERSION));
+        model.setStatusFileName(config.getStatusFile(VERSION).getAbsolutePath());
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
         model.setVersion(VERSION);

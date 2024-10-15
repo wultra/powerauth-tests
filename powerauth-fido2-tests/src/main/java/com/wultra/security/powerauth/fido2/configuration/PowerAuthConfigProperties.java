@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 public class PowerAuthConfigProperties {
 
     private String baseUrl;
+    private String applicationId;
     private SecurityProperties security;
 
     public record SecurityProperties(String clientToken, String clientSecret) {}

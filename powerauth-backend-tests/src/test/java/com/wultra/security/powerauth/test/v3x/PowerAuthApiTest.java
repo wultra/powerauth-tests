@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.test.shared.PowerAuthApiShared;
 import io.getlime.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import io.getlime.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +46,7 @@ import java.security.spec.InvalidKeySpecException;
 @EnableConfigurationProperties
 class PowerAuthApiTest {
 
-    private static final String VERSION = "3.2";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_3;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -66,20 +67,20 @@ class PowerAuthApiTest {
     }
 
     @Test
-    void unlockVaultAndECDSASignatureTest() throws GenericCryptoException, CryptoProviderException, InvalidKeySpecException, EncryptorException, IOException, InvalidKeyException, PowerAuthClientException {
+    void unlockVaultAndECDSASignatureTest() throws Exception {
         PowerAuthApiShared.unlockVaultAndECDSASignatureTest(powerAuthClient, config, VERSION);
     }
 
     // createApplication and createApplication version tests are skipped to avoid creating too many applications
 
     @Test
-    void createValidateAndRemoveTokenTestActiveActivation() throws InvalidKeySpecException, CryptoProviderException, GenericCryptoException, IOException, EncryptorException, PowerAuthClientException {
+    void createValidateAndRemoveTokenTestActiveActivation() throws Exception {
         PowerAuthApiShared.createValidateAndRemoveTokenTestActiveActivation(powerAuthClient, config, VERSION);
     }
 
 
     @Test
-    void recoveryCodeConfirmAndActivationTest() throws CryptoProviderException, GenericCryptoException, IOException, EncryptorException, InvalidKeyException, InvalidKeySpecException, PowerAuthClientException {
+    void recoveryCodeConfirmAndActivationTest() throws Exception {
         PowerAuthApiShared.recoveryCodeConfirmAndActivationTest(powerAuthClient, config, VERSION);
     }
 

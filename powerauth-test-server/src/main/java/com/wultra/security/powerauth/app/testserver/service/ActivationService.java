@@ -98,6 +98,7 @@ public class ActivationService extends BaseService {
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setVersion(config.getVersion());
         model.setDeviceInfo("backend-tests");
+        model.setAdditionalActivationOtp(request.getActivationOtp());
 
         final ObjectStepLogger stepLogger;
         try {

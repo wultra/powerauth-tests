@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthCallbackShared;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,7 +47,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 class PowerAuthCallbackTest {
 
     // Test only in the latestPowerAuth protocol version
-    private static final String VERSION = "3.2";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_3;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;

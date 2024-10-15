@@ -34,5 +34,6 @@ public class CreateActivationRequest {
     private String activationName;
     private String password;
     private String activationCode;
+    private String activationOtp;
 
 }

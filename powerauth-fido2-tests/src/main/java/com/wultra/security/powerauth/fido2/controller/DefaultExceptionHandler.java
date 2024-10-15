@@ -21,11 +21,15 @@ package com.wultra.security.powerauth.fido2.controller;
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
 import io.getlime.core.rest.model.base.response.ObjectResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.util.stream.Collectors;
 
 /**
  * Controller to handle exceptions.
@@ -45,6 +49,19 @@ public class DefaultExceptionHandler {
         error.setCode("ERROR");
         error.setMessage(ex.getMessage());
         error.setLocalizedMessage(ex.getLocalizedMessage());
+        return new ObjectResponse<>("ERROR", error);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public @ResponseBody ObjectResponse<PowerAuthError> handleMethodArgumentNotValidException(MethodArgumentNotValidException ex) {
+        logger.error("Error occurred while processing the request: {}", ex.getMessage());
+        logger.debug("Exception details:", ex);
+        final PowerAuthError error = new PowerAuthError();
+        error.setCode("ERROR");
+        error.setMessage(ex.getBindingResult().getFieldErrors().stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .collect(Collectors.joining(" ")));
         return new ObjectResponse<>("ERROR", error);
     }
 

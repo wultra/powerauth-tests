@@ -49,18 +49,18 @@ function createOperationParameter() {
     key.type = "text";
     key.id = "key" + count;
     key.placeholder = "Key";
-    key.class = "form-control";
+    key.className += ("form-control input-text");
     key.style.width = "50%";
 
     const value = document.createElement("input");
     value.type = "text";
     value.id = "value" + count;
     value.placeholder = "Value";
-    value.class = "form-control";
+    value.className += ("form-control input-text");
     value.style.width = "50%";
 
     const div = document.createElement("div");
-    div.class = "form-group input-group";
+    div.className += ("form-group input-group");
     div.style.width = "100%";
 
     operationParamKeys[count] = key;
@@ -90,7 +90,7 @@ $(function() {
 
     // Set action on Logout button click
     $('#logoutBtn').click(function(){
-        window.location.href = SERVLET_CONTEXT_PATH + "/logout";
+        window.location.href = SERVLET_CONTEXT_PATH + "/logout" + QUERY_PARAMS;
     });
 
     // Set action on Add operation parameter button click
