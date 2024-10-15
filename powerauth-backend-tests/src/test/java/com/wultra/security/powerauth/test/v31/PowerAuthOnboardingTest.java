@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthOnboardingShared;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
@@ -39,13 +40,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
+/**
+ * PowerAuth onboarding tests.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 @EnabledIf(expression = "${powerauth.test.includeCustomTests}", loadContext = true)
 class PowerAuthOnboardingTest {
 
-    private static final String VERSION = "3.1";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_1;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -70,12 +76,12 @@ class PowerAuthOnboardingTest {
         encryptModel.setApplicationSecret(config.getApplicationSecret());
         encryptModel.setMasterPublicKey(config.getMasterPublicKey());
         encryptModel.setHeaders(new HashMap<>());
-        encryptModel.setResultStatusObject(config.getResultStatusObjectV31());
+        encryptModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         encryptModel.setVersion(VERSION);
         encryptModel.setScope("application");
 
         // Create temp status file
-        File tempStatusFile = File.createTempFile("pa_status_v" + VERSION.replace(".", ""), ".json");
+        File tempStatusFile = File.createTempFile("pa_status_" + VERSION, ".json");
         final JSONObject resultStatusObject = new JSONObject();
 
         // Model shared among tests

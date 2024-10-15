@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthIdentityVerificationShared;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.*;
 import org.json.simple.JSONObject;
@@ -39,13 +40,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 
+/**
+ * PowerAuth identity verification tests.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 @EnabledIf(expression = "${powerauth.test.includeCustomTests}", loadContext = true)
 class PowerAuthIdentityVerificationTest {
 
-    private static final String VERSION = "3.2";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_2;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -66,7 +72,7 @@ class PowerAuthIdentityVerificationTest {
     @BeforeEach
     void setUp() throws IOException {
         // Create temp status file
-        File tempStatusFile = File.createTempFile("pa_status_v" + VERSION.replace(".", ""), ".json");
+        File tempStatusFile = File.createTempFile("pa_status_" + VERSION, ".json");
 
         // Create result status object
         final JSONObject resultStatusObject = new JSONObject();

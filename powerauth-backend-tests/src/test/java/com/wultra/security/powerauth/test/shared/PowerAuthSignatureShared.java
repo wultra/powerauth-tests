@@ -34,6 +34,7 @@ import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.crypto.lib.generator.KeyGenerator;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
 import io.getlime.security.powerauth.http.PowerAuthHttpBody;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
@@ -133,7 +134,7 @@ public class PowerAuthSignatureShared {
 
     }
 
-    public static void signatureBlockedActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final String version) throws Exception {
+    public static void signatureBlockedActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final PowerAuthVersion version) throws Exception {
         powerAuthClient.blockActivation(config.getActivationId(version), "test", "test");
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
@@ -178,8 +179,8 @@ public class PowerAuthSignatureShared {
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
-    public static void signatureEmptyDataTest(final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
-        File dataFile = File.createTempFile("data_empty_v" + version, ".json");
+    public static void signatureEmptyDataTest(final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+        File dataFile = File.createTempFile("data_empty" + version, ".json");
         dataFile.deleteOnExit();
         FileWriter fw = new FileWriter(dataFile);
         fw.close();
@@ -253,7 +254,7 @@ public class PowerAuthSignatureShared {
         assertEquals("OK", responseOK.getStatus());
     }
 
-    public static void signatureMaxFailedAttemptsTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final String version) throws Exception {
+    public static void signatureMaxFailedAttemptsTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final PowerAuthVersion version) throws Exception {
         // Create temp status file
         File tempStatusFile = File.createTempFile("pa_status", ".json");
         tempStatusFile.deleteOnExit();
@@ -327,7 +328,7 @@ public class PowerAuthSignatureShared {
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
-    public static void signatureLookAheadTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final String version) throws Exception {
+    public static void signatureLookAheadTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final PowerAuthVersion version) throws Exception {
         // Create temp status file
         File tempStatusFile = File.createTempFile("pa_status_lookahead", ".json");
         tempStatusFile.deleteOnExit();
@@ -420,8 +421,8 @@ public class PowerAuthSignatureShared {
         }
     }
 
-    public static void signatureLargeDataTest(final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
-        final File dataFileLarge = File.createTempFile("data_large_v" + version, ".dat");
+    public static void signatureLargeDataTest(final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+        final File dataFileLarge = File.createTempFile("data_large" + version, ".dat");
         dataFileLarge.deleteOnExit();
         final FileWriter fw = new FileWriter(dataFileLarge);
         final RandomStringGenerator randomStringGenerator =
@@ -443,7 +444,7 @@ public class PowerAuthSignatureShared {
         assertEquals("OK", responseOK.getStatus());
     }
 
-    public static void signatureOfflinePersonalizedValidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
+    public static void signatureOfflinePersonalizedValidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         final CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(
                 config.getActivationId(version), offlineData);
         String nonce = offlineResponse.getNonce();
@@ -504,7 +505,7 @@ public class PowerAuthSignatureShared {
         CounterUtil.incrementCounter(model);
     }
 
-    public static void signatureOfflinePersonalizedInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
+    public static void signatureOfflinePersonalizedInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
 
         CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(
                 config.getActivationId(version), offlineData);
@@ -568,7 +569,7 @@ public class PowerAuthSignatureShared {
         assertEquals(config.getApplicationId(), signatureResponse.getApplicationId());
     }
 
-    public static void signatureOfflineNonPersonalizedValidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
+    public static void signatureOfflineNonPersonalizedValidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         CreateNonPersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(
                 config.getApplicationId(), offlineData);
         String nonce = offlineResponse.getNonce();
@@ -627,7 +628,7 @@ public class PowerAuthSignatureShared {
         CounterUtil.incrementCounter(model);
     }
 
-    public static void signatureOfflineNonPersonalizedInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
+    public static void signatureOfflineNonPersonalizedInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         CreateNonPersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(
                 config.getApplicationId(), offlineData);
         String nonce = offlineResponse.getNonce();
@@ -729,11 +730,11 @@ public class PowerAuthSignatureShared {
         model.setResourceId("/pa/signature/validate");
     }
 
-    public static void testSignatureOfflinePersonalizedProximityCheckValid(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
+    public static void testSignatureOfflinePersonalizedProximityCheckValid(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         testSignatureOfflinePersonalizedProximityCheck(powerAuthClient, config, model, stepLogger, version, true);
     }
 
-    public static void testSignatureOfflinePersonalizedProximityCheckInvalid(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
+    public static void testSignatureOfflinePersonalizedProximityCheckInvalid(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         testSignatureOfflinePersonalizedProximityCheck(powerAuthClient, config, model, stepLogger, version, false);
     }
 
@@ -743,7 +744,7 @@ public class PowerAuthSignatureShared {
         assertTrue("Signature validation failed".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_SIGNATURE_INVALID".equals(errorResponse.getResponseObject().getMessage()));
     }
 
-    private static void testSignatureOfflinePersonalizedProximityCheck(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final String version, final boolean expectedResult) throws Exception {
+    private static void testSignatureOfflinePersonalizedProximityCheck(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version, final boolean expectedResult) throws Exception {
         final String seed = "LtxE0f0RWNx3hy7ISjUPWA==";
 
         final CreatePersonalizedOfflineSignaturePayloadRequest request = new CreatePersonalizedOfflineSignaturePayloadRequest();

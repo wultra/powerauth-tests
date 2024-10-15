@@ -25,12 +25,13 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.client.model.request.CreateCallbackUrlRequest;
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.util.RestClientFactory;
 import org.springframework.core.ParameterizedTypeReference;
 
 import java.util.*;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
@@ -40,7 +41,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  */
 public class PowerAuthCallbackShared {
 
-    public static void callbackExecutionTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, Integer port, String version) throws PowerAuthClientException, RestClientException {
+    public static void callbackExecutionTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, Integer port, PowerAuthVersion version) throws PowerAuthClientException, RestClientException {
         // Skip test when the tested PA server is not running on localhost
         assumeTrue(config.getPowerAuthRestUrl().contains("localhost:8080"));
 
@@ -69,6 +70,11 @@ public class PowerAuthCallbackShared {
         request.put("blockedReason", "TEST_CALLBACK");
         request.put("applicationId", config.getApplicationId());
         RestClientFactory.getRestClient().post(callbackUrlVerify, request, new ParameterizedTypeReference<String>() {});
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         powerAuthClient.unblockActivation(config.getActivationId(version), config.getUser(version));
         boolean callbackFound = false;
         for (CallbackUrl callback: callbacks.getCallbackUrlList()) {

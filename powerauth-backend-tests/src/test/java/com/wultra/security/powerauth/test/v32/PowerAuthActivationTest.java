@@ -21,7 +21,7 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthActivationShared;
-import io.getlime.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AfterEach;
@@ -39,12 +39,17 @@ import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * PowerAuth activation tests.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 class PowerAuthActivationTest {
 
-    private static final String VERSION = "3.2";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_2;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -64,7 +69,7 @@ class PowerAuthActivationTest {
     @BeforeEach
     void setUp() throws IOException {
         // Create temp status file
-        tempStatusFile = File.createTempFile("pa_status_v" + VERSION.replace(".", ""), ".json");
+        tempStatusFile = File.createTempFile("pa_status_" + VERSION, ".json");
 
         // Model shared among tests
         model = new PrepareActivationStepModel();

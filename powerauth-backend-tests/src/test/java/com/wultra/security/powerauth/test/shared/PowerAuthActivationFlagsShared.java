@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.LookupActivationsRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
@@ -42,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 public class PowerAuthActivationFlagsShared {
 
-    public static void activationFlagCrudTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PrepareActivationStepModel model, String version) throws Exception {
+    public static void activationFlagCrudTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PrepareActivationStepModel model, PowerAuthVersion version) throws Exception {
         // Init activation
         final InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -84,7 +85,7 @@ public class PowerAuthActivationFlagsShared {
         assertEquals(Arrays.asList("FLAG3", "FLAG4"), listResponse4.getActivationFlags());
     }
 
-    public static void activationFlagLookupTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PrepareActivationStepModel model, String version) throws Exception {
+    public static void activationFlagLookupTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PrepareActivationStepModel model, PowerAuthVersion version) throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
@@ -134,7 +135,7 @@ public class PowerAuthActivationFlagsShared {
         assertTrue(response5.getActivations().isEmpty());
     }
 
-    public static void activationProviderFlagTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, File tempStatusFile, int port, String version) throws Exception {
+    public static void activationProviderFlagTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, File tempStatusFile, int port, PowerAuthVersion version) throws Exception {
         // Create custom activation with test provider
         CreateActivationStepModel model = new CreateActivationStepModel();
         model.setActivationName("test v" + version);

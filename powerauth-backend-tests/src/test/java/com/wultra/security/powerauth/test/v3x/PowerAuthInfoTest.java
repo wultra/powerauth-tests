@@ -19,6 +19,7 @@ package com.wultra.security.powerauth.test.v3x;
 
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthInfoShared;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +43,7 @@ import java.util.HashMap;
 @EnabledIf(expression = "${powerauth.test.includeCustomTests}", loadContext = true)
 class PowerAuthInfoTest {
 
-    private final static String VERSION = "3.2";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_3;
 
     @Autowired
     private PowerAuthTestConfiguration config;
@@ -56,7 +57,7 @@ class PowerAuthInfoTest {
         encryptModel.setApplicationSecret(config.getApplicationSecret());
         encryptModel.setMasterPublicKey(config.getMasterPublicKey());
         encryptModel.setHeaders(new HashMap<>());
-        encryptModel.setResultStatusObject(config.getResultStatusObjectV32());
+        encryptModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         encryptModel.setVersion(VERSION);
     }
 
