@@ -23,13 +23,15 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
 import com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.model.TemporaryKey;
+import com.wultra.security.powerauth.test.shared.util.TemporaryKeyFetchUtil;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import io.getlime.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
-import io.getlime.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
+import io.getlime.security.powerauth.crypto.lib.encryptor.model.EncryptorScope;
 import io.getlime.security.powerauth.crypto.lib.encryptor.model.v3.ClientEncryptorSecrets;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
@@ -473,11 +475,12 @@ public class PowerAuthEncryptionShared {
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
-    public static void replayAttackEciesDecryptorTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, PowerAuthVersion version) throws EncryptorException, PowerAuthClientException {
+    public static void replayAttackEciesDecryptorTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, PowerAuthVersion version) throws Exception {
+        final TemporaryKey temporaryKey = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.APPLICATION_SCOPE, config);
         String requestData = "test_data";
         ClientEncryptor clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.APPLICATION_SCOPE_GENERIC,
-                new EncryptorParameters(version.value(), config.getApplicationKey(), null, null),
+                new EncryptorParameters(version.value(), config.getApplicationKey(), null, temporaryKey != null ? temporaryKey.getId() : null),
                 new ClientEncryptorSecrets(config.getMasterPublicKey(), config.getApplicationSecret())
         );
         EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
@@ -488,6 +491,7 @@ public class PowerAuthEncryptionShared {
         eciesDecryptorRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
         eciesDecryptorRequest.setNonce(encryptedRequest.getNonce());
         eciesDecryptorRequest.setTimestamp(encryptedRequest.getTimestamp());
+        eciesDecryptorRequest.setTemporaryKeyId(temporaryKey != null ? temporaryKey.getId() : null);
         GetEciesDecryptorResponse decryptorResponse = powerAuthClient.getEciesDecryptor(eciesDecryptorRequest);
         assertNotNull(decryptorResponse.getSecretKey());
         assertNotNull(decryptorResponse.getSharedInfo2());
