@@ -92,6 +92,7 @@ public class PowerAuthActivationCodeTest {
         signatureModel.setHeaders(new HashMap<>());
         signatureModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         signatureModel.setResultStatusObject(config.getResultStatusObject(VERSION));
+        signatureModel.setBaseUriString(config.getPowerAuthIntegrationUrl());
         signatureModel.setVersion(VERSION);
         signatureModel.setDryRun(false);
 

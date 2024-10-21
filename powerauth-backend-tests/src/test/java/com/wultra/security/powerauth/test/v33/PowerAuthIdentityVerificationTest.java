@@ -83,6 +83,7 @@ class PowerAuthIdentityVerificationTest {
         encryptModel.setMasterPublicKey(config.getMasterPublicKey());
         encryptModel.setHeaders(new HashMap<>());
         encryptModel.setResultStatusObject(resultStatusObject);
+        encryptModel.setBaseUriString(config.getPowerAuthIntegrationUrl());
         encryptModel.setVersion(VERSION);
 
         VerifySignatureStepModel signatureModel = new VerifySignatureStepModel();
@@ -94,6 +95,7 @@ class PowerAuthIdentityVerificationTest {
         signatureModel.setResultStatusObject(resultStatusObject);
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
         signatureModel.setStatusFileName(tempStatusFile.getAbsolutePath());
+        signatureModel.setBaseUriString(config.getPowerAuthIntegrationUrl());
         signatureModel.setVersion(VERSION);
 
         TokenAndEncryptStepModel tokenAndEncryptModel = new TokenAndEncryptStepModel();
@@ -102,6 +104,7 @@ class PowerAuthIdentityVerificationTest {
         tokenAndEncryptModel.setHeaders(new HashMap<>());
         tokenAndEncryptModel.setHttpMethod("POST");
         tokenAndEncryptModel.setResultStatusObject(resultStatusObject);
+        tokenAndEncryptModel.setBaseUriString(config.getPowerAuthIntegrationUrl());
         tokenAndEncryptModel.setVersion(VERSION);
 
         VerifyTokenStepModel tokenModel = new VerifyTokenStepModel();

@@ -97,6 +97,7 @@ class PowerAuthEncryptionTest {
         encryptModel.setMasterPublicKey(config.getMasterPublicKey());
         encryptModel.setHeaders(new HashMap<>());
         encryptModel.setResultStatusObject(config.getResultStatusObject(VERSION));
+        encryptModel.setBaseUriString(config.getPowerAuthIntegrationUrl());
         encryptModel.setVersion(VERSION);
 
         signatureModel = new VerifySignatureStepModel();
@@ -110,6 +111,7 @@ class PowerAuthEncryptionTest {
         signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
         signatureModel.setStatusFileName(config.getStatusFile(VERSION).getAbsolutePath());
         signatureModel.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
+        signatureModel.setBaseUriString(config.getPowerAuthIntegrationUrl());
         signatureModel.setVersion(VERSION);
 
         stepLogger = new ObjectStepLogger(System.out);
