@@ -27,6 +27,7 @@ import com.wultra.security.powerauth.client.model.request.OperationTemplateCreat
 import com.wultra.security.powerauth.client.model.request.UpdateRecoveryConfigRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
@@ -62,9 +63,13 @@ public class PowerAuthTestSetUp {
 
     public void execute() throws Exception {
         createApplication();
-        createActivationV32();
-        createActivationV31();
-        createActivationV3();
+        Arrays.stream(PowerAuthVersion.values()).forEach(version -> {
+            try {
+                createActivation(version);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
         createOperationTemplates();
     }
 
@@ -140,92 +145,26 @@ public class PowerAuthTestSetUp {
         }
     }
 
-    private void createActivationV32() throws Exception {
-        // Init activation
-        final InitActivationRequest initRequest = new InitActivationRequest();
-        initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV32());
-        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
-
-        // Prepare activation
-        PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationCode(initResponse.getActivationCode());
-        model.setActivationName("test v32");
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(config.getStatusFileV32().getAbsolutePath());
-        model.setResultStatusObject(config.getResultStatusObjectV32());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.2");
-        model.setDeviceInfo("backend-tests");
-
-        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
-        new PrepareActivationStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().success());
-
-        // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
-        assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
-
-        config.setActivationIdV32(initResponse.getActivationId());
-    }
-
-    private void createActivationV31() throws Exception {
-        // Init activation
-        final InitActivationRequest initRequest = new InitActivationRequest();
-        initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV31());
-        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
-
-        // Prepare activation
-        PrepareActivationStepModel model = new PrepareActivationStepModel();
-        model.setActivationCode(initResponse.getActivationCode());
-        model.setActivationName("test v31");
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(config.getStatusFileV31().getAbsolutePath());
-        model.setResultStatusObject(config.getResultStatusObjectV31());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.1");
-        model.setDeviceInfo("backend-tests");
-
-        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
-        new PrepareActivationStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().success());
-
-        // Commit activation
-        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
-        assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
-
-        config.setActivationIdV31(initResponse.getActivationId());
-    }
-
-    private void createActivationV3() throws Exception {
+    private void createActivation(PowerAuthVersion version) throws Exception {
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
         initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUserV3());
+        initRequest.setUserId(config.getUser(version));
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Prepare activation
         PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(initResponse.getActivationCode());
-        model.setActivationName("test v3");
+        model.setActivationName("test v" + version);
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKey(config.getMasterPublicKey());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
-        model.setStatusFileName(config.getStatusFileV3().getAbsolutePath());
-        model.setResultStatusObject(config.getResultStatusObjectV3());
+        model.setStatusFileName(config.getStatusFile(version).getAbsolutePath());
+        model.setResultStatusObject(config.getResultStatusObject(version));
         model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion("3.0");
+        model.setVersion(version);
         model.setDeviceInfo("backend-tests");
 
         ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
@@ -236,7 +175,7 @@ public class PowerAuthTestSetUp {
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
-        config.setActivationIdV3(initResponse.getActivationId());
+        config.setActivationId(initResponse.getActivationId(), version);
     }
 
 }

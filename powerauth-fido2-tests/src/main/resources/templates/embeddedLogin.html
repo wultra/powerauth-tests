@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PowerAuth & FIDO2 Demo | Wultra</title>
+
+    <link rel="stylesheet" th:href="@{/resources/css/wultra-theme.min.css}">
+    <link rel="stylesheet" th:href="@{/resources/css/wultra-login.css}">
+    <link rel="shortcut icon" type="image/png" th:href="@{/resources/images/favicon.png}"/>
+
+    <!-- API Path Context of the spring controller -->
+    <script>
+        const SERVLET_CONTEXT_PATH = "[[${servletContextPath}]]";
+        const QUERY_PARAMS = "?embedded=true";
+    </script>
+    <script th:src="@{/resources/js/jquery.min.js}"></script>
+    <script th:src="@{/resources/js/webauthn.js}"></script>
+    <script th:src="@{/resources/js/login.js}"></script>
+</head>
+<body style="background: transparent">
+
+<div class="form-wrapper" th:insert="~{forms/loginForm.html}">
+</div>
+
+</body>
+</html>

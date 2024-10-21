@@ -1,13 +1,14 @@
 # Developer - How to Start Guide
 
+## PowerAuth Test Server
 
-## Standalone Run
+### Standalone Run
 
 - Use IntelliJ Idea run configuration at `../.run/TestServerApplication.run.xml`
-- Open [http://localhost:8080/actuator/health](http://localhost:8080/actuator/health) and you should get `{"status":"UP"}`
+- Open [http://localhost:8081/actuator/health](http://localhost:8081/actuator/health) and you should get `{"status":"UP"}`
 
 
-## Database
+### Database
 
 Database changes are driven by Liquibase.
 

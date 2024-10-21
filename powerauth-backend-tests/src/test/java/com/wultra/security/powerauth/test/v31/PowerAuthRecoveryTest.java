@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.test.v31;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthRecoveryShared;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,12 +35,17 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * PowerAuth activation recovery tests.
+ *
+ * @author Roman Strobl, roman.strobl@wultra.com
+ */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
 class PowerAuthRecoveryTest {
 
-    private static final String VERSION = "3.1";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_1;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -58,7 +64,7 @@ class PowerAuthRecoveryTest {
     @BeforeEach
     void setUp() throws IOException {
         // Create temp status file
-        tempStatusFile = File.createTempFile("pa_status_recovery_v" + VERSION.replace(".", ""), ".json");
+        tempStatusFile = File.createTempFile("pa_status_recovery_" + VERSION, ".json");
     }
 
     @AfterEach
