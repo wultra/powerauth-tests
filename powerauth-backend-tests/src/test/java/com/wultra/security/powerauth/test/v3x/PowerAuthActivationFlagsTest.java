@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.test.v3x;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthActivationFlagsShared;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AfterEach;
@@ -51,7 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class PowerAuthActivationFlagsTest {
 
     // Test only in the latestPowerAuth protocol version
-    private static final String VERSION = "3.2";
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_3;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -74,7 +75,7 @@ public class PowerAuthActivationFlagsTest {
     @BeforeEach
     void setUp() throws IOException {
         // Create temp status file
-        tempStatusFile = File.createTempFile("pa_status_v" + VERSION.replace(".", ""), ".json");
+        tempStatusFile = File.createTempFile("pa_status_" + VERSION, ".json");
 
         // Model shared among tests
         model = new PrepareActivationStepModel();

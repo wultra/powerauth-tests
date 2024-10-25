@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import io.getlime.security.powerauth.lib.cmd.steps.VerifyTokenStep;
@@ -46,7 +47,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthTokenShared {
 
-    public static void tokenCreateAndVerifyTest(final PowerAuthTestConfiguration config, final CreateTokenStepModel model, final File dataFile, final String version) throws Exception {
+    public static void tokenCreateAndVerifyTest(final PowerAuthTestConfiguration config, final CreateTokenStepModel model, final File dataFile, final PowerAuthVersion version) throws Exception {
         ObjectStepLogger stepLogger1 = new ObjectStepLogger();
         new CreateTokenStep().execute(stepLogger1, model.toMap());
         assertTrue(stepLogger1.getResult().success());
@@ -98,7 +99,7 @@ public class PowerAuthTokenShared {
         checkSignatureError(errorResponse);
     }
 
-    public static void tokenVerifyInvalidTokenTest(final PowerAuthTestConfiguration config, final File dataFile, final String version) throws Exception {
+    public static void tokenVerifyInvalidTokenTest(final PowerAuthTestConfiguration config, final File dataFile, final PowerAuthVersion version) throws Exception {
         VerifyTokenStepModel modelVerify = new VerifyTokenStepModel();
         modelVerify.setTokenId("test");
         modelVerify.setTokenSecret("test");
@@ -120,7 +121,7 @@ public class PowerAuthTokenShared {
         checkSignatureError(errorResponse);
     }
 
-    public static void tokenVerifyRemovedTokenTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final CreateTokenStepModel model, final File dataFile, final String version) throws Exception {
+    public static void tokenVerifyRemovedTokenTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final CreateTokenStepModel model, final File dataFile, final PowerAuthVersion version) throws Exception {
         ObjectStepLogger stepLogger1 = new ObjectStepLogger();
         new CreateTokenStep().execute(stepLogger1, model.toMap());
         assertTrue(stepLogger1.getResult().success());
@@ -163,7 +164,7 @@ public class PowerAuthTokenShared {
         checkSignatureError(errorResponse);
     }
 
-    public static void tokenCreateBlockedActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final CreateTokenStepModel model, final String version) throws Exception {
+    public static void tokenCreateBlockedActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final CreateTokenStepModel model, final PowerAuthVersion version) throws Exception {
         powerAuthClient.blockActivation(config.getActivationId(version), "test", "test");
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
@@ -190,7 +191,11 @@ public class PowerAuthTokenShared {
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new CreateTokenStep().execute(stepLogger1, model.toMap());
         assertFalse(stepLogger1.getResult().success());
-        assertEquals(401, stepLogger1.getResponse().statusCode());
+        if (model.getVersion().useTemporaryKeys()) {
+            assertEquals(400, stepLogger1.getResponse().statusCode());
+        } else {
+            assertEquals(401, stepLogger1.getResponse().statusCode());
+        }
 
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().responseObject().toString(), ErrorResponse.class);
@@ -221,8 +226,8 @@ public class PowerAuthTokenShared {
     }
 
     private static void checkSignatureError(final ErrorResponse errorResponse) {
-        // Errors differ when Web Flow is used because of its Exception handler
-        assertTrue("POWERAUTH_AUTH_FAIL".equals(errorResponse.getResponseObject().getCode()) || "ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()));
+        // Errors differ when Web Flow is used because of its Exception handler, for protocol version 3.3 temporary key error is present
+        assertTrue("POWERAUTH_AUTH_FAIL".equals(errorResponse.getResponseObject().getCode()) || "ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()) || "ERR_TEMPORARY_KEY".equals(errorResponse.getResponseObject().getCode()));
     }
 
     private static String getTokenUri(final PowerAuthTestConfiguration config) {

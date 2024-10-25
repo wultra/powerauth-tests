@@ -18,6 +18,7 @@
 
 package com.wultra.security.powerauth.fido2.controller.request;
 
+import com.wultra.security.powerauth.fido2.controller.validation.EmailConditional;
 import jakarta.validation.constraints.NotBlank;
 
 /**
@@ -26,7 +27,7 @@ import jakarta.validation.constraints.NotBlank;
  * @author Jan Pesek, jan.pesek@wultra.com
  */
 public record RegistrationOptionsRequest(
-    @NotBlank
+    @NotBlank @EmailConditional
     String userId,
 
     @NotBlank

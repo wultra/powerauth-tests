@@ -14,11 +14,19 @@ the PowerAuth Server on the [Developer Portal](https://developers.wultra.com/com
 
 ## Configuration Properties
 
+### PowerAuth FIDO2 Tests Configuration
+
+| Property                                            | Default | Note                                                      |
+|-----------------------------------------------------|---------|-----------------------------------------------------------|
+| `powerauth.fido2.test.service.hideDeveloperOptions` | `false` | Whether to hide advanced settings in the UI.              |
+| `powerauth.fido2.test.service.emailAddressRequired` | `false` | Whether to require email address instead of any username. |
+
 ### PowerAuth Service Configuration
 
 | Property                                  | Default                                       | Note                                      |
 |-------------------------------------------|-----------------------------------------------|-------------------------------------------|
 | `powerauth.service.baseUrl`               | `http://localhost:8080/powerauth-java-server` | PowerAuth service REST API base URL.      | 
+| `powerauth.service.applicationId`         |                                               | Set default application ID to use.        |
 | `powerauth.service.security.clientToken`  |                                               | PowerAuth REST API authentication token.  | 
 | `powerauth.service.security.clientSecret` |                                               | PowerAuth REST API authentication secret. |
 

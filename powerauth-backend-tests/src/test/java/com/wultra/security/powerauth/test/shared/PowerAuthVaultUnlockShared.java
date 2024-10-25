@@ -25,6 +25,7 @@ import io.getlime.core.rest.model.base.response.ErrorResponse;
 import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import io.getlime.security.powerauth.crypto.lib.util.SignatureUtils;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.v3.VaultUnlockStep;
@@ -108,7 +109,7 @@ public class PowerAuthVaultUnlockShared {
         assertEquals(400, stepLogger.getResponse().statusCode());
     }
 
-    public static void vaultUnlockBlockedActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final String version) throws Exception {
+    public static void vaultUnlockBlockedActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final PowerAuthVersion version) throws Exception {
         powerAuthClient.blockActivation(config.getActivationId(version), "test", "test");
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
@@ -135,7 +136,11 @@ public class PowerAuthVaultUnlockShared {
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
         new VaultUnlockStep().execute(stepLogger1, model.toMap());
         assertFalse(stepLogger1.getResult().success());
-        assertEquals(401, stepLogger1.getResponse().statusCode());
+        if (model.getVersion().useTemporaryKeys()) {
+            assertEquals(400, stepLogger1.getResponse().statusCode());
+        } else {
+            assertEquals(401, stepLogger1.getResponse().statusCode());
+        }
 
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().responseObject().toString(), ErrorResponse.class);
@@ -179,8 +184,8 @@ public class PowerAuthVaultUnlockShared {
         assertEquals("POWER_AUTH_SECURE_VAULT_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
-    public static void vaultUnlockAndECDSASignatureValidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
-        final byte[] dataBytes = ("test_data_v" + version).getBytes(StandardCharsets.UTF_8);
+    public static void vaultUnlockAndECDSASignatureValidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+        final byte[] dataBytes = ("test_data" + version).getBytes(StandardCharsets.UTF_8);
         final String data = Base64.getEncoder().encodeToString(dataBytes);
 
         final PrivateKey devicePrivateKey = obtainDevicePrivateKeyUsingVaultUnlock(stepLogger, model, config);
@@ -191,20 +196,20 @@ public class PowerAuthVaultUnlockShared {
         assertTrue(verifyResponse.isSignatureValid());
     }
 
-    public static void vaultUnlockAndECDSASignatureInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
-        final byte[] dataBytes = ("test_data_v" + version).getBytes(StandardCharsets.UTF_8);
+    public static void vaultUnlockAndECDSASignatureInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+        final byte[] dataBytes = ("test_data" + version).getBytes(StandardCharsets.UTF_8);
         final String data = Base64.getEncoder().encodeToString(dataBytes);
 
         final PrivateKey devicePrivateKey = obtainDevicePrivateKeyUsingVaultUnlock(stepLogger, model, config);
 
         final byte[] signature = SIGNATURE_UTILS.computeECDSASignature("test_data_crippled".getBytes(StandardCharsets.UTF_8), devicePrivateKey);
 
-        final VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(config.getActivationIdV32(), data, Base64.getEncoder().encodeToString(signature));
+        final VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(config.getActivationId(version), data, Base64.getEncoder().encodeToString(signature));
         assertFalse(verifyResponse.isSignatureValid());
     }
 
-    public static void vaultUnlockAndECDSASignatureInvalidActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
-        final byte[] dataBytes = ("test_data_v" + version).getBytes(StandardCharsets.UTF_8);
+    public static void vaultUnlockAndECDSASignatureInvalidActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+        final byte[] dataBytes = ("test_data" + version).getBytes(StandardCharsets.UTF_8);
         final String data = Base64.getEncoder().encodeToString(dataBytes);
 
         final PrivateKey devicePrivateKey = obtainDevicePrivateKeyUsingVaultUnlock(stepLogger, model, config);
@@ -212,9 +217,10 @@ public class PowerAuthVaultUnlockShared {
         final byte[] signature = SIGNATURE_UTILS.computeECDSASignature(dataBytes, devicePrivateKey);
 
         final String activationIdInvalid = switch (version) {
-            case "3.0" -> config.getActivationIdV31();
-            case "3.1" -> config.getActivationIdV32();
-            case "3.2" -> config.getActivationIdV3();
+            case V3_0 -> config.getActivationId(PowerAuthVersion.V3_3);
+            case V3_1 -> config.getActivationId(PowerAuthVersion.V3_2);
+            case V3_2 -> config.getActivationId(PowerAuthVersion.V3_1);
+            case V3_3 -> config.getActivationId(PowerAuthVersion.V3_0);
             default -> null;
         };
 
@@ -222,8 +228,8 @@ public class PowerAuthVaultUnlockShared {
         assertFalse(verifyResponse.isSignatureValid());
     }
 
-    public static void vaultUnlockAndECDSASignatureNonExistentActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final String version) throws Exception {
-        final byte[] dataBytes = ("test_data_v" + version).getBytes(StandardCharsets.UTF_8);
+    public static void vaultUnlockAndECDSASignatureNonExistentActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+        final byte[] dataBytes = ("test_data" + version).getBytes(StandardCharsets.UTF_8);
         final String data = Base64.getEncoder().encodeToString(dataBytes);
 
         final PrivateKey devicePrivateKey = obtainDevicePrivateKeyUsingVaultUnlock(stepLogger, model, config);
@@ -253,8 +259,8 @@ public class PowerAuthVaultUnlockShared {
     }
 
     private static void checkSignatureError(ErrorResponse errorResponse) {
-        // Errors differ when Web Flow is used because of its Exception handler
-        assertTrue("POWERAUTH_AUTH_FAIL".equals(errorResponse.getResponseObject().getCode()) || "ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()));
-        assertTrue("Signature validation failed".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_SIGNATURE_INVALID".equals(errorResponse.getResponseObject().getMessage()));
+        // Errors differ when Web Flow is used because of its Exception handler, for protocol version 3.3 temporary key error is present
+        assertTrue("POWERAUTH_AUTH_FAIL".equals(errorResponse.getResponseObject().getCode()) || "ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()) || "ERR_TEMPORARY_KEY".equals(errorResponse.getResponseObject().getCode()));
+        assertTrue("Signature validation failed".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_SIGNATURE_INVALID".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_TEMPORARY_KEY_FAILURE".equals(errorResponse.getResponseObject().getMessage()));
     }
 }

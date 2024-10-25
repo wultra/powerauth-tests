@@ -1,0 +1,82 @@
+<div class="form-panel">
+    <!-- On submit, handle form in javascript -->
+    <form class="form-signin" onsubmit="handleLoginSubmit(); return false;">
+
+        <p class="body-copy">Sign in with a passkey or register a new account.</p>
+
+        <!-- Application ID selection -->
+        <div class="form-group" th:attr="hidden=${hideDeveloperOption ? 'hidden' : null}">
+            <select name="applicationId" id="applicationId" class="form-control input-text" required>
+                <option value="" disabled selected hidden th:if="${applicationId == null}">Select application</option>
+                <option th:value="${applicationId}" selected th:text="${applicationId}" th:if="${applicationId != null}"></option>
+                <option th:each="option : ${applications}" th:value="${option}" th:text="${option}"></option>
+            </select>
+        </div>
+        <div class="space" th:unless="${hideDeveloperOption}"></div>
+
+        <!-- User ID input -->
+        <div class="form-group">
+            <input type="text" th:unless="${emailRequired}" id="userId" name="userId" autoComplete="username webauthn" th:placeholder="${hideDeveloperOption ? 'Username' : 'User ID'}" class="form-control input-text"/>
+            <input type="email" th:if="${emailRequired}" id="userId" name="userId" autoComplete="username webauthn" placeholder="Email address" class="form-control input-text" pattern="[^@\s]+@[^@\s]+\.[^@\s]+" title="Enter email address."/>
+        </div>
+
+        <!-- Info and login banners -->
+        <div id="errorDiv" class="alert alert-danger" hidden="hidden">
+            <span id="errorMessage"></span>
+        </div>
+        <div id="successDiv" class="alert alert-success" hidden="hidden">
+            Success!
+        </div>
+
+        <!-- Submit buttons -->
+        <div class="form-group btn-group" style="width: 100%;">
+            <button type="submit" id="loginBtn" class="btn btn-primary " style="width: 50%;">Log in</button>
+            <button type="submit" id="registerBtn" class="btn btn-danger " style="width: 50%;">Register</button>
+        </div>
+
+        <!-- Advanced settings -->
+        <button type="button" id="settingsBtn" class="btn btn-primary btn-block btn-xs" th:unless="${hideDeveloperOption}">Settings
+        </button>
+        <div id="settingsBlock" class="info block" hidden="hidden">
+            <label for="username" class="label">Username</label>
+            <input type="text" id="username" name="username" class="form-control input-text"/>
+
+            <label for="userDisplayName" class="label">Display Name</label>
+            <input type="text" id="userDisplayName" name="displayName" class="form-control input-text"/>
+
+            <label for="operationTemplate" class="label">Operation Template</label>
+            <select id="operationTemplate" class="form-control input-text">
+                <option th:each="option : ${templates}" th:value="${option}" th:text="${option}" th:selected="${option} == login ? true : false"></option>
+            </select>
+
+            <label for="authenticatorAttachment" class="label">Authenticator Attachment</label>
+            <select id="authenticatorAttachment" class="form-control input-text">
+                <option>platform</option>
+                <option>all supported</option>
+                <option selected>cross-platform</option>
+            </select>
+
+            <label for="residentKey" class="label">Discoverable Credential</label>
+            <select id="residentKey" class="form-control input-text">
+                <option>required</option>
+                <option>preferred</option>
+                <option selected>discouraged</option>
+            </select>
+
+            <label for="userVerification" class="label">User Verification</label>
+            <select id="userVerification" class="form-control input-text">
+                <option selected>required</option>
+                <option>preferred</option>
+                <option>discouraged</option>
+            </select>
+
+            <label for="attestation" class="label">Attestation</label>
+            <select id="attestation" class="form-control input-text">
+                <option>enterprise</option>
+                <option>none</option>
+                <option selected>direct</option>
+                <option>indirect</option>
+            </select>
+        </div>
+    </form>
+</div>

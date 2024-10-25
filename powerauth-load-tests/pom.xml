@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.wultra</groupId>
         <artifactId>powerauth-backend-tests-parent</artifactId>
-        <version>1.8.0</version>
+        <version>1.9.0</version>
     </parent>
 
     <artifactId>powerauth-load-tests</artifactId>
@@ -39,10 +39,10 @@
     <properties>
         <scala.version>2.13.13</scala.version>
 
-        <maven-plugin-gatling.version>4.9.6</maven-plugin-gatling.version>
+        <maven-plugin-gatling.version>4.10.1</maven-plugin-gatling.version>
         <maven-plugin-scala.version>4.9.2</maven-plugin-scala.version>
 
-        <gatling.version>3.11.5</gatling.version>
+        <gatling.version>3.12.0</gatling.version>
     </properties>
 
     <dependencies>
@@ -75,7 +75,7 @@
         <dependency>
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>
-            <version>3.9.0</version>
+            <version>3.9.1</version>
             <scope>test</scope>
         </dependency>
 

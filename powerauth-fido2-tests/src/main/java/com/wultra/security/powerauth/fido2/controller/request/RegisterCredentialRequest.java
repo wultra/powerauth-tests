@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.fido2.controller.request;
 
 import com.webauthn4j.data.AuthenticatorAttachment;
 import com.webauthn4j.data.PublicKeyCredentialType;
+import com.wultra.security.powerauth.fido2.controller.validation.EmailConditional;
 import com.wultra.security.powerauth.fido2.model.entity.AuthenticatorAttestationResponse;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -33,7 +34,7 @@ public record RegisterCredentialRequest (
         @NotBlank
         String applicationId,
 
-        @NotBlank
+        @NotBlank @EmailConditional
         String userId,
 
         boolean userVerificationRequired,

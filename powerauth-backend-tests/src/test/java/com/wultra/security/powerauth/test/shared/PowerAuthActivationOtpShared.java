@@ -30,6 +30,7 @@ import com.wultra.security.powerauth.client.model.response.InitActivationRespons
 import com.wultra.security.powerauth.client.model.response.LookupRecoveryCodesResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
@@ -49,9 +50,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class PowerAuthActivationOtpShared {
 
     public static void validOtpOnKeysExchangeTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
-                                                  PrepareActivationStepModel model, String validOtpValue, String version) throws Exception {
+                                                  PrepareActivationStepModel model, String validOtpValue, PowerAuthVersion version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         final InitActivationRequest initRequest = new InitActivationRequest();
@@ -87,9 +88,9 @@ public class PowerAuthActivationOtpShared {
 
     public static void invalidOtpOnKeysExchangeTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                                     PrepareActivationStepModel model, String validOtpValue,
-                                                    String invalidOtpValue, String version) throws Exception {
+                                                    String invalidOtpValue, PowerAuthVersion version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -120,9 +121,9 @@ public class PowerAuthActivationOtpShared {
     }
 
     public static void validOtpOnCommitTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PrepareActivationStepModel model,
-                                            String validOtpValue, String invalidOtpValue, String version) throws Exception {
+                                            String validOtpValue, String invalidOtpValue, PowerAuthVersion version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -173,9 +174,9 @@ public class PowerAuthActivationOtpShared {
 
     public static void invalidOtpOnCommitTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                               PrepareActivationStepModel model, String validOtpValue,
-                                              String invalidOtpValue, String version) throws Exception {
+                                              String invalidOtpValue, PowerAuthVersion version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -224,9 +225,9 @@ public class PowerAuthActivationOtpShared {
 
     public static void updateValidOtpOnCommitTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                                   PrepareActivationStepModel model, GetStatusStepModel statusModel,
-                                                  String validOtpValue, String invalidOtpValue, String version) throws Exception {
+                                                  String validOtpValue, String invalidOtpValue, PowerAuthVersion version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -290,9 +291,9 @@ public class PowerAuthActivationOtpShared {
 
     public static void updateInvalidOtpOnCommitTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                                     PrepareActivationStepModel model, String validOtpValue,
-                                                    String invalidOtpValue, String version) throws Exception {
+                                                    String invalidOtpValue, PowerAuthVersion version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -338,7 +339,7 @@ public class PowerAuthActivationOtpShared {
         }
     }
 
-    public static void wrongActivationInitParamTest1(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) {
+    public static void wrongActivationInitParamTest1(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PowerAuthVersion version) {
         assertThrows(PowerAuthClientException.class, () -> {
             // Init activation
             InitActivationRequest initRequest = new InitActivationRequest();
@@ -351,7 +352,7 @@ public class PowerAuthActivationOtpShared {
         });
     }
 
-    public static void wrongActivationInitParamTest2(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) {
+    public static void wrongActivationInitParamTest2(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PowerAuthVersion version) {
         assertThrows(PowerAuthClientException.class, () -> {
             // Init activation
             InitActivationRequest initRequest = new InitActivationRequest();
@@ -364,20 +365,7 @@ public class PowerAuthActivationOtpShared {
         });
     }
 
-    public static void wrongActivationInitParamTest3(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String validOtpValue, String version) {
-        assertThrows(PowerAuthClientException.class, () -> {
-            // Init activation
-            InitActivationRequest initRequest = new InitActivationRequest();
-            initRequest.setApplicationId(config.getApplicationId());
-            initRequest.setUserId(config.getUser(version));
-            initRequest.setMaxFailureCount(5L);
-            // Set OTP with no validation specified
-            initRequest.setActivationOtp(validOtpValue);
-            powerAuthClient.initActivation(initRequest);
-        });
-    }
-
-    public static void wrongActivationInitParamTest4(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) {
+    public static void wrongActivationInitParamTest3(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PowerAuthVersion version) {
         assertThrows(PowerAuthClientException.class, () -> {
             // Init activation
             InitActivationRequest initRequest = new InitActivationRequest();
@@ -391,7 +379,7 @@ public class PowerAuthActivationOtpShared {
         });
     }
 
-    public static void wrongActivationInitParamTest5(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, String version) {
+    public static void wrongActivationInitParamTest4(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PowerAuthVersion version) {
         assertThrows(PowerAuthClientException.class, () -> {
             // Init activation
             InitActivationRequest initRequest = new InitActivationRequest();
@@ -406,9 +394,9 @@ public class PowerAuthActivationOtpShared {
     }
 
     public static void missingOtpOnCommitTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
-                                              PrepareActivationStepModel model, String validOtpValue, String version) throws Exception {
+                                              PrepareActivationStepModel model, String validOtpValue, PowerAuthVersion version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();
@@ -459,9 +447,9 @@ public class PowerAuthActivationOtpShared {
     }
 
     public static void missingOtpOnKeysExchangeTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
-                                                    PrepareActivationStepModel model, String validOtpValue, String version) throws Exception {
+                                                    PrepareActivationStepModel model, String validOtpValue, PowerAuthVersion version) throws Exception {
 
-        JSONObject resultStatusObject = new JSONObject();
+        final JSONObject resultStatusObject = new JSONObject();
 
         // Init activation
         InitActivationRequest initRequest = new InitActivationRequest();

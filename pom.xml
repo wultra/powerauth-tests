@@ -8,13 +8,13 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.2</version>
+        <version>3.3.4</version>
         <relativePath /> <!-- lookup parent from repository -->
     </parent>
 
     <groupId>com.wultra</groupId>
     <artifactId>powerauth-backend-tests-parent</artifactId>
-    <version>1.8.0</version>
+    <version>1.9.0</version>
     <packaging>pom</packaging>
 
     <description>Parent pom for backend tests</description>
@@ -45,16 +45,16 @@
     </developers>
 
     <properties>
-        <enrollment-server.version>1.8.0</enrollment-server.version>
-        <powerauth-cmd.version>1.8.0</powerauth-cmd.version>
-        <powerauth-crypto.version>1.8.0</powerauth-crypto.version>
-        <powerauth-restful-integration.version>1.8.0</powerauth-restful-integration.version>
-        <powerauth-server.version>1.8.0</powerauth-server.version>
-        <wultra-core.version>1.10.0</wultra-core.version>
+        <enrollment-server.version>1.9.0</enrollment-server.version>
+        <powerauth-cmd.version>1.9.0</powerauth-cmd.version>
+        <powerauth-crypto.version>1.9.0</powerauth-crypto.version>
+        <powerauth-restful-integration.version>1.9.0</powerauth-restful-integration.version>
+        <powerauth-server.version>1.9.0</powerauth-server.version>
+        <wultra-core.version>1.11.0</wultra-core.version>
 
         <springdoc-openapi-starter-webmvc-ui.version>2.6.0</springdoc-openapi-starter-webmvc-ui.version>
-        <logstash.version>7.4</logstash.version>
-        <webauthn4j.version>0.25.0.RELEASE</webauthn4j.version>
+        <logstash.version>8.0</logstash.version>
+        <webauthn4j.version>0.27.0.RELEASE</webauthn4j.version>
 
         <maven.deploy.skip>true</maven.deploy.skip>
     </properties>

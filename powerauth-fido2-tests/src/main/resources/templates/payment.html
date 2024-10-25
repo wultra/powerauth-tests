@@ -2,14 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Payment</title>
+    <title>PowerAuth & FIDO2 Demo | Wultra</title>
 
     <link rel="stylesheet" th:href="@{/resources/css/wultra-theme.min.css}">
     <link rel="stylesheet" th:href="@{/resources/css/wultra-login.css}">
+    <link rel="shortcut icon" type="image/png" th:href="@{/resources/images/favicon.png}"/>
 
     <!-- API Path Context of the spring controller -->
     <script>
         const SERVLET_CONTEXT_PATH = "[[${servletContextPath}]]";
+        const QUERY_PARAMS = "";
     </script>
     <script th:src="@{/resources/js/jquery.min.js}"></script>
     <script th:src="@{/resources/js/webauthn.js}"></script>
@@ -17,66 +19,32 @@
 </head>
 <body>
 
-<div class="body">
-    <div class="form-wrapper">
-        <div class="form-panel">
-            <!-- On submit, handle form in javascript -->
-            <form class="form-signin" onsubmit="handlePaymentSubmit(); return false;">
+<img th:src="@{/resources/images/logo_white.svg}" class="header-logo">
 
-                <!-- Form Header -->
-                <div class="text-center form-logo-wrapper">
-                    <img th:src="@{/resources/images/logo.png}" class="form-logo">
-                </div>
-                <p class="text-center lead small" style="color: white;" th:text="${'Hello ' + userId + ', you can now make a payment in the ' + applicationId + '.'}">Hello!</p>
+<div class="content-wrapper">
+    <h5 class="header">DEMO</h5>
+    <h2 class="headline">PERSONAL IDENTITY DEVICE & FIDO2</h2>
 
-                <!-- Main form fields -->
-                <div class="form-group" id="divFormFields">
-                    <input type="text" id="userId" th:value="${userId}" hidden/>
-                    <input type="text" id="applicationId" th:value="${applicationId}" hidden/>
+    <div class="flex-grid">
+        <div class="col1">
+            <div>
+                <p class="body-copy">
+                    Discover Talisman in action with our interactive demo. Experience effortless and secure
+                    authentication for your digital services. See firsthand how to connect and manage multiple accounts
+                    with advanced security features.
+                </p>
+                <p class="body-copy">
+                    For instructions and more information, visit <a href="http://www.wultra.com/demo/talisman">Demo | Wultra Talisman</a>.
+                </p>
+                <p class="body-copy">
+                    You can find the user manual here: <a href="https://www.wultra.com/manuals/hardware-authenticator">Hardware Token Specifications</a>
+                </p>
+            </div>
+        </div>
 
-                    <label for="iban" class="label">IBAN</label>
-                    <input type="text" id="iban" value="CZ5508000000001234567899" placeholder="IBAN" class="form-control" required />
-
-                    <label for="amount" class="label">Amount</label>
-                    <input type="text" id="amount" value="21" placeholder="Amount" class="form-control" required />
-
-                    <label for="currency" class="label">Currency</label>
-                    <input type="text" id="currency" value="CZK" placeholder="Currency" class="form-control" required />
-
-                    <div class="form-group">
-                        <button type="button" id="addFieldBtn" class="btn btn-primary btn-block btn-xs">Add operation parameter</button>
-                    </div>
-                </div>
-
-                <!-- Operation template and user verification selection -->
-                <div class="form-group">
-                    <label for="operationTemplate" class="label">Operation Template</label>
-                    <select id="operationTemplate" class="form-control">
-                        <option th:each="option : ${templates}" th:value="${option}" th:text="${option}" th:selected="${option} == payment ? true : false"></option>
-                    </select>
-                    <label for="userVerification" class="label">User Verification</label>
-                    <select id="userVerification" class="form-control">
-                        <option selected>required</option>
-                        <option>preferred</option>
-                        <option>discouraged</option>
-                    </select>
-                </div>
-
-                <!-- Info and error banners -->
-                <div id="errorDiv" class="alert alert-danger text-center" hidden="hidden">
-                    <span id="errorMessage"></span>
-                </div>
-                <div id="successDiv" class="alert alert-success text-center" hidden="hidden">
-                    Success
-                </div>
-
-                <!-- Submit or logout button -->
-                <div class="form-group">
-                    <button type="submit" id="payBtn" class="btn btn-primary btn-block">Pay</button>
-                </div>
-                <button type="button" id="logoutBtn" class="btn btn-danger btn-block btn-xs">Logout</button>
-
-            </form>
+        <div class="col2">
+            <div class="form-wrapper" th:insert="~{forms/paymentForm.html}">
+            </div>
         </div>
     </div>
 </div>
