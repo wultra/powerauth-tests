@@ -102,6 +102,7 @@ public class AssertionService {
         request.setExpectedChallenge(credential.expectedChallenge());
         request.setRelyingPartyId(webAuthNConfig.getRpId());
         request.setAllowedOrigins(webAuthNConfig.getAllowedOrigins());
+        request.setAllowedTopOrigins(webAuthNConfig.getAllowedTopOrigins());
         request.setRequiresUserVerification(credential.userVerificationRequired());
 
         final AssertionVerificationResponse response = fido2Client.authenticate(request);

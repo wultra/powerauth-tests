@@ -126,6 +126,7 @@ public class RegistrationService {
         parameters.setType(credential.type().getValue());
         parameters.setResponse(credential.response());
         parameters.setAllowedOrigins(webAuthNConfig.getAllowedOrigins());
+        parameters.setAllowedTopOrigins(webAuthNConfig.getAllowedTopOrigins());
         parameters.setRelyingPartyId(webAuthNConfig.getRpId());
         parameters.setRequiresUserVerification(credential.userVerificationRequired());
         return parameters;
