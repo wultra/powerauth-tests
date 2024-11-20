@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <Parameter name="powerauth.webauthn.rpId" value="${FIDO2_DEMO_RP_ID:}"/>
+    <Parameter name="powerauth.webauthn.rpName" value="${FIDO2_DEMO_RP_NAME:Wultra FIDO2 Demo}"/>
+    <Parameter name="powerauth.webauthn.allowedOrigins" value="${FIDO2_DEMO_ALLOWED_ORIGINS:}"/>
+    <Parameter name="powerauth.webauthn.allowedTopOrigins" value="${FIDO2_DEMO_ALLOWED_TOP_ORIGINS:}"/>
+
+    <Parameter name="powerauth.fido2.test.service.hideDeveloperOptions" value="${FIDO2_DEMO_HIDE_OPTIONS:true}"/>
+    <Parameter name="powerauth.fido2.test.service.emailAddressRequired" value="${FIDO2_DEMO_EMAIL_REQUIRED:true}"/>
+
+    <Parameter name="powerauth.service.baseUrl" value="${FIDO2_DEMO_PAS_BASE_URL:}"/>
+    <Parameter name="powerauth.service.applicationId" value="${FIDO2_DEMO_PAS_APP_ID:}"/>
+    <Parameter name="powerauth.service.security.clientToken" value="${FIDO2_DEMO_PAS_CLIENT_TOKEN:}"/>
+    <Parameter name="powerauth.service.security.clientSecret" value="${FIDO2_DEMO_PAS_CLIENT_SECRET:}"/>
+
+    <Parameter name="logging.level.root" value="INFO"/>
+    <Parameter name="logging.config" value="${FIDO2_DEMO_LOGGING:}"/>
+</Context>
