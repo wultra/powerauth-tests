@@ -5,7 +5,7 @@ LABEL maintainer="roman.strobl@wultra.com"
 ENV JAVA_HOME=/opt/java/openjdk \
     PKG_RELEASE=1~jammy \
     LB_HOME=/usr/local/liquibase \
-    LB_VERSION=4.23.2 \
+    LB_VERSION=4.30.0 \
     TOMCAT_HOME=/usr/local/tomcat \
     TOMCAT_MAJOR=10 \
     TOMCAT_VERSION=10.1.31 \
@@ -48,7 +48,7 @@ RUN groupadd -r powerauth \
 # This setup was inspired by https://github.com/mobtitude/liquibase/blob/master/Dockerfile
 RUN set -x \
     && wget -q -O /tmp/liquibase.tar.gz "https://github.com/liquibase/liquibase/releases/download/v$LB_VERSION/liquibase-$LB_VERSION.tar.gz" \
-    && [ "fc7d2a9fa97d91203d639b664715d40953c6c9155a5225a0ddc4c8079b9a3641  /tmp/liquibase.tar.gz" = "$(sha256sum /tmp/liquibase.tar.gz)" ] \
+    && [ "184ffd609518091da42d6cd75e883b4f6ff1763cce8883e95fc99f7f05ca262d  /tmp/liquibase.tar.gz" = "$(sha256sum /tmp/liquibase.tar.gz)" ] \
     && mkdir -p "$LB_HOME" \
     && tar -xzf /tmp/liquibase.tar.gz -C "$LB_HOME" \
     && rm -rf "$LB_HOME/sdk" \
