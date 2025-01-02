@@ -39,7 +39,7 @@
     <properties>
         <scala.version>2.13.13</scala.version>
 
-        <maven-plugin-gatling.version>4.11.0</maven-plugin-gatling.version>
+        <maven-plugin-gatling.version>4.12.2</maven-plugin-gatling.version>
         <maven-plugin-scala.version>4.9.2</maven-plugin-scala.version>
 
         <gatling.version>3.13.1</gatling.version>
