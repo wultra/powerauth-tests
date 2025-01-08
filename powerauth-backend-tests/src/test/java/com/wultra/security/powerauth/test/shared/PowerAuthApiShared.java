@@ -250,6 +250,7 @@ public class PowerAuthApiShared {
         activationRequest.setTimestamp(encryptedRequestL2.getTimestamp());
         activationRequest.setTemporaryKeyId(encryptedRequestL2.getTemporaryKeyId());
         activationRequest.setProtocolVersion(version.value());
+        activationRequest.setGenerateRecoveryCodes(true);
         CreateActivationResponse createResponse = powerAuthClient.createActivation(activationRequest);
         String activationId = createResponse.getActivationId();
         assertNotNull(activationId);
