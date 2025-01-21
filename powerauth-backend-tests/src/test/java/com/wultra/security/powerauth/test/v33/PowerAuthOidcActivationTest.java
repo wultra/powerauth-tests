@@ -78,7 +78,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
-@ComponentScan(basePackages = {"com.wultra.security.powerauth", "com.wultra.security.powerauth"})
+@ComponentScan(basePackages = "com.wultra.security.powerauth")
 @EnabledIf(expression = "#{T(org.springframework.util.StringUtils).hasText('${powerauth.test.activation.oidc.providerId}')}", loadContext = true)
 class PowerAuthOidcActivationTest {
 

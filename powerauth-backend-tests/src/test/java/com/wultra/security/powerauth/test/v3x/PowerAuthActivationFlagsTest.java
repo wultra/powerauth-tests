@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
-@ComponentScan(basePackages = {"com.wultra.security.powerauth", "com.wultra.security.powerauth"})
+@ComponentScan(basePackages = "com.wultra.security.powerauth")
 public class PowerAuthActivationFlagsTest {
 
     // Test only in the latestPowerAuth protocol version

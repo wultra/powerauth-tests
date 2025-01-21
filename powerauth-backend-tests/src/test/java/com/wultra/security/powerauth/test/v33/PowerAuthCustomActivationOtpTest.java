@@ -49,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
-@ComponentScan(basePackages = {"com.wultra.security.powerauth", "com.wultra.security.powerauth"})
+@ComponentScan(basePackages = "com.wultra.security.powerauth")
 class PowerAuthCustomActivationOtpTest {
 
     private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_3;
