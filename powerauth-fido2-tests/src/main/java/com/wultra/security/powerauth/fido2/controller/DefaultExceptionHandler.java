@@ -19,7 +19,7 @@
 package com.wultra.security.powerauth.fido2.controller;
 
 import com.wultra.security.powerauth.client.model.error.PowerAuthError;
-import io.getlime.core.rest.model.base.response.ObjectResponse;
+import com.wultra.core.rest.model.base.response.ObjectResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;

@@ -20,11 +20,11 @@ package com.wultra.security.powerauth.test.v31;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthCustomActivationOtpShared;
-import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
-import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import io.getlime.security.powerauth.lib.cmd.steps.model.ActivationRecoveryStepModel;
-import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
-import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
+import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
+import com.wultra.security.powerauth.lib.cmd.steps.model.ActivationRecoveryStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
-@ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
+@ComponentScan(basePackages = "com.wultra.security.powerauth")
 class PowerAuthCustomActivationOtpTest {
 
     private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_1;

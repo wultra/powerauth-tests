@@ -19,7 +19,7 @@ import com.wultra.security.powerauth.test.{ClientConfig, Device, TestDevices}
 import io.gatling.core.Predef.{StringBody, jsonPath, scenario, _}
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.{http, _}
-import io.getlime.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject
+import com.wultra.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject
 
 /**
  * Scenario to initialize devices for registrations

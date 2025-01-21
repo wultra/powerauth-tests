@@ -19,8 +19,8 @@ import com.wultra.security.powerauth.test.{Device, TestDevices}
 import io.gatling.core.Predef.{Session, _}
 import io.gatling.core.body.Body
 import io.gatling.core.session
-import io.getlime.security.powerauth.lib.cmd.steps.context.StepContext
-import io.getlime.security.powerauth.lib.cmd.util.HttpUtil
+import com.wultra.security.powerauth.lib.cmd.steps.context.StepContext
+import com.wultra.security.powerauth.lib.cmd.util.HttpUtil
 
 /**
  * Abstract scenario with common expressions

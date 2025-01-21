@@ -18,7 +18,7 @@
 package com.wultra.security.powerauth.test;
 
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
