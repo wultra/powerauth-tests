@@ -29,13 +29,13 @@ import com.wultra.security.powerauth.client.model.response.GetActivationStatusRe
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
 import com.wultra.security.powerauth.client.model.response.LookupRecoveryCodesResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import io.getlime.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
-import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
-import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import io.getlime.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
-import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import io.getlime.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
-import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
+import com.wultra.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
+import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
+import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
+import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import org.json.simple.JSONObject;
 
 import java.util.Map;

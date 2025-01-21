@@ -26,8 +26,8 @@ import com.wultra.security.powerauth.app.testserver.model.response.ComputeTokenD
 import com.wultra.security.powerauth.app.testserver.model.request.CreateTokenRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.CreateTokenResponse;
 import com.wultra.security.powerauth.app.testserver.service.TokenService;
-import io.getlime.core.rest.model.base.request.ObjectRequest;
-import io.getlime.core.rest.model.base.response.ObjectResponse;
+import com.wultra.core.rest.model.base.request.ObjectRequest;
+import com.wultra.core.rest.model.base.response.ObjectResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

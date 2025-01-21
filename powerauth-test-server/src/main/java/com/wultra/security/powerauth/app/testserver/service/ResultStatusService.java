@@ -21,7 +21,7 @@ package com.wultra.security.powerauth.app.testserver.service;
 import com.wultra.security.powerauth.app.testserver.database.TestStatusRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestStatusEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
-import io.getlime.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

@@ -19,8 +19,8 @@ package com.wultra.security.powerauth.test.v3x;
 
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthInfoShared;
-import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
-import io.getlime.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
+import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

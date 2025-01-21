@@ -19,12 +19,12 @@ import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon
 import io.gatling.core.Predef.{jsonPath, scenario, _}
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.{http, _}
-import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes
-import io.getlime.security.powerauth.http.PowerAuthSignatureHttpHeader
-import io.getlime.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVersion}
-import io.getlime.security.powerauth.lib.cmd.steps.VerifySignatureStep
-import io.getlime.security.powerauth.lib.cmd.steps.context.StepContext
-import io.getlime.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes
+import com.wultra.security.powerauth.http.PowerAuthSignatureHttpHeader
+import com.wultra.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVersion}
+import com.wultra.security.powerauth.lib.cmd.steps.VerifySignatureStep
+import com.wultra.security.powerauth.lib.cmd.steps.context.StepContext
+import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel
 
 import java.nio.charset.StandardCharsets
 import java.util.Collections

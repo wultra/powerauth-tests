@@ -29,7 +29,7 @@ Clone the following repositories and use the default `develop` branch to build t
 
 | Repository | Command | Result |
 |---|---|---|
-| https://github.com/wultra/lime-java-core | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) |
+| https://github.com/wultra/java-core | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) |
 | https://github.com/wultra/powerauth-crypto | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) |
 | https://github.com/wultra/powerauth-server | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) and the PowerAuth server artifact is available in `powerauth-java-server/target` |
 | https://github.com/wultra/powerauth-restful-integration | `mvn clean install` | the libraries are installed into local maven repository (.m2 folder) |
