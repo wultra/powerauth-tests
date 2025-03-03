@@ -22,6 +22,8 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthOidcActivationConfigurationProperties;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.context.StepContext;
@@ -29,9 +31,7 @@ import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepMod
 import com.wultra.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
 import com.wultra.security.powerauth.rest.api.model.entity.ActivationType;
 import com.wultra.security.powerauth.rest.api.model.request.ActivationLayer1Request;
-import com.wultra.security.powerauth.rest.api.model.request.EciesEncryptedRequest;
 import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer2Response;
-import com.wultra.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import com.wultra.security.powerauth.rest.api.spring.service.oidc.OidcApplicationConfiguration;
 import com.wultra.security.powerauth.rest.api.spring.service.oidc.OidcApplicationConfigurationService;
 import com.wultra.security.powerauth.rest.api.spring.service.oidc.OidcConfigurationQuery;

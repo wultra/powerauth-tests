@@ -204,7 +204,7 @@ class PowerAuthEncryptionTest {
 
     @Test
     void signAndEncryptCounterIncrementTest() throws Exception {
-        PowerAuthEncryptionShared.signAndEncryptCounterIncrementTest(config, signatureModel, stepLogger);
+        PowerAuthEncryptionShared.signAndEncryptCounterIncrementTest(config, signatureModel, stepLogger, VERSION);
     }
 
     @Test

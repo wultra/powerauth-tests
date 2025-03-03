@@ -24,7 +24,6 @@ import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
-import com.wultra.security.powerauth.client.model.request.UpdateRecoveryConfigRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
@@ -45,8 +44,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 public class PowerAuthTestSetUp {
-
-    private static final String PUBLIC_KEY_RECOVERY_POSTCARD_BASE64 = "BABXgGoj4Lizl3GN0rjrtileEEwekFkpX1ERS9yyYjyuM1Iqdti3ihtATBxk5XGvjetPO1YC+qXciUYjIsETtbI=";
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -131,17 +128,6 @@ public class PowerAuthTestSetUp {
         } else {
             // Make sure application version is supported
             powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
-        }
-        // Set up activation recovery
-        final GetRecoveryConfigResponse recoveryResponse = powerAuthClient.getRecoveryConfig(config.getApplicationId());
-        if (!recoveryResponse.isActivationRecoveryEnabled() || !recoveryResponse.isRecoveryPostcardEnabled() || recoveryResponse.getPostcardPublicKey() == null || recoveryResponse.getRemotePostcardPublicKey() == null) {
-            final UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
-            request.setApplicationId(config.getApplicationId());
-            request.setActivationRecoveryEnabled(true);
-            request.setRecoveryPostcardEnabled(true);
-            request.setAllowMultipleRecoveryCodes(false);
-            request.setRemotePostcardPublicKey(PUBLIC_KEY_RECOVERY_POSTCARD_BASE64);
-            powerAuthClient.updateRecoveryConfig(request);
         }
     }
 

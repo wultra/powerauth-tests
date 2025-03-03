@@ -23,16 +23,17 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
 import com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSecrets;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.model.TemporaryKey;
 import com.wultra.security.powerauth.test.shared.util.TemporaryKeyFetchUtil;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorScope;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEncryptorSecrets;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
@@ -43,7 +44,6 @@ import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepMode
 import com.wultra.security.powerauth.lib.cmd.steps.v3.EncryptStep;
 import com.wultra.security.powerauth.lib.cmd.steps.v3.SignAndEncryptStep;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
-import com.wultra.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.io.BufferedWriter;
@@ -401,12 +401,12 @@ public class PowerAuthEncryptionShared {
         assertTrue(responseSuccessfullyDecrypted);
     }
 
-    public static void signAndEncryptCounterIncrementTest(PowerAuthTestConfiguration config, VerifySignatureStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
+    public static void signAndEncryptCounterIncrementTest(PowerAuthTestConfiguration config, VerifySignatureStepModel signatureModel, ObjectStepLogger stepLogger, PowerAuthVersion version) throws Exception {
         signatureModel.setResourceId("/exchange/v3/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
         byte[] ctrData = CounterUtil.getCtrData(signatureModel, stepLogger);
-        HashBasedCounter counter = new HashBasedCounter();
+        HashBasedCounter counter = new HashBasedCounter(version.value());
         for (int i = 1; i <= 10; i++) {
             ObjectStepLogger stepLoggerLoop = new ObjectStepLogger();
             new SignAndEncryptStep().execute(stepLoggerLoop, signatureModel.toMap());
@@ -478,12 +478,12 @@ public class PowerAuthEncryptionShared {
     public static void replayAttackEciesDecryptorTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, PowerAuthVersion version) throws Exception {
         final TemporaryKey temporaryKey = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.APPLICATION_SCOPE, config);
         String requestData = "test_data";
-        ClientEncryptor clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
+        ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.APPLICATION_SCOPE_GENERIC,
                 new EncryptorParameters(version.value(), config.getApplicationKey(), null, temporaryKey != null ? temporaryKey.getId() : null),
-                new ClientEncryptorSecrets(config.getMasterPublicKey(), config.getApplicationSecret())
+                new ClientEciesSecrets(config.getMasterPublicKey(), config.getApplicationSecret())
         );
-        EncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
+        EciesEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
         final GetEciesDecryptorRequest eciesDecryptorRequest = new GetEciesDecryptorRequest();
         eciesDecryptorRequest.setProtocolVersion(version.value());
         eciesDecryptorRequest.setActivationId(null);

@@ -27,6 +27,8 @@ import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.LookupActivationsRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.test.shared.util.ResponseVerificationUtil;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
@@ -43,7 +45,6 @@ import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
 import com.wultra.security.powerauth.rest.api.model.request.ActivationStatusRequest;
 import com.wultra.security.powerauth.rest.api.model.response.ActivationStatusResponse;
-import com.wultra.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.json.simple.JSONObject;
 
 import javax.crypto.SecretKey;
@@ -232,7 +233,7 @@ public class PowerAuthActivationShared {
         GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
-        KeyPair keyPair = new KeyGenerator().generateKeyPair();
+        KeyPair keyPair = new KeyGenerator().generateKeyPair(EcCurve.P256);
         PublicKey originalKey = model.getMasterPublicKey();
 
         // Prepare activation

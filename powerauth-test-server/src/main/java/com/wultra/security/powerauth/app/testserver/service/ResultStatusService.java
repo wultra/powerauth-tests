@@ -22,6 +22,8 @@ import com.wultra.security.powerauth.app.testserver.database.TestStatusRepositor
 import com.wultra.security.powerauth.app.testserver.database.entity.TestStatusEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -106,7 +108,7 @@ public class ResultStatusService {
         return result;
     }
 
-    public void incrementCounter(String activationId) throws ActivationFailedException {
+    public void incrementCounter(String activationId) throws ActivationFailedException, GenericCryptoException {
         final TestStatusEntity testStatusEntity = fetchTestStatus(activationId);
 
         // Increment numeric counter
@@ -118,7 +120,7 @@ public class ResultStatusService {
         // Increment hash-based counter
         if (!ctrDataBase64.isEmpty()) {
             byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
-            ctrData = new HashBasedCounter().next(ctrData);
+            ctrData = new HashBasedCounter(PowerAuthVersion.V3_3.value()).next(ctrData);
             testStatusEntity.setCtrData(Base64.getEncoder().encodeToString(ctrData));
         }
 

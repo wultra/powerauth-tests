@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.model.request.OtpDetailRequest;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
@@ -39,7 +40,6 @@ import com.wultra.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.*;
 import com.wultra.security.powerauth.lib.cmd.steps.v3.*;
 import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer2Response;
-import com.wultra.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -740,7 +740,7 @@ public class PowerAuthIdentityVerificationShared {
                 .map(ObjectResponse::getResponseObject)
                 .map(OtpDetailResponse::getOtpCode)
                 .findAny()
-                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());;
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
         assertNotNull(otpCode);
         return otpCode;

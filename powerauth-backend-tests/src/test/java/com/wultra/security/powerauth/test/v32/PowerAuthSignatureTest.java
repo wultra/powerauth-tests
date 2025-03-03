@@ -181,7 +181,7 @@ class PowerAuthSignatureTest {
 
     @Test
     void signatureCounterIncrementTest() throws Exception {
-        PowerAuthSignatureShared.signatureCounterIncrementTest(model, stepLogger);
+        PowerAuthSignatureShared.signatureCounterIncrementTest(model, stepLogger, VERSION);
     }
 
     @Test
