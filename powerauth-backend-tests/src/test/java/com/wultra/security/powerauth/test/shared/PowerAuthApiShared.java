@@ -75,7 +75,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthApiShared {
 
-    private static final PowerAuthClientActivation CLIENT_ACTIVATION = new PowerAuthClientActivation();
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private static final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
