@@ -115,7 +115,7 @@ class PowerAuthVaultUnlockTest {
 
     @Test
     void vaultUnlockCounterIncrementTest() throws Exception {
-        PowerAuthVaultUnlockShared.vaultUnlockCounterIncrementTest(model, stepLogger);
+        PowerAuthVaultUnlockShared.vaultUnlockCounterIncrementTest(model, stepLogger, VERSION);
     }
 
     @Test

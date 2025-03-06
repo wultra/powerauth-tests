@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -30,7 +31,6 @@ import com.wultra.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.v3.CreateTokenStep;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
-import com.wultra.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -214,14 +214,14 @@ public class PowerAuthTokenShared {
         assertNotNull(responseOK.getMac());
     }
 
-    public static void tokenCounterIncrementTest(final CreateTokenStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+    public static void tokenCounterIncrementTest(final CreateTokenStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         byte[] ctrData = CounterUtil.getCtrData(model, stepLogger);
         new CreateTokenStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
         // Verify counter after createToken
-        byte[] ctrDataExpected = new HashBasedCounter().next(ctrData);
+        byte[] ctrDataExpected = new HashBasedCounter(version.value()).next(ctrData);
         assertArrayEquals(ctrDataExpected, CounterUtil.getCtrData(model, stepLogger));
     }
 

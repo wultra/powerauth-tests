@@ -132,7 +132,7 @@ class PowerAuthTokenTest {
 
     @Test
     void tokenCounterIncrementTest() throws Exception {
-        PowerAuthTokenShared.tokenCounterIncrementTest(model, stepLogger);
+        PowerAuthTokenShared.tokenCounterIncrementTest(model, stepLogger, VERSION);
     }
 
 }

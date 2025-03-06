@@ -22,6 +22,8 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.response.VerifyECDSASignatureResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
@@ -30,7 +32,6 @@ import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.v3.VaultUnlockStep;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
-import com.wultra.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.nio.charset.StandardCharsets;
@@ -159,14 +160,14 @@ public class PowerAuthVaultUnlockShared {
         assertNotNull(responseOK.getMac());
     }
 
-    public static void vaultUnlockCounterIncrementTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+    public static void vaultUnlockCounterIncrementTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         byte[] ctrData = CounterUtil.getCtrData(model, stepLogger);
         new VaultUnlockStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
         // Verify counter after createToken - in version 3.0 the counter is incremented once
-        byte[] ctrDataExpected = new HashBasedCounter().next(ctrData);
+        byte[] ctrDataExpected = new HashBasedCounter(version.value()).next(ctrData);
         assertArrayEquals(ctrDataExpected, CounterUtil.getCtrData(model, stepLogger));
     }
 
@@ -190,7 +191,7 @@ public class PowerAuthVaultUnlockShared {
 
         final PrivateKey devicePrivateKey = obtainDevicePrivateKeyUsingVaultUnlock(stepLogger, model, config);
 
-        final byte[] signature = SIGNATURE_UTILS.computeECDSASignature(dataBytes, devicePrivateKey);
+        final byte[] signature = SIGNATURE_UTILS.computeECDSASignature(EcCurve.P256, dataBytes, devicePrivateKey);
 
         final VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(config.getActivationId(version), data, Base64.getEncoder().encodeToString(signature));
         assertTrue(verifyResponse.isSignatureValid());
@@ -202,7 +203,7 @@ public class PowerAuthVaultUnlockShared {
 
         final PrivateKey devicePrivateKey = obtainDevicePrivateKeyUsingVaultUnlock(stepLogger, model, config);
 
-        final byte[] signature = SIGNATURE_UTILS.computeECDSASignature("test_data_crippled".getBytes(StandardCharsets.UTF_8), devicePrivateKey);
+        final byte[] signature = SIGNATURE_UTILS.computeECDSASignature(EcCurve.P256, "test_data_crippled".getBytes(StandardCharsets.UTF_8), devicePrivateKey);
 
         final VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature(config.getActivationId(version), data, Base64.getEncoder().encodeToString(signature));
         assertFalse(verifyResponse.isSignatureValid());
@@ -214,7 +215,7 @@ public class PowerAuthVaultUnlockShared {
 
         final PrivateKey devicePrivateKey = obtainDevicePrivateKeyUsingVaultUnlock(stepLogger, model, config);
 
-        final byte[] signature = SIGNATURE_UTILS.computeECDSASignature(dataBytes, devicePrivateKey);
+        final byte[] signature = SIGNATURE_UTILS.computeECDSASignature(EcCurve.P256, dataBytes, devicePrivateKey);
 
         final String activationIdInvalid = switch (version) {
             case V3_0 -> config.getActivationId(PowerAuthVersion.V3_3);
@@ -233,7 +234,7 @@ public class PowerAuthVaultUnlockShared {
         final String data = Base64.getEncoder().encodeToString(dataBytes);
 
         final PrivateKey devicePrivateKey = obtainDevicePrivateKeyUsingVaultUnlock(stepLogger, model, config);
-        final byte[] signature = SIGNATURE_UTILS.computeECDSASignature(dataBytes, devicePrivateKey);
+        final byte[] signature = SIGNATURE_UTILS.computeECDSASignature(EcCurve.P256, dataBytes, devicePrivateKey);
 
         final VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature("AAAAA-BBBBB-CCCCC-DDDDD", data, Base64.getEncoder().encodeToString(signature));
         assertFalse(verifyResponse.isSignatureValid());
@@ -255,7 +256,7 @@ public class PowerAuthVaultUnlockShared {
         assertEquals("true", responseMap.get("privateKeyDecryptionSuccessful"));
         final String devicePrivateKeyBase64 = (String) responseMap.get("devicePrivateKey");
 
-        return config.getKeyConvertor().convertBytesToPrivateKey(Base64.getDecoder().decode(devicePrivateKeyBase64));
+        return config.getKeyConvertor().convertBytesToPrivateKey(EcCurve.P256, Base64.getDecoder().decode(devicePrivateKeyBase64));
     }
 
     private static void checkSignatureError(ErrorResponse errorResponse) {

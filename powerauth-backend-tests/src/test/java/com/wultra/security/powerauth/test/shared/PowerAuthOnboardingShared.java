@@ -33,6 +33,7 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.model.request.OtpDetailRequest;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
@@ -46,7 +47,6 @@ import com.wultra.security.powerauth.lib.cmd.steps.v3.EncryptStep;
 import com.wultra.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
 import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer2Response;
 import com.wultra.security.powerauth.rest.api.model.response.ActivationStatusResponse;
-import com.wultra.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.opentest4j.AssertionFailedError;
 

@@ -21,7 +21,6 @@ import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthApiShared;
-import com.wultra.security.powerauth.crypto.lib.encryptor.exception.EncryptorException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
@@ -32,9 +31,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.io.IOException;
 import java.security.InvalidKeyException;
-import java.security.spec.InvalidKeySpecException;
 
 /**
  * PowerAuth API tests.
@@ -76,12 +73,6 @@ class PowerAuthApiTest {
     @Test
     void createValidateAndRemoveTokenTestActiveActivation() throws Exception {
         PowerAuthApiShared.createValidateAndRemoveTokenTestActiveActivation(powerAuthClient, config, VERSION);
-    }
-
-
-    @Test
-    void recoveryCodeConfirmAndActivationTest() throws Exception {
-        PowerAuthApiShared.recoveryCodeConfirmAndActivationTest(powerAuthClient, config, VERSION);
     }
 
     // Activation flags are tested using PowerAuthActivationFlagsTest

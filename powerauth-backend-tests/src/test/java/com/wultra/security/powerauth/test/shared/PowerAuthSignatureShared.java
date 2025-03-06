@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.crypto.lib.config.SignatureConfiguration;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
@@ -406,9 +407,9 @@ public class PowerAuthSignatureShared {
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
-    public static void signatureCounterIncrementTest(final VerifySignatureStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+    public static void signatureCounterIncrementTest(final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         byte[] ctrData = CounterUtil.getCtrData(model, stepLogger);
-        HashBasedCounter counter = new HashBasedCounter();
+        HashBasedCounter counter = new HashBasedCounter(version.value());
         for (int i = 1; i <= 10; i++) {
             ObjectStepLogger stepLoggerLoop = new ObjectStepLogger();
             new VerifySignatureStep().execute(stepLoggerLoop, model.toMap());
@@ -462,13 +463,13 @@ public class PowerAuthSignatureShared {
         // The remainder of last line is Base64 encoded ECDSA signature
         String ecdsaSignature = lastLine.substring(1);
         final byte[] serverPublicKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("serverPublicKey"));
-        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(serverPublicKeyBytes);
+        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
 
         // Prepare offline data without signature
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
+        assertTrue(signatureUtils.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
 
         // Prepare data for PowerAuth signature
         String dataForSignature = operationId + "&" + operationData;
@@ -524,13 +525,13 @@ public class PowerAuthSignatureShared {
         // The remainder of last line is Base64 encoded ECDSA signature
         String ecdsaSignature = lastLine.substring(1);
         final byte[] serverPublicKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("serverPublicKey"));
-        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(serverPublicKeyBytes);
+        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
 
         // Prepare offline data without signature
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
+        assertTrue(signatureUtils.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
 
         // Prepare data for PowerAuth signature
         String dataForSignature = operationId + "&" + operationData;
@@ -591,7 +592,7 @@ public class PowerAuthSignatureShared {
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKey()));
+        assertTrue(signatureUtils.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKey()));
 
         // Prepare data for PowerAuth signature
         String dataForSignature = operationId + "&" + operationData;
@@ -650,7 +651,7 @@ public class PowerAuthSignatureShared {
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKey()));
+        assertTrue(signatureUtils.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKey()));
 
         // Prepare data for PowerAuth signature
         String dataForSignature = operationId + "&" + operationData;
@@ -769,13 +770,13 @@ public class PowerAuthSignatureShared {
         // The remainder of last line is Base64 encoded ECDSA signature
         final String ecdsaSignature = lastLine.substring(1);
         final byte[] serverPublicKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("serverPublicKey"));
-        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(serverPublicKeyBytes);
+        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
 
         // Prepare offline data without signature
         final String offlineDataWithoutSignature = offlineDataResponse.substring(0, offlineDataResponse.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
+        assertTrue(signatureUtils.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
 
         // Prepare data for PowerAuth signature
         final String proximityTotp = parts[5];
