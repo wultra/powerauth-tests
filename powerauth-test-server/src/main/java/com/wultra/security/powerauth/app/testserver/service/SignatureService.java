@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineS
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineSignatureResponse;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnlineSignatureResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
+import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.ComputeOfflineSignatureStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifySignatureStep;
