@@ -17,7 +17,7 @@
  */
 package com.wultra.security.powerauth.test.v31;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthActivationCommitPhaseShared;
 import com.wultra.security.powerauth.crypto.client.activation.PowerAuthClientActivation;

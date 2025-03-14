@@ -29,7 +29,7 @@ import com.wultra.app.enrollmentserver.api.model.onboarding.response.OnboardingS
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.error.ActivationOtpErrorResponse;
 import com.wultra.app.enrollmentserver.model.enumeration.OnboardingStatus;
 import com.wultra.app.enrollmentserver.model.enumeration.OtpType;
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;

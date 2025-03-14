@@ -17,7 +17,7 @@
  */
 package com.wultra.security.powerauth.test.shared;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.LookupActivationsRequest;
 import com.wultra.security.powerauth.client.model.response.*;

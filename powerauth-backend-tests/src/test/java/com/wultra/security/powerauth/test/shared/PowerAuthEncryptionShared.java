@@ -18,10 +18,10 @@
 package com.wultra.security.powerauth.test.shared;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.request.GetEciesDecryptorRequest;
-import com.wultra.security.powerauth.client.model.response.GetEciesDecryptorResponse;
+import com.wultra.security.powerauth.client.model.request.v3.GetEciesDecryptorRequest;
+import com.wultra.security.powerauth.client.model.response.v3.GetEciesDecryptorResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;

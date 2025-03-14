@@ -18,13 +18,18 @@
 package com.wultra.security.powerauth.test.shared;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.request.*;
+import com.wultra.security.powerauth.client.model.request.v3.CreateTokenRequest;
+import com.wultra.security.powerauth.client.model.request.v3.VaultUnlockRequest;
 import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.client.model.response.v3.CreateTokenResponse;
+import com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse;
+import com.wultra.security.powerauth.client.model.response.v3.VerifyECDSASignatureResponse;
+import com.wultra.security.powerauth.client.model.response.v3.VerifySignatureResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSecrets;
@@ -33,7 +38,6 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncrypte
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.model.TemporaryKey;
 import com.wultra.security.powerauth.test.shared.util.TemporaryKeyFetchUtil;
-import com.wultra.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import com.wultra.security.powerauth.crypto.client.keyfactory.PowerAuthClientKeyFactory;
 import com.wultra.security.powerauth.crypto.client.signature.PowerAuthClientSignature;
 import com.wultra.security.powerauth.crypto.client.token.ClientTokenGenerator;
