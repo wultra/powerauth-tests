@@ -40,8 +40,8 @@ import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.GetStatusStep;
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
 import com.wultra.security.powerauth.rest.api.model.request.ActivationStatusRequest;
 import com.wultra.security.powerauth.rest.api.model.response.ActivationStatusResponse;
@@ -234,11 +234,11 @@ public class PowerAuthActivationShared {
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
         KeyPair keyPair = new KeyGenerator().generateKeyPair(EcCurve.P256);
-        PublicKey originalKey = model.getMasterPublicKey();
+        PublicKey originalKey = model.getMasterPublicKeyP256();
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
-        model.setMasterPublicKey(keyPair.getPublic());
+        model.setMasterPublicKeyP256(keyPair.getPublic());
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
         assertFalse(stepLoggerPrepare.getResult().success());
@@ -252,7 +252,7 @@ public class PowerAuthActivationShared {
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
 
         // Revert master public key change
-        model.setMasterPublicKey(originalKey);
+        model.setMasterPublicKeyP256(originalKey);
     }
 
     public static void activationStatusTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,

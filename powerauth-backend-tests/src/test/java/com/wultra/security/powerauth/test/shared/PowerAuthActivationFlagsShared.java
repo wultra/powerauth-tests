@@ -26,9 +26,9 @@ import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer2Response;
+import com.wultra.security.powerauth.lib.cmd.steps.CreateActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 
 import java.io.File;
 import java.util.*;
@@ -141,7 +141,7 @@ public class PowerAuthActivationFlagsShared {
         model.setActivationName("test v" + version);
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
+        model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());

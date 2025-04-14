@@ -89,7 +89,6 @@ class PowerAuthTokenTest {
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setHeaders(new HashMap<>());
-        model.setMasterPublicKey(config.getMasterPublicKey());
         model.setPassword(config.getPassword());
         model.setResultStatusObject(config.getResultStatusObject(VERSION));
         model.setStatusFileName(config.getStatusFile(VERSION).getAbsolutePath());

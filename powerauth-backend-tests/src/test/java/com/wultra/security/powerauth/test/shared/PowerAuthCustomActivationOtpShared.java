@@ -28,10 +28,10 @@ import com.wultra.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer1Response;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer2Response;
+import com.wultra.security.powerauth.lib.cmd.steps.CreateActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.GetStatusStep;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.util.HashMap;

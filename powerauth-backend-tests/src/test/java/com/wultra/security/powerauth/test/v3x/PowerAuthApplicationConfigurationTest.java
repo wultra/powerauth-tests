@@ -31,7 +31,7 @@ import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.EncryptStep;
+import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.opentest4j.AssertionFailedError;
@@ -73,7 +73,7 @@ class PowerAuthApplicationConfigurationTest {
         encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());
         encryptModel.setApplicationSecret(config.getApplicationSecret());
-        encryptModel.setMasterPublicKey(config.getMasterPublicKey());
+        encryptModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         encryptModel.setHeaders(new HashMap<>());
         encryptModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         encryptModel.setBaseUriString(config.getPowerAuthIntegrationUrl());

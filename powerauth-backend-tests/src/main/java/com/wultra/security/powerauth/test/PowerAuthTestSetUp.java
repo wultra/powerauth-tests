@@ -29,7 +29,7 @@ import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
@@ -60,7 +60,8 @@ public class PowerAuthTestSetUp {
 
     public void execute() throws Exception {
         createApplication();
-        Arrays.stream(PowerAuthVersion.values()).forEach(version -> {
+        // TODO - add v4
+        PowerAuthVersion.VERSION_3.forEach(version -> {
             try {
                 createActivation(version);
             } catch (Exception e) {
@@ -144,7 +145,7 @@ public class PowerAuthTestSetUp {
         model.setActivationName("test v" + version);
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
+        model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(config.getStatusFile(version).getAbsolutePath());

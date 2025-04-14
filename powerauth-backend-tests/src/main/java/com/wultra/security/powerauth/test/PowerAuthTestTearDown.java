@@ -24,8 +24,6 @@ import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Arrays;
-
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -49,7 +47,8 @@ public class PowerAuthTestTearDown {
     }
 
     public void execute() throws PowerAuthClientException {
-        Arrays.stream(PowerAuthVersion.values()).forEach(version -> {
+        // TODO - add v4
+        PowerAuthVersion.VERSION_3.forEach(version -> {
             try {
                 powerAuthClient.removeActivation(config.getActivationId(version), "test");
                 assertTrue(config.getStatusFile(version).delete());

@@ -26,8 +26,8 @@ import com.wultra.security.powerauth.crypto.client.activation.PowerAuthClientAct
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.SignAndEncryptStep;
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.SignAndEncryptStep;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.io.BufferedWriter;
@@ -100,7 +100,7 @@ public class PowerAuthActivationCodeShared {
         byte[] activationSignatureBytes = Base64.getDecoder().decode(activationSignature);
 
         // Verify activation signature
-        boolean activationSignatureOK = CLIENT_ACTIVATION.verifyActivationCodeSignature(activationCode, activationSignatureBytes, config.getMasterPublicKey());
+        boolean activationSignatureOK = CLIENT_ACTIVATION.verifyActivationCodeSignature(activationCode, activationSignatureBytes, config.getMasterPublicKeyP256());
         assertTrue(activationSignatureOK);
 
         // Create a new activation using received activation code and generated OTP

@@ -18,9 +18,7 @@
 package com.wultra.security.powerauth.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.rest.client.v3.PowerAuthRestClient;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
 import com.wultra.security.powerauth.test.PowerAuthTestSetUp;
 import com.wultra.security.powerauth.test.PowerAuthTestTearDown;
@@ -137,17 +135,36 @@ public class PowerAuthTestConfiguration {
     }
 
     /**
-     * Initialize PowerAuth client.
+     * Initialize PowerAuth client (V3).
      * @return PowerAuth client.
      */
     @Bean
-    public PowerAuthClient powerAuthClient() {
+    public com.wultra.security.powerauth.client.v3.PowerAuthClient powerAuthClientV3() {
         PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
         config.setPowerAuthClientToken(clientToken);
         config.setPowerAuthClientSecret(clientSecret);
         config.setAcceptInvalidSslCertificate(true);
         try {
-            return new PowerAuthRestClient(powerAuthRestUrl, config);
+            return new com.wultra.security.powerauth.rest.client.v3.PowerAuthRestClient(powerAuthRestUrl, config);
+        } catch (PowerAuthClientException ex) {
+            // Log the error in case Rest client initialization failed
+            logger.error(ex.getMessage(), ex);
+            return null;
+        }
+    }
+
+    /**
+     * Initialize PowerAuth client (V4).
+     * @return PowerAuth client.
+     */
+    @Bean
+    public com.wultra.security.powerauth.client.v4.PowerAuthClient powerAuthClientV4() {
+        PowerAuthRestClientConfiguration config = new PowerAuthRestClientConfiguration();
+        config.setPowerAuthClientToken(clientToken);
+        config.setPowerAuthClientSecret(clientSecret);
+        config.setAcceptInvalidSslCertificate(true);
+        try {
+            return new com.wultra.security.powerauth.rest.client.v4.PowerAuthRestClient(powerAuthRestUrl, config);
         } catch (PowerAuthClientException ex) {
             // Log the error in case Rest client initialization failed
             logger.error(ex.getMessage(), ex);
@@ -245,7 +262,7 @@ public class PowerAuthTestConfiguration {
         return applicationSecret;
     }
 
-    public PublicKey getMasterPublicKey() {
+    public PublicKey getMasterPublicKeyP256() {
         return masterPublicKeyConverted;
     }
 

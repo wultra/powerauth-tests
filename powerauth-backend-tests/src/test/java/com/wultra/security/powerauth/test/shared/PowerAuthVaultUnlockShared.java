@@ -30,7 +30,7 @@ import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.VaultUnlockStep;
+import com.wultra.security.powerauth.lib.cmd.steps.VaultUnlockStep;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 

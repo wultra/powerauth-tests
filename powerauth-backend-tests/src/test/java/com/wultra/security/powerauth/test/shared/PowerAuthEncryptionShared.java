@@ -41,8 +41,8 @@ import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.EncryptStep;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.SignAndEncryptStep;
+import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
+import com.wultra.security.powerauth.lib.cmd.steps.SignAndEncryptStep;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
@@ -481,7 +481,7 @@ public class PowerAuthEncryptionShared {
         ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.APPLICATION_SCOPE_GENERIC,
                 new EncryptorParameters(version.value(), config.getApplicationKey(), null, temporaryKey != null ? temporaryKey.getId() : null),
-                new ClientEciesSecrets(config.getMasterPublicKey(), config.getApplicationSecret())
+                new ClientEciesSecrets(config.getMasterPublicKeyP256(), config.getApplicationSecret())
         );
         EciesEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
         final GetEciesDecryptorRequest eciesDecryptorRequest = new GetEciesDecryptorRequest();

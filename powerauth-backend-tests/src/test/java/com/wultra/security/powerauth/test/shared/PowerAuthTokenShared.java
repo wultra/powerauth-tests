@@ -29,7 +29,7 @@ import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.CreateTokenStep;
+import com.wultra.security.powerauth.lib.cmd.steps.CreateTokenStep;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
 
 import java.io.File;

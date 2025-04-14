@@ -55,7 +55,7 @@ class PowerAuthInfoTest {
         encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());
         encryptModel.setApplicationSecret(config.getApplicationSecret());
-        encryptModel.setMasterPublicKey(config.getMasterPublicKey());
+        encryptModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         encryptModel.setHeaders(new HashMap<>());
         encryptModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         encryptModel.setBaseUriString(config.getPowerAuthIntegrationUrl());

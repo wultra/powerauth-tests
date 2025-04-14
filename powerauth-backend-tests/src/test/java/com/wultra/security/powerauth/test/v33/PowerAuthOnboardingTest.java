@@ -75,7 +75,7 @@ class PowerAuthOnboardingTest {
         EncryptStepModel encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());
         encryptModel.setApplicationSecret(config.getApplicationSecret());
-        encryptModel.setMasterPublicKey(config.getMasterPublicKey());
+        encryptModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         encryptModel.setHeaders(new HashMap<>());
         encryptModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         encryptModel.setBaseUriString(config.getPowerAuthIntegrationUrl());
@@ -91,7 +91,7 @@ class PowerAuthOnboardingTest {
         activationModel.setActivationName("test v" + VERSION + " onboarding");
         activationModel.setApplicationKey(config.getApplicationKey());
         activationModel.setApplicationSecret(config.getApplicationSecret());
-        activationModel.setMasterPublicKey(config.getMasterPublicKey());
+        activationModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         activationModel.setHeaders(new HashMap<>());
         activationModel.setPassword(config.getPassword());
         activationModel.setStatusFileName(tempStatusFile.getAbsolutePath());

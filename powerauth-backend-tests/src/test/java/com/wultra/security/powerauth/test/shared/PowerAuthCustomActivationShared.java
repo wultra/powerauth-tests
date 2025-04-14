@@ -34,9 +34,9 @@ import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifySignatureStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer1Response;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer2Response;
+import com.wultra.security.powerauth.lib.cmd.steps.CreateActivationStep;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.io.File;
@@ -229,10 +229,10 @@ public class PowerAuthCustomActivationShared {
         model.setIdentityAttributes(identityAttributes);
 
         KeyPair keyPair = new KeyGenerator().generateKeyPair();
-        PublicKey originalKey = model.getMasterPublicKey();
+        PublicKey originalKey = model.getMasterPublicKeyP256();
 
         // Set bad master public key
-        model.setMasterPublicKey(keyPair.getPublic());
+        model.setMasterPublicKeyP256(keyPair.getPublic());
 
         // Create activation
         new CreateActivationStep().execute(stepLogger, model.toMap());
@@ -251,7 +251,7 @@ public class PowerAuthCustomActivationShared {
         }
 
         // Revert master public key change
-        model.setMasterPublicKey(originalKey);
+        model.setMasterPublicKeyP256(originalKey);
     }
 
     public static void customActivationUnsupportedApplicationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {

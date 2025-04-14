@@ -80,7 +80,7 @@ class PowerAuthIdentityVerificationTest {
         EncryptStepModel encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());
         encryptModel.setApplicationSecret(config.getApplicationSecret());
-        encryptModel.setMasterPublicKey(config.getMasterPublicKey());
+        encryptModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         encryptModel.setHeaders(new HashMap<>());
         encryptModel.setResultStatusObject(resultStatusObject);
         encryptModel.setVersion(VERSION);
@@ -115,7 +115,7 @@ class PowerAuthIdentityVerificationTest {
         activationModel.setActivationName("test v3.1 document verification");
         activationModel.setApplicationKey(config.getApplicationKey());
         activationModel.setApplicationSecret(config.getApplicationSecret());
-        activationModel.setMasterPublicKey(config.getMasterPublicKey());
+        activationModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         activationModel.setHeaders(new HashMap<>());
         activationModel.setPassword(config.getPassword());
         activationModel.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -128,7 +128,6 @@ class PowerAuthIdentityVerificationTest {
         createTokenModel.setApplicationKey(config.getApplicationKey());
         createTokenModel.setApplicationSecret(config.getApplicationSecret());
         createTokenModel.setHeaders(new HashMap<>());
-        createTokenModel.setMasterPublicKey(config.getMasterPublicKey());
         createTokenModel.setPassword(config.getPassword());
         createTokenModel.setResultStatusObject(resultStatusObject);
         createTokenModel.setStatusFileName(tempStatusFile.getAbsolutePath());

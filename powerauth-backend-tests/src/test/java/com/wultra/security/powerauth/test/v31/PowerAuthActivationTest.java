@@ -76,7 +76,7 @@ class PowerAuthActivationTest {
         model.setActivationName("test v31");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
+        model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());

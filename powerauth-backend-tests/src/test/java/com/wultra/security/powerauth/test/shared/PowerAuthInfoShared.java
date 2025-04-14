@@ -31,7 +31,7 @@ import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.EncryptStep;
+import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
 import com.wultra.security.powerauth.rest.api.model.request.UserInfoRequest;
 import com.wultra.security.powerauth.rest.api.model.response.ServerStatusResponse;
 import org.opentest4j.AssertionFailedError;
