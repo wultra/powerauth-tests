@@ -31,7 +31,7 @@ import com.wultra.app.enrollmentserver.model.enumeration.OnboardingStatus;
 import com.wultra.app.enrollmentserver.model.enumeration.OtpType;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.model.request.OtpDetailRequest;
@@ -46,7 +46,7 @@ import com.wultra.security.powerauth.lib.cmd.steps.CreateActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
 import com.wultra.security.powerauth.lib.cmd.steps.GetStatusStep;
 import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationStatusResponse;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.opentest4j.AssertionFailedError;
 

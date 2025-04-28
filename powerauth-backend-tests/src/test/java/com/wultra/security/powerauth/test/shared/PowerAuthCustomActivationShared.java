@@ -22,7 +22,7 @@ import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.util.ResponseVerificationUtil;

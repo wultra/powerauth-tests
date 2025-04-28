@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.test.shared;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.SignatureType;

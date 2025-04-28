@@ -24,7 +24,7 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.client.model.request.CommitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.response.CommitActivationResponse;
-import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;

@@ -25,7 +25,7 @@ import com.wultra.app.enrollmentserver.api.model.onboarding.response.*;
 import com.wultra.app.enrollmentserver.model.enumeration.*;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
