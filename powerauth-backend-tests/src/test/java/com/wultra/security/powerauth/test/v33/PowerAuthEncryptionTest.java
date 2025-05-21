@@ -20,11 +20,11 @@ package com.wultra.security.powerauth.test.v33;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthEncryptionShared;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -61,7 +61,7 @@ class PowerAuthEncryptionTest {
     private PowerAuthTestConfiguration config;
     private static File dataFile;
     private EncryptStepModel encryptModel;
-    private VerifySignatureStepModel signatureModel;
+    private VerifyAuthenticationStepModel signatureModel;
     private ObjectStepLogger stepLogger;
     private PowerAuthClient powerAuthClient;
 
@@ -100,7 +100,7 @@ class PowerAuthEncryptionTest {
         encryptModel.setBaseUriString(config.getPowerAuthIntegrationUrl());
         encryptModel.setVersion(VERSION);
 
-        signatureModel = new VerifySignatureStepModel();
+        signatureModel = new VerifyAuthenticationStepModel();
         signatureModel.setApplicationKey(config.getApplicationKey());
         signatureModel.setApplicationSecret(config.getApplicationSecret());
         signatureModel.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
@@ -108,7 +108,7 @@ class PowerAuthEncryptionTest {
         signatureModel.setHttpMethod("POST");
         signatureModel.setPassword(config.getPassword());
         signatureModel.setResultStatusObject(config.getResultStatusObject(VERSION));
-        signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
+        signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE);
         signatureModel.setStatusFileName(config.getStatusFile(VERSION).getAbsolutePath());
         signatureModel.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
         signatureModel.setBaseUriString(config.getPowerAuthIntegrationUrl());

@@ -32,9 +32,9 @@ import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.ComputeOfflineSignatureStep;
-import com.wultra.security.powerauth.lib.cmd.steps.VerifySignatureStep;
+import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.ComputeOfflineSignatureStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,22 +55,22 @@ public class SignatureService extends BaseService {
 
     private final TestServerConfiguration config;
     private final ResultStatusService resultStatusUtil;
-    private final VerifySignatureStep verifySignatureStep;
+    private final VerifyAuthenticationStep VerifyAuthenticationStep;
     private final ComputeOfflineSignatureStep computeOfflineSignatureStep;
 
     /**
      * Service constructor.
      * @param config Test server configuration.
      * @param resultStatusUtil Result status utilities.
-     * @param verifySignatureStep Verify signature step.
+     * @param VerifyAuthenticationStep Verify signature step.
      * @param computeOfflineSignatureStep Compute offline signature step.
      */
     @Autowired
-    public SignatureService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, VerifySignatureStep verifySignatureStep, ComputeOfflineSignatureStep computeOfflineSignatureStep) {
+    public SignatureService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, VerifyAuthenticationStep VerifyAuthenticationStep, ComputeOfflineSignatureStep computeOfflineSignatureStep) {
         super(appConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
-        this.verifySignatureStep = verifySignatureStep;
+        this.VerifyAuthenticationStep = VerifyAuthenticationStep;
         this.computeOfflineSignatureStep = computeOfflineSignatureStep;
     }
 
@@ -89,10 +89,10 @@ public class SignatureService extends BaseService {
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
 
-        final VerifySignatureStepModel model = new VerifySignatureStepModel();
+        final VerifyAuthenticationStepModel model = new VerifyAuthenticationStepModel();
         model.setHttpMethod(request.getHttpMethod());
         model.setResourceId(request.getResourceId());
-        model.setSignatureType(SignatureTypeConverter.convert(request.getSignatureType()));
+        model.setAuthenticationCodeType(SignatureTypeConverter.convert(request.getSignatureType()));
         if (request.getRequestBody() != null) {
             model.setData(Base64.getDecoder().decode(request.getRequestBody()));
         }
@@ -107,7 +107,7 @@ public class SignatureService extends BaseService {
         final ObjectStepLogger stepLogger;
         try {
             stepLogger = new ObjectStepLogger();
-            verifySignatureStep.execute(stepLogger, model.toMap());
+            VerifyAuthenticationStep.execute(stepLogger, model.toMap());
             stepLogger.getItems()
                     .forEach(item -> StepItemLogger.log(logger, item));
         } catch (Exception ex) {

@@ -25,7 +25,7 @@ import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.SignAndEncryptStep;
 import org.junit.jupiter.api.AssertionFailureBuilder;
@@ -52,7 +52,7 @@ public class PowerAuthActivationCodeShared {
     private static final PowerAuthClientActivation CLIENT_ACTIVATION = new PowerAuthClientActivation();
 
     public static void activationUsingActivationCodeTest(PowerAuthTestConfiguration config, PrepareActivationStepModel activationModel,
-                                                         VerifySignatureStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
+                                                         VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
         // Run this test only in case Enrollment server is available
         assumeFalse(config.getEnrollmentServiceUrl().isEmpty());
 

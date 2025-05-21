@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthIdentityVerificationShared;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.*;
@@ -85,14 +85,14 @@ class PowerAuthIdentityVerificationTest {
         encryptModel.setResultStatusObject(resultStatusObject);
         encryptModel.setVersion(VERSION);
 
-        VerifySignatureStepModel signatureModel = new VerifySignatureStepModel();
+        VerifyAuthenticationStepModel signatureModel = new VerifyAuthenticationStepModel();
         signatureModel.setApplicationKey(config.getApplicationKey());
         signatureModel.setApplicationSecret(config.getApplicationSecret());
         signatureModel.setHeaders(new HashMap<>());
         signatureModel.setHttpMethod("POST");
         signatureModel.setPassword(config.getPassword());
         signatureModel.setResultStatusObject(resultStatusObject);
-        signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
+        signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION);
         signatureModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         signatureModel.setVersion(VERSION);
 
@@ -132,7 +132,7 @@ class PowerAuthIdentityVerificationTest {
         createTokenModel.setResultStatusObject(resultStatusObject);
         createTokenModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         createTokenModel.setUriString(config.getEnrollmentServiceUrl());
-        createTokenModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
+        createTokenModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION);
         createTokenModel.setVersion(VERSION);
 
         ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);

@@ -19,11 +19,11 @@ package com.wultra.security.powerauth.test.v32;
 
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthActivationCodeShared;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -55,7 +55,7 @@ public class PowerAuthActivationCodeTest {
 
     private PowerAuthTestConfiguration config;
     private PrepareActivationStepModel activationModel;
-    private VerifySignatureStepModel signatureModel;
+    private VerifyAuthenticationStepModel signatureModel;
     private File tempStatusFile;
     private ObjectStepLogger stepLogger;
 
@@ -83,10 +83,10 @@ public class PowerAuthActivationCodeTest {
         activationModel.setVersion(VERSION);
         activationModel.setDeviceInfo("backend-tests");
 
-        signatureModel = new VerifySignatureStepModel();
+        signatureModel = new VerifyAuthenticationStepModel();
         signatureModel.setApplicationKey(config.getApplicationKey());
         signatureModel.setApplicationSecret(config.getApplicationSecret());
-        signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_BIOMETRY);
+        signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_BIOMETRY);
         signatureModel.setPassword(config.getPassword());
         signatureModel.setHttpMethod("POST");
         signatureModel.setHeaders(new HashMap<>());

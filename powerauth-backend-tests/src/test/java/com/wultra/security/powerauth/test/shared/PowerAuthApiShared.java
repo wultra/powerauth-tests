@@ -18,19 +18,17 @@
 package com.wultra.security.powerauth.test.shared;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.security.powerauth.client.model.response.v3.*;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.v3.CreateTokenRequest;
 import com.wultra.security.powerauth.client.model.request.v3.VaultUnlockRequest;
 import com.wultra.security.powerauth.client.model.response.*;
-import com.wultra.security.powerauth.client.model.response.v3.CreateTokenResponse;
-import com.wultra.security.powerauth.client.model.response.v3.VaultUnlockResponse;
-import com.wultra.security.powerauth.client.model.response.v3.VerifyECDSASignatureResponse;
-import com.wultra.security.powerauth.client.model.response.v3.VerifySignatureResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.config.AuthenticationCodeConfiguration;
 import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
@@ -39,13 +37,12 @@ import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.model.TemporaryKey;
 import com.wultra.security.powerauth.test.shared.util.TemporaryKeyFetchUtil;
 import com.wultra.security.powerauth.crypto.client.keyfactory.PowerAuthClientKeyFactory;
-import com.wultra.security.powerauth.crypto.client.signature.PowerAuthClientSignature;
+import com.wultra.security.powerauth.crypto.client.authentication.PowerAuthClientAuthentication;
 import com.wultra.security.powerauth.crypto.client.token.ClientTokenGenerator;
 import com.wultra.security.powerauth.crypto.client.vault.PowerAuthClientVault;
-import com.wultra.security.powerauth.crypto.lib.config.SignatureConfiguration;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.*;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
@@ -83,7 +80,7 @@ public class PowerAuthApiShared {
     private static final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
-    private static final PowerAuthClientSignature CLIENT_SIGNATURE = new PowerAuthClientSignature();
+    private static final PowerAuthClientAuthentication CLIENT_SIGNATURE = new PowerAuthClientAuthentication();
     private static final PowerAuthClientVault CLIENT_VAULT = new PowerAuthClientVault();
     private static final PowerAuthClientKeyFactory KEY_FACTORY = new PowerAuthClientKeyFactory();
     private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
@@ -96,16 +93,16 @@ public class PowerAuthApiShared {
         before.add(Calendar.SECOND, -TIME_SYNCHRONIZATION_WINDOW_SECONDS);
         byte[] nonceBytes = KEY_GENERATOR.generateRandomBytes(16);
         String data = "test_data";
-        String normalizedData = PowerAuthHttpBody.getSignatureBaseString("POST", "/pa/signature/validate", nonceBytes, data.getBytes(StandardCharsets.UTF_8));
+        String normalizedData = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/pa/signature/validate", nonceBytes, data.getBytes(StandardCharsets.UTF_8));
         String normalizedDataWithSecret = normalizedData + "&" + config.getApplicationSecret();
         byte[] ctrData = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "ctrData"));
         byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "signaturePossessionKey"));
         byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "signatureKnowledgeKeySalt"));
         byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "signatureKnowledgeKeyEncrypted"));
-        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, KEY_GENERATOR);
+        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, KEY_GENERATOR);
         SecretKey signaturePossessionKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
-        String signatureValue = CLIENT_SIGNATURE.signatureForData(normalizedDataWithSecret.getBytes(StandardCharsets.UTF_8), KEY_FACTORY.keysForSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE,
-                signaturePossessionKey, signatureKnowledgeKey, null), ctrData, SignatureConfiguration.base64());
+        String signatureValue = CLIENT_SIGNATURE.authenticateCodeForData(normalizedDataWithSecret.getBytes(StandardCharsets.UTF_8), KEY_FACTORY.keysForAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE,
+                signaturePossessionKey, signatureKnowledgeKey, null), ctrData, AuthenticationCodeConfiguration.base64());
         VerifySignatureResponse signatureResponse = powerAuthClient.verifySignature(config.getActivationId(version), config.getApplicationKey(), normalizedData, signatureValue, SignatureType.POSSESSION_KNOWLEDGE, version.value(), null);
         assertTrue(signatureResponse.isSignatureValid());
         BaseStepModel model = new BaseStepModel();
@@ -155,16 +152,16 @@ public class PowerAuthApiShared {
         eciesRequest.setTimestamp(encryptedRequest.getTimestamp());
         eciesRequest.setTemporaryKeyId(temporaryKey != null ? temporaryKey.getId() : null);
         final byte[] requestBytes = OBJECT_MAPPER.writeValueAsBytes(eciesRequest);
-        String normalizedData = PowerAuthHttpBody.getSignatureBaseString("POST", "/pa/signature/validate", nonceBytes, requestBytes);
+        String normalizedData = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/pa/signature/validate", nonceBytes, requestBytes);
         String normalizedDataWithSecret = normalizedData + "&" + config.getApplicationSecret();
         byte[] ctrData = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "ctrData"));
         byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "signaturePossessionKey"));
         byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "signatureKnowledgeKeySalt"));
         byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "signatureKnowledgeKeyEncrypted"));
-        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, KEY_GENERATOR);
+        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, KEY_GENERATOR);
         SecretKey signaturePossessionKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
-        String signatureValue = CLIENT_SIGNATURE.signatureForData(normalizedDataWithSecret.getBytes(StandardCharsets.UTF_8), KEY_FACTORY.keysForSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE,
-                signaturePossessionKey, signatureKnowledgeKey, null), ctrData, SignatureConfiguration.base64());
+        String signatureValue = CLIENT_SIGNATURE.authenticateCodeForData(normalizedDataWithSecret.getBytes(StandardCharsets.UTF_8), KEY_FACTORY.keysForAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE,
+                signaturePossessionKey, signatureKnowledgeKey, null), ctrData, AuthenticationCodeConfiguration.base64());
         final VaultUnlockRequest unlockRequest = new VaultUnlockRequest();
         unlockRequest.setActivationId(config.getActivationId(version));
         unlockRequest.setApplicationKey(config.getApplicationKey());
