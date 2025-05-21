@@ -15,7 +15,7 @@
  */
 package com.wultra.security.powerauth.test
 
-import com.wultra.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject
+import io.getlime.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject
 
 /**
  * Representation of a test device

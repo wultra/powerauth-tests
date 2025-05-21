@@ -19,11 +19,11 @@ import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon
 import io.gatling.core.Predef.{scenario, _}
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.{http, _}
-import com.wultra.security.powerauth.http.PowerAuthTokenHttpHeader
-import com.wultra.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVersion}
-import com.wultra.security.powerauth.lib.cmd.steps.VerifyTokenStep
-import com.wultra.security.powerauth.lib.cmd.steps.context.StepContext
-import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel
+import io.getlime.security.powerauth.http.PowerAuthTokenHttpHeader
+import io.getlime.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVersion}
+import io.getlime.security.powerauth.lib.cmd.steps.VerifyTokenStep
+import io.getlime.security.powerauth.lib.cmd.steps.context.StepContext
+import io.getlime.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel
 import org.springframework.http.HttpMethod
 
 import java.nio.charset.StandardCharsets

@@ -18,10 +18,10 @@ package com.wultra.security.powerauth.test
 import io.gatling.core.Predef._
 import io.gatling.http.Predef.http
 import io.gatling.http.protocol.HttpProtocolBuilder
-import com.wultra.security.powerauth.lib.cmd.CmdLibApplication
-import com.wultra.security.powerauth.lib.cmd.consts.StepLoggerType
-import com.wultra.security.powerauth.lib.cmd.logging.StepLogger
-import com.wultra.security.powerauth.lib.cmd.steps.StepProvider
+import io.getlime.security.powerauth.lib.cmd.CmdLibApplication
+import io.getlime.security.powerauth.lib.cmd.consts.StepLoggerType
+import io.getlime.security.powerauth.lib.cmd.logging.StepLogger
+import io.getlime.security.powerauth.lib.cmd.steps.StepProvider
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.springframework.boot.WebApplicationType
 import org.springframework.boot.builder.SpringApplicationBuilder

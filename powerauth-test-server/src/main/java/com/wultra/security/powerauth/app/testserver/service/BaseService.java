@@ -21,7 +21,7 @@ import com.wultra.security.powerauth.app.testserver.database.TestConfigRepositor
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
+import io.getlime.security.powerauth.crypto.lib.util.KeyConvertor;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.PublicKey;

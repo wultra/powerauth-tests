@@ -27,10 +27,10 @@ import com.wultra.security.powerauth.client.model.request.OperationTemplateCreat
 import com.wultra.security.powerauth.client.model.request.UpdateRecoveryConfigRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
-import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
+import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
+import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
+import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;

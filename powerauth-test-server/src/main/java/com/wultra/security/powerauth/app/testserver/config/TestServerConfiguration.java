@@ -30,7 +30,7 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 @Data
-@ComponentScan(basePackages = {"com.wultra.security", "com.wultra.security"})
+@ComponentScan(basePackages = {"com.wultra.security", "io.getlime.security"})
 public class TestServerConfiguration {
 
     @Value("${powerauth.enrollment.service.url:http://localhost:8080/enrollment-server}")

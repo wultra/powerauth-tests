@@ -20,8 +20,8 @@ package com.wultra.security.powerauth.test.v3x;
 import com.wultra.security.powerauth.client.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthActivationFlagsShared;
-import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
-import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
+import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
-@ComponentScan(basePackages = "com.wultra.security.powerauth")
+@ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
 public class PowerAuthActivationFlagsTest {
 
     // Test only in the latestPowerAuth protocol version

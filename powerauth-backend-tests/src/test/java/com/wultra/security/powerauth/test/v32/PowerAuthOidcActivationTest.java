@@ -22,19 +22,19 @@ import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthOidcActivationConfigurationProperties;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
-import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import com.wultra.security.powerauth.lib.cmd.steps.context.StepContext;
-import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
-import com.wultra.security.powerauth.rest.api.model.entity.ActivationType;
-import com.wultra.security.powerauth.rest.api.model.request.ActivationLayer1Request;
-import com.wultra.security.powerauth.rest.api.model.request.EciesEncryptedRequest;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer2Response;
-import com.wultra.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
-import com.wultra.security.powerauth.rest.api.spring.service.oidc.OidcApplicationConfiguration;
-import com.wultra.security.powerauth.rest.api.spring.service.oidc.OidcApplicationConfigurationService;
-import com.wultra.security.powerauth.rest.api.spring.service.oidc.OidcConfigurationQuery;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
+import io.getlime.security.powerauth.lib.cmd.logging.ObjectStepLogger;
+import io.getlime.security.powerauth.lib.cmd.steps.context.StepContext;
+import io.getlime.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
+import io.getlime.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
+import io.getlime.security.powerauth.rest.api.model.entity.ActivationType;
+import io.getlime.security.powerauth.rest.api.model.request.ActivationLayer1Request;
+import io.getlime.security.powerauth.rest.api.model.request.EciesEncryptedRequest;
+import io.getlime.security.powerauth.rest.api.model.response.ActivationLayer2Response;
+import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
+import io.getlime.security.powerauth.rest.api.spring.service.oidc.OidcApplicationConfiguration;
+import io.getlime.security.powerauth.rest.api.spring.service.oidc.OidcApplicationConfigurationService;
+import io.getlime.security.powerauth.rest.api.spring.service.oidc.OidcConfigurationQuery;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -78,7 +78,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
-@ComponentScan(basePackages = "com.wultra.security.powerauth")
+@ComponentScan(basePackages = {"com.wultra.security.powerauth", "io.getlime.security.powerauth"})
 @EnabledIf(expression = "#{T(org.springframework.util.StringUtils).hasText('${powerauth.test.activation.oidc.providerId}')}", loadContext = true)
 class PowerAuthOidcActivationTest {
 

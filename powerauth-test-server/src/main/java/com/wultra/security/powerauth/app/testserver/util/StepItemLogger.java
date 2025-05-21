@@ -2,7 +2,7 @@ package com.wultra.security.powerauth.app.testserver.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
+import io.getlime.security.powerauth.lib.cmd.logging.model.StepItem;
 import org.slf4j.Logger;
 
 /**

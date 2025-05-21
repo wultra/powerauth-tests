@@ -19,12 +19,12 @@ import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon
 import io.gatling.core.Predef.{scenario, _}
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.{http, _}
-import com.wultra.security.powerauth.http.PowerAuthEncryptionHttpHeader
-import com.wultra.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVersion}
-import com.wultra.security.powerauth.lib.cmd.steps.context.StepContext
-import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel
-import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep
-import com.wultra.security.powerauth.rest.api.model.response.EciesEncryptedResponse
+import io.getlime.security.powerauth.http.PowerAuthEncryptionHttpHeader
+import io.getlime.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVersion}
+import io.getlime.security.powerauth.lib.cmd.steps.context.StepContext
+import io.getlime.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel
+import io.getlime.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep
+import io.getlime.security.powerauth.rest.api.model.response.EciesEncryptedResponse
 
 import java.util.Collections
 

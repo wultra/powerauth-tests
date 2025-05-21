@@ -27,9 +27,9 @@ import com.wultra.security.powerauth.app.testserver.model.request.OperationAppro
 import com.wultra.security.powerauth.app.testserver.model.request.OperationRejectInternalRequest;
 import com.wultra.security.powerauth.app.testserver.service.OperationsService;
 import com.wultra.security.powerauth.lib.mtoken.model.response.OperationListResponse;
-import com.wultra.core.rest.model.base.request.ObjectRequest;
-import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.core.rest.model.base.response.Response;
+import io.getlime.core.rest.model.base.request.ObjectRequest;
+import io.getlime.core.rest.model.base.response.ObjectResponse;
+import io.getlime.core.rest.model.base.response.Response;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import jakarta.validation.Valid;

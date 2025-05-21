@@ -19,12 +19,12 @@ package com.wultra.security.powerauth.test;
 
 import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.core.rest.model.base.response.ErrorResponse;
-import com.wultra.core.rest.model.base.response.Response;
-import com.wultra.security.powerauth.http.PowerAuthSignatureHttpHeader;
-import com.wultra.security.powerauth.http.PowerAuthTokenHttpHeader;
-import com.wultra.security.powerauth.lib.cmd.util.MapUtil;
-import com.wultra.security.powerauth.lib.cmd.util.RestClientFactory;
+import io.getlime.core.rest.model.base.response.ErrorResponse;
+import io.getlime.core.rest.model.base.response.Response;
+import io.getlime.security.powerauth.http.PowerAuthSignatureHttpHeader;
+import io.getlime.security.powerauth.http.PowerAuthTokenHttpHeader;
+import io.getlime.security.powerauth.lib.cmd.util.MapUtil;
+import io.getlime.security.powerauth.lib.cmd.util.RestClientFactory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

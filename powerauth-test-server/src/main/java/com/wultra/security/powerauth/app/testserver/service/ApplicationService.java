@@ -23,9 +23,9 @@ import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEn
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigInvalidException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.model.request.ConfigureApplicationRequest;
-import com.wultra.core.rest.model.base.response.Response;
-import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfiguration;
-import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfigurationSerializer;
+import io.getlime.core.rest.model.base.response.Response;
+import io.getlime.security.powerauth.lib.cmd.util.config.SdkConfiguration;
+import io.getlime.security.powerauth.lib.cmd.util.config.SdkConfigurationSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

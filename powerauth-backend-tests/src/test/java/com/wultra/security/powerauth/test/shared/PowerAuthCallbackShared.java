@@ -25,8 +25,8 @@ import com.wultra.security.powerauth.client.model.error.PowerAuthClientException
 import com.wultra.security.powerauth.client.model.request.CreateCallbackUrlRequest;
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
-import com.wultra.security.powerauth.lib.cmd.util.RestClientFactory;
+import io.getlime.security.powerauth.lib.cmd.consts.PowerAuthVersion;
+import io.getlime.security.powerauth.lib.cmd.util.RestClientFactory;
 import org.springframework.core.ParameterizedTypeReference;
 
 import java.util.*;

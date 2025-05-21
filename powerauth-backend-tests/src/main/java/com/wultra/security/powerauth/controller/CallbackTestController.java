@@ -19,7 +19,7 @@
  */
 package com.wultra.security.powerauth.controller;
 
-import com.wultra.core.rest.model.base.response.Response;
+import io.getlime.core.rest.model.base.response.Response;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

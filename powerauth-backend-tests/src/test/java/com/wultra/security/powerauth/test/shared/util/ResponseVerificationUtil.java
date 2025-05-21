@@ -17,8 +17,8 @@
  */
 package com.wultra.security.powerauth.test.shared.util;
 
-import com.wultra.core.rest.model.base.response.ErrorResponse;
-import com.wultra.security.powerauth.lib.cmd.steps.model.BaseStepModel;
+import io.getlime.core.rest.model.base.response.ErrorResponse;
+import io.getlime.security.powerauth.lib.cmd.steps.model.BaseStepModel;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

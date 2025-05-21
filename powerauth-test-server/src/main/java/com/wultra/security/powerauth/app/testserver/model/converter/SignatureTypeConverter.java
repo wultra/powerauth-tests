@@ -18,7 +18,7 @@
 package com.wultra.security.powerauth.app.testserver.model.converter;
 
 import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import io.getlime.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 
 /**
  * Converter for signature types
