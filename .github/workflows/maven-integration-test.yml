@@ -21,6 +21,12 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment || 'dev' }}
     steps:
+      - name: Log runner IP and region
+        run: |
+          echo "Public IP:"
+          curl -s https://ifconfig.me
+          echo -e "\nRegion info (GeoIP):"
+          curl -s https://ipinfo.io
       - uses: actions/checkout@v4
       - name: Set up JDK 21
         uses: actions/setup-java@v4
