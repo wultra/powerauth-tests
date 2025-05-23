@@ -595,7 +595,6 @@ public class PowerAuthActivationShared {
             statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
             // Added in V3.1
             assertEquals(20, statusBlob.getCtrLookAhead());
-            System.out.println("VAL: " + version.value());
             assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey, ProtocolVersion.fromValue(version.value())));
         }
 
