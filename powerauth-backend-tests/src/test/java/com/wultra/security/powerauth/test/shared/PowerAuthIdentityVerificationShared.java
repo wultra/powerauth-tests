@@ -23,23 +23,23 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.*;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.*;
 import com.wultra.app.enrollmentserver.model.enumeration.*;
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.model.request.OtpDetailRequest;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
-import com.wultra.security.powerauth.lib.cmd.steps.VerifySignatureStep;
+import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.*;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.*;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer2Response;
-import com.wultra.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
+import com.wultra.security.powerauth.lib.cmd.steps.*;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -411,7 +411,7 @@ public class PowerAuthIdentityVerificationShared {
         ctx.signatureModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/identity/init");
         ctx.signatureModel.setResourceId("/api/identity/init");
 
-        new VerifySignatureStep().execute(stepLogger, ctx.signatureModel.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, ctx.signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
@@ -740,7 +740,7 @@ public class PowerAuthIdentityVerificationShared {
                 .map(ObjectResponse::getResponseObject)
                 .map(OtpDetailResponse::getOtpCode)
                 .findAny()
-                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());;
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
         assertNotNull(otpCode);
         return otpCode;
@@ -759,7 +759,7 @@ public class PowerAuthIdentityVerificationShared {
         ctx.signatureModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/identity/init");
         ctx. signatureModel.setResourceId("/api/identity/init");
 
-        new VerifySignatureStep().execute(stepLogger, ctx.signatureModel.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, ctx.signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
@@ -795,7 +795,7 @@ public class PowerAuthIdentityVerificationShared {
         ctx.signatureModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/identity/consent/approve");
         ctx.signatureModel.setResourceId("/api/identity/consent/approve");
 
-        new VerifySignatureStep().execute(stepLogger, ctx.signatureModel.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, ctx.signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
@@ -942,7 +942,7 @@ public class PowerAuthIdentityVerificationShared {
         ctx.signatureModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/identity/presence-check/submit");
         ctx.signatureModel.setResourceId("/api/identity/presence-check/submit");
 
-        new VerifySignatureStep().execute(stepLogger, ctx.signatureModel.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, ctx.signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
@@ -1075,7 +1075,7 @@ public class PowerAuthIdentityVerificationShared {
         ctx.signatureModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/identity/cleanup");
         ctx.signatureModel.setResourceId("/api/identity/cleanup");
 
-        new VerifySignatureStep().execute(stepLogger, ctx.signatureModel.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, ctx.signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
@@ -1140,7 +1140,7 @@ public class PowerAuthIdentityVerificationShared {
         PowerAuthTestConfiguration config,
         CreateActivationStepModel activationModel,
         EncryptStepModel encryptModel,
-        VerifySignatureStepModel signatureModel,
+        VerifyAuthenticationStepModel signatureModel,
         CreateTokenStepModel createTokenModel,
         TokenAndEncryptStepModel tokenAndEncryptModel,
         VerifyTokenStepModel tokenModel,

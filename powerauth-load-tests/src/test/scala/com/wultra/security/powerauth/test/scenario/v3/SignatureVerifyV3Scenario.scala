@@ -22,9 +22,9 @@ import io.gatling.http.Predef.{http, _}
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes
 import com.wultra.security.powerauth.http.PowerAuthSignatureHttpHeader
 import com.wultra.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVersion}
-import com.wultra.security.powerauth.lib.cmd.steps.VerifySignatureStep
+import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep
 import com.wultra.security.powerauth.lib.cmd.steps.context.StepContext
-import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel
+import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel
 
 import java.nio.charset.StandardCharsets
 import java.util.Collections
@@ -36,11 +36,11 @@ import java.util.Collections
  */
 object SignatureVerifyV3Scenario extends AbstractScenario {
 
-  val signatureVerifyStep: VerifySignatureStep =
-    PowerAuthCommon.stepProvider.getStep(PowerAuthStep.SIGNATURE_VERIFY, PowerAuthVersion.V3_1).asInstanceOf[VerifySignatureStep]
+  val signatureVerifyStep: VerifyAuthenticationStep =
+    PowerAuthCommon.stepProvider.getStep(PowerAuthStep.SIGNATURE_VERIFY, PowerAuthVersion.V3_1).asInstanceOf[VerifyAuthenticationStep]
 
-  def prepareVerifySignatureStepModel(device: Device): VerifySignatureStepModel = {
-    val model = new VerifySignatureStepModel
+  def prepareVerifyAuthenticationStepModel(device: Device): VerifyAuthenticationStepModel = {
+    val model = new VerifyAuthenticationStepModel
     model.setApplicationKey(ClientConfig.applicationKey)
     model.setApplicationSecret(ClientConfig.applicationSecret)
     model.setHeaders(Collections.emptyMap())
@@ -48,7 +48,7 @@ object SignatureVerifyV3Scenario extends AbstractScenario {
     model.setPassword(device.password)
     model.setResourceId("/pa/signature/validate")
     model.setResultStatus(device.resultStatusObject)
-    model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE)
+    model.setAuthenticationCodeType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE)
     model.setUriString(s"${PowerAuthCommon.POWER_AUTH_REST_SERVER_URL}/pa/v3/signature/validate")
     model.setVersion(ClientConfig.modelVersion)
     model.setDryRun(false)
@@ -60,7 +60,7 @@ object SignatureVerifyV3Scenario extends AbstractScenario {
   }
 
   override def createStepContext(device: Device, session: Session): StepContext[_, _] = {
-    val model = prepareVerifySignatureStepModel(device)
+    val model = prepareVerifyAuthenticationStepModel(device)
     signatureVerifyStep.prepareStepContext(PowerAuthCommon.stepLogger, model.toMap)
   }
 

@@ -18,7 +18,7 @@
 package com.wultra.security.powerauth.test.v31;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthOnboardingShared;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
@@ -74,7 +74,7 @@ class PowerAuthOnboardingTest {
         EncryptStepModel encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());
         encryptModel.setApplicationSecret(config.getApplicationSecret());
-        encryptModel.setMasterPublicKey(config.getMasterPublicKey());
+        encryptModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         encryptModel.setHeaders(new HashMap<>());
         encryptModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         encryptModel.setVersion(VERSION);
@@ -89,7 +89,7 @@ class PowerAuthOnboardingTest {
         activationModel.setActivationName("test v" + VERSION + " onboarding");
         activationModel.setApplicationKey(config.getApplicationKey());
         activationModel.setApplicationSecret(config.getApplicationSecret());
-        activationModel.setMasterPublicKey(config.getMasterPublicKey());
+        activationModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         activationModel.setHeaders(new HashMap<>());
         activationModel.setPassword(config.getPassword());
         activationModel.setStatusFileName(tempStatusFile.getAbsolutePath());

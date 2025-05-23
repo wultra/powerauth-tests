@@ -19,10 +19,10 @@ package com.wultra.security.powerauth.test.v33;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthIdentityVerificationShared;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.*;
@@ -80,20 +80,20 @@ class PowerAuthIdentityVerificationTest {
         EncryptStepModel encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());
         encryptModel.setApplicationSecret(config.getApplicationSecret());
-        encryptModel.setMasterPublicKey(config.getMasterPublicKey());
+        encryptModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         encryptModel.setHeaders(new HashMap<>());
         encryptModel.setResultStatusObject(resultStatusObject);
         encryptModel.setBaseUriString(config.getPowerAuthIntegrationUrl());
         encryptModel.setVersion(VERSION);
 
-        VerifySignatureStepModel signatureModel = new VerifySignatureStepModel();
+        VerifyAuthenticationStepModel signatureModel = new VerifyAuthenticationStepModel();
         signatureModel.setApplicationKey(config.getApplicationKey());
         signatureModel.setApplicationSecret(config.getApplicationSecret());
         signatureModel.setHeaders(new HashMap<>());
         signatureModel.setHttpMethod("POST");
         signatureModel.setPassword(config.getPassword());
         signatureModel.setResultStatusObject(resultStatusObject);
-        signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
+        signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION);
         signatureModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         signatureModel.setBaseUriString(config.getPowerAuthIntegrationUrl());
         signatureModel.setVersion(VERSION);
@@ -118,7 +118,7 @@ class PowerAuthIdentityVerificationTest {
         activationModel.setActivationName("test v3.1 document verification");
         activationModel.setApplicationKey(config.getApplicationKey());
         activationModel.setApplicationSecret(config.getApplicationSecret());
-        activationModel.setMasterPublicKey(config.getMasterPublicKey());
+        activationModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         activationModel.setHeaders(new HashMap<>());
         activationModel.setPassword(config.getPassword());
         activationModel.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -131,12 +131,11 @@ class PowerAuthIdentityVerificationTest {
         createTokenModel.setApplicationKey(config.getApplicationKey());
         createTokenModel.setApplicationSecret(config.getApplicationSecret());
         createTokenModel.setHeaders(new HashMap<>());
-        createTokenModel.setMasterPublicKey(config.getMasterPublicKey());
         createTokenModel.setPassword(config.getPassword());
         createTokenModel.setResultStatusObject(resultStatusObject);
         createTokenModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         createTokenModel.setUriString(config.getEnrollmentServiceUrl());
-        createTokenModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
+        createTokenModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION);
         createTokenModel.setVersion(VERSION);
 
         ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);

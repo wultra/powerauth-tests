@@ -24,6 +24,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.model.TemporaryKey;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
@@ -48,7 +49,6 @@ import javax.crypto.SecretKey;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
-import java.security.interfaces.ECPublicKey;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -146,12 +146,12 @@ public class TemporaryKeyFetchUtil {
     private static TemporaryKey handleTemporaryKeyResponse(PowerAuthVersion version, ObjectResponse<TemporaryKeyResponse> response, EncryptorScope scope, PowerAuthTestConfiguration config) throws Exception {
         final String jwtResponse = response.getResponseObject().getJwt();
         final SignedJWT decodedJWT = SignedJWT.parse(jwtResponse);
-        final ECPublicKey publicKey = switch (scope) {
+        final PublicKey publicKey = switch (scope) {
             case ACTIVATION_SCOPE -> {
-                byte[] serverPublicKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "serverPublicKey"));
-                yield (ECPublicKey) KEY_CONVERTOR.convertBytesToPublicKey(serverPublicKeyBytes);
+                final byte[] serverPublicKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "serverPublicKey"));
+                yield KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
             }
-            case APPLICATION_SCOPE -> (ECPublicKey) config.getMasterPublicKey();
+            case APPLICATION_SCOPE -> config.getMasterPublicKeyP256();
         };
 
         if (!validateJwtSignature(decodedJWT, publicKey)) {
@@ -161,7 +161,7 @@ public class TemporaryKeyFetchUtil {
         temporaryKey.setId((String) decodedJWT.getJWTClaimsSet().getClaim("sub"));
         final String temporaryPublicKeyBase64 = (String) decodedJWT.getJWTClaimsSet().getClaim("publicKey");
         final byte[] temporaryPublicKeyBytes = Base64.getDecoder().decode(temporaryPublicKeyBase64);
-        final PublicKey temporaryPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(temporaryPublicKeyBytes);
+        final PublicKey temporaryPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, temporaryPublicKeyBytes);
         temporaryKey.setPublicKey(temporaryPublicKey);
         return temporaryKey;
     }

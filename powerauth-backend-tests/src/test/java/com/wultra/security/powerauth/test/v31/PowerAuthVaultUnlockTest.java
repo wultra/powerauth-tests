@@ -17,10 +17,10 @@
  */
 package com.wultra.security.powerauth.test.v31;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthVaultUnlockShared;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
@@ -70,7 +70,7 @@ class PowerAuthVaultUnlockTest {
         model.setPassword(config.getPassword());
         model.setResultStatusObject(config.getResultStatusObject(VERSION));
         model.setStatusFileName(config.getStatusFile(VERSION).getAbsolutePath());
-        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE);
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setReason("TEST_" + VERSION);
         model.setVersion(VERSION);
@@ -115,7 +115,7 @@ class PowerAuthVaultUnlockTest {
 
     @Test
     void vaultUnlockCounterIncrementTest() throws Exception {
-        PowerAuthVaultUnlockShared.vaultUnlockCounterIncrementTest(model, stepLogger);
+        PowerAuthVaultUnlockShared.vaultUnlockCounterIncrementTest(model, stepLogger, VERSION);
     }
 
     @Test

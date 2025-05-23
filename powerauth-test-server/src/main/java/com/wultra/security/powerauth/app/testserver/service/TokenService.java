@@ -104,7 +104,7 @@ public class TokenService extends BaseService {
         model.setApplicationSecret(appConfig.getApplicationSecret());
         model.setPassword(request.getPassword());
         model.setMasterPublicKey(publicKey);
-        model.setSignatureType(signatureType);
+        model.setAuthenticationCodeType(signatureType);
         model.setVersion(config.getVersion());
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatusObject(resultStatusObject);

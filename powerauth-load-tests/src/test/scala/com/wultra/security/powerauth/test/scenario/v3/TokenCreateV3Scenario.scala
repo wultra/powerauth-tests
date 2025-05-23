@@ -48,7 +48,7 @@ object TokenCreateV3Scenario extends AbstractScenario {
     model.setApplicationSecret(ClientConfig.applicationSecret)
     model.setPassword(device.password)
     model.setResultStatus(device.resultStatusObject)
-    model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE)
+    model.setAuthenticationCodeType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE)
     model.setVersion(ClientConfig.modelVersion)
 
     model

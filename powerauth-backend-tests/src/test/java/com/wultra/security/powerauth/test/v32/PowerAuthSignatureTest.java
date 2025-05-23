@@ -17,13 +17,13 @@
  */
 package com.wultra.security.powerauth.test.v32;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthSignatureShared;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,7 +57,7 @@ class PowerAuthSignatureTest {
 
     private PowerAuthTestConfiguration config;
     private static File dataFile;
-    private VerifySignatureStepModel model;
+    private VerifyAuthenticationStepModel model;
     private ObjectStepLogger stepLogger;
 
     private PowerAuthClient powerAuthClient;
@@ -87,7 +87,7 @@ class PowerAuthSignatureTest {
 
     @BeforeEach
     void setUp() throws IOException {
-        model = new VerifySignatureStepModel();
+        model = new VerifyAuthenticationStepModel();
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
@@ -96,7 +96,7 @@ class PowerAuthSignatureTest {
         model.setPassword(config.getPassword());
         model.setResourceId("/pa/signature/validate");
         model.setResultStatusObject(config.getResultStatusObject(VERSION));
-        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE);
         model.setStatusFileName(config.getStatusFile(VERSION).getAbsolutePath());
         model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
         model.setVersion(VERSION);
@@ -181,7 +181,7 @@ class PowerAuthSignatureTest {
 
     @Test
     void signatureCounterIncrementTest() throws Exception {
-        PowerAuthSignatureShared.signatureCounterIncrementTest(model, stepLogger);
+        PowerAuthSignatureShared.signatureCounterIncrementTest(model, stepLogger, VERSION);
     }
 
     @Test

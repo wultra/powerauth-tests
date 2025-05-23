@@ -18,7 +18,7 @@
 package com.wultra.security.powerauth.test.v3x;
 
 import com.wultra.core.rest.client.base.RestClientException;
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;

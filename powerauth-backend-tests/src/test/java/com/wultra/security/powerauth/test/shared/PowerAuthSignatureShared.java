@@ -18,28 +18,34 @@
 package com.wultra.security.powerauth.test.shared;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.client.model.request.CreatePersonalizedOfflineSignaturePayloadRequest;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
+import com.wultra.security.powerauth.client.model.request.v3.CreatePersonalizedOfflineSignaturePayloadRequest;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
-import com.wultra.security.powerauth.client.model.request.VerifyOfflineSignatureRequest;
+import com.wultra.security.powerauth.client.model.request.v3.VerifyOfflineSignatureRequest;
 import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.client.model.response.v3.CreateNonPersonalizedOfflineSignaturePayloadResponse;
+import com.wultra.security.powerauth.client.model.response.v3.CreatePersonalizedOfflineSignaturePayloadResponse;
+import com.wultra.security.powerauth.client.model.response.v3.VerifyOfflineSignatureResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.core.rest.model.base.response.Response;
-import com.wultra.security.powerauth.crypto.lib.config.SignatureConfiguration;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.config.AuthenticationCodeConfiguration;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
+import com.wultra.security.powerauth.crypto.lib.util.AuthenticationCodeLegacyUtils;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.http.PowerAuthHttpBody;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import com.wultra.security.powerauth.lib.cmd.steps.VerifySignatureStep;
+import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
 import com.wultra.security.powerauth.lib.cmd.util.EncryptedStorageUtil;
 import org.apache.commons.text.CharacterPredicates;
@@ -53,7 +59,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.interfaces.ECPublicKey;
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
@@ -68,7 +74,8 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthSignatureShared {
 
-    private static final SignatureUtils signatureUtils = new SignatureUtils();
+    private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
+    private static final AuthenticationCodeLegacyUtils AUTHENTICATION_CODE_LEGACY_UTILS = new AuthenticationCodeLegacyUtils();
 
     // Data for offline signatures
     private static final String operationId = "5ff1b1ed-a3cc-45a3-8ab0-ed60950312b6";
@@ -78,8 +85,8 @@ public class PowerAuthSignatureShared {
     private static final String flags = "B";
     private static final String offlineData = operationId + "\n" + title + "\n" + message + "\n" + operationData + "\n" + flags;
 
-    public static void signatureValidTest(final VerifySignatureStepModel model, final ObjectStepLogger stepLogger) throws Exception {
-        new VerifySignatureStep().execute(stepLogger, model.toMap());
+    public static void signatureValidTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
@@ -87,44 +94,44 @@ public class PowerAuthSignatureShared {
         assertEquals("OK", responseOK.getStatus());
     }
 
-    public static void signatureInvalidPasswordTest(final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+    public static void signatureInvalidPasswordTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         model.setPassword("1111");
-        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().success());
         assertEquals(401, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        checkSignatureError(errorResponse);
+        checkError(errorResponse);
     }
 
-    public static void signatureIncorrectPasswordFormatTest(final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+    public static void signatureIncorrectPasswordFormatTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         model.setPassword("*");
-        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().success());
         assertEquals(401, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        checkSignatureError(errorResponse);
+        checkError(errorResponse);
     }
 
-    public static void signatureCounterLookAheadTest(final PowerAuthTestConfiguration config, final VerifySignatureStepModel model) throws Exception {
+    public static void signatureCounterLookAheadTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model) throws Exception {
         // Move counter by 1-4, next signature should succeed thanks to counter lookahead and it is still in max failure limit
         for (int i = 1; i < 4; i++) {
             for (int j=0; j < i; j++) {
                 model.setPassword("1111");
                 ObjectStepLogger stepLogger = new ObjectStepLogger();
-                new VerifySignatureStep().execute(stepLogger, model.toMap());
+                new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
                 assertFalse(stepLogger.getResult().success());
                 assertEquals(401, stepLogger.getResponse().statusCode());
             }
 
             ObjectStepLogger stepLogger = new ObjectStepLogger();
             model.setPassword(config.getPassword());
-            new VerifySignatureStep().execute(stepLogger, model.toMap());
+            new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
             assertTrue(stepLogger.getResult().success());
             assertEquals(200, stepLogger.getResponse().statusCode());
 
@@ -134,59 +141,59 @@ public class PowerAuthSignatureShared {
 
     }
 
-    public static void signatureBlockedActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final PowerAuthVersion version) throws Exception {
+    public static void signatureBlockedActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final PowerAuthVersion version) throws Exception {
         powerAuthClient.blockActivation(config.getActivationId(version), "test", "test");
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
-        new VerifySignatureStep().execute(stepLogger1, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger1, model.toMap());
         assertFalse(stepLogger1.getResult().success());
         assertEquals(401, stepLogger1.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        checkSignatureError(errorResponse);
+        checkError(errorResponse);
 
         powerAuthClient.unblockActivation(config.getActivationId(version), "test");
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
-        new VerifySignatureStep().execute(stepLogger2, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger2, model.toMap());
         assertTrue(stepLogger2.getResult().success());
         assertEquals(200, stepLogger2.getResponse().statusCode());
     }
 
-    public static void signatureSingleFactorTest(final VerifySignatureStepModel model, final ObjectStepLogger stepLogger) throws Exception {
-        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
+    public static void signatureSingleFactorTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION);
 
-        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
-    public static void signatureBiometryTest(final VerifySignatureStepModel model, final ObjectStepLogger stepLogger) throws Exception {
-        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_BIOMETRY);
+    public static void signatureBiometryTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_BIOMETRY);
 
-        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
-    public static void signatureThreeFactorTest(final VerifySignatureStepModel model, final ObjectStepLogger stepLogger) throws Exception {
-        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY);
+    public static void signatureThreeFactorTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY);
 
-        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
-    public static void signatureEmptyDataTest(final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+    public static void signatureEmptyDataTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         File dataFile = File.createTempFile("data_empty" + version, ".json");
         dataFile.deleteOnExit();
         FileWriter fw = new FileWriter(dataFile);
         fw.close();
         model.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
 
-        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
@@ -194,10 +201,10 @@ public class PowerAuthSignatureShared {
         assertEquals("OK", responseOK.getStatus());
     }
 
-    public static void signatureValidGetTest(final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+    public static void signatureValidGetTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         model.setHttpMethod("GET");
         model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate?who=John_Tramonta&when=now");
-        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
@@ -205,10 +212,10 @@ public class PowerAuthSignatureShared {
         assertEquals("OK", responseOK.getStatus());
     }
 
-    public static void signatureValidGetNoParamTest(final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+    public static void signatureValidGetNoParamTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         model.setHttpMethod("GET");
         model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate");
-        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
@@ -216,37 +223,37 @@ public class PowerAuthSignatureShared {
         assertEquals("OK", responseOK.getStatus());
     }
 
-    public static void signatureGetInvalidPasswordTest(final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+    public static void signatureGetInvalidPasswordTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         model.setHttpMethod("GET");
         model.setPassword("0000");
         model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate?who=John_Tramonta&when=now");
-        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().success());
         assertEquals(401, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        checkSignatureError(errorResponse);
+        checkError(errorResponse);
     }
 
-    public static void signatureUnsupportedApplicationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model) throws Exception {
+    public static void signatureUnsupportedApplicationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model) throws Exception {
         powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
-        new VerifySignatureStep().execute(stepLogger1, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger1, model.toMap());
         assertFalse(stepLogger1.getResult().success());
         assertEquals(401, stepLogger1.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger1.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        checkSignatureError(errorResponse);
+        checkError(errorResponse);
 
         powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
-        new VerifySignatureStep().execute(stepLogger2, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger2, model.toMap());
         assertTrue(stepLogger2.getResult().success());
         assertEquals(200, stepLogger2.getResponse().statusCode());
 
@@ -254,7 +261,7 @@ public class PowerAuthSignatureShared {
         assertEquals("OK", responseOK.getStatus());
     }
 
-    public static void signatureMaxFailedAttemptsTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final PowerAuthVersion version) throws Exception {
+    public static void signatureMaxFailedAttemptsTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final PowerAuthVersion version) throws Exception {
         // Create temp status file
         File tempStatusFile = File.createTempFile("pa_status", ".json");
         tempStatusFile.deleteOnExit();
@@ -274,7 +281,7 @@ public class PowerAuthSignatureShared {
         modelPrepare.setActivationName("test v" + version);
         modelPrepare.setApplicationKey(config.getApplicationKey());
         modelPrepare.setApplicationSecret(config.getApplicationSecret());
-        modelPrepare.setMasterPublicKey(config.getMasterPublicKey());
+        modelPrepare.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         modelPrepare.setHeaders(new HashMap<>());
         modelPrepare.setPassword(config.getPassword());
         modelPrepare.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -299,7 +306,7 @@ public class PowerAuthSignatureShared {
         // Fail two signatures
         for (int i = 0; i < 2; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
-            new VerifySignatureStep().execute(stepLoggerSignature, model.toMap());
+            new VerifyAuthenticationStep().execute(stepLoggerSignature, model.toMap());
             assertFalse(stepLoggerSignature.getResult().success());
             assertEquals(401, stepLoggerSignature.getResponse().statusCode());
         }
@@ -307,7 +314,7 @@ public class PowerAuthSignatureShared {
         // Last signature before max failed attempts should be successful
         model.setPassword(config.getPassword());
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
-        new VerifySignatureStep().execute(stepLogger2, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger2, model.toMap());
         assertTrue(stepLogger2.getResult().success());
         assertEquals(200, stepLogger2.getResponse().statusCode());
 
@@ -315,7 +322,7 @@ public class PowerAuthSignatureShared {
         model.setPassword("1111");
         for (int i = 0; i < 3; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
-            new VerifySignatureStep().execute(stepLoggerSignature, model.toMap());
+            new VerifyAuthenticationStep().execute(stepLoggerSignature, model.toMap());
             assertFalse(stepLoggerSignature.getResult().success());
             assertEquals(401, stepLoggerSignature.getResponse().statusCode());
         }
@@ -328,7 +335,7 @@ public class PowerAuthSignatureShared {
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
-    public static void signatureLookAheadTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final PowerAuthVersion version) throws Exception {
+    public static void signatureLookAheadTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final PowerAuthVersion version) throws Exception {
         // Create temp status file
         File tempStatusFile = File.createTempFile("pa_status_lookahead", ".json");
         tempStatusFile.deleteOnExit();
@@ -349,7 +356,7 @@ public class PowerAuthSignatureShared {
         modelPrepare.setActivationName("test v" + version);
         modelPrepare.setApplicationKey(config.getApplicationKey());
         modelPrepare.setApplicationSecret(config.getApplicationSecret());
-        modelPrepare.setMasterPublicKey(config.getMasterPublicKey());
+        modelPrepare.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         modelPrepare.setHeaders(new HashMap<>());
         modelPrepare.setPassword(config.getPassword());
         modelPrepare.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -374,7 +381,7 @@ public class PowerAuthSignatureShared {
         // Fail 19 signatures
         for (int i = 0; i < 19; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
-            new VerifySignatureStep().execute(stepLoggerSignature, model.toMap());
+            new VerifyAuthenticationStep().execute(stepLoggerSignature, model.toMap());
             assertFalse(stepLoggerSignature.getResult().success());
             assertEquals(401, stepLoggerSignature.getResponse().statusCode());
         }
@@ -382,7 +389,7 @@ public class PowerAuthSignatureShared {
         // Last signature before lookahead failure should be successful and should fix counter
         model.setPassword(config.getPassword());
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
-        new VerifySignatureStep().execute(stepLogger2, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger2, model.toMap());
         assertTrue(stepLogger2.getResult().success());
         assertEquals(200, stepLogger2.getResponse().statusCode());
 
@@ -390,7 +397,7 @@ public class PowerAuthSignatureShared {
         model.setPassword("1111");
         for (int i = 0; i < 20; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
-            new VerifySignatureStep().execute(stepLoggerSignature, model.toMap());
+            new VerifyAuthenticationStep().execute(stepLoggerSignature, model.toMap());
             assertFalse(stepLoggerSignature.getResult().success());
             assertEquals(401, stepLoggerSignature.getResponse().statusCode());
         }
@@ -398,7 +405,7 @@ public class PowerAuthSignatureShared {
         // Signature after lookahead failure should be fail
         model.setPassword(config.getPassword());
         ObjectStepLogger stepLogger3 = new ObjectStepLogger();
-        new VerifySignatureStep().execute(stepLogger3, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger3, model.toMap());
         assertFalse(stepLogger3.getResult().success());
         assertEquals(401, stepLogger3.getResponse().statusCode());
 
@@ -406,12 +413,12 @@ public class PowerAuthSignatureShared {
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
-    public static void signatureCounterIncrementTest(final VerifySignatureStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+    public static void signatureCounterIncrementTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         byte[] ctrData = CounterUtil.getCtrData(model, stepLogger);
-        HashBasedCounter counter = new HashBasedCounter();
+        HashBasedCounter counter = new HashBasedCounter(version.value());
         for (int i = 1; i <= 10; i++) {
             ObjectStepLogger stepLoggerLoop = new ObjectStepLogger();
-            new VerifySignatureStep().execute(stepLoggerLoop, model.toMap());
+            new VerifyAuthenticationStep().execute(stepLoggerLoop, model.toMap());
             assertTrue(stepLoggerLoop.getResult().success());
             assertEquals(200, stepLoggerLoop.getResponse().statusCode());
 
@@ -421,7 +428,7 @@ public class PowerAuthSignatureShared {
         }
     }
 
-    public static void signatureLargeDataTest(final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+    public static void signatureLargeDataTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         final File dataFileLarge = File.createTempFile("data_large" + version, ".dat");
         dataFileLarge.deleteOnExit();
         final FileWriter fw = new FileWriter(dataFileLarge);
@@ -436,7 +443,7 @@ public class PowerAuthSignatureShared {
 
         model.setData(Files.readAllBytes(Paths.get(dataFileLarge.getAbsolutePath())));
 
-        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
@@ -444,7 +451,7 @@ public class PowerAuthSignatureShared {
         assertEquals("OK", responseOK.getStatus());
     }
 
-    public static void signatureOfflinePersonalizedValidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+    public static void signatureOfflinePersonalizedValidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         final CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(
                 config.getActivationId(version), offlineData);
         String nonce = offlineResponse.getNonce();
@@ -462,19 +469,19 @@ public class PowerAuthSignatureShared {
         // The remainder of last line is Base64 encoded ECDSA signature
         String ecdsaSignature = lastLine.substring(1);
         final byte[] serverPublicKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("serverPublicKey"));
-        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(serverPublicKeyBytes);
+        final PublicKey serverPublicKey = config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
 
         // Prepare offline data without signature
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
+        assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
 
         // Prepare data for PowerAuth signature
         String dataForSignature = operationId + "&" + operationData;
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
+        String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
@@ -483,7 +490,7 @@ public class PowerAuthSignatureShared {
 
         // Get the signature keys
         SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
-        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
+        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list
         List<SecretKey> signatureKeys = new ArrayList<>();
@@ -491,7 +498,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), SignatureConfiguration.decimal());
+        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computePowerAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
         final VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
@@ -505,7 +512,7 @@ public class PowerAuthSignatureShared {
         CounterUtil.incrementCounter(model);
     }
 
-    public static void signatureOfflinePersonalizedInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+    public static void signatureOfflinePersonalizedInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
 
         CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(
                 config.getActivationId(version), offlineData);
@@ -524,19 +531,19 @@ public class PowerAuthSignatureShared {
         // The remainder of last line is Base64 encoded ECDSA signature
         String ecdsaSignature = lastLine.substring(1);
         final byte[] serverPublicKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("serverPublicKey"));
-        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(serverPublicKeyBytes);
+        final PublicKey serverPublicKey = config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
 
         // Prepare offline data without signature
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
+        assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
 
         // Prepare data for PowerAuth signature
         String dataForSignature = operationId + "&" + operationData;
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
+        String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
@@ -545,7 +552,7 @@ public class PowerAuthSignatureShared {
 
         // Get the signature keys
         SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
-        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
+        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list
         List<SecretKey> signatureKeys = new ArrayList<>();
@@ -553,7 +560,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), SignatureConfiguration.decimal());
+        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computePowerAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
         // Cripple signature
         String digitToReplace = signature.substring(0, 1);
@@ -569,7 +576,7 @@ public class PowerAuthSignatureShared {
         assertEquals(config.getApplicationId(), signatureResponse.getApplicationId());
     }
 
-    public static void signatureOfflineNonPersonalizedValidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+    public static void signatureOfflineNonPersonalizedValidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         CreateNonPersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(
                 config.getApplicationId(), offlineData);
         String nonce = offlineResponse.getNonce();
@@ -591,13 +598,13 @@ public class PowerAuthSignatureShared {
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKey()));
+        assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKeyP256()));
 
         // Prepare data for PowerAuth signature
         String dataForSignature = operationId + "&" + operationData;
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
+        String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
@@ -606,7 +613,7 @@ public class PowerAuthSignatureShared {
 
         // Get the signature keys
         SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
-        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
+        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list
         List<SecretKey> signatureKeys = new ArrayList<>();
@@ -614,7 +621,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), SignatureConfiguration.decimal());
+        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computePowerAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
         VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
@@ -628,7 +635,7 @@ public class PowerAuthSignatureShared {
         CounterUtil.incrementCounter(model);
     }
 
-    public static void signatureOfflineNonPersonalizedInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+    public static void signatureOfflineNonPersonalizedInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         CreateNonPersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(
                 config.getApplicationId(), offlineData);
         String nonce = offlineResponse.getNonce();
@@ -650,13 +657,13 @@ public class PowerAuthSignatureShared {
         String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKey()));
+        assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKeyP256()));
 
         // Prepare data for PowerAuth signature
         String dataForSignature = operationId + "&" + operationData;
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
+        String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
@@ -665,7 +672,7 @@ public class PowerAuthSignatureShared {
 
         // Get the signature keys
         SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
-        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
+        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list
         List<SecretKey> signatureKeys = new ArrayList<>();
@@ -673,7 +680,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = signatureUtils.computePowerAuthSignature((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), SignatureConfiguration.decimal());
+        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computePowerAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
         // Cripple signature
         String digitToReplace = signature.substring(0, 1);
@@ -689,62 +696,62 @@ public class PowerAuthSignatureShared {
         assertEquals(config.getApplicationId(), signatureResponse.getApplicationId());
     }
 
-    public static void signatureSwappedKeyTest(final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+    public static void signatureSwappedKeyTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         // Save biometry key
         String biometryKeyOrig = (String) model.getResultStatusObject().get("signatureBiometryKey");
         // Set possession key as biometry key
         model.getResultStatusObject().put("signatureBiometryKey", model.getResultStatusObject().get("signaturePossessionKey"));
         // Verify three factor signature
-        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY);
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY);
 
-        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().success());
         assertEquals(401, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        checkSignatureError(errorResponse);
+        checkError(errorResponse);
 
         // Revert biometry key change
         model.getResultStatusObject().put("signatureBiometryKey", biometryKeyOrig);
     }
 
-    public static void signatureInvalidResourceIdTest(final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+    public static void signatureInvalidResourceIdTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         // Set invalid resource ID
         model.setResourceId("/pa/signature/invalid");
 
         // Verify two factor signature
-        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE);
 
-        new VerifySignatureStep().execute(stepLogger, model.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().success());
         assertEquals(401, stepLogger.getResponse().statusCode());
 
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        checkSignatureError(errorResponse);
+        checkError(errorResponse);
 
         // Revert resource ID
         model.setResourceId("/pa/signature/validate");
     }
 
-    public static void testSignatureOfflinePersonalizedProximityCheckValid(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+    public static void testSignatureOfflinePersonalizedProximityCheckValid(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         testSignatureOfflinePersonalizedProximityCheck(powerAuthClient, config, model, stepLogger, version, true);
     }
 
-    public static void testSignatureOfflinePersonalizedProximityCheckInvalid(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+    public static void testSignatureOfflinePersonalizedProximityCheckInvalid(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         testSignatureOfflinePersonalizedProximityCheck(powerAuthClient, config, model, stepLogger, version, false);
     }
 
-    private static void checkSignatureError(ErrorResponse errorResponse) {
+    private static void checkError(ErrorResponse errorResponse) {
         // Errors differ when Web Flow is used because of its Exception handler
-        assertTrue("POWERAUTH_AUTH_FAIL".equals(errorResponse.getResponseObject().getCode()) || "ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()));
-        assertTrue("Signature validation failed".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_SIGNATURE_INVALID".equals(errorResponse.getResponseObject().getMessage()));
+        assertTrue("ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()));
+        assertTrue("POWER_AUTH_CODE_INVALID".equals(errorResponse.getResponseObject().getMessage()));
     }
 
-    private static void testSignatureOfflinePersonalizedProximityCheck(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifySignatureStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version, final boolean expectedResult) throws Exception {
+    private static void testSignatureOfflinePersonalizedProximityCheck(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version, final boolean expectedResult) throws Exception {
         final String seed = "LtxE0f0RWNx3hy7ISjUPWA==";
 
         final CreatePersonalizedOfflineSignaturePayloadRequest request = new CreatePersonalizedOfflineSignaturePayloadRequest();
@@ -768,21 +775,21 @@ public class PowerAuthSignatureShared {
 
         // The remainder of last line is Base64 encoded ECDSA signature
         final String ecdsaSignature = lastLine.substring(1);
-        final byte[] serverPublicKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("serverPublicKey"));
-        final ECPublicKey serverPublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(serverPublicKeyBytes);
+        final byte[] serverPublicKeyBytes = Base64.getDecoder().decode(model.getResultStatus().getEcServerPublicKey());
+        final PublicKey serverPublicKey = config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
 
         // Prepare offline data without signature
         final String offlineDataWithoutSignature = offlineDataResponse.substring(0, offlineDataResponse.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
-        assertTrue(signatureUtils.validateECDSASignature(offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
+        assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
 
         // Prepare data for PowerAuth signature
         final String proximityTotp = parts[5];
         final String dataForSignatureWithOtp = operationId + "&" + operationData + "&" + proximityTotp;
 
         // Prepare normalized data for signature
-        final String signatureBaseStringWithOtp = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignatureWithOtp.getBytes(StandardCharsets.UTF_8));
+        final String signatureBaseStringWithOtp = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignatureWithOtp.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
         byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
@@ -791,7 +798,7 @@ public class PowerAuthSignatureShared {
 
         // Get the signature keys
         final SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
-        final SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getSignatureKnowledgeKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
+        final SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list
         final List<SecretKey> signatureKeys = new ArrayList<>();
@@ -799,10 +806,10 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        final String signature = signatureUtils.computePowerAuthSignature((signatureBaseStringWithOtp + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), SignatureConfiguration.decimal());
+        final String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computePowerAuthCode((signatureBaseStringWithOtp + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
         final String dataForSignature= operationId + "&" + operationData;
-        final String signatureBaseString = PowerAuthHttpBody.getSignatureBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
+        final String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         final VerifyOfflineSignatureRequest verifyRequest = new VerifyOfflineSignatureRequest();
         verifyRequest.setActivationId(config.getActivationId(version));

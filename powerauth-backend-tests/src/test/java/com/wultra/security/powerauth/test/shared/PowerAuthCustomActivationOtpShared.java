@@ -17,35 +17,23 @@
  */
 package com.wultra.security.powerauth.test.shared;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.CommitActivationRequest;
-import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.response.CommitActivationResponse;
-import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
-import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
-import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.provider.CustomActivationProviderForTests;
 import com.wultra.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
-import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
-import com.wultra.security.powerauth.lib.cmd.steps.model.ActivationRecoveryStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.ActivationRecoveryStep;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
-import com.wultra.security.powerauth.rest.api.model.entity.ActivationRecovery;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer1Response;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer2Response;
-import org.json.simple.JSONObject;
+import com.wultra.security.powerauth.lib.cmd.steps.CreateActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.GetStatusStep;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -191,204 +179,6 @@ public class PowerAuthCustomActivationOtpShared {
 
         // Remove activation
         powerAuthClient.removeActivation(activationId, "test");
-    }
-
-    public static void activationRecoveryOtpValidTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, File tempStatusFile,
-                                        ActivationRecoveryStepModel recoveryModel, GetStatusStepModel statusModel,
-                                        String validOtpValue, String invalidOtpValue, PowerAuthVersion version) throws Exception {
-
-        ActivationRecovery activationRecovery = getRecoveryData(powerAuthClient, config, tempStatusFile, version);
-
-        Map<String, String> identityAttributes = new HashMap<>();
-        identityAttributes.put("recoveryCode", activationRecovery.getRecoveryCode());
-        identityAttributes.put("puk", activationRecovery.getPuk());
-
-        Map<String, Object> customAttributes = new HashMap<>();
-        customAttributes.put("TEST_SHOULD_AUTOCOMMIT", "NO");
-
-        recoveryModel.setIdentityAttributes(identityAttributes);
-        recoveryModel.setCustomAttributes(customAttributes);
-
-        ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
-
-        new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
-        assertTrue(stepLoggerRecovery.getResult().success());
-        assertEquals(200, stepLoggerRecovery.getResponse().statusCode());
-
-        // Extract activation ID
-        String activationId = null;
-        ActivationRecovery activationRecoveryNew = null;
-        for (StepItem item: stepLoggerRecovery.getItems()) {
-            if (item.name().equals("Activation Done")) {
-                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
-                activationId = (String) responseMap.get("activationId");
-                break;
-            }
-        }
-
-        // Now update activation OTP for the pending activation
-        powerAuthClient.updateActivationOtp(activationId, null, validOtpValue);
-
-        // Try commit activation with wrong OTP, but the very last attempt is valid.
-        final int maxIterations = CustomActivationProviderForTests.MAX_FAILED_ATTEMPTS;
-        for (int iteration = 1; iteration <= maxIterations; iteration++) {
-            boolean lastIteration = iteration == maxIterations;
-            boolean isActivated;
-            try {
-                CommitActivationRequest commitRequest = new CommitActivationRequest();
-                commitRequest.setActivationId(activationId);
-                commitRequest.setActivationOtp(lastIteration ? validOtpValue : invalidOtpValue);
-                CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
-                isActivated = commitResponse.isActivated();
-            } catch (PowerAuthClientException ex) {
-                isActivated = false;
-            }
-            assertEquals(lastIteration, isActivated);
-
-            // Verify activation status
-            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
-            GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(activationId);
-            assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
-        }
-
-        // Try to get activation status via RESTful API
-        ObjectStepLogger stepLoggerStatus = new ObjectStepLogger(System.out);
-        new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-        assertTrue(stepLoggerStatus.getResult().success());
-        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
-
-        // Validate failed attempts counter.
-        final Map<String, Object> statusResponseMap = (Map<String, Object>) stepLoggerStatus.getFirstItem("activation-status-obtained").object();
-        ActivationStatusBlobInfo statusBlobInfo = (ActivationStatusBlobInfo) statusResponseMap.get("statusBlob");
-        assertEquals(0L, statusBlobInfo.getFailedAttempts());
-
-        // Remove activation
-        powerAuthClient.removeActivation(activationId, "test");
-    }
-
-    public static void activationRecoveryOtpInvalidTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, File tempStatusFile,
-                                          ActivationRecoveryStepModel recoveryModel, String validOtpValue, String invalidOtpValue, PowerAuthVersion version) throws Exception {
-
-        ActivationRecovery activationRecovery = getRecoveryData(powerAuthClient, config, tempStatusFile, version);
-
-        Map<String, String> identityAttributes = new HashMap<>();
-        identityAttributes.put("recoveryCode", activationRecovery.getRecoveryCode());
-        identityAttributes.put("puk", activationRecovery.getPuk());
-
-        Map<String, Object> customAttributes = new HashMap<>();
-        customAttributes.put("TEST_SHOULD_AUTOCOMMIT", "NO");
-
-        recoveryModel.setIdentityAttributes(identityAttributes);
-        recoveryModel.setCustomAttributes(customAttributes);
-
-        ObjectStepLogger stepLoggerRecovery = new ObjectStepLogger(System.out);
-
-        new ActivationRecoveryStep().execute(stepLoggerRecovery, recoveryModel.toMap());
-        assertTrue(stepLoggerRecovery.getResult().success());
-        assertEquals(200, stepLoggerRecovery.getResponse().statusCode());
-
-        // Extract activation ID
-        String activationId = null;
-        ActivationRecovery activationRecoveryNew = null;
-        for (StepItem item: stepLoggerRecovery.getItems()) {
-            if (item.name().equals("Activation Done")) {
-                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
-                activationId = (String) responseMap.get("activationId");
-                break;
-            }
-        }
-
-        // Now update activation OTP for the pending activation
-        powerAuthClient.updateActivationOtp(activationId, null, validOtpValue);
-
-        // Try commit activation with wrong OTP, but the very last attempt is valid.
-        final int maxIterations = CustomActivationProviderForTests.MAX_FAILED_ATTEMPTS;
-        for (int iteration = 1; iteration <= maxIterations; iteration++) {
-            boolean lastIteration = iteration == maxIterations;
-            boolean isActivated;
-            try {
-                CommitActivationRequest commitRequest = new CommitActivationRequest();
-                commitRequest.setActivationId(activationId);
-                commitRequest.setActivationOtp(invalidOtpValue);
-                CommitActivationResponse commitResponse = powerAuthClient.commitActivation(commitRequest);
-                isActivated = commitResponse.isActivated();
-            } catch (PowerAuthClientException ex) {
-                isActivated = false;
-            }
-            assertFalse(isActivated);
-
-            // Verify activation status
-            ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.PENDING_COMMIT;
-            GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(activationId);
-            assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
-        }
-    }
-
-    /**
-     * Helper function creates a temporary activation just to extract an activation recovery data.
-     *
-     * @return Object containing recovery code and recovery puk.
-     * @throws Exception In case of failure.
-     */
-    private static ActivationRecovery getRecoveryData(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, File tempStatusFile, PowerAuthVersion version) throws Exception {
-
-        final JSONObject resultStatusObject = new JSONObject();
-
-        // Init activation
-        final InitActivationRequest initRequest = new InitActivationRequest();
-        initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUser(version));
-        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
-
-        // Prepare activation, assume recovery is enabled on server
-        PrepareActivationStepModel prepareModel = new PrepareActivationStepModel();
-
-        prepareModel.setActivationName("test_recovery" + version);
-        prepareModel.setApplicationKey(config.getApplicationKey());
-        prepareModel.setApplicationSecret(config.getApplicationSecret());
-        prepareModel.setMasterPublicKey(config.getMasterPublicKey());
-        prepareModel.setHeaders(new HashMap<>());
-        prepareModel.setPassword(config.getPassword());
-        prepareModel.setStatusFileName(tempStatusFile.getAbsolutePath());
-        prepareModel.setResultStatusObject(resultStatusObject);
-        prepareModel.setUriString(config.getPowerAuthIntegrationUrl());
-        prepareModel.setVersion(version);
-        prepareModel.setActivationCode(initResponse.getActivationCode());
-        prepareModel.setDeviceInfo("backend-tests");
-
-        ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
-        new PrepareActivationStep().execute(stepLoggerPrepare, prepareModel.toMap());
-        assertTrue(stepLoggerPrepare.getResult().success());
-        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
-
-        // Verify decrypted activationId
-        String activationId = null;
-        ActivationRecovery activationRecovery = null;
-        for (StepItem item: stepLoggerPrepare.getItems()) {
-            if (item.name().equals("Activation Done")) {
-                final Map<String, Object> responseMap = (Map<String, Object>) item.object();
-                activationId = (String) responseMap.get("activationId");
-                break;
-            }
-            if (item.name().equals("Decrypted Layer 2 Response")) {
-                activationRecovery = ((ActivationLayer2Response)item.object()).getActivationRecovery();
-            }
-        }
-
-        // Verify extracted data
-        assertEquals(initResponse.getActivationId(), activationId);
-        assertNotNull(activationId);
-        assertNotNull(activationRecovery);
-        assertNotNull(activationRecovery.getRecoveryCode());
-        assertNotNull(activationRecovery.getPuk());
-
-        // Commit activation
-        powerAuthClient.commitActivation(activationId, null);
-
-        // Remove this activation
-        powerAuthClient.removeActivation(activationId, null);
-
-        return activationRecovery;
     }
 
     private static ActivationLayer1Response fetchLayer1Response(final ObjectStepLogger stepLogger) {

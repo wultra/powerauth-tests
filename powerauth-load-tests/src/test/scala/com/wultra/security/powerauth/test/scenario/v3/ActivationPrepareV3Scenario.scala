@@ -15,6 +15,7 @@
  */
 package com.wultra.security.powerauth.test.scenario.v3
 
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse
 import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon, TestDevices}
 import io.gatling.core.Predef.{scenario, _}
 import io.gatling.core.structure.ScenarioBuilder
@@ -24,7 +25,7 @@ import com.wultra.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVer
 import com.wultra.security.powerauth.lib.cmd.steps.context.StepContext
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel
 import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep
-import com.wultra.security.powerauth.rest.api.model.response.EciesEncryptedResponse
+import com.wultra.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse
 
 import java.util.Collections
 

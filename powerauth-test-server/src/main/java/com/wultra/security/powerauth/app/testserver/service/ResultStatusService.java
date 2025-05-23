@@ -22,6 +22,9 @@ import com.wultra.security.powerauth.app.testserver.database.TestStatusRepositor
 import com.wultra.security.powerauth.app.testserver.database.entity.TestStatusEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,7 @@ import java.util.Optional;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Service
+@Slf4j
 public class ResultStatusService {
 
     private final TestStatusRepository appStatusRepository;
@@ -118,7 +122,13 @@ public class ResultStatusService {
         // Increment hash-based counter
         if (!ctrDataBase64.isEmpty()) {
             byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
-            ctrData = new HashBasedCounter().next(ctrData);
+            try {
+                ctrData = new HashBasedCounter(PowerAuthVersion.V3_3.value()).next(ctrData);
+            } catch (GenericCryptoException e) {
+                logger.warn("Cryptography error occurred: {}", e.getMessage());
+                logger.debug(e.getMessage(), e);
+                throw new RuntimeException(e);
+            }
             testStatusEntity.setCtrData(Base64.getEncoder().encodeToString(ctrData));
         }
 

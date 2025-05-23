@@ -17,20 +17,19 @@
  */
 package com.wultra.security.powerauth.test;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.Application;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
-import com.wultra.security.powerauth.client.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
-import com.wultra.security.powerauth.client.model.request.UpdateRecoveryConfigRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
@@ -45,8 +44,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 public class PowerAuthTestSetUp {
-
-    private static final String PUBLIC_KEY_RECOVERY_POSTCARD_BASE64 = "BABXgGoj4Lizl3GN0rjrtileEEwekFkpX1ERS9yyYjyuM1Iqdti3ihtATBxk5XGvjetPO1YC+qXciUYjIsETtbI=";
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -63,7 +60,8 @@ public class PowerAuthTestSetUp {
 
     public void execute() throws Exception {
         createApplication();
-        Arrays.stream(PowerAuthVersion.values()).forEach(version -> {
+        // TODO - add v4
+        PowerAuthVersion.VERSION_3.forEach(version -> {
             try {
                 createActivation(version);
             } catch (Exception e) {
@@ -132,17 +130,6 @@ public class PowerAuthTestSetUp {
             // Make sure application version is supported
             powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
         }
-        // Set up activation recovery
-        final GetRecoveryConfigResponse recoveryResponse = powerAuthClient.getRecoveryConfig(config.getApplicationId());
-        if (!recoveryResponse.isActivationRecoveryEnabled() || !recoveryResponse.isRecoveryPostcardEnabled() || recoveryResponse.getPostcardPublicKey() == null || recoveryResponse.getRemotePostcardPublicKey() == null) {
-            final UpdateRecoveryConfigRequest request = new UpdateRecoveryConfigRequest();
-            request.setApplicationId(config.getApplicationId());
-            request.setActivationRecoveryEnabled(true);
-            request.setRecoveryPostcardEnabled(true);
-            request.setAllowMultipleRecoveryCodes(false);
-            request.setRemotePostcardPublicKey(PUBLIC_KEY_RECOVERY_POSTCARD_BASE64);
-            powerAuthClient.updateRecoveryConfig(request);
-        }
     }
 
     private void createActivation(PowerAuthVersion version) throws Exception {
@@ -158,7 +145,7 @@ public class PowerAuthTestSetUp {
         model.setActivationName("test v" + version);
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
+        model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(config.getStatusFile(version).getAbsolutePath());
