@@ -498,7 +498,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computePowerAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
+        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
         final VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
@@ -560,7 +560,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computePowerAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
+        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
         // Cripple signature
         String digitToReplace = signature.substring(0, 1);
@@ -621,7 +621,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computePowerAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
+        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
         VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
@@ -680,7 +680,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computePowerAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
+        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
         // Cripple signature
         String digitToReplace = signature.substring(0, 1);
@@ -806,7 +806,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        final String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computePowerAuthCode((signatureBaseStringWithOtp + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
+        final String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseStringWithOtp + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
         final String dataForSignature= operationId + "&" + operationData;
         final String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
