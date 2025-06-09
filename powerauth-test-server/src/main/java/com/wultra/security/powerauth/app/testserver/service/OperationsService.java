@@ -164,7 +164,7 @@ public class OperationsService extends BaseService {
         final Map<String, Object> map = new HashMap<>();
         map.put("id", request.getOperationId());
         map.put("data", request.getOperationData());
-        map.put("additionalData", request.getAdditionalData());
+        map.put("mobileTokenData", request.getMobileTokenData());
 
         final byte[] payload;
         try {

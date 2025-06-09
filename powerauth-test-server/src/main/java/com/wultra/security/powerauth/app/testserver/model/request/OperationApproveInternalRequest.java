@@ -53,7 +53,7 @@ public class OperationApproveInternalRequest {
     @NotBlank
     private String operationData;
 
-    @Schema(description = "Optional additional data, structure is customer-specific. Could be used, for example, for storing FDS data.")
-    private Map<String, Object> additionalData;
+    @Schema(description = "Optional mobile token data, structure is customer-specific. Could be used, for example, for storing FDS data.")
+    private Map<String, Object> mobileTokenData;
 
 }
