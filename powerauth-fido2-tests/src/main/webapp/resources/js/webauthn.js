@@ -11,8 +11,7 @@ async function createCredential(userDetails, applicationId) {
     const credential = await navigator.credentials.create({
         publicKey: options
     });
-    console.log("Public Key Credential")
-    console.log(JSON.stringify(credential, null, 2));
+    console.log("Public Key Credential Created")
 
     const registerResponse = await registerCredentials(userDetails.userId, applicationId, credential)
     console.log("PowerAuth Registration Response")
@@ -31,8 +30,7 @@ async function requestCredential(userId, applicationId, templateName, operationP
         publicKey: options
     });
 
-    console.log("Public Key Credential")
-    console.log(JSON.stringify(credential, null, 2));
+    console.log("Public Key Credential Retrieved")
 
     const authenticateResponse = await verifyAssertion(applicationId, options.challenge, credential)
     console.log("PowerAuth Authentication Response")

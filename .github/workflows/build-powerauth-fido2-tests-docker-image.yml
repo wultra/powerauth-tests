@@ -1,4 +1,5 @@
-name: Build and publish docker image for PowerAuthServer
+
+name: Build and push docker image of Powerauth Fido2 Demo to Docker registry
 
 on:
   workflow_dispatch:
@@ -16,7 +17,12 @@ on:
       - 'master'
       - 'releases/*'
     paths:
-      - 'powerauth-test-server/**'
+      - 'powerauth-fido2-tests/**'
+  push:
+    branches:
+      - 'develop'
+    paths:
+      - 'powerauth-fido2-tests/**'
 
 jobs:
   build:
@@ -28,6 +34,8 @@ jobs:
       INTERNAL_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: powerauth-fido2-tests
       - uses: actions/setup-java@v4
         with:
           java-version: '21'
@@ -38,15 +46,15 @@ jobs:
       - name: Set Timestamp for docker image for development branch
         if: "!(startsWith(github.ref, 'refs/heads/releases/') || startsWith(github.ref, 'refs/tags/'))"
         run: echo "TIMESTAMP=-$(date +%Y.%m.%d)" >> $GITHUB_ENV
-      - name: Get Powerauth Test Server version
+      - name: Get Powerauth Fido2 tests version
         run: |
-          cd powerauth-test-server
+          cd powerauth-fido2-tests
           REVISION=`mvn help:evaluate -Dexpression=project.version -q -DforceStdout`
           echo "REVISION=$REVISION" >> $GITHUB_ENV
       - name: Prepare wars and libs
         run: |
-          cd powerauth-test-server
-          mvn -U -DuseInternalRepo=true --no-transfer-progress clean package
+          cd powerauth-fido2-tests
+          mvn -U -DuseInternalRepo=true --no-transfer-progress package
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -67,23 +75,19 @@ jobs:
           registry: ${{ vars.DISTRIBUTION_REGISTRY_URL }}
           username: ${{ vars.DISTRIBUTION_USERNAME }}
           password: ${{ secrets.DISTRIBUTION_PASSWORD }}
-      - name: Copy liquibase files
-        run: |
-          cd powerauth-test-server
-          ./copy_liquibase.sh
       - name: Build and push container image to registry
         uses: docker/build-push-action@v6
         with:
           push: ${{ inputs.push_to_registry == true }}
           platforms: linux/amd64,linux/arm64
           tags: |
-            ${{ vars.ACR_REGISTRY_URL != ''  && format('{0}/powerauth-test-server:{1}{2}-{3}', vars.ACR_REPOSITORY, env.REVISION, env.TIMESTAMP,  github.sha) || '' }}
-            ${{ vars.DISTRIBUTION_REGISTRY_URL != '' && format('{0}/powerauth-test-server:{1}{2}-{3}', vars.DISTRIBUTION_REPOSITORY, env.REVISION, env.TIMESTAMP,  github.sha) || '' }}
-          file: powerauth-test-server/Dockerfile
-          context: powerauth-test-server
+            ${{ vars.ACR_REGISTRY_URL != ''  && format('{0}/powerauth-fido2-tests:{1}{2}-{3}', vars.ACR_REPOSITORY, env.REVISION, env.TIMESTAMP,  github.sha) || '' }}
+            ${{ vars.DISTRIBUTION_REGISTRY_URL != '' && format('{0}/powerauth-fido2-tests:{1}{2}-{3}', vars.DISTRIBUTION_REPOSITORY, env.REVISION, env.TIMESTAMP,  github.sha) || '' }}
+          file: powerauth-fido2-tests/docker-powerauth-fido2-tests/Dockerfile
+          context: powerauth-fido2-tests
       - run: echo '### 🚀 Published images' >> $GITHUB_STEP_SUMMARY
       - if: inputs.push_to_registry == true && vars.ACR_REGISTRY_URL != ''
         run: |
-          echo '${{ vars.ACR_REPOSITORY }}/powerauth-test-server:${{ env.REVISION }}${{ env.TIMESTAMP }}-${{ github.sha }}' >> $GITHUB_STEP_SUMMARY
+          echo '${{ vars.ACR_REPOSITORY }}/powerauth-fido2-tests:${{ env.REVISION }}${{ env.TIMESTAMP }}-${{ github.sha }}' >> $GITHUB_STEP_SUMMARY
       - if: inputs.push_to_registry == true && vars.DISTRIBUTION_REGISTRY_URL != ''
-        run: echo '${{ vars.DISTRIBUTION_REPOSITORY }}/powerauth-test-server:${{ env.REVISION }}${{ env.TIMESTAMP }}-${{ github.sha }}' >> $GITHUB_STEP_SUMMARY
+        run: echo '${{ vars.DISTRIBUTION_REPOSITORY }}/powerauth-fido2-tests:${{ env.REVISION }}${{ env.TIMESTAMP }}-${{ github.sha }}' >> $GITHUB_STEP_SUMMARY

@@ -200,23 +200,8 @@ public class PowerAuthActivationShared {
         // Expire activation with 1 hour in the past
         final Date expirationTime = Date.from(Instant.now().minus(Duration.ofHours(1)));
         initRequest.setTimestampActivationExpire(expirationTime);
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
-
-        // Prepare activation
-        model.setActivationCode(initResponse.getActivationCode());
-
-        ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
-        new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        // Verify BAD_REQUEST status code
-        assertFalse(stepLoggerPrepare.getResult().success());
-        assertEquals(400, stepLoggerPrepare.getResponse().statusCode());
-
-        // Verify error response
-        ObjectMapper objectMapper = config.getObjectMapper();
-        final ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().responseObject().toString(), ErrorResponse.class);
-        assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
+        final Exception error = assertThrows(PowerAuthClientException.class, () -> powerAuthClient.initActivation(initRequest));
+        assertEquals("requestObject.timestampActivationExpire - The activation expiration timestamp must be in the future when initiating activation", error.getMessage());
     }
 
     public static void activationPrepareWithoutInitTest(PowerAuthTestConfiguration config, PrepareActivationStepModel model) throws Exception {

@@ -39,5 +39,6 @@ public class WebAuthnConfiguration {
     private String rpName;
     private Duration timeout;
     private List<String> allowedOrigins;
+    private List<String> allowedTopOrigins;
 
 }
