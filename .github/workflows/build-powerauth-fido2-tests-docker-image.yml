@@ -3,10 +3,18 @@ name: Build and push docker image of Powerauth Fido2 Demo to Docker registry
 
 on:
   workflow_dispatch:
+    inputs:
+      push_to_registry:
+        type: boolean
+        default: false
+        description: Publish to registry?
+      environment:
+        type: environment
+        description: Select the environment
   pull_request:
     branches:
       - 'develop'
-      - 'main'
+      - 'master'
       - 'releases/*'
     paths:
       - 'powerauth-fido2-tests/**'
@@ -19,7 +27,7 @@ on:
 jobs:
   build:
     runs-on: 'ubuntu-latest'
-    environment: docker-publish
+    environment: ${{ inputs.environment }}
     env:
       # these are global secrets - for readonly access to artifactory
       INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
@@ -35,12 +43,15 @@ jobs:
           server-id: jfrog-central
           server-username: INTERNAL_USERNAME
           server-password: INTERNAL_PASSWORD
-      - name: Get version
+      - name: Set Timestamp for docker image for development branch
+        if: "!(startsWith(github.ref, 'refs/heads/releases/') || startsWith(github.ref, 'refs/tags/'))"
+        run: echo "TIMESTAMP=-$(date +%Y.%m.%d)" >> $GITHUB_ENV
+      - name: Get Powerauth Fido2 tests version
         run: |
           cd powerauth-fido2-tests
           REVISION=`mvn help:evaluate -Dexpression=project.version -q -DforceStdout`
           echo "REVISION=$REVISION" >> $GITHUB_ENV
-      - name: Build war
+      - name: Prepare wars and libs
         run: |
           cd powerauth-fido2-tests
           mvn -U -DuseInternalRepo=true --no-transfer-progress package
@@ -50,24 +61,33 @@ jobs:
         uses: docker/setup-buildx-action@v3
         with:
           install: true
-      - name: Log in to Azure registry
-        if: ${{ github.actor != 'dependabot[bot]' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push') }}
+      - name: Log in to ACR
+        if: vars.ACR_REGISTRY_URL != ''
         uses: docker/login-action@v3
         with:
-          registry: https://powerauth.azurecr.io/
+          registry: ${{ vars.ACR_REGISTRY_URL }}
           username: ${{ vars.ACR_USERNAME }}
-          password: ${{ secrets.ACR_PASSWORD }}
-      - name: Build and push container image to Azure registry
+          password: '${{ secrets.ACR_PASSWORD }}'
+      - name: Log in to Distribution registry
+        if: vars.DISTRIBUTION_REGISTRY_URL != ''
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.DISTRIBUTION_REGISTRY_URL }}
+          username: ${{ vars.DISTRIBUTION_USERNAME }}
+          password: ${{ secrets.DISTRIBUTION_PASSWORD }}
+      - name: Build and push container image to registry
         uses: docker/build-push-action@v6
         with:
-          push: ${{ github.actor != 'dependabot[bot]' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push') }}
+          push: ${{ inputs.push_to_registry == true }}
           platforms: linux/amd64,linux/arm64
-          tags: powerauth.azurecr.io/powerauth-fido2-tests:${{ github.sha }}
-          file: ./powerauth-fido2-tests/docker-powerauth-fido2-tests/Dockerfile
-          context: ./powerauth-fido2-tests
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - if: ${{ github.actor != 'dependabot[bot]' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push') }}
+          tags: |
+            ${{ vars.ACR_REGISTRY_URL != ''  && format('{0}/powerauth-fido2-tests:{1}{2}-{3}', vars.ACR_REPOSITORY, env.REVISION, env.TIMESTAMP,  github.sha) || '' }}
+            ${{ vars.DISTRIBUTION_REGISTRY_URL != '' && format('{0}/powerauth-fido2-tests:{1}{2}-{3}', vars.DISTRIBUTION_REPOSITORY, env.REVISION, env.TIMESTAMP,  github.sha) || '' }}
+          file: powerauth-fido2-tests/docker-powerauth-fido2-tests/Dockerfile
+          context: powerauth-fido2-tests
+      - run: echo '### 🚀 Published images' >> $GITHUB_STEP_SUMMARY
+      - if: inputs.push_to_registry == true && vars.ACR_REGISTRY_URL != ''
         run: |
-          echo '### 🚀 Published images' >> $GITHUB_STEP_SUMMARY
-          echo 'powerauth.azurecr.io/powerauth-fido2-tests:${{ github.sha }}' >> $GITHUB_STEP_SUMMARY
+          echo '${{ vars.ACR_REPOSITORY }}/powerauth-fido2-tests:${{ env.REVISION }}${{ env.TIMESTAMP }}-${{ github.sha }}' >> $GITHUB_STEP_SUMMARY
+      - if: inputs.push_to_registry == true && vars.DISTRIBUTION_REGISTRY_URL != ''
+        run: echo '${{ vars.DISTRIBUTION_REPOSITORY }}/powerauth-fido2-tests:${{ env.REVISION }}${{ env.TIMESTAMP }}-${{ github.sha }}' >> $GITHUB_STEP_SUMMARY

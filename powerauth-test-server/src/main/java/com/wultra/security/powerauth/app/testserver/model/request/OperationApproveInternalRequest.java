@@ -24,6 +24,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
+import java.util.Map;
+
 /**
  * Request for approving an operation.
  *
@@ -47,7 +49,11 @@ public class OperationApproveInternalRequest {
     @NotBlank
     private String operationId;
 
+    @Schema(description = "Operation data to approve.", example = "A1*A100CZK*Q238400856\\/0300**D20190629*NUtility Bill Payment - 05\\/2019")
     @NotBlank
     private String operationData;
+
+    @Schema(description = "Optional mobile token data, structure is customer-specific. Could be used, for example, for storing FDS data.")
+    private Map<String, Object> mobileTokenData;
 
 }
