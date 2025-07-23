@@ -34,11 +34,11 @@ import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsR
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationRejectInternalRequest;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.mtoken.model.response.OperationListResponse;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.core.rest.model.base.response.Response;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
@@ -229,7 +229,7 @@ public class OperationsService extends BaseService {
         model.setHttpMethod("POST");
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
-        model.setAuthenticationCodeType(PowerAuthSignatureTypes.POSSESSION);
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION);
         model.setVersion(config.getVersion());
         model.setResultStatusObject(resultStatusObject);
 

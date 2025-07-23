@@ -18,7 +18,7 @@
 package com.wultra.security.powerauth.app.testserver.model.converter;
 
 import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 
 /**
  * Converter for signature types
@@ -32,14 +32,14 @@ public class SignatureTypeConverter {
      * @param source Signature type from REST API.
      * @return Signature type for cryptographic library.
      */
-    public static PowerAuthSignatureTypes convert(final SignatureType source) {
+    public static PowerAuthCodeType convert(final SignatureType source) {
         return switch (source) {
-            case POSSESSION -> PowerAuthSignatureTypes.POSSESSION;
-            case KNOWLEDGE-> PowerAuthSignatureTypes.KNOWLEDGE;
-            case BIOMETRY-> PowerAuthSignatureTypes.BIOMETRY;
-            case POSSESSION_KNOWLEDGE-> PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE;
-            case POSSESSION_BIOMETRY-> PowerAuthSignatureTypes.POSSESSION_BIOMETRY;
-            case POSSESSION_KNOWLEDGE_BIOMETRY-> PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE_BIOMETRY;
+            case POSSESSION -> PowerAuthCodeType.POSSESSION;
+            case KNOWLEDGE-> PowerAuthCodeType.KNOWLEDGE;
+            case BIOMETRY-> PowerAuthCodeType.BIOMETRY;
+            case POSSESSION_KNOWLEDGE-> PowerAuthCodeType.POSSESSION_KNOWLEDGE;
+            case POSSESSION_BIOMETRY-> PowerAuthCodeType.POSSESSION_BIOMETRY;
+            case POSSESSION_KNOWLEDGE_BIOMETRY-> PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
         };
     }
 

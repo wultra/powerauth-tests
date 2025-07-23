@@ -29,11 +29,10 @@ import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineS
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineSignatureResponse;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnlineSignatureResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
-import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import com.wultra.security.powerauth.lib.cmd.steps.ComputeOfflineSignatureStep;
+import com.wultra.security.powerauth.lib.cmd.steps.ComputeOfflineAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
-import com.wultra.security.powerauth.lib.cmd.steps.model.ComputeOfflineSignatureStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.ComputeOfflineAuthenticationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -56,7 +55,7 @@ public class SignatureService extends BaseService {
     private final TestServerConfiguration config;
     private final ResultStatusService resultStatusUtil;
     private final VerifyAuthenticationStep VerifyAuthenticationStep;
-    private final ComputeOfflineSignatureStep computeOfflineSignatureStep;
+    private final ComputeOfflineAuthenticationStep computeOfflineSignatureStep;
 
     /**
      * Service constructor.
@@ -66,7 +65,7 @@ public class SignatureService extends BaseService {
      * @param computeOfflineSignatureStep Compute offline signature step.
      */
     @Autowired
-    public SignatureService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, VerifyAuthenticationStep VerifyAuthenticationStep, ComputeOfflineSignatureStep computeOfflineSignatureStep) {
+    public SignatureService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, VerifyAuthenticationStep VerifyAuthenticationStep, ComputeOfflineAuthenticationStep computeOfflineSignatureStep) {
         super(appConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
@@ -144,7 +143,7 @@ public class SignatureService extends BaseService {
 
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
 
-        final ComputeOfflineSignatureStepModel model = new ComputeOfflineSignatureStepModel();
+        final ComputeOfflineAuthenticationStepModel model = new ComputeOfflineAuthenticationStepModel();
         model.setQrCodeData(request.getQrCodeData());
         model.setPassword(request.getPassword());
         model.setVersion(config.getVersion());
