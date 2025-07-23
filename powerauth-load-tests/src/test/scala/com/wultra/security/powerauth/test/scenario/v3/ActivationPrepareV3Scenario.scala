@@ -15,6 +15,7 @@
  */
 package com.wultra.security.powerauth.test.scenario.v3
 
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse
 import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon, TestDevices}
 import io.gatling.core.Predef.{scenario, _}
@@ -22,10 +23,9 @@ import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.{http, _}
 import com.wultra.security.powerauth.http.PowerAuthEncryptionHttpHeader
 import com.wultra.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVersion}
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep
 import com.wultra.security.powerauth.lib.cmd.steps.context.StepContext
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel
-import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep
-import com.wultra.security.powerauth.rest.api.model.response.v3.EciesEncryptedResponse
 
 import java.util.Collections
 
@@ -47,7 +47,6 @@ object ActivationPrepareV3Scenario extends AbstractScenario {
     model.setApplicationSecret(ClientConfig.applicationSecret)
     model.setDeviceInfo(s"Device Info ${device.userId}")
     model.setHeaders(Collections.emptyMap())
-    model.setMasterPublicKey(ClientConfig.masterPublicKey)
     model.setPassword(device.password)
     model.setPlatform("devicePlatform")
     model.setResultStatus(device.resultStatusObject)
@@ -73,8 +72,8 @@ object ActivationPrepareV3Scenario extends AbstractScenario {
     .exec(session => {
       val device: Device = session("device").as[Device]
       val stepContext = session("stepContext").as[StepContext[PrepareActivationStepModel, EciesEncryptedResponse]]
-
-      activationPrepareStep.processResponse(stepContext, session("responseBodyBytes").as[Array[Byte]], classOf[EciesEncryptedResponse])
+        .asInstanceOf[StepContext[PrepareActivationStepModel, EncryptedResponse]]
+      activationPrepareStep.processResponse(stepContext, session("responseBodyBytes").as[Array[Byte]], classOf[EciesEncryptedResponse].asInstanceOf[Class[EncryptedResponse]])
 
       val deviceActivated: Device = device.copy()
       deviceActivated.resultStatusObject = stepContext.getModel.getResultStatus

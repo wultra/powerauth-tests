@@ -21,7 +21,7 @@ import io.gatling.http.protocol.HttpProtocolBuilder
 import com.wultra.security.powerauth.lib.cmd.CmdLibApplication
 import com.wultra.security.powerauth.lib.cmd.consts.StepLoggerType
 import com.wultra.security.powerauth.lib.cmd.logging.StepLogger
-import com.wultra.security.powerauth.lib.cmd.steps.StepProvider
+import com.wultra.security.powerauth.lib.cmd.steps.base.StepProvider
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.springframework.boot.WebApplicationType
 import org.springframework.boot.builder.SpringApplicationBuilder

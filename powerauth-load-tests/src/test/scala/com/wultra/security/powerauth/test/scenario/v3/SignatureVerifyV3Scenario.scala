@@ -15,12 +15,12 @@
  */
 package com.wultra.security.powerauth.test.scenario.v3
 
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType
+import com.wultra.security.powerauth.http.PowerAuthAuthorizationHttpHeader
 import com.wultra.security.powerauth.test.{ClientConfig, Device, PowerAuthCommon}
 import io.gatling.core.Predef.{jsonPath, scenario, _}
 import io.gatling.core.structure.ScenarioBuilder
 import io.gatling.http.Predef.{http, _}
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes
-import com.wultra.security.powerauth.http.PowerAuthSignatureHttpHeader
 import com.wultra.security.powerauth.lib.cmd.consts.{PowerAuthStep, PowerAuthVersion}
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep
 import com.wultra.security.powerauth.lib.cmd.steps.context.StepContext
@@ -37,7 +37,7 @@ import java.util.Collections
 object SignatureVerifyV3Scenario extends AbstractScenario {
 
   val signatureVerifyStep: VerifyAuthenticationStep =
-    PowerAuthCommon.stepProvider.getStep(PowerAuthStep.SIGNATURE_VERIFY, PowerAuthVersion.V3_1).asInstanceOf[VerifyAuthenticationStep]
+    PowerAuthCommon.stepProvider.getStep(PowerAuthStep.AUTHENTICATION_VERIFY, PowerAuthVersion.V3_1).asInstanceOf[VerifyAuthenticationStep]
 
   def prepareVerifyAuthenticationStepModel(device: Device): VerifyAuthenticationStepModel = {
     val model = new VerifyAuthenticationStepModel
@@ -48,7 +48,7 @@ object SignatureVerifyV3Scenario extends AbstractScenario {
     model.setPassword(device.password)
     model.setResourceId("/pa/signature/validate")
     model.setResultStatus(device.resultStatusObject)
-    model.setAuthenticationCodeType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE)
+    model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE)
     model.setUriString(s"${PowerAuthCommon.POWER_AUTH_REST_SERVER_URL}/pa/v3/signature/validate")
     model.setVersion(ClientConfig.modelVersion)
     model.setDryRun(false)
@@ -68,7 +68,7 @@ object SignatureVerifyV3Scenario extends AbstractScenario {
     .exec(prepareSessionData)
     .exec(http("PowerAuth - signature verify")
       .post("/pa/v3/signature/validate")
-      .header(PowerAuthSignatureHttpHeader.HEADER_NAME, "${httpPowerAuthHeader}")
+      .header(PowerAuthAuthorizationHttpHeader.HEADER_NAME, "${httpPowerAuthHeader}")
       .body(requestBody())
       .check(status.is(200))
       .check(jsonPath("$.status").is("OK"))
