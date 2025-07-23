@@ -34,16 +34,16 @@ import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsR
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationRejectInternalRequest;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.mtoken.model.response.OperationListResponse;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.core.rest.model.base.response.Response;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
-import com.wultra.security.powerauth.lib.cmd.steps.VerifySignatureStep;
+import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyTokenStep;
-import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
@@ -71,22 +71,22 @@ public class OperationsService extends BaseService {
     private final TestServerConfiguration config;
     private final ResultStatusService resultStatusUtil;
     private final VerifyTokenStep verifyTokenStep;
-    private final VerifySignatureStep verifySignatureStep;
+    private final VerifyAuthenticationStep VerifyAuthenticationStep;
 
     /**
      * Service constructor.
      * @param config Test server configuration.
      * @param resultStatusUtil Result status utilities.
      * @param verifyTokenStep Step for verifying a token.
-     * @param verifySignatureStep Step for verifying signature.
+     * @param VerifyAuthenticationStep Step for verifying signature.
      */
     @Autowired
-    public OperationsService(TestServerConfiguration config, ResultStatusService resultStatusUtil, TestConfigRepository appConfigRepository, VerifyTokenStep verifyTokenStep, VerifySignatureStep verifySignatureStep) {
+    public OperationsService(TestServerConfiguration config, ResultStatusService resultStatusUtil, TestConfigRepository appConfigRepository, VerifyTokenStep verifyTokenStep, VerifyAuthenticationStep VerifyAuthenticationStep) {
         super(appConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
         this.verifyTokenStep = verifyTokenStep;
-        this.verifySignatureStep = verifySignatureStep;
+        this.VerifyAuthenticationStep = VerifyAuthenticationStep;
     }
 
 
@@ -174,14 +174,14 @@ public class OperationsService extends BaseService {
             throw new SignatureVerificationException("Unable to serialize data", e);
         }
 
-        final VerifySignatureStepModel model = new VerifySignatureStepModel();
+        final VerifyAuthenticationStepModel model = new VerifyAuthenticationStepModel();
         model.setData(payload);
         model.setResourceId("/operation/authorize");
         model.setUriString(config.getEnrollmentServiceUrl() + "/api/auth/token/app/operation/authorize");
         model.setHttpMethod("POST");
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
-        model.setSignatureType(SignatureTypeConverter.convert(request.getSignatureType()));
+        model.setAuthenticationCodeType(SignatureTypeConverter.convert(request.getSignatureType()));
         model.setPassword(request.getPassword());
         model.setVersion(config.getVersion());
         model.setResultStatusObject(resultStatusObject);
@@ -222,14 +222,14 @@ public class OperationsService extends BaseService {
             throw new SignatureVerificationException("Unable to serialize data", e);
         }
 
-        final VerifySignatureStepModel model = new VerifySignatureStepModel();
+        final VerifyAuthenticationStepModel model = new VerifyAuthenticationStepModel();
         model.setData(payload);
         model.setResourceId("/operation/cancel");
         model.setUriString(config.getEnrollmentServiceUrl() + "/api/auth/token/app/operation/cancel");
         model.setHttpMethod("POST");
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
-        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION);
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION);
         model.setVersion(config.getVersion());
         model.setResultStatusObject(resultStatusObject);
 
@@ -239,11 +239,11 @@ public class OperationsService extends BaseService {
     }
 
     @SuppressWarnings("java:S2201")
-    private void verifySignature(final VerifySignatureStepModel model, final JSONObject resultStatusObject) throws RemoteExecutionException, SignatureVerificationException {
+    private void verifySignature(final VerifyAuthenticationStepModel model, final JSONObject resultStatusObject) throws RemoteExecutionException, SignatureVerificationException {
         final ObjectStepLogger stepLogger;
         try {
             stepLogger = new ObjectStepLogger();
-            verifySignatureStep.execute(stepLogger, model.toMap());
+            VerifyAuthenticationStep.execute(stepLogger, model.toMap());
             stepLogger.getItems()
                     .forEach(item -> StepItemLogger.log(logger, item));
         } catch (Exception ex) {

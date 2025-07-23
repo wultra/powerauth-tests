@@ -17,21 +17,21 @@
  */
 package com.wultra.security.powerauth.test.v33;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthOidcActivationConfigurationProperties;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedRequest;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptedResponse;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.context.StepContext;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.CreateActivationStep;
 import com.wultra.security.powerauth.rest.api.model.entity.ActivationType;
-import com.wultra.security.powerauth.rest.api.model.request.ActivationLayer1Request;
-import com.wultra.security.powerauth.rest.api.model.request.EciesEncryptedRequest;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer2Response;
-import com.wultra.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
+import com.wultra.security.powerauth.rest.api.model.request.v3.ActivationLayer1Request;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import com.wultra.security.powerauth.rest.api.spring.service.oidc.OidcApplicationConfiguration;
 import com.wultra.security.powerauth.rest.api.spring.service.oidc.OidcApplicationConfigurationService;
 import com.wultra.security.powerauth.rest.api.spring.service.oidc.OidcConfigurationQuery;
@@ -126,7 +126,7 @@ class PowerAuthOidcActivationTest {
         model.setActivationName("test v" + VERSION);
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
+        model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -313,8 +313,8 @@ class PowerAuthOidcActivationTest {
 
     static class CreateOidcActivationStep extends CreateActivationStep{
         @Override
-        protected ActivationLayer1Request prepareLayer1Request(final StepContext<CreateActivationStepModel, EciesEncryptedResponse> stepContext, final EciesEncryptedRequest encryptedRequestL2) {
-            final ActivationLayer1Request activationLayer1Request = super.prepareLayer1Request(stepContext, encryptedRequestL2);
+        protected ActivationLayer1Request prepareLayer1Request(final StepContext<CreateActivationStepModel, EncryptedResponse> stepContext, final EncryptedRequest encryptedRequestL2) {
+            final ActivationLayer1Request activationLayer1Request = (ActivationLayer1Request) super.prepareLayer1Request(stepContext, encryptedRequestL2);
             activationLayer1Request.setType(ActivationType.DIRECT);
             return activationLayer1Request;
         }

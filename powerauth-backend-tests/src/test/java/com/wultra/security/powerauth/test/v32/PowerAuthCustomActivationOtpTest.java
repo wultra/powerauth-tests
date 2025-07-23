@@ -17,12 +17,11 @@
  */
 package com.wultra.security.powerauth.test.v32;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthCustomActivationOtpShared;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import com.wultra.security.powerauth.lib.cmd.steps.model.ActivationRecoveryStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import org.junit.jupiter.api.*;
@@ -57,7 +56,6 @@ class PowerAuthCustomActivationOtpTest {
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
     private CreateActivationStepModel createModel;
-    private ActivationRecoveryStepModel recoveryModel;
     private GetStatusStepModel statusModel;
 
     private static File dataFile;
@@ -103,7 +101,7 @@ class PowerAuthCustomActivationOtpTest {
         createModel.setActivationName("test v" + VERSION);
         createModel.setApplicationKey(config.getApplicationKey());
         createModel.setApplicationSecret(config.getApplicationSecret());
-        createModel.setMasterPublicKey(config.getMasterPublicKey());
+        createModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         createModel.setHeaders(new HashMap<>());
         createModel.setPassword(config.getPassword());
         createModel.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -111,19 +109,6 @@ class PowerAuthCustomActivationOtpTest {
         createModel.setUriString("http://localhost:" + port);
         createModel.setVersion(VERSION);
         createModel.setDeviceInfo("backend-tests");
-
-        recoveryModel = new ActivationRecoveryStepModel();
-        recoveryModel.setActivationName("test v" + VERSION);
-        recoveryModel.setApplicationKey(config.getApplicationKey());
-        recoveryModel.setApplicationSecret(config.getApplicationSecret());
-        recoveryModel.setMasterPublicKey(config.getMasterPublicKey());
-        recoveryModel.setHeaders(new HashMap<>());
-        recoveryModel.setPassword(config.getPassword());
-        recoveryModel.setStatusFileName(tempStatusFile.getAbsolutePath());
-        recoveryModel.setResultStatusObject(config.getResultStatusObject(VERSION));
-        recoveryModel.setUriString("http://localhost:" + port);
-        recoveryModel.setVersion(VERSION);
-        recoveryModel.setDeviceInfo("backend-tests");
 
         statusModel = new GetStatusStepModel();
         statusModel.setHeaders(new HashMap<>());
@@ -148,16 +133,6 @@ class PowerAuthCustomActivationOtpTest {
     @Test
     void customActivationOtpInvalidTest() throws Exception {
         PowerAuthCustomActivationOtpShared.customActivationOtpInvalidTest(powerAuthClient, createModel, stepLogger, validOtpValue, invalidOtpValue);
-    }
-
-    @Test
-    void activationRecoveryOtpValidTest() throws Exception {
-        PowerAuthCustomActivationOtpShared.activationRecoveryOtpValidTest(powerAuthClient, config, tempStatusFile, recoveryModel, statusModel, validOtpValue, invalidOtpValue, VERSION);
-    }
-
-    @Test
-    void activationRecoveryOtpInvalidTest() throws Exception {
-        PowerAuthCustomActivationOtpShared.activationRecoveryOtpInvalidTest(powerAuthClient, config, tempStatusFile, recoveryModel, validOtpValue, invalidOtpValue, VERSION);
     }
 
 }

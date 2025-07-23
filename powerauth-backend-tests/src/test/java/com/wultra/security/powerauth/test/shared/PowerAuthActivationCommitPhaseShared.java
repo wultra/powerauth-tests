@@ -17,26 +17,24 @@
  */
 package com.wultra.security.powerauth.test.shared;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationOtpValidation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.CommitPhase;
-import com.wultra.security.powerauth.client.model.enumeration.RecoveryCodeStatus;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.CommitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.response.CommitActivationResponse;
-import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
-import com.wultra.security.powerauth.client.model.response.LookupRecoveryCodesResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.GetStatusStep;
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import org.json.simple.JSONObject;
 
 import java.util.Map;
@@ -77,11 +75,6 @@ public class PowerAuthActivationCommitPhaseShared {
         final GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertNotNull(activationStatusResponse);
         assertEquals(ActivationStatus.ACTIVE, activationStatusResponse.getActivationStatus());
-
-        // Verify associated recovery code
-        final LookupRecoveryCodesResponse recoveryCodes = powerAuthClient.lookupRecoveryCodes(config.getUser(version), initResponse.getActivationId(), config.getApplicationId(), null, null);
-        assertEquals(1, recoveryCodes.getRecoveryCodes().size());
-        assertEquals(RecoveryCodeStatus.ACTIVE, recoveryCodes.getRecoveryCodes().get(0).getStatus());
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");

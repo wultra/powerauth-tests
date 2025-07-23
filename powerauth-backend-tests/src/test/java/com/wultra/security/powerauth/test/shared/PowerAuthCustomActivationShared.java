@@ -18,25 +18,25 @@
 package com.wultra.security.powerauth.test.shared;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.response.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.util.ResponseVerificationUtil;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import com.wultra.security.powerauth.lib.cmd.steps.VerifySignatureStep;
+import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.model.VerifySignatureStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.CreateActivationStep;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer1Response;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationLayer2Response;
+import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.CreateActivationStep;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer1Response;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.io.File;
@@ -229,10 +229,10 @@ public class PowerAuthCustomActivationShared {
         model.setIdentityAttributes(identityAttributes);
 
         KeyPair keyPair = new KeyGenerator().generateKeyPair();
-        PublicKey originalKey = model.getMasterPublicKey();
+        PublicKey originalKey = model.getMasterPublicKeyP256();
 
         // Set bad master public key
-        model.setMasterPublicKey(keyPair.getPublic());
+        model.setMasterPublicKeyP256(keyPair.getPublic());
 
         // Create activation
         new CreateActivationStep().execute(stepLogger, model.toMap());
@@ -251,7 +251,7 @@ public class PowerAuthCustomActivationShared {
         }
 
         // Revert master public key change
-        model.setMasterPublicKey(originalKey);
+        model.setMasterPublicKeyP256(originalKey);
     }
 
     public static void customActivationUnsupportedApplicationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, CreateActivationStepModel model, ObjectStepLogger stepLogger) throws Exception {
@@ -385,7 +385,7 @@ public class PowerAuthCustomActivationShared {
 
         fetchLayer1Response(stepLogger);
 
-        VerifySignatureStepModel signatureModel = new VerifySignatureStepModel();
+        VerifyAuthenticationStepModel signatureModel = new VerifyAuthenticationStepModel();
         signatureModel.setApplicationKey(config.getApplicationKey());
         signatureModel.setApplicationSecret(config.getApplicationSecret());
         signatureModel.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
@@ -394,7 +394,7 @@ public class PowerAuthCustomActivationShared {
         signatureModel.setPassword(config.getPassword());
         signatureModel.setResourceId("/pa/signature/validate");
         signatureModel.setResultStatusObject(config.getResultStatusObject(version));
-        signatureModel.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
+        signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE);
         signatureModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         signatureModel.setUriString("http://localhost:" + port + "/pa/v3/signature/validate");
         signatureModel.setVersion(version);
@@ -404,7 +404,7 @@ public class PowerAuthCustomActivationShared {
         // Fail 2 signatures (configured value for maximum failed count is 3)
         for (int i = 0; i < 2; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
-            new VerifySignatureStep().execute(stepLoggerSignature, signatureModel.toMap());
+            new VerifyAuthenticationStep().execute(stepLoggerSignature, signatureModel.toMap());
             assertFalse(stepLoggerSignature.getResult().success());
             assertEquals(401, stepLoggerSignature.getResponse().statusCode());
         }
@@ -412,7 +412,7 @@ public class PowerAuthCustomActivationShared {
         // Last signature before max failed attempts should be successful
         signatureModel.setPassword(config.getPassword());
         ObjectStepLogger stepLogger2 = new ObjectStepLogger();
-        new VerifySignatureStep().execute(stepLogger2, signatureModel.toMap());
+        new VerifyAuthenticationStep().execute(stepLogger2, signatureModel.toMap());
         assertTrue(stepLogger2.getResult().success());
         assertEquals(200, stepLogger2.getResponse().statusCode());
 
@@ -420,7 +420,7 @@ public class PowerAuthCustomActivationShared {
         signatureModel.setPassword("1111");
         for (int i = 0; i < 3; i++) {
             ObjectStepLogger stepLoggerSignature = new ObjectStepLogger();
-            new VerifySignatureStep().execute(stepLoggerSignature, signatureModel.toMap());
+            new VerifyAuthenticationStep().execute(stepLoggerSignature, signatureModel.toMap());
             assertFalse(stepLoggerSignature.getResult().success());
             assertEquals(401, stepLoggerSignature.getResponse().statusCode());
         }

@@ -78,9 +78,9 @@ public class ApplicationService extends BaseService {
             if (config == null) {
                 throw new AppConfigInvalidException("Missing mobile SDK configuration");
             }
-            applicationKey = config.appKeyBase64();
-            applicationSecret = config.appSecretBase64();
-            masterPublicKey = config.masterPublicKeyBase64();
+            applicationKey = config.appKey();
+            applicationSecret = config.appSecret();
+            masterPublicKey = config.masterPublicKeyP256();
         } else {
             applicationKey = request.getApplicationKey();
             applicationSecret = request.getApplicationSecret();

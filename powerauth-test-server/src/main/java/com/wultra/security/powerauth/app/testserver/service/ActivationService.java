@@ -30,7 +30,7 @@ import com.wultra.security.powerauth.app.testserver.model.response.CreateActivat
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +91,7 @@ public class ActivationService extends BaseService {
         model.setActivationName(request.getActivationName());
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
-        model.setMasterPublicKey(publicKey);
+        model.setMasterPublicKeyP256(publicKey);
         model.setHeaders(new HashMap<>());
         model.setPassword(request.getPassword());
         model.setResultStatusObject(resultStatusObject);

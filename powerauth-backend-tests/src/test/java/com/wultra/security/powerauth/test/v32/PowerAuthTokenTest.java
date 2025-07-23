@@ -17,10 +17,10 @@
  */
 package com.wultra.security.powerauth.test.v32;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthTokenShared;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
@@ -89,12 +89,11 @@ class PowerAuthTokenTest {
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setHeaders(new HashMap<>());
-        model.setMasterPublicKey(config.getMasterPublicKey());
         model.setPassword(config.getPassword());
         model.setResultStatusObject(config.getResultStatusObject(VERSION));
         model.setStatusFileName(config.getStatusFile(VERSION).getAbsolutePath());
         model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setSignatureType(PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE);
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE);
         model.setVersion(VERSION);
 
         stepLogger = new ObjectStepLogger(System.out);
@@ -132,7 +131,7 @@ class PowerAuthTokenTest {
 
     @Test
     void tokenCounterIncrementTest() throws Exception {
-        PowerAuthTokenShared.tokenCounterIncrementTest(model, stepLogger);
+        PowerAuthTokenShared.tokenCounterIncrementTest(model, stepLogger, VERSION);
     }
 
 }

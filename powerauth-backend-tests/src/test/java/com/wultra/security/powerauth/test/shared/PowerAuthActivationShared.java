@@ -18,7 +18,8 @@
 package com.wultra.security.powerauth.test.shared;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
@@ -27,6 +28,9 @@ import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.LookupActivationsRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
+import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
 import com.wultra.security.powerauth.test.shared.util.ResponseVerificationUtil;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
@@ -38,12 +42,11 @@ import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.GetStatusStep;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.PrepareActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.GetStatusStep;
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
-import com.wultra.security.powerauth.rest.api.model.request.ActivationStatusRequest;
-import com.wultra.security.powerauth.rest.api.model.response.ActivationStatusResponse;
-import com.wultra.security.powerauth.rest.api.model.response.EciesEncryptedResponse;
+import com.wultra.security.powerauth.rest.api.model.request.v3.ActivationStatusRequest;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
 import org.json.simple.JSONObject;
 
 import javax.crypto.SecretKey;
@@ -232,12 +235,12 @@ public class PowerAuthActivationShared {
         GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
-        KeyPair keyPair = new KeyGenerator().generateKeyPair();
-        PublicKey originalKey = model.getMasterPublicKey();
+        KeyPair keyPair = new KeyGenerator().generateKeyPair(EcCurve.P256);
+        PublicKey originalKey = model.getMasterPublicKeyP256();
 
         // Prepare activation
         model.setActivationCode(initResponse.getActivationCode());
-        model.setMasterPublicKey(keyPair.getPublic());
+        model.setMasterPublicKeyP256(keyPair.getPublic());
         ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
         assertFalse(stepLoggerPrepare.getResult().success());
@@ -251,7 +254,7 @@ public class PowerAuthActivationShared {
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
 
         // Revert master public key change
-        model.setMasterPublicKey(originalKey);
+        model.setMasterPublicKeyP256(originalKey);
     }
 
     public static void activationStatusTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
@@ -316,7 +319,7 @@ public class PowerAuthActivationShared {
             statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
             // Added in V3.1
             assertEquals(20, statusBlob.getCtrLookAhead());
-            assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey));
+            assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey, ProtocolVersion.fromValue(version.value())));
         }
 
         assertTrue(statusBlob.isValid());
@@ -592,7 +595,7 @@ public class PowerAuthActivationShared {
             statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
             // Added in V3.1
             assertEquals(20, statusBlob.getCtrLookAhead());
-            assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey));
+            assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey, ProtocolVersion.fromValue(version.value())));
         }
 
         assertTrue(statusBlob.isValid());

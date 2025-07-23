@@ -17,7 +17,7 @@
  */
 package com.wultra.security.powerauth.test.v33;
 
-import com.wultra.security.powerauth.client.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.PowerAuthActivationCommitPhaseShared;
 import com.wultra.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
@@ -82,7 +82,7 @@ class PowerAuthActivationCommitPhaseTest {
         model.setActivationName("test v" + VERSION);
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKey(config.getMasterPublicKey());
+        model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());

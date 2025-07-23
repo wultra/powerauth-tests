@@ -45,12 +45,13 @@ public class PowerAuthConfigurationTest {
     public void applicationSetUpTest() {
         assertNotNull(config.getApplicationId());
         assertNotNull(config.getApplicationVersionId());
-        assertNotNull(config.getMasterPublicKey());
+        assertNotNull(config.getMasterPublicKeyP256());
         assertNotNull(config.getApplicationKey());
         assertNotEquals("", config.getApplicationKey());
         assertNotNull(config.getApplicationSecret());
         assertNotEquals("", config.getApplicationSecret());
-        for (PowerAuthVersion version: PowerAuthVersion.values()) {
+        // TODO - add v4
+        for (PowerAuthVersion version: PowerAuthVersion.VERSION_3) {
             assertNotNull(config.getActivationId(version));
         }
     }

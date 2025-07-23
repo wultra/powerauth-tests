@@ -30,12 +30,12 @@ import com.wultra.security.powerauth.app.testserver.model.request.CreateTokenReq
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeTokenDigestResponse;
 import com.wultra.security.powerauth.app.testserver.model.response.CreateTokenResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
-import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthSignatureTypes;
+import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
+import com.wultra.security.powerauth.lib.cmd.steps.CreateTokenStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.v3.CreateTokenStep;
 import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,17 +94,16 @@ public class TokenService extends BaseService {
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
         final PublicKey publicKey = getMasterPublicKey(appConfig);
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
-        PowerAuthSignatureTypes signatureType = SignatureTypeConverter.convert(request.getSignatureType());
+        PowerAuthCodeType signatureType = SignatureTypeConverter.convert(request.getSignatureType());
         if (signatureType == null) {
             // Fallback to previous behavior when there was no signatureType property in the request.
-            signatureType = PowerAuthSignatureTypes.POSSESSION_KNOWLEDGE;
+            signatureType = PowerAuthCodeType.POSSESSION_KNOWLEDGE;
         }
         final CreateTokenStepModel model = new CreateTokenStepModel();
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
         model.setPassword(request.getPassword());
-        model.setMasterPublicKey(publicKey);
-        model.setSignatureType(signatureType);
+        model.setAuthenticationCodeType(signatureType);
         model.setVersion(config.getVersion());
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatusObject(resultStatusObject);
