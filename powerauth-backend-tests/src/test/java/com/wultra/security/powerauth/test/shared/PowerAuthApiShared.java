@@ -53,8 +53,8 @@ import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.steps.model.BaseStepModel;
 import com.wultra.security.powerauth.lib.cmd.util.*;
 import com.wultra.security.powerauth.rest.api.model.entity.TokenResponsePayload;
-import com.wultra.security.powerauth.rest.api.model.request.VaultUnlockRequestPayload;
-import com.wultra.security.powerauth.rest.api.model.response.VaultUnlockResponsePayload;
+import com.wultra.security.powerauth.rest.api.model.request.v3.VaultUnlockRequestPayload;
+import com.wultra.security.powerauth.rest.api.model.response.v3.VaultUnlockResponsePayload;
 import lombok.Data;
 
 import javax.crypto.SecretKey;
