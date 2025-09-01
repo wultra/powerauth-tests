@@ -17,7 +17,17 @@
  */
 package com.wultra.security.powerauth;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.ContextClosedEvent;
+import org.springframework.context.event.EventListener;
+
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.List;
 
 /**
  * Spring boot test application.
@@ -25,6 +35,42 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @SpringBootApplication
+@Slf4j
 public class PowerAuthTestApplication {
+
+    @Value("${powerauth.port:58080}")
+    private int powerauthPort;
+
+    @Value("${enrollment.port:58081}")
+    private int enrollmentPort;
+
+    @Value("${onboarding.port:58082}")
+    private int onboardingPort;
+
+    public static void main(String[] args) {
+        SpringApplication.run(PowerAuthTestApplication.class, args);
+    }
+
+    @EventListener
+    public void onReady(ApplicationReadyEvent event) {
+        logger.info("PowerAuth Test Application started, application ports: {}, {}, {}", powerauthPort, enrollmentPort, onboardingPort);
+    }
+
+    @EventListener
+    public void onShutdown(ContextClosedEvent event) {
+        try {
+            for (String url: List.of(
+                    "http://localhost:" + powerauthPort + "/powerauth-java-server/actuator/shutdown",
+                    "http://localhost:" + enrollmentPort + "/enrollment-server/actuator/shutdown",
+                    "http://localhost:" + onboardingPort + "/enrollment-server-onboarding/actuator/shutdown")) {
+                final HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+                conn.setRequestMethod("POST");
+                conn.setDoOutput(true);
+                conn.getResponseCode();
+                conn.disconnect();
+            }
+        } catch (Exception ignored) {
+        }
+    }
 
 }

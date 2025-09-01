@@ -41,6 +41,37 @@
         </developer>
     </developers>
 
+    <properties>
+        <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
+        <exec.plugin.version>3.5.0</exec.plugin.version>
+        <antrun.plugin.version>3.1.0</antrun.plugin.version>
+
+        <git.branch>develop</git.branch>
+
+        <powerauth.port>58080</powerauth.port>
+        <enrollment.port>58081</enrollment.port>
+        <onboarding.port>58082</onboarding.port>
+
+        <powerauth.ctx>/powerauth-java-server</powerauth.ctx>
+        <enrollment.ctx>/enrollment-server</enrollment.ctx>
+        <onboarding.ctx>/enrollment-server-onboarding</onboarding.ctx>
+
+        <powerauth.war.src>../powerauth-java-server/target/powerauth-java-server-*.war</powerauth.war.src>
+        <enrollment.war.src>../enrollment-server-wultra/enrollment-server/target/enrollment-server-*.war</enrollment.war.src>
+        <onboarding.war.src>../enrollment-server-onboarding/enrollment-server-onboarding/target/enrollment-server-onboarding-*.war</onboarding.war.src>
+
+        <powerauth.war>${deploy.dir}/powerauth-java-server.war</powerauth.war>
+        <enrollment.war>${deploy.dir}/enrollment-server.war</enrollment.war>
+        <onboarding.war>${deploy.dir}/enrollment-server-onboarding.war</onboarding.war>
+
+        <work.dir>${project.build.directory}</work.dir>
+        <sources.dir>${work.dir}/sources</sources.dir>
+        <deploy.dir>${work.dir}/deploy</deploy.dir>
+        <runtime.dir>${work.dir}/runtime</runtime.dir>
+
+        <health.timeout.seconds>120</health.timeout.seconds>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>com.wultra.security</groupId>
@@ -97,5 +128,299 @@
         </dependency>
 
     </dependencies>
+
+    <build>
+        <plugins>
+
+            <!-- Clone repositories -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-scm-plugin</artifactId>
+                <version>2.0.1</version>
+                <executions>
+                    <execution>
+                        <id>clone-powerauth-crypto</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>checkout</goal></goals>
+                        <configuration>
+                            <connectionUrl>scm:git:https://github.com/wultra/powerauth-crypto.git</connectionUrl>
+                            <checkoutDirectory>${sources.dir}/powerauth-crypto</checkoutDirectory>
+                            <scmVersion>${git.branch}</scmVersion>
+                            <scmVersionType>branch</scmVersionType>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>clone-powerauth-server</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>checkout</goal></goals>
+                        <configuration>
+                            <connectionUrl>scm:git:https://github.com/wultra/powerauth-server.git</connectionUrl>
+                            <checkoutDirectory>${sources.dir}/powerauth-server</checkoutDirectory>
+                            <scmVersion>${git.branch}</scmVersion>
+                            <scmVersionType>branch</scmVersionType>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>clone-powerauth-restful-integration</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>checkout</goal></goals>
+                        <configuration>
+                            <connectionUrl>scm:git:https://github.com/wultra/powerauth-restful-integration.git</connectionUrl>
+                            <checkoutDirectory>${sources.dir}/powerauth-restful-integration</checkoutDirectory>
+                            <scmVersion>${git.branch}</scmVersion>
+                            <scmVersionType>branch</scmVersionType>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>clone-powerauth-cmd-tool</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>checkout</goal></goals>
+                        <configuration>
+                            <connectionUrl>scm:git:https://github.com/wultra/powerauth-cmd-tool.git</connectionUrl>
+                            <checkoutDirectory>${sources.dir}/powerauth-cmd-tool</checkoutDirectory>
+                            <scmVersion>${git.branch}</scmVersion>
+                            <scmVersionType>branch</scmVersionType>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>clone-enrollment-server-wultra</id>
+                        <phase>generate-resources</phase>
+                        <goals><goal>checkout</goal></goals>
+                        <configuration>
+                            <connectionUrl>scm:git:https://github.com/wultra/enrollment-server-wultra.git</connectionUrl>
+                            <checkoutDirectory>${sources.dir}/enrollment-server-wultra</checkoutDirectory>
+                            <scmVersion>${git.branch}</scmVersion>
+                            <scmVersionType>branch</scmVersionType>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Build all projects -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>${exec.plugin.version}</version>
+                <executions>
+
+                    <!-- Build steps -->
+                    <execution>
+                        <id>build-powerauth-crypto</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>mvn</executable>
+                            <arguments>
+                                <argument>-B</argument><argument>-U</argument>
+                                <argument>--no-transfer-progress</argument>
+                                <argument>-DskipTests=true</argument>
+                                <argument>clean</argument><argument>install</argument>
+                            </arguments>
+                            <workingDirectory>${sources.dir}/powerauth-crypto</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-powerauth-server</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>mvn</executable>
+                            <arguments>
+                                <argument>-B</argument><argument>-U</argument>
+                                <argument>--no-transfer-progress</argument>
+                                <argument>-DskipTests=true</argument>
+                                <argument>clean</argument><argument>install</argument>
+                            </arguments>
+                            <workingDirectory>${sources.dir}/powerauth-server</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-powerauth-restful-integration</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>mvn</executable>
+                            <arguments>
+                                <argument>-B</argument><argument>-U</argument>
+                                <argument>--no-transfer-progress</argument>
+                                <argument>-DskipTests=true</argument>
+                                <argument>clean</argument><argument>install</argument>
+                            </arguments>
+                            <workingDirectory>${sources.dir}/powerauth-restful-integration</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-powerauth-cmd-tool</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>mvn</executable>
+                            <arguments>
+                                <argument>-B</argument><argument>-U</argument>
+                                <argument>--no-transfer-progress</argument>
+                                <argument>-DskipTests=true</argument>
+                                <argument>clean</argument><argument>install</argument>
+                            </arguments>
+                            <workingDirectory>${sources.dir}/powerauth-cmd-tool</workingDirectory>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>build-enrollment-server</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>exec</goal></goals>
+                        <configuration>
+                            <executable>mvn</executable>
+                            <arguments>
+                                <argument>-B</argument><argument>-U</argument>
+                                <argument>--no-transfer-progress</argument>
+                                <argument>-DskipTests=true</argument>
+                                <argument>clean</argument><argument>install</argument>
+                            </arguments>
+                            <workingDirectory>${sources.dir}/enrollment-server-wultra</workingDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Set up H2 lib -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>fetch-h2</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>copy</goal></goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.h2database</groupId>
+                                    <artifactId>h2</artifactId>
+                                    <outputDirectory>${runtime.dir}/lib</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>${antrun.plugin.version}</version>
+                <executions>
+
+                    <!-- Copy freshly built WARs from target dirs and rename -->
+                    <execution>
+                        <id>copy-wars-from-targets</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${deploy.dir}"/>
+                                <!-- PowerAuth server -->
+                                <copy todir="${deploy.dir}" flatten="true">
+                                    <fileset dir="${sources.dir}/powerauth-server/powerauth-java-server/target">
+                                        <include name="powerauth-java-server-*.war"/>
+                                    </fileset>
+                                    <mapper type="glob" from="powerauth-java-server-*.war" to="powerauth-java-server.war"/>
+                                </copy>
+                                <!-- Enrollment server -->
+                                <copy todir="${deploy.dir}" flatten="true">
+                                    <fileset dir="${sources.dir}/enrollment-server-wultra/enrollment-server/target">
+                                        <include name="enrollment-server-*.war"/>
+                                    </fileset>
+                                    <mapper type="glob" from="enrollment-server-*.war" to="enrollment-server.war"/>
+                                </copy>
+                                <!-- Enrollment server onboarding -->
+                                <copy todir="${deploy.dir}" flatten="true">
+                                    <fileset dir="${sources.dir}/enrollment-server-wultra/enrollment-server-onboarding/target">
+                                        <include name="enrollment-server-onboarding-*.war"/>
+                                    </fileset>
+                                    <mapper type="glob" from="enrollment-server-onboarding-*.war" to="enrollment-server-onboarding.war"/>
+                                </copy>
+                            </target>
+                        </configuration>
+                    </execution>
+
+                    <!-- Create missing tables -->
+                    <execution>
+                        <id>write-shedlock-schema</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${runtime.dir}/schema"/>
+                                <echo file="${runtime.dir}/schema/extra-tables.sql"><![CDATA[
+CREATE TABLE shedlock (name VARCHAR(64) NOT NULL, lock_until TIMESTAMP(3) NOT NULL, locked_at TIMESTAMP(3) NOT NULL, locked_by VARCHAR(255) NOT NULL, PRIMARY KEY (name));
+CREATE TABLE audit_log (audit_log_id VARCHAR(36) NOT NULL, application_name VARCHAR(256) NOT NULL, audit_level VARCHAR(32) NOT NULL, audit_type VARCHAR(256), timestamp_created TIMESTAMP DEFAULT now(), message CLOB NOT NULL, exception_message CLOB, stack_trace CLOB, param CLOB, calling_class VARCHAR(256) NOT NULL, thread_name VARCHAR(256) NOT NULL, version VARCHAR(256), build_time TIMESTAMP, CONSTRAINT PK_AUDIT_LOG PRIMARY KEY (audit_log_id));
+CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP, param_key VARCHAR(256), param_value VARCHAR(4000));
+]]></echo>
+                            </target>
+                        </configuration>
+                    </execution>
+
+                    <!-- Start all apps with java -jar -->
+                    <execution>
+                        <id>start-apps</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${runtime.dir}"/>
+
+                                <!-- PowerAuth Server -->
+                                <exec executable="sh" osfamily="unix" failonerror="true">
+                                    <arg value="-c"/>
+                                    <arg value="nohup java -Xms256m -Xmx512m -cp &quot;${runtime.dir}/lib/*:${powerauth.war}&quot; org.springframework.boot.loader.launch.WarLauncher --server.port=${powerauth.port} --server.servlet.context-path=${powerauth.ctx} --management.endpoints.web.exposure.include=health,info,shutdown --management.endpoint.shutdown.enabled=true --spring.datasource.url=&quot;jdbc:h2:mem:powerauth&quot; --spring.datasource.username=sa --spring.datasource.password= --spring.datasource.driver-class-name=org.h2.Driver --spring.jpa.hibernate.ddl-auto=create-drop --spring.sql.init.mode=always --spring.sql.init.schema-locations=file:${runtime.dir}/schema/extra-tables.sql &gt; &quot;${runtime.dir}/powerauth.out&quot; 2&gt;&amp;1 &amp; echo $! &gt; &quot;${runtime.dir}/powerauth.pid&quot;"/>
+                                </exec>
+                                <!-- Enrollment Server -->
+                                <exec executable="sh" osfamily="unix" failonerror="true">
+                                    <arg value="-c"/>
+                                    <arg value="nohup java -Xms256m -Xmx512m -cp &quot;${runtime.dir}/lib/*:${enrollment.war}&quot; org.springframework.boot.loader.launch.WarLauncher --server.port=${enrollment.port} --server.servlet.context-path=${enrollment.ctx} --management.endpoints.web.exposure.include=health,info,shutdown --management.endpoint.shutdown.enabled=true --spring.datasource.url=&quot;jdbc:h2:mem:enrollment&quot; --spring.datasource.username=sa --spring.datasource.password= --spring.datasource.driver-class-name=org.h2.Driver --spring.jpa.hibernate.ddl-auto=create-drop --spring.sql.init.mode=always --spring.sql.init.schema-locations=file:${runtime.dir}/schema/extra-tables.sql --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest &gt; &quot;${runtime.dir}/enrollment.out&quot; 2&gt;&amp;1 &amp; echo $! &gt; &quot;${runtime.dir}/enrollment.pid&quot;"/>
+                                </exec>
+                                <!-- Onboarding Server -->
+                                <exec executable="sh" osfamily="unix" failonerror="true">
+                                    <arg value="-c"/>
+                                    <arg value="nohup java -Xms256m -Xmx512m -cp &quot;${runtime.dir}/lib/*:${onboarding.war}&quot; org.springframework.boot.loader.launch.WarLauncher --server.port=${onboarding.port} --server.servlet.context-path=${onboarding.ctx}  --management.endpoints.web.exposure.include=health,info,shutdown --management.endpoint.shutdown.enabled=true --spring.datasource.url=&quot;jdbc:h2:mem:onboarding&quot; --spring.datasource.username=sa --spring.datasource.password= --spring.datasource.driver-class-name=org.h2.Driver --spring.jpa.hibernate.ddl-auto=create-drop --spring.sql.init.mode=always --spring.sql.init.schema-locations=file:${runtime.dir}/schema/extra-tables.sql --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest &gt; &quot;${runtime.dir}/onboarding.out&quot; 2&gt;&amp;1 &amp; echo $! &gt; &quot;${runtime.dir}/onboarding.pid&quot;"/>
+                                </exec>
+                            </target>
+                        </configuration>
+                    </execution>
+
+                    <!-- Wait for readiness -->
+                    <execution>
+                        <id>wait-for-ready</id>
+                        <phase>process-resources</phase>
+                        <goals><goal>run</goal></goals>
+                        <configuration>
+                            <target>
+                                <echo>Waiting for apps to become ready... (up to ${health.timeout.seconds}s)</echo>
+                                <waitfor maxwait="${health.timeout.seconds}" maxwaitunit="second" checkevery="1" checkeveryunit="second">
+                                    <and>
+                                        <http url="http://localhost:${powerauth.port}${powerauth.ctx}/"/>
+                                        <http url="http://localhost:${enrollment.port}${enrollment.ctx}/"/>
+                                        <http url="http://localhost:${onboarding.port}${onboarding.ctx}/"/>
+                                    </and>
+                                </waitfor>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <powerauth.port>${powerauth.port}</powerauth.port>
+                        <enrollment.port>${enrollment.port}</enrollment.port>
+                        <onboarding.port>${onboarding.port}</onboarding.port>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
 </project>
