@@ -13,8 +13,6 @@ on:
         type: boolean
         description: Set whether to include custom tests, such as onboarding tests and test requiring specific customizations in enrollment-server-wultra
         default: true
-  schedule:
-    - cron: '0 0 * * *'
 
 jobs:
   run-integration-tests:
