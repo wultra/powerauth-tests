@@ -271,7 +271,7 @@
 
                     <!-- Create missing tables -->
                     <execution>
-                        <id>write-shedlock-schema</id>
+                        <id>write-schema</id>
                         <phase>process-resources</phase>
                         <goals><goal>run</goal></goals>
                         <configuration>
