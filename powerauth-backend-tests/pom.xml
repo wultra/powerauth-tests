@@ -311,6 +311,7 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
         --spring.datasource.username=sa
         --spring.datasource.password=
         --spring.datasource.driver-class-name=org.h2.Driver
+        --spring.jpa.hibernate.ddl-auto=create-drop
         --spring.sql.init.mode=always
         --spring.sql.init.schema-locations=file:${runtime.dir}/schema/extra-tables.sql
         &gt; &quot;${runtime.dir}/powerauth.out&quot; 2&gt;&amp;1 &amp;
@@ -332,6 +333,7 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
         --spring.datasource.username=sa
         --spring.datasource.password=
         --spring.datasource.driver-class-name=org.h2.Driver
+        --spring.jpa.hibernate.ddl-auto=create-drop
         --spring.sql.init.mode=always
         --spring.sql.init.schema-locations=file:${runtime.dir}/schema/extra-tables.sql
         --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest
@@ -354,7 +356,8 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
         --spring.datasource.username=sa
         --spring.datasource.password=
         --spring.datasource.driver-class-name=org.h2.Driver
-\        --spring.sql.init.mode=always
+        --spring.jpa.hibernate.ddl-auto=create-drop
+        --spring.sql.init.mode=always
         --spring.sql.init.schema-locations=file:${runtime.dir}/schema/extra-tables.sql
         --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest
         &gt; &quot;${runtime.dir}/onboarding.out&quot; 2&gt;&amp;1 &amp;

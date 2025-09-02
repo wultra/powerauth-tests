@@ -17,7 +17,8 @@
  */
 package com.wultra.security.powerauth.test;
 
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.response.v4.GetApplicationDetailResponse;
+import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.Application;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
 import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
@@ -30,6 +31,8 @@ import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
+import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfiguration;
+import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfigurationSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
@@ -106,30 +109,39 @@ public class PowerAuthTestSetUp {
             config.setApplicationId(response.getApplicationId());
         }
 
-
         // Create application version if it does not exist
         final GetApplicationDetailResponse detail = powerAuthClient.getApplicationDetail(config.getApplicationId());
-        boolean versionExists = false;
+        ApplicationVersion resolvedAppVersion = null;
         for (ApplicationVersion appVersion: detail.getVersions()) {
             if (appVersion.getApplicationVersionId().equals(config.getApplicationVersion())) {
-                versionExists = true;
-                config.setApplicationVersionId(appVersion.getApplicationVersionId());
-                config.setApplicationKey(appVersion.getApplicationKey());
-                config.setApplicationSecret(appVersion.getApplicationSecret());
+                resolvedAppVersion = appVersion;
             }
         }
-        config.setMasterPublicKey(detail.getMasterPublicKey());
-        if (!versionExists) {
+        if (resolvedAppVersion == null) {
             final CreateApplicationVersionResponse versionResponse = powerAuthClient.createApplicationVersion(config.getApplicationId(), config.getApplicationVersion());
             assertNotEquals("0", versionResponse.getApplicationVersionId());
             assertEquals(config.getApplicationVersion(), versionResponse.getApplicationVersionId());
             config.setApplicationVersionId(versionResponse.getApplicationVersionId());
             config.setApplicationKey(versionResponse.getApplicationKey());
             config.setApplicationSecret(versionResponse.getApplicationSecret());
+            final GetApplicationDetailResponse applicationDetail = powerAuthClient.getApplicationDetail(config.getApplicationId());
+            for (ApplicationVersion appVersion: applicationDetail.getVersions()) {
+                if (appVersion.getApplicationVersionId().equals(config.getApplicationVersion())) {
+                    resolvedAppVersion = appVersion;
+                }
+            }
         } else {
             // Make sure application version is supported
             powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
         }
+
+        final SdkConfiguration sdkConfiguration = SdkConfigurationSerializer.deserialize(resolvedAppVersion.getMobileSdkConfig());
+        config.setApplicationVersionId(resolvedAppVersion.getApplicationVersionId());
+        config.setApplicationKey(resolvedAppVersion.getApplicationKey());
+        config.setApplicationSecret(resolvedAppVersion.getApplicationSecret());
+        config.setMasterPublicKeyP256(sdkConfiguration.masterPublicKeyP256());
+        config.setMasterPublicKeyP384(sdkConfiguration.masterPublicKeyP384());
+        config.setMasterPublicKeyMlDsa65(sdkConfiguration.masterPublicKeyMlDsa65());
     }
 
     private void createActivation(PowerAuthVersion version) throws Exception {
@@ -146,6 +158,8 @@ public class PowerAuthTestSetUp {
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
+        model.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
+        model.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(config.getStatusFile(version).getAbsolutePath());
