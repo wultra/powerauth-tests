@@ -19,6 +19,9 @@ package com.wultra.security.powerauth.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
+import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
 import com.wultra.security.powerauth.test.PowerAuthTestSetUp;
 import com.wultra.security.powerauth.test.PowerAuthTestTearDown;
@@ -106,7 +109,9 @@ public class PowerAuthTestConfiguration {
 
     private String applicationId;
     private String versionId;
-    private PublicKey masterPublicKeyConverted;
+    private PublicKey masterPublicKeyP256;
+    private PublicKey masterPublicKeyP384;
+    private PublicKey masterPublicKeyMlDsa65;
 
     private Long loginOperationTemplateId;
     private String loginOperationTemplateName;
@@ -115,6 +120,7 @@ public class PowerAuthTestConfiguration {
     private PowerAuthTestTearDown tearDown;
 
     private final KeyConvertor keyConvertor = new KeyConvertor();
+    private final PqcDsaKeyConvertor pqcDsaKeyConvertor = new MlDsaKeyConvertor();
     private final ObjectMapper objectMapper = RestClientConfiguration.defaultMapper();
 
     private final Map<PowerAuthVersion, File> statusFiles = new HashMap<>();
@@ -263,7 +269,15 @@ public class PowerAuthTestConfiguration {
     }
 
     public PublicKey getMasterPublicKeyP256() {
-        return masterPublicKeyConverted;
+        return masterPublicKeyP256;
+    }
+
+    public PublicKey getMasterPublicKeyP384() {
+        return masterPublicKeyP384;
+    }
+
+    public PublicKey getMasterPublicKeyMlDsa65() {
+        return masterPublicKeyMlDsa65;
     }
 
     public KeyConvertor getKeyConvertor() {
@@ -306,11 +320,30 @@ public class PowerAuthTestConfiguration {
         this.applicationSecret = applicationSecret;
     }
 
-    public void setMasterPublicKey(String masterPublicKey) {
+    public void setMasterPublicKeyP256(String masterPublicKey) {
         // Convert master public key
         byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKey);
         try {
-            masterPublicKeyConverted = keyConvertor.convertBytesToPublicKey(masterKeyBytes);
+            masterPublicKeyP256 = keyConvertor.convertBytesToPublicKey(EcCurve.P256, masterKeyBytes);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+        }
+    }
+
+    public void setMasterPublicKeyP384(String masterPublicKey) {
+        // Convert master public key
+        byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKey);
+        try {
+            masterPublicKeyP384 = keyConvertor.convertBytesToPublicKey(EcCurve.P384, masterKeyBytes);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+        }
+    }
+
+    public void setMasterPublicKeyMlDsa65(String masterPublicKey) {
+        byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKey);
+        try {
+            masterPublicKeyMlDsa65 = pqcDsaKeyConvertor.convertBytesToPublicKey(masterKeyBytes);
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
         }
