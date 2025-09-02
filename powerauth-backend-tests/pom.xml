@@ -314,8 +314,8 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
         --spring.jpa.hibernate.ddl-auto=create-drop
         --spring.sql.init.mode=always
         --spring.sql.init.schema-locations=file:${runtime.dir}/schema/extra-tables.sql
-        &gt; &quot;${runtime.dir}/powerauth.out&quot; 2&gt;&amp;1 &amp;
-        echo $! &gt; &quot;${runtime.dir}/powerauth.pid&quot;"/>
+        &gt; &quot;${runtime.dir}/powerauth-server.log&quot; 2&gt;&amp;1 &amp;
+        echo $! &gt; &quot;${runtime.dir}/powerauth-server.pid&quot;"/>
                                 </exec>
                                 <!-- Enrollment Server -->
                                 <exec executable="sh" osfamily="unix" failonerror="true">
@@ -337,8 +337,8 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
         --spring.sql.init.mode=always
         --spring.sql.init.schema-locations=file:${runtime.dir}/schema/extra-tables.sql
         --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest
-        &gt; &quot;${runtime.dir}/enrollment.out&quot; 2&gt;&amp;1 &amp;
-        echo $! &gt; &quot;${runtime.dir}/enrollment.pid&quot;"/>
+        &gt; &quot;${runtime.dir}/enrollment-server.log&quot; 2&gt;&amp;1 &amp;
+        echo $! &gt; &quot;${runtime.dir}/enrollment-server.pid&quot;"/>
                                 </exec>
                                 <!-- Onboarding Server -->
                                 <exec executable="sh" osfamily="unix" failonerror="true">
@@ -360,8 +360,8 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
         --spring.sql.init.mode=always
         --spring.sql.init.schema-locations=file:${runtime.dir}/schema/extra-tables.sql
         --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest
-        &gt; &quot;${runtime.dir}/onboarding.out&quot; 2&gt;&amp;1 &amp;
-        echo $! &gt; &quot;${runtime.dir}/onboarding.pid&quot;"/>
+        &gt; &quot;${runtime.dir}/enrollment-server-onboarding.log&quot; 2&gt;&amp;1 &amp;
+        echo $! &gt; &quot;${runtime.dir}/enrollment-server-onboarding.pid&quot;"/>
                                 </exec>
                             </target>
                         </configuration>
