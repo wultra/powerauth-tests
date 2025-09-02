@@ -69,7 +69,8 @@ public class PowerAuthTestApplication {
                 conn.getResponseCode();
                 conn.disconnect();
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            logger.error("Application shutdown failed", e);
         }
     }
 
