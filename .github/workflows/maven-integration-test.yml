@@ -37,7 +37,6 @@ jobs:
         env:
           INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
           INTERNAL_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
-          POWERAUTH_REST_URL: ${{ secrets.POWERAUTH_REST_URL }}
           POWERAUTH_TEST_INCLUDECUSTOMTESTS: ${{ inputs.includeCustomTests == '' || inputs.includeCustomTests }} # default includeCustomTests=true even for 'schedule' event
           POWERAUTH_TEST_ACTIVATION_OIDC_USERNAME: ${{ secrets.POWERAUTH_TEST_ACTIVATION_OIDC_USERNAME }}
           POWERAUTH_TEST_ACTIVATION_OIDC_PASSWORD: ${{ secrets.POWERAUTH_TEST_ACTIVATION_OIDC_PASSWORD }}
