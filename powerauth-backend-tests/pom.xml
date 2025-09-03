@@ -271,7 +271,7 @@
 
                     <!-- Create missing tables -->
                     <execution>
-                        <id>write-shedlock-schema</id>
+                        <id>write-schema</id>
                         <phase>process-resources</phase>
                         <goals><goal>run</goal></goals>
                         <configuration>
@@ -307,7 +307,7 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
         --server.servlet.context-path=${powerauth.ctx}
         --management.endpoints.web.exposure.include=health,info,shutdown
         --management.endpoint.shutdown.enabled=true
-        --spring.datasource.url=&quot;jdbc:h2:mem:powerauth&quot;
+        --spring.datasource.url=&quot;jdbc:h2:file:${runtime.dir}/h2;AUTO_SERVER=TRUE;&quot;
         --spring.datasource.username=sa
         --spring.datasource.password=
         --spring.datasource.driver-class-name=org.h2.Driver
@@ -329,13 +329,11 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
         --server.servlet.context-path=${enrollment.ctx}
         --management.endpoints.web.exposure.include=health,info,shutdown
         --management.endpoint.shutdown.enabled=true
-        --spring.datasource.url=&quot;jdbc:h2:mem:enrollment&quot;
+        --spring.datasource.url=&quot;jdbc:h2:file:${runtime.dir}/h2;AUTO_SERVER=TRUE;&quot;
         --spring.datasource.username=sa
         --spring.datasource.password=
         --spring.datasource.driver-class-name=org.h2.Driver
         --spring.jpa.hibernate.ddl-auto=create-drop
-        --spring.sql.init.mode=always
-        --spring.sql.init.schema-locations=file:${runtime.dir}/schema/extra-tables.sql
         --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest
         &gt; &quot;${runtime.dir}/enrollment-server.log&quot; 2&gt;&amp;1 &amp;
         echo $! &gt; &quot;${runtime.dir}/enrollment-server.pid&quot;"/>
@@ -352,14 +350,14 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
         --server.servlet.context-path=${onboarding.ctx}
         --management.endpoints.web.exposure.include=health,info,shutdown
         --management.endpoint.shutdown.enabled=true
-        --spring.datasource.url=&quot;jdbc:h2:mem:onboarding&quot;
+        --spring.datasource.url=&quot;jdbc:h2:file:${runtime.dir}/h2;AUTO_SERVER=TRUE;&quot;
         --spring.datasource.username=sa
         --spring.datasource.password=
         --spring.datasource.driver-class-name=org.h2.Driver
         --spring.jpa.hibernate.ddl-auto=create-drop
-        --spring.sql.init.mode=always
-        --spring.sql.init.schema-locations=file:${runtime.dir}/schema/extra-tables.sql
         --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest
+        --enrollment-server-onboarding.onboarding-process.enabled=true
+        --enrollment-server-onboarding.identity-verification.enabled=true
         &gt; &quot;${runtime.dir}/enrollment-server-onboarding.log&quot; 2&gt;&amp;1 &amp;
         echo $! &gt; &quot;${runtime.dir}/enrollment-server-onboarding.pid&quot;"/>
                                 </exec>
