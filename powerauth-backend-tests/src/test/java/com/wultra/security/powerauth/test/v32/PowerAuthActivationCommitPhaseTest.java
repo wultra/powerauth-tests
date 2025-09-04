@@ -60,8 +60,6 @@ class PowerAuthActivationCommitPhaseTest {
     private final String validOtpValue = "1234-5678";
     private final String invalidOtpValue = "8765-4321";
 
-    private static final PowerAuthClientActivation activation = new PowerAuthClientActivation();
-
     @Autowired
     public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;

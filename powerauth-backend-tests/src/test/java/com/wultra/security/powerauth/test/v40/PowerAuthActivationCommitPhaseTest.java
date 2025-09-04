@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2024 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,15 +15,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v33;
+package com.wultra.security.powerauth.test.v40;
 
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.PowerAuthActivationCommitPhaseShared;
 import com.wultra.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
+import com.wultra.security.powerauth.test.shared.PowerAuthActivationCommitPhaseShared;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @EnableConfigurationProperties
 class PowerAuthActivationCommitPhaseTest {
 
-    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_3;
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -81,11 +82,14 @@ class PowerAuthActivationCommitPhaseTest {
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
+        model.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
+        model.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
         model.setResultStatusObject(config.getResultStatusObject(VERSION));
         model.setUriString(config.getPowerAuthIntegrationUrl());
+        model.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
         model.setVersion(VERSION);
         model.setDeviceInfo("backend-tests");
 
@@ -93,6 +97,8 @@ class PowerAuthActivationCommitPhaseTest {
         statusModel.setHeaders(new HashMap<>());
         statusModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         statusModel.setUriString(config.getPowerAuthIntegrationUrl());
+        statusModel.setApplicationKey(config.getApplicationKey());
+        statusModel.setApplicationSecret(config.getApplicationSecret());
         statusModel.setVersion(VERSION);
     }
 
