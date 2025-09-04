@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.shared;
+package com.wultra.security.powerauth.test.shared.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
@@ -32,7 +32,6 @@ import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.ProtocolVersion;
-import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.test.shared.util.ResponseVerificationUtil;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
@@ -293,164 +292,114 @@ public class PowerAuthActivationShared {
         assertTrue(stepLoggerStatus.getResult().success());
         assertEquals(200, stepLoggerStatus.getResponse().statusCode());
 
-        if (version.getMajorVersion() == 3) {
-            ActivationStatusBlobInfo statusBlob;
-            ActivationStatusRequest request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
-            if (version != PowerAuthVersion.V3_0) {
-                assertNotNull(request.getChallenge());
-            }
-            ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
-            ActivationStatusResponse response = responseObject.getResponseObject();
-            assertEquals(initResponse.getActivationId(), response.getActivationId());
-            if (version != PowerAuthVersion.V3_0) {
-                assertNotNull(response.getNonce());
-            }
-
-            // Get transport key
-            String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");
-            SecretKey transportMasterKey = config.getKeyConvertor().convertBytesToSharedSecretKey(Base64.getDecoder().decode(transportMasterKeyBase64));
-            byte[] cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
-
-            // Verify activation status blob
-            byte[] challengeData = null;
-            byte[] nonceData = null;
-            if (version == PowerAuthVersion.V3_0) {
-                statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
-            } else {
-                challengeData = Base64.getDecoder().decode(request.getChallenge());
-                nonceData = Base64.getDecoder().decode(response.getNonce());
-                statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
-                // Added in V3.1
-                assertEquals(20, statusBlob.getCtrLookAhead());
-                assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey, ProtocolVersion.fromValue(version.value())));
-            }
-            assertTrue(statusBlob.isValid());
-            assertEquals(0x2, statusBlob.getActivationStatus());
-            assertEquals(10, statusBlob.getMaxFailedAttempts());
-            assertEquals(0, statusBlob.getFailedAttempts());
-            assertEquals(3, statusBlob.getCurrentVersion());
-            assertEquals(3, statusBlob.getUpgradeVersion());
-
-            // Commit activation
-            CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
-            assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
-
-            // Get status
-            stepLoggerStatus = new ObjectStepLogger(System.out);
-            new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-            assertTrue(stepLoggerStatus.getResult().success());
-            assertEquals(200, stepLoggerStatus.getResponse().statusCode());
-            request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
-            responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
-            response = responseObject.getResponseObject();
-            assertEquals(initResponse.getActivationId(), response.getActivationId());
-
-            // Verify activation status blob
-            if (version != PowerAuthVersion.V3_0) {
-                challengeData = Base64.getDecoder().decode(request.getChallenge());
-                nonceData = Base64.getDecoder().decode(response.getNonce());
-            }
-            cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
-            statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
-            assertTrue(statusBlob.isValid());
-            assertEquals(0x3, statusBlob.getActivationStatus());
-
-            // Block activation
-            BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
-            assertEquals(initResponse.getActivationId(), blockResponse.getActivationId());
-            assertEquals("test", blockResponse.getBlockedReason());
-
-            // Get status
-            stepLoggerStatus = new ObjectStepLogger(System.out);
-            new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-            assertTrue(stepLoggerStatus.getResult().success());
-            assertEquals(200, stepLoggerStatus.getResponse().statusCode());
-            request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
-            responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
-            response = responseObject.getResponseObject();
-            assertEquals(initResponse.getActivationId(), response.getActivationId());
-
-            // Verify activation status blob
-            if (version != PowerAuthVersion.V3_0) {
-                challengeData = Base64.getDecoder().decode(request.getChallenge());
-                nonceData = Base64.getDecoder().decode(response.getNonce());
-            }
-            cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
-            statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
-            assertTrue(statusBlob.isValid());
-            assertEquals(0x4, statusBlob.getActivationStatus());
-
-            // Remove activation
-            powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
-
-            // Get status
-            stepLoggerStatus = new ObjectStepLogger(System.out);
-            new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-            assertTrue(stepLoggerStatus.getResult().success());
-            assertEquals(200, stepLoggerStatus.getResponse().statusCode());
-            request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
-            responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
-            response = responseObject.getResponseObject();
-            assertEquals(initResponse.getActivationId(), response.getActivationId());
-
-            // Verify activation status blob
-            if (version != PowerAuthVersion.V3_0) {
-                challengeData = Base64.getDecoder().decode(request.getChallenge());
-                nonceData = Base64.getDecoder().decode(response.getNonce());
-            }
-            cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
-            statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
-            assertTrue(statusBlob.isValid());
-            assertEquals(0x5, statusBlob.getActivationStatus());
-        } else {
-            ActivationStatusBlobInfo statusBlob = extractStatusBlob(stepLoggerStatus);
-            assertTrue(statusBlob.isValid());
-            assertEquals(0x2, statusBlob.getActivationStatus());
-            assertEquals(10, statusBlob.getMaxFailedAttempts());
-            assertEquals(0, statusBlob.getFailedAttempts());
-            assertEquals(4, statusBlob.getCurrentVersion());
-            assertEquals(4, statusBlob.getUpgradeVersion());
-
-            // Commit activation
-            CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
-            assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
-
-            // Check status
-            stepLoggerStatus = new ObjectStepLogger(System.out);
-            new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-            assertTrue(stepLoggerStatus.getResult().success());
-            assertEquals(200, stepLoggerStatus.getResponse().statusCode());
-            statusBlob = extractStatusBlob(stepLoggerStatus);
-            assertTrue(statusBlob.isValid());
-            assertEquals(0x3, statusBlob.getActivationStatus());
-
-            // Block activation
-            BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
-            assertEquals(initResponse.getActivationId(), blockResponse.getActivationId());
-            assertEquals("test", blockResponse.getBlockedReason());
-
-            // Check status
-            stepLoggerStatus = new ObjectStepLogger(System.out);
-            new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-            assertTrue(stepLoggerStatus.getResult().success());
-            assertEquals(200, stepLoggerStatus.getResponse().statusCode());
-            statusBlob = extractStatusBlob(stepLoggerStatus);
-            assertTrue(statusBlob.isValid());
-            assertEquals(0x4, statusBlob.getActivationStatus());
-
-            // Remove activation
-            powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
-
-            // Check status
-            stepLoggerStatus = new ObjectStepLogger(System.out);
-            new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
-            assertTrue(stepLoggerStatus.getResult().success());
-            assertEquals(200, stepLoggerStatus.getResponse().statusCode());
-            statusBlob = extractStatusBlob(stepLoggerStatus);
-            assertTrue(statusBlob.isValid());
-            assertEquals(0x5, statusBlob.getActivationStatus());
+        ActivationStatusBlobInfo statusBlob;
+        ActivationStatusRequest request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
+        if (version != PowerAuthVersion.V3_0) {
+            assertNotNull(request.getChallenge());
+        }
+        ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
+        ActivationStatusResponse response = responseObject.getResponseObject();
+        assertEquals(initResponse.getActivationId(), response.getActivationId());
+        if (version != PowerAuthVersion.V3_0) {
+            assertNotNull(response.getNonce());
         }
 
+        // Get transport key
+        String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");
+        SecretKey transportMasterKey = config.getKeyConvertor().convertBytesToSharedSecretKey(Base64.getDecoder().decode(transportMasterKeyBase64));
+        byte[] cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
+
+        // Verify activation status blob
+        byte[] challengeData = null;
+        byte[] nonceData = null;
+        if (version == PowerAuthVersion.V3_0) {
+            statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
+        } else {
+            challengeData = Base64.getDecoder().decode(request.getChallenge());
+            nonceData = Base64.getDecoder().decode(response.getNonce());
+            statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
+            // Added in V3.1
+            assertEquals(20, statusBlob.getCtrLookAhead());
+            assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey, ProtocolVersion.fromValue(version.value())));
+        }
+        assertTrue(statusBlob.isValid());
+        assertEquals(0x2, statusBlob.getActivationStatus());
+        assertEquals(10, statusBlob.getMaxFailedAttempts());
+        assertEquals(0, statusBlob.getFailedAttempts());
+        assertEquals(3, statusBlob.getCurrentVersion());
+        assertEquals(3, statusBlob.getUpgradeVersion());
+
+        // Commit activation
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
+
+        // Get status
+        stepLoggerStatus = new ObjectStepLogger(System.out);
+        new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
+        assertTrue(stepLoggerStatus.getResult().success());
+        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
+        responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
+        response = responseObject.getResponseObject();
+        assertEquals(initResponse.getActivationId(), response.getActivationId());
+
+        // Verify activation status blob
+        if (version != PowerAuthVersion.V3_0) {
+            challengeData = Base64.getDecoder().decode(request.getChallenge());
+            nonceData = Base64.getDecoder().decode(response.getNonce());
+        }
+        cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
+        statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
+        assertTrue(statusBlob.isValid());
+        assertEquals(0x3, statusBlob.getActivationStatus());
+
+        // Block activation
+        BlockActivationResponse blockResponse = powerAuthClient.blockActivation(initResponse.getActivationId(), "test", "test");
+        assertEquals(initResponse.getActivationId(), blockResponse.getActivationId());
+        assertEquals("test", blockResponse.getBlockedReason());
+
+        // Get status
+        stepLoggerStatus = new ObjectStepLogger(System.out);
+        new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
+        assertTrue(stepLoggerStatus.getResult().success());
+        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
+        responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
+        response = responseObject.getResponseObject();
+        assertEquals(initResponse.getActivationId(), response.getActivationId());
+
+        // Verify activation status blob
+        if (version != PowerAuthVersion.V3_0) {
+            challengeData = Base64.getDecoder().decode(request.getChallenge());
+            nonceData = Base64.getDecoder().decode(response.getNonce());
+        }
+        cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
+        statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
+        assertTrue(statusBlob.isValid());
+        assertEquals(0x4, statusBlob.getActivationStatus());
+
+        // Remove activation
+        powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
+
+        // Get status
+        stepLoggerStatus = new ObjectStepLogger(System.out);
+        new GetStatusStep().execute(stepLoggerStatus, statusModel.toMap());
+        assertTrue(stepLoggerStatus.getResult().success());
+        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
+        responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
+        response = responseObject.getResponseObject();
+        assertEquals(initResponse.getActivationId(), response.getActivationId());
+
+        // Verify activation status blob
+        if (version != PowerAuthVersion.V3_0) {
+            challengeData = Base64.getDecoder().decode(request.getChallenge());
+            nonceData = Base64.getDecoder().decode(response.getNonce());
+        }
+        cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
+        statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
+        assertTrue(statusBlob.isValid());
+        assertEquals(0x5, statusBlob.getActivationStatus());
     }
 
     private static ActivationStatusBlobInfo extractStatusBlob(ObjectStepLogger stepLogger) {
@@ -630,45 +579,39 @@ public class PowerAuthActivationShared {
         assertTrue(stepLoggerStatus.getResult().success());
         assertEquals(200, stepLoggerStatus.getResponse().statusCode());
 
-        if (version.getMajorVersion() == 3) {
-            final ActivationStatusRequest request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
-            if (version != PowerAuthVersion.V3_0) {
-                assertNotNull(request.getChallenge());
-            }
-            final ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
-            ActivationStatusResponse response = responseObject.getResponseObject();
-            assertEquals(initResponse.getActivationId(), response.getActivationId());
-            if (version != PowerAuthVersion.V3_0) {
-                assertNotNull(response.getNonce());
-            }
-
-            // Get transport key
-            String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");
-            SecretKey transportMasterKey = config.getKeyConvertor().convertBytesToSharedSecretKey(Base64.getDecoder().decode(transportMasterKeyBase64));
-
-            // Verify activation status blob
-            byte[] challengeData = null;
-            byte[] nonceData = null;
-            byte[] cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
-            ActivationStatusBlobInfo statusBlob;
-            if (version == PowerAuthVersion.V3_0) {
-                statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
-            } else {
-                challengeData = Base64.getDecoder().decode(request.getChallenge());
-                nonceData = Base64.getDecoder().decode(response.getNonce());
-                statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
-                // Added in V3.1
-                assertEquals(20, statusBlob.getCtrLookAhead());
-                assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey, ProtocolVersion.fromValue(version.value())));
-            }
-
-            assertTrue(statusBlob.isValid());
-            assertEquals(0x2, statusBlob.getActivationStatus());
-        } else {
-            ActivationStatusBlobInfo statusBlob = extractStatusBlob(stepLoggerStatus);
-            assertTrue(statusBlob.isValid());
-            assertEquals(0x2, statusBlob.getActivationStatus());
+        final ActivationStatusRequest request = (ActivationStatusRequest) stepLoggerStatus.getRequest().requestObject();
+        if (version != PowerAuthVersion.V3_0) {
+            assertNotNull(request.getChallenge());
         }
+        final ObjectResponse<ActivationStatusResponse> responseObject = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
+        ActivationStatusResponse response = responseObject.getResponseObject();
+        assertEquals(initResponse.getActivationId(), response.getActivationId());
+        if (version != PowerAuthVersion.V3_0) {
+            assertNotNull(response.getNonce());
+        }
+
+        // Get transport key
+        String transportMasterKeyBase64 = (String) model.getResultStatusObject().get("transportMasterKey");
+        SecretKey transportMasterKey = config.getKeyConvertor().convertBytesToSharedSecretKey(Base64.getDecoder().decode(transportMasterKeyBase64));
+
+        // Verify activation status blob
+        byte[] challengeData = null;
+        byte[] nonceData = null;
+        byte[] cStatusBlob = Base64.getDecoder().decode(response.getEncryptedStatusBlob());
+        ActivationStatusBlobInfo statusBlob;
+        if (version == PowerAuthVersion.V3_0) {
+            statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, null, null, transportMasterKey);
+        } else {
+            challengeData = Base64.getDecoder().decode(request.getChallenge());
+            nonceData = Base64.getDecoder().decode(response.getNonce());
+            statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
+            // Added in V3.1
+            assertEquals(20, statusBlob.getCtrLookAhead());
+            assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey, ProtocolVersion.fromValue(version.value())));
+        }
+
+        assertTrue(statusBlob.isValid());
+        assertEquals(0x2, statusBlob.getActivationStatus());
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
@@ -688,15 +631,9 @@ public class PowerAuthActivationShared {
     }
 
     private static void checkEncryptedResponse(PowerAuthVersion version, Object response) {
-        if (version.getMajorVersion() == 3) {
-            final EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) response;
-            assertNotNull(eciesResponse.getEncryptedData());
-            assertNotNull(eciesResponse.getMac());
-        } else {
-            final AeadEncryptedResponse aeadResponse = (AeadEncryptedResponse) response;
-            assertNotNull(aeadResponse.getEncryptedData());
-            assertNotNull(aeadResponse.getTimestamp());
-        }
+        final EciesEncryptedResponse eciesResponse = (EciesEncryptedResponse) response;
+        assertNotNull(eciesResponse.getEncryptedData());
+        assertNotNull(eciesResponse.getMac());
     }
 
 }
