@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,14 +15,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v32;
+package com.wultra.security.powerauth.test.v40;
 
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
+import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.v3.PowerAuthCustomActivationShared;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
+import com.wultra.security.powerauth.test.shared.v4.PowerAuthCustomActivationShared;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,7 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ComponentScan(basePackages = "com.wultra.security.powerauth")
 class PowerAuthCustomActivationTest {
 
-    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_2;
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -96,11 +97,14 @@ class PowerAuthCustomActivationTest {
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
+        model.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
+        model.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
         model.setResultStatusObject(config.getResultStatusObject(VERSION));
         model.setUriString("http://localhost:" + port);
+        model.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
         model.setVersion(VERSION);
         model.setDeviceInfo("backend-tests");
 
