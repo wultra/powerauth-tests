@@ -27,6 +27,7 @@ import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
@@ -63,8 +64,7 @@ public class PowerAuthTestSetUp {
 
     public void execute() throws Exception {
         createApplication();
-        // TODO - add v4
-        PowerAuthVersion.VERSION_3.forEach(version -> {
+        PowerAuthVersion.ALL_VERSIONS.forEach(version -> {
             try {
                 createActivation(version);
             } catch (Exception e) {
@@ -158,13 +158,18 @@ public class PowerAuthTestSetUp {
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
-        model.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
-        model.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
+        if (version == PowerAuthVersion.V4_0) {
+            model.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
+            model.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
+        }
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(config.getStatusFile(version).getAbsolutePath());
         model.setResultStatusObject(config.getResultStatusObject(version));
         model.setUriString(config.getPowerAuthIntegrationUrl());
+        if (version == PowerAuthVersion.V4_0) {
+            model.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
+        }
         model.setVersion(version);
         model.setDeviceInfo("backend-tests");
 
