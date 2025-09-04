@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,15 +15,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v33;
+package com.wultra.security.powerauth.test.v40;
 
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.PowerAuthActivationCodeShared;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
+import com.wultra.security.powerauth.test.shared.PowerAuthActivationCodeShared;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @EnableConfigurationProperties
 public class PowerAuthActivationCodeTest {
 
-    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_3;
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
     private PowerAuthTestConfiguration config;
     private PrepareActivationStepModel activationModel;
@@ -75,11 +76,14 @@ public class PowerAuthActivationCodeTest {
         activationModel.setApplicationKey(config.getApplicationKey());
         activationModel.setApplicationSecret(config.getApplicationSecret());
         activationModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
+        activationModel.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
+        activationModel.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
         activationModel.setHeaders(new HashMap<>());
         activationModel.setPassword(config.getPassword());
         activationModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         activationModel.setResultStatusObject(new JSONObject());
         activationModel.setUriString(config.getPowerAuthIntegrationUrl());
+        activationModel.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
         activationModel.setVersion(VERSION);
         activationModel.setDeviceInfo("backend-tests");
 
