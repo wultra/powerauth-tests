@@ -15,15 +15,16 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.v40;
 
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
+import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.v3.PowerAuthCustomActivationOtpShared;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
+import com.wultra.security.powerauth.test.shared.v4.PowerAuthCustomActivationOtpShared;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,7 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ComponentScan(basePackages = "com.wultra.security.powerauth")
 class PowerAuthCustomActivationOtpTest {
 
-    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_1;
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -102,11 +103,14 @@ class PowerAuthCustomActivationOtpTest {
         createModel.setApplicationKey(config.getApplicationKey());
         createModel.setApplicationSecret(config.getApplicationSecret());
         createModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
+        createModel.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
+        createModel.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
         createModel.setHeaders(new HashMap<>());
         createModel.setPassword(config.getPassword());
         createModel.setStatusFileName(tempStatusFile.getAbsolutePath());
         createModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         createModel.setUriString("http://localhost:" + port);
+        createModel.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
         createModel.setVersion(VERSION);
         createModel.setDeviceInfo("backend-tests");
 
@@ -114,6 +118,8 @@ class PowerAuthCustomActivationOtpTest {
         statusModel.setHeaders(new HashMap<>());
         statusModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         statusModel.setUriString(config.getPowerAuthIntegrationUrl());
+        statusModel.setApplicationKey(config.getApplicationKey());
+        statusModel.setApplicationSecret(config.getApplicationSecret());
         statusModel.setVersion(VERSION);
 
         // Prepare step logger
