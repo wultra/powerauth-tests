@@ -120,13 +120,13 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void encryptEmptyDataTest(PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger) throws Exception {
-        File emptyDataFile = File.createTempFile("data_empty_signed", ".json");
+        File emptyDataFile = File.createTempFile("data_empty", ".txt");
         emptyDataFile.deleteOnExit();
         FileWriter fw = new FileWriter(emptyDataFile);
         fw.close();
 
         encryptModel.setData(Files.readAllBytes(Paths.get(emptyDataFile.getAbsolutePath())));
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/raw");
         encryptModel.setScope("activation");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
@@ -211,7 +211,7 @@ public class PowerAuthEncryptionShared {
     public static void signAndEncryptEmptyDataTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, EncryptStepModel encryptModel, ObjectStepLogger stepLogger) throws Exception {
         signatureModel.setResourceId("/exchange/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
-        File emptyDataFile = File.createTempFile("data_empty_signed", ".json");
+        File emptyDataFile = File.createTempFile("data_empty_signed", ".txt");
         emptyDataFile.deleteOnExit();
         FileWriter fw = new FileWriter(emptyDataFile);
         fw.close();

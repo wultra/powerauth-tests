@@ -109,19 +109,18 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void encryptEmptyDataTest(PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger) throws Exception {
-        File emptyDataFile = File.createTempFile("data_empty_signed", ".json");
+        File emptyDataFile = File.createTempFile("data_empty", ".txt");
         emptyDataFile.deleteOnExit();
         FileWriter fw = new FileWriter(emptyDataFile);
         fw.close();
 
         encryptModel.setData(Files.readAllBytes(Paths.get(emptyDataFile.getAbsolutePath())));
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/activation");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/raw");
         encryptModel.setScope("activation");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        // It is not allowed to encrypt empty data in v4
-        assertFalse(stepLogger.getResult().success());
-        assertEquals(400, stepLogger.getResponse().statusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     public static void encryptBlockedActivationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger, PowerAuthVersion version) throws Exception {
@@ -200,7 +199,7 @@ public class PowerAuthEncryptionShared {
     public static void signAndEncryptEmptyDataTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, EncryptStepModel encryptModel, ObjectStepLogger stepLogger) throws Exception {
         signatureModel.setResourceId("/exchange/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed");
-        File emptyDataFile = File.createTempFile("data_empty_signed", ".json");
+        File emptyDataFile = File.createTempFile("data_empty_signed", ".txt");
         emptyDataFile.deleteOnExit();
         FileWriter fw = new FileWriter(emptyDataFile);
         fw.close();
