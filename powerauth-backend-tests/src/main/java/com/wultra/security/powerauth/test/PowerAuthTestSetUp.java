@@ -30,6 +30,8 @@ import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
+import com.wultra.security.powerauth.lib.cmd.steps.ConfirmActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.model.ConfirmActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfiguration;
@@ -158,24 +160,38 @@ public class PowerAuthTestSetUp {
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
-        if (version == PowerAuthVersion.V4_0) {
+        if (version.getMajorVersion() > 3) {
             model.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
             model.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
+            model.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
         }
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(config.getStatusFile(version).getAbsolutePath());
         model.setResultStatusObject(config.getResultStatusObject(version));
         model.setUriString(config.getPowerAuthIntegrationUrl());
-        if (version == PowerAuthVersion.V4_0) {
-            model.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
-        }
         model.setVersion(version);
         model.setDeviceInfo("backend-tests");
 
         ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
+
+        // Confirm v4 activations to enable biometry
+        if (version.getMajorVersion() > 3) {
+            ConfirmActivationStepModel confirmModel = new ConfirmActivationStepModel();
+            confirmModel.setApplicationKey(config.getApplicationKey());
+            confirmModel.setApplicationSecret(config.getApplicationSecret());
+            confirmModel.setEnableBiometry(true);
+            confirmModel.setPassword(config.getPassword());
+            confirmModel.setVersion(version);
+            confirmModel.setStatusFileName(config.getStatusFile(version).getAbsolutePath());
+            confirmModel.setResultStatusObject(config.getResultStatusObject(version));
+            confirmModel.setUriString(config.getPowerAuthIntegrationUrl());
+            ObjectStepLogger stepLoggerConfirm = new ObjectStepLogger(System.out);
+            new ConfirmActivationStep().execute(stepLoggerConfirm, confirmModel.toMap());
+            assertTrue(stepLogger.getResult().success());
+        }
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");

@@ -43,8 +43,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthVaultUnlockShared {
 
-    private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
-
     public static void vaultUnlockTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         new VaultUnlockStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
@@ -92,9 +90,10 @@ public class PowerAuthVaultUnlockShared {
     public static void vaultUnlockBiometryFactorTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_BIOMETRY);
 
+        // Biometry can be used for vault unlock unlike in v3 where it is disabled by default
         new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().success());
-        assertEquals(400, stepLogger.getResponse().statusCode());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
     public static void vaultUnlockThreeFactorTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {

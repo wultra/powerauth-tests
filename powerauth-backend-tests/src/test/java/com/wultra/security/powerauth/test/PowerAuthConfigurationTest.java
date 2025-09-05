@@ -50,8 +50,7 @@ public class PowerAuthConfigurationTest {
         assertNotEquals("", config.getApplicationKey());
         assertNotNull(config.getApplicationSecret());
         assertNotEquals("", config.getApplicationSecret());
-        // TODO - add v4
-        for (PowerAuthVersion version: PowerAuthVersion.VERSION_3) {
+        for (PowerAuthVersion version: PowerAuthVersion.ALL_VERSIONS) {
             assertNotNull(config.getActivationId(version));
         }
     }

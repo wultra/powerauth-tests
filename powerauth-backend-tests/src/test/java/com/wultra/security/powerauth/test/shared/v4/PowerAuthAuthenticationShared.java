@@ -433,9 +433,9 @@ public class PowerAuthAuthenticationShared {
 
     public static void authSwappedKeyTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         // Save biometry key
-        String biometryKeyOrig = (String) model.getResultStatusObject().get("authBiometryKey");
+        String biometryKeyOrig = (String) model.getResultStatusObject().get("biometryFactorKey");
         // Set possession key as biometry key
-        model.getResultStatusObject().put("authBiometryKey", model.getResultStatusObject().get("authPossessionKey"));
+        model.getResultStatusObject().put("biometryFactorKey", model.getResultStatusObject().get("possessionFactorKey"));
         // Verify three factor auth
         model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY);
 
@@ -449,7 +449,7 @@ public class PowerAuthAuthenticationShared {
         checkError(errorResponse);
 
         // Revert biometry key change
-        model.getResultStatusObject().put("authBiometryKey", biometryKeyOrig);
+        model.getResultStatusObject().put("biometryFactorKey", biometryKeyOrig);
     }
 
     public static void authInvalidResourceIdTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {

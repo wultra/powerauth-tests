@@ -105,87 +105,97 @@ class PowerAuthAuthenticationTest {
     }
 
     @Test
-    void signatureValidTest() throws Exception {
+    void authValidTest() throws Exception {
         PowerAuthAuthenticationShared.authValidTest(model, stepLogger);
     }
 
     @Test
-    void signatureInvalidPasswordTest() throws Exception {
+    void authInvalidPasswordTest() throws Exception {
         PowerAuthAuthenticationShared.authInvalidPasswordTest(config, model, stepLogger);
     }
 
     @Test
-    void signatureIncorrectPasswordFormatTest() throws Exception {
+    void authIncorrectPasswordFormatTest() throws Exception {
         PowerAuthAuthenticationShared.authIncorrectPasswordFormatTest(config, model, stepLogger);
     }
 
     @Test
-    void signatureCounterLookAheadTest() throws Exception {
+    void authCounterLookAheadTest() throws Exception {
         PowerAuthAuthenticationShared.authCounterLookAheadTest(config, model);
     }
 
     @Test
-    void signatureBlockedActivationTest() throws Exception {
+    void authBlockedActivationTest() throws Exception {
         PowerAuthAuthenticationShared.authBlockedActivationTest(powerAuthClient, config, model, VERSION);
     }
 
     @Test
-    void signatureSingleFactorTest() throws Exception {
+    void authSingleFactorTest() throws Exception {
         PowerAuthAuthenticationShared.authSingleFactorTest(model, stepLogger);
     }
 
     @Test
-    void signatureEmptyDataTest() throws Exception {
+    void authBiometryTest() throws Exception {
+        PowerAuthAuthenticationShared.authBiometryTest(model, stepLogger);
+    }
+
+    @Test
+    void authThreeFactorTest() throws Exception {
+        PowerAuthAuthenticationShared.authThreeFactorTest(model, stepLogger);
+    }
+
+    @Test
+    void authEmptyDataTest() throws Exception {
         PowerAuthAuthenticationShared.authEmptyDataTest(model, stepLogger, VERSION);
     }
 
     @Test
-    void signatureValidGetTest() throws Exception {
+    void authValidGetTest() throws Exception {
         PowerAuthAuthenticationShared.authValidGetTest(config, model, stepLogger);
     }
 
     @Test
-    void signatureValidGetNoParamTest() throws Exception {
+    void authValidGetNoParamTest() throws Exception {
         PowerAuthAuthenticationShared.authValidGetNoParamTest(config, model, stepLogger);
     }
 
     @Test
-    void signatureGetInvalidPasswordTest() throws Exception {
+    void authGetInvalidPasswordTest() throws Exception {
         PowerAuthAuthenticationShared.authGetInvalidPasswordTest(config, model, stepLogger);
     }
 
     @Test
-    void signatureUnsupportedApplicationTest() throws Exception {
+    void authUnsupportedApplicationTest() throws Exception {
         PowerAuthAuthenticationShared.authUnsupportedApplicationTest(powerAuthClient, config, model);
     }
 
     @Test
-    void signatureMaxFailedAttemptsTest() throws Exception {
+    void authMaxFailedAttemptsTest() throws Exception {
         PowerAuthAuthenticationShared.authMaxFailedAttemptsTest(powerAuthClient, config, model, VERSION);
     }
 
     @Test
-    void signatureLookAheadTest() throws Exception {
+    void authLookAheadTest() throws Exception {
         PowerAuthAuthenticationShared.authLookAheadTest(powerAuthClient, config, model, VERSION);
     }
 
     @Test
-    void signatureCounterIncrementTest() throws Exception {
+    void authCounterIncrementTest() throws Exception {
         PowerAuthAuthenticationShared.authCounterIncrementTest(model, stepLogger, VERSION);
     }
 
     @Test
-    void signatureLargeDataTest() throws Exception {
+    void authLargeDataTest() throws Exception {
         PowerAuthAuthenticationShared.authLargeDataTest(model, stepLogger, VERSION);
     }
 
     @Test
-    void signatureSwappedKeyTest() throws Exception {
+    void authSwappedKeyTest() throws Exception {
         PowerAuthAuthenticationShared.authSwappedKeyTest(config, model, stepLogger);
     }
 
     @Test
-    void signatureInvalidResourceIdTest() throws Exception {
+    void authInvalidResourceIdTest() throws Exception {
         PowerAuthAuthenticationShared.authInvalidResourceIdTest(config, model, stepLogger);
     }
 
