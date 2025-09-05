@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2023 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,34 +15,23 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.shared;
+package com.wultra.security.powerauth.test.shared.v4;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
-import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.request.v3.GetEciesDecryptorRequest;
-import com.wultra.security.powerauth.client.model.response.v3.GetEciesDecryptorResponse;
-import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSecrets;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
-import com.wultra.security.powerauth.model.TemporaryKey;
-import com.wultra.security.powerauth.test.shared.util.TemporaryKeyFetchUtil;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
-import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
+import com.wultra.security.powerauth.client.v4.PowerAuthClient;
+import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorId;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorParameters;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorScope;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
-import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
 import com.wultra.security.powerauth.lib.cmd.steps.SignAndEncryptStep;
+import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
@@ -68,16 +57,16 @@ public class PowerAuthEncryptionShared {
     private static final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
 
     public static void encryptInActivationScopeTest(PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger) throws Exception {
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/activation");
         encryptModel.setScope("activation");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
+        final AeadEncryptedResponse responseOK = (AeadEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
-        assertNotNull(responseOK.getMac());
+        assertNotNull(responseOK.getTimestamp());
 
         final Object result = fetchDecryptedResponse(stepLogger);
 
@@ -85,16 +74,16 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void encryptInApplicationScopeTest(PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger) throws Exception {
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/application");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/application");
         encryptModel.setScope("application");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
+        final AeadEncryptedResponse responseOK = (AeadEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
-        assertNotNull(responseOK.getMac());
+        assertNotNull(responseOK.getTimestamp());
 
         final Object result = fetchDecryptedResponse(stepLogger);
 
@@ -102,7 +91,7 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void encryptInInvalidScope1Test(PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger) throws Exception {
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/activation");
         encryptModel.setScope("application");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
@@ -111,7 +100,7 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void encryptInInvalidScope2Test(PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger) throws Exception {
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/application");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/application");
         encryptModel.setScope("activation");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
@@ -126,17 +115,17 @@ public class PowerAuthEncryptionShared {
         fw.close();
 
         encryptModel.setData(Files.readAllBytes(Paths.get(emptyDataFile.getAbsolutePath())));
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/activation");
         encryptModel.setScope("activation");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
-        // It is allowed to encrypt empty data
-        assertTrue(stepLogger.getResult().success());
-        assertEquals(200, stepLogger.getResponse().statusCode());
+        // It is not allowed to encrypt empty data in v4
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
     }
 
     public static void encryptBlockedActivationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger, PowerAuthVersion version) throws Exception {
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/activation");
         encryptModel.setScope("activation");
 
         // Block activation and verify that data exchange fails
@@ -155,9 +144,9 @@ public class PowerAuthEncryptionShared {
         assertTrue(stepLoggerSuccess.getResult().success());
         assertEquals(200, stepLoggerSuccess.getResponse().statusCode());
 
-        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLoggerSuccess.getResponse().responseObject();
+        final AeadEncryptedResponse responseOK = (AeadEncryptedResponse) stepLoggerSuccess.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
-        assertNotNull(responseOK.getMac());
+        assertNotNull(responseOK.getTimestamp());
 
         boolean responseSuccessfullyDecrypted = false;
         for (StepItem item: stepLoggerSuccess.getItems()) {
@@ -171,16 +160,16 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger, PowerAuthVersion version) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setResourceId("/exchange/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
+        final AeadEncryptedResponse responseOK = (AeadEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
-        assertNotNull(responseOK.getMac());
+        assertNotNull(responseOK.getTimestamp());
 
         final Object result = fetchDecryptedResponse(stepLogger);
 
@@ -188,8 +177,8 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptWeakSignatureTypeTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setResourceId("/exchange/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed");
 
         signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION);
 
@@ -199,8 +188,8 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptInvalidPasswordTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setResourceId("/exchange/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed");
         signatureModel.setPassword("0000");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
@@ -209,8 +198,8 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptEmptyDataTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, EncryptStepModel encryptModel, ObjectStepLogger stepLogger) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setResourceId("/exchange/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed");
         File emptyDataFile = File.createTempFile("data_empty_signed", ".json");
         emptyDataFile.deleteOnExit();
         FileWriter fw = new FileWriter(emptyDataFile);
@@ -225,8 +214,8 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptLargeDataTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger, PowerAuthVersion version) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setResourceId("/exchange/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed");
 
         SecureRandom secureRandom = new SecureRandom();
         File dataFileLarge = File.createTempFile("data_large_" + version, ".dat");
@@ -249,8 +238,8 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptStringDataTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger, PowerAuthVersion version) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed/string");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed/string");
+        signatureModel.setResourceId("/exchange/signed/string");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed/string");
 
         File dataFile = File.createTempFile("data_string" + version, ".dat");
         dataFile.deleteOnExit();
@@ -273,8 +262,8 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptRawDataTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger, PowerAuthVersion version) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed/raw");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed/raw");
+        signatureModel.setResourceId("/exchange/signed/raw");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed/raw");
 
         File dataFile = File.createTempFile("data_raw_" + version, ".dat");
         dataFile.deleteOnExit();
@@ -296,8 +285,8 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptGenerifiedDataTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed/generics");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed/generics");
+        signatureModel.setResourceId("/exchange/signed/generics");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed/generics");
         File dataFileWithGenerics = File.createTempFile("data-generics", ".json");
         dataFileWithGenerics.deleteOnExit();
         FileWriter fw = new FileWriter(dataFileWithGenerics);
@@ -324,8 +313,8 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptInvalidResourceIdTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/invalid");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setResourceId("/exchange/invalid");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed");
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertFalse(stepLogger.getResult().success());
@@ -333,8 +322,8 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptBlockedActivationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger, PowerAuthVersion version) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setResourceId("/exchange/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed");
 
         // Block activation and verify that data exchange fails
         powerAuthClient.blockActivation(config.getActivationId(version), "test", "test");
@@ -350,9 +339,9 @@ public class PowerAuthEncryptionShared {
         assertTrue(stepLoggerSuccess.getResult().success());
         assertEquals(200, stepLoggerSuccess.getResponse().statusCode());
 
-        EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLoggerSuccess.getResponse().responseObject();
+        AeadEncryptedResponse responseOK = (AeadEncryptedResponse) stepLoggerSuccess.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
-        assertNotNull(responseOK.getMac());
+        assertNotNull(responseOK.getTimestamp());
 
         boolean responseSuccessfullyDecrypted = false;
         for (StepItem item: stepLoggerSuccess.getItems()) {
@@ -366,8 +355,8 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptUnsupportedApplicationTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, PowerAuthVersion version) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setResourceId("/exchange/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed");
 
         powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
@@ -386,9 +375,9 @@ public class PowerAuthEncryptionShared {
         assertTrue(stepLogger2.getResult().success());
         assertEquals(200, stepLogger2.getResponse().statusCode());
 
-        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger2.getResponse().responseObject();
+        final AeadEncryptedResponse responseOK = (AeadEncryptedResponse) stepLogger2.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
-        assertNotNull(responseOK.getMac());
+        assertNotNull(responseOK.getTimestamp());
 
         boolean responseSuccessfullyDecrypted = false;
         for (StepItem item: stepLogger2.getItems()) {
@@ -402,8 +391,8 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptCounterIncrementTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger, PowerAuthVersion version) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setResourceId("/exchange/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed");
 
         byte[] ctrData = CounterUtil.getCtrData(signatureModel, stepLogger);
         HashBasedCounter counter = new HashBasedCounter(version.value());
@@ -420,8 +409,8 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptLookAheadTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setResourceId("/exchange/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed");
 
         // Move counter by 1-4, next signature should succeed thanks to counter lookahead and it is still in max failure limit
         for (int i = 1; i < 4; i++) {
@@ -442,8 +431,8 @@ public class PowerAuthEncryptionShared {
     }
 
     public static void signAndEncryptSingleFactorTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
+        signatureModel.setResourceId("/exchange/signed");
+        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/signed");
         signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION);
 
         new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
@@ -455,74 +444,16 @@ public class PowerAuthEncryptionShared {
         assertEquals("ERROR", errorResponse.getStatus());
     }
 
-    public static void signAndEncryptBiometryTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
-        signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_BIOMETRY);
-
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().success());
-        assertEquals(200, stepLogger.getResponse().statusCode());
-    }
-
-    public static void signAndEncryptThreeFactorTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
-        signatureModel.setResourceId("/exchange/v3/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
-        signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY);
-
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().success());
-        assertEquals(200, stepLogger.getResponse().statusCode());
-    }
-
-    public static void replayAttackEciesDecryptorTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, PowerAuthVersion version) throws Exception {
-        final TemporaryKey temporaryKey = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.APPLICATION_SCOPE, config);
-        String requestData = "test_data";
-        ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
-                EncryptorId.APPLICATION_SCOPE_GENERIC,
-                new EncryptorParameters(version.value(), config.getApplicationKey(), null, temporaryKey != null ? temporaryKey.getId() : null),
-                new ClientEciesSecrets(config.getMasterPublicKeyP256(), config.getApplicationSecret())
-        );
-        EciesEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestData.getBytes(StandardCharsets.UTF_8));
-        final GetEciesDecryptorRequest eciesDecryptorRequest = new GetEciesDecryptorRequest();
-        eciesDecryptorRequest.setProtocolVersion(version.value());
-        eciesDecryptorRequest.setActivationId(null);
-        eciesDecryptorRequest.setApplicationKey(config.getApplicationKey());
-        eciesDecryptorRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
-        eciesDecryptorRequest.setNonce(encryptedRequest.getNonce());
-        eciesDecryptorRequest.setTimestamp(encryptedRequest.getTimestamp());
-        eciesDecryptorRequest.setTemporaryKeyId(temporaryKey != null ? temporaryKey.getId() : null);
-        GetEciesDecryptorResponse decryptorResponse = powerAuthClient.getEciesDecryptor(eciesDecryptorRequest);
-        assertNotNull(decryptorResponse.getSecretKey());
-        assertNotNull(decryptorResponse.getSharedInfo2());
-
-        // Replay attack simulation - send the same request twice, expect error ERR0024
-        final PowerAuthClientException ex = assertThrows(PowerAuthClientException.class, () ->
-                powerAuthClient.getEciesDecryptor(eciesDecryptorRequest));
-        assertEquals("ERR0024", ex.getPowerAuthError().get().getCode());
-    }
-
     public static void encryptedResponseTest(final PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger, PowerAuthVersion version) throws Exception {
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/activation");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/activation");
         encryptModel.setScope("activation");
 
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
-        EciesEncryptedResponse responseObject = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
+        AeadEncryptedResponse responseObject = (AeadEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseObject.getEncryptedData());
-        assertNotNull(responseObject.getMac());
-        switch (version) {
-            case V3_0, V3_1 -> {
-                assertNull(responseObject.getNonce());
-                assertNull(responseObject.getTimestamp());
-            }
-            case V3_2, V3_3 -> {
-                assertNotNull(responseObject.getNonce());
-                assertNotNull(responseObject.getTimestamp());
-            }
-            default -> fail("Unsupported version");
-        }
+        assertNotNull(responseObject.getTimestamp());
     }
 
     private static String generateRandomString() {
