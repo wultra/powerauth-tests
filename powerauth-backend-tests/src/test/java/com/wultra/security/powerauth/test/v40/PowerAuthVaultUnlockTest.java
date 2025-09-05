@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2019 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,15 +15,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v31;
+package com.wultra.security.powerauth.test.v40;
 
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
+import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.v3.PowerAuthVaultUnlockShared;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
+import com.wultra.security.powerauth.test.shared.v4.PowerAuthVaultUnlockShared;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,7 +44,7 @@ import java.util.HashMap;
 @EnableConfigurationProperties
 class PowerAuthVaultUnlockTest {
 
-    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_1;
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
     private PowerAuthTestConfiguration config;
     private PowerAuthClient powerAuthClient;
@@ -72,6 +72,7 @@ class PowerAuthVaultUnlockTest {
         model.setStatusFileName(config.getStatusFile(VERSION).getAbsolutePath());
         model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE);
         model.setUriString(config.getPowerAuthIntegrationUrl());
+        model.setKeyIdentifier("KEK_DEVICE_PRIVATE");
         model.setReason("TEST_" + VERSION);
         model.setVersion(VERSION);
 
@@ -121,26 +122,6 @@ class PowerAuthVaultUnlockTest {
     @Test
     void vaultUnlockTooLongReasonTest() throws Exception {
         PowerAuthVaultUnlockShared.vaultUnlockTooLongReasonTest(config, model, stepLogger);
-    }
-
-    @Test
-    void vaultUnlockAndECDSASignatureValidTest() throws Exception {
-        PowerAuthVaultUnlockShared.vaultUnlockAndECDSASignatureValidTest(powerAuthClient, config, model, stepLogger, VERSION);
-    }
-
-    @Test
-    void vaultUnlockAndECDSASignatureInvalidTest() throws Exception {
-        PowerAuthVaultUnlockShared.vaultUnlockAndECDSASignatureInvalidTest(powerAuthClient, config, model, stepLogger, VERSION);
-    }
-
-    @Test
-    void vaultUnlockAndECDSASignatureInvalidActivationTest() throws Exception {
-        PowerAuthVaultUnlockShared.vaultUnlockAndECDSASignatureInvalidActivationTest(powerAuthClient, config, model, stepLogger, VERSION);
-    }
-
-    @Test
-    void vaultUnlockAndECDSASignatureNonExistentActivationTest() throws Exception {
-        PowerAuthVaultUnlockShared.vaultUnlockAndECDSASignatureNonExistentActivationTest(powerAuthClient, config, model, stepLogger, VERSION);
     }
 
 }

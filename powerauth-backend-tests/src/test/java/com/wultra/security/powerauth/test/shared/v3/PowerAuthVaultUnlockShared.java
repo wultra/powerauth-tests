@@ -15,11 +15,9 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.shared;
+package com.wultra.security.powerauth.test.shared.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
-import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.response.v3.VerifyECDSASignatureResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
