@@ -17,13 +17,13 @@
  */
 package com.wultra.security.powerauth.test.v40;
 
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
+import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
-import com.wultra.security.powerauth.test.shared.PowerAuthSignatureShared;
+import com.wultra.security.powerauth.test.shared.v4.PowerAuthAuthenticationShared;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,7 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-class PowerAuthSignatureTest {
+class PowerAuthAuthenticationTest {
 
     private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
@@ -106,87 +106,87 @@ class PowerAuthSignatureTest {
 
     @Test
     void signatureValidTest() throws Exception {
-        PowerAuthSignatureShared.signatureValidTest(model, stepLogger);
+        PowerAuthAuthenticationShared.authValidTest(model, stepLogger);
     }
 
     @Test
     void signatureInvalidPasswordTest() throws Exception {
-        PowerAuthSignatureShared.signatureInvalidPasswordTest(config, model, stepLogger);
+        PowerAuthAuthenticationShared.authInvalidPasswordTest(config, model, stepLogger);
     }
 
     @Test
     void signatureIncorrectPasswordFormatTest() throws Exception {
-        PowerAuthSignatureShared.signatureIncorrectPasswordFormatTest(config, model, stepLogger);
+        PowerAuthAuthenticationShared.authIncorrectPasswordFormatTest(config, model, stepLogger);
     }
 
     @Test
     void signatureCounterLookAheadTest() throws Exception {
-        PowerAuthSignatureShared.signatureCounterLookAheadTest(config, model);
+        PowerAuthAuthenticationShared.authCounterLookAheadTest(config, model);
     }
 
     @Test
     void signatureBlockedActivationTest() throws Exception {
-        PowerAuthSignatureShared.signatureBlockedActivationTest(powerAuthClient, config, model, VERSION);
+        PowerAuthAuthenticationShared.authBlockedActivationTest(powerAuthClient, config, model, VERSION);
     }
 
     @Test
     void signatureSingleFactorTest() throws Exception {
-        PowerAuthSignatureShared.signatureSingleFactorTest(model, stepLogger);
+        PowerAuthAuthenticationShared.authSingleFactorTest(model, stepLogger);
     }
 
     @Test
     void signatureEmptyDataTest() throws Exception {
-        PowerAuthSignatureShared.signatureEmptyDataTest(model, stepLogger, VERSION);
+        PowerAuthAuthenticationShared.authEmptyDataTest(model, stepLogger, VERSION);
     }
 
     @Test
     void signatureValidGetTest() throws Exception {
-        PowerAuthSignatureShared.signatureValidGetTest(config, model, stepLogger);
+        PowerAuthAuthenticationShared.authValidGetTest(config, model, stepLogger);
     }
 
     @Test
     void signatureValidGetNoParamTest() throws Exception {
-        PowerAuthSignatureShared.signatureValidGetNoParamTest(config, model, stepLogger);
+        PowerAuthAuthenticationShared.authValidGetNoParamTest(config, model, stepLogger);
     }
 
     @Test
     void signatureGetInvalidPasswordTest() throws Exception {
-        PowerAuthSignatureShared.signatureGetInvalidPasswordTest(config, model, stepLogger);
+        PowerAuthAuthenticationShared.authGetInvalidPasswordTest(config, model, stepLogger);
     }
 
     @Test
     void signatureUnsupportedApplicationTest() throws Exception {
-        PowerAuthSignatureShared.signatureUnsupportedApplicationTest(powerAuthClient, config, model);
+        PowerAuthAuthenticationShared.authUnsupportedApplicationTest(powerAuthClient, config, model);
     }
 
     @Test
     void signatureMaxFailedAttemptsTest() throws Exception {
-        PowerAuthSignatureShared.signatureMaxFailedAttemptsTest(powerAuthClient, config, model, VERSION);
+        PowerAuthAuthenticationShared.authMaxFailedAttemptsTest(powerAuthClient, config, model, VERSION);
     }
 
     @Test
     void signatureLookAheadTest() throws Exception {
-        PowerAuthSignatureShared.signatureLookAheadTest(powerAuthClient, config, model, VERSION);
+        PowerAuthAuthenticationShared.authLookAheadTest(powerAuthClient, config, model, VERSION);
     }
 
     @Test
     void signatureCounterIncrementTest() throws Exception {
-        PowerAuthSignatureShared.signatureCounterIncrementTest(model, stepLogger, VERSION);
+        PowerAuthAuthenticationShared.authCounterIncrementTest(model, stepLogger, VERSION);
     }
 
     @Test
     void signatureLargeDataTest() throws Exception {
-        PowerAuthSignatureShared.signatureLargeDataTest(model, stepLogger, VERSION);
+        PowerAuthAuthenticationShared.authLargeDataTest(model, stepLogger, VERSION);
     }
 
     @Test
     void signatureSwappedKeyTest() throws Exception {
-        PowerAuthSignatureShared.signatureSwappedKeyTest(config, model, stepLogger);
+        PowerAuthAuthenticationShared.authSwappedKeyTest(config, model, stepLogger);
     }
 
     @Test
     void signatureInvalidResourceIdTest() throws Exception {
-        PowerAuthSignatureShared.signatureInvalidResourceIdTest(config, model, stepLogger);
+        PowerAuthAuthenticationShared.authInvalidResourceIdTest(config, model, stepLogger);
     }
 
 }

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.shared;
+package com.wultra.security.powerauth.test.shared.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
@@ -39,7 +39,6 @@ import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.AuthenticationCodeLegacyUtils;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
-import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.http.PowerAuthHttpBody;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -204,11 +203,7 @@ public class PowerAuthSignatureShared {
 
     public static void signatureValidGetTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         model.setHttpMethod("GET");
-        if (model.getVersion().getMajorVersion() == 3) {
-            model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate?who=John_Tramonta&when=now");
-        } else {
-            model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v4/auth/validate?who=John_Tramonta&when=now");
-        }
+        model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate?who=John_Tramonta&when=now");
         new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
@@ -286,11 +281,6 @@ public class PowerAuthSignatureShared {
         modelPrepare.setApplicationKey(config.getApplicationKey());
         modelPrepare.setApplicationSecret(config.getApplicationSecret());
         modelPrepare.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
-        if (version.getMajorVersion() == 4) {
-            modelPrepare.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
-            modelPrepare.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
-            modelPrepare.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
-        }
         modelPrepare.setHeaders(new HashMap<>());
         modelPrepare.setPassword(config.getPassword());
         modelPrepare.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -366,11 +356,6 @@ public class PowerAuthSignatureShared {
         modelPrepare.setApplicationKey(config.getApplicationKey());
         modelPrepare.setApplicationSecret(config.getApplicationSecret());
         modelPrepare.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
-        if (version.getMajorVersion() == 4) {
-            modelPrepare.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
-            modelPrepare.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
-            modelPrepare.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
-        }
         modelPrepare.setHeaders(new HashMap<>());
         modelPrepare.setPassword(config.getPassword());
         modelPrepare.setStatusFileName(tempStatusFile.getAbsolutePath());
