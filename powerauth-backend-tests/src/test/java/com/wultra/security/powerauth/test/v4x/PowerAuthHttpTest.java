@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2018 Wultra s.r.o.
+ * Copyright (C) 2025 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test;
+package com.wultra.security.powerauth.test.v4x;
 
 import com.wultra.core.rest.client.base.RestClientException;
-import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.core.rest.model.base.response.Response;
+import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.http.PowerAuthAuthorizationHttpHeader;
 import com.wultra.security.powerauth.http.PowerAuthTokenHttpHeader;
 import com.wultra.security.powerauth.lib.cmd.util.MapUtil;
@@ -55,7 +55,7 @@ class PowerAuthHttpTest {
     @Test
     void invalidSignatureHeaderTest() {
         final byte[] data = "test".getBytes(StandardCharsets.UTF_8);
-        final String signatureHeaderInvalid = "PowerAuth pa_activation_id=\"79b910a6-b058-49bd-a56d-d54b5aada048\" pa_application_key=\"4rVingHqXITsWvGj1K+EBQ==\" pa_nonce=\"inZWJ5hCFBk+nnZ1sYTnjg==\" pa_signature_type=\"possession_knowledge\" pa_signature=\"77419567-47712563\" pa_version=\"3.0\"";
+        final String signatureHeaderInvalid = "PowerAuth pa_activation_id=\"79b910a6-b058-49bd-a56d-d54b5aada048\" pa_application_key=\"4rVingHqXITsWvGj1K+EBQ==\" pa_nonce=\"inZWJ5hCFBk+nnZ1sYTnjg==\" pa_auth_code_type=\"possession_knowledge\" pa_auth_code=\"lAKanQ2amnBBL7r48C2DEkyij14MBuODkzkaNEQm3PXVoFU2bGE+KZV8EWcMAIMgfBUlM81mxanVqJcr6k60Tg==\" pa_version=\"4.0\"";
 
         final Map<String, String> headers = Map.of(
                 "Accept", "application/json",
@@ -64,7 +64,7 @@ class PowerAuthHttpTest {
 
         final RestClientException exception = assertThrows(RestClientException.class, () ->
                 RestClientFactory.getRestClient().post(
-                        config.getPowerAuthIntegrationUrl() + "/pa/v3/signature/validate",
+                        config.getPowerAuthIntegrationUrl() + "/pa/v4/auth/validate",
                         data,
                         null,
                         MapUtil.toMultiValueMap(headers),
@@ -81,7 +81,7 @@ class PowerAuthHttpTest {
     @Test
     void invalidTokenHeaderTest() {
         byte[] data = "test".getBytes(StandardCharsets.UTF_8);
-        String tokenHeaderInvalid = "PowerAuth token_id=\"0f3da4d7-427d-4b54-8211-b1995214810b\" token_digest=\"rMYL7jvUhBqdGyNjiGJED+9cM0tAM9JhAhSdfbatPg4=\" nonce=\"jHaHL1mWWZoB/+QQbGTAwg==\" timestamp=\"1541000429960\" version=\"3.0\"";
+        String tokenHeaderInvalid = "PowerAuth token_id=\"2f126584-342c-4f9c-b687-dcf98d7c1ee4\", token_digest=\"53Qxy5Ast0xk+eJ1P9gs9DqlLTJGOnnQ7Y5tu3E42po=\", nonce=\"bqMyF7BnPxIos6E+RyDAig==\", timestamp=\"1757316828350\", version=\"4.0\"";
 
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json");
@@ -108,17 +108,17 @@ class PowerAuthHttpTest {
 
     @Test
     void invalidEncryptionHeaderTest() {
-        byte[] data = "{\"ephemeralPublicKey\":\"BHBy8Apj7BFxjGaiKs8nFRkD4rjlSuo1rguWnjlSChLKhRGUdooT0Geh8rE6u2QOnY2rBaIj+Stzqj6A/cs3WUY=\",\"encryptedData\":\"rZKU++q2HE3uwZRMLSlYfuUvHrKt9CVGYUGB21CjdaNyflyTOei7dvRAVACQRyJmcyWePAl0BQHRaN1trJyw8Ue1YzYVx7fGEQ9l9WtCJYeYBPS4krR7ZFo4ydmeFm/rhklClUVJZ2OSSt2Z/O9HctA8W/BlwAMSVDj496wdZ3ozxDLhDwd+sBx03Y3812GD0s3HbxK4wHN/OCj+jAczowI0FzI1cT5DA+M7e7Hc0golN1SExVqw1aMVAwA32gwjbc0nuqecXPB0op4AhGTAOZFQDtmQH/U1chcykTXso4Y7FF1fKjyeyZN73imO3lImhKETBc+2hg3/KEVjP43OqtB5DgaCatoWXjAVHJY/mSLWJd7WtfCAq1+xNSbwuhAEt8y2+/2BzvaRQFs8WuqAuBlTx/c1u2hddCpfQFRb0a3x2l7FYrBtYYfmQZb38s+zsix6Ju4esZ9HibmX8XvdMZB9F4E+tUfLrRwJmFpRm5dC6ufZp8+Qur8c+SM5aOVqLRWf/by6rC/6P+Pm35UNwAYA5sbrZU+0za4TlT7hNR4bkxkHStz5moBRyrwIYtJVMKDg3pXMzLW/j35lN9mnlQHEKPbt7ZlRjeKotXGAjrztXDOT3bOHBayMHm/fjCk+cHUIEYvR3jd4PvgG6YuU9W6F/jCxG8XnFumuBVJzRVnHYlCC+eZ2XxwLxSxTpO3D\",\"mac\":\"RLhrZebxh03EssLgC265flJ06Wp67QdOhkAeXxAMxSk=\"}".getBytes(StandardCharsets.UTF_8);
-        String tokenHeaderInvalid = "PowerAuth application_key=\"4rVingHqXITsWvGj1K+EBQ==\" version=\"3.0\"";
+        byte[] data = "\"temporaryKeyId\":\"bdf6c492-2e54-485e-b71d-8f6adb26add3\",\"ephemeralPublicKey\":\"BEew43/VjKxV0dXPmejnbV745cUrIY1guojm6nsq554Mn/XCtn+sHz954VTWIyOYqnliGRrICaIr5cqWcpk1gUU=\",\"encryptedData\":\"LenJAtwgHUXPfRwHFuo6bjV+2x7fW7zyQQ6npOY+xNz8302KXgkm8OMYVEISaMSrOGPSdVKk7Pd/djna9HqeVEXLiLr9IZONid8BzaL9nSenk16G472d4OZyJKLgrZeFRlAOxSQCLCwn3nrVEuAOYGCVaTE+xMQZk9Lx7ze2uhE33n6fUIBfK+IgQWdqVG/+TYJcveRWRrkuf9/CS1zXiO0sVl3p2EuTXGSOxT3evdBMB8ctQBlZRpdRWGXNUnYthkmpE8G0mYcO3q+VoKRz8ikDWjibMZijtINL0wUA+b8DKkdtziZEjoJvxfvoDmZG0zxdut1zx3e9v8TAt/QGv21R0UT+4HkBFbZmrGxcctn0VKb1NzB8yRg9FhEofKMru5/4ZU4IIgOmaXton5tym+FFiQY+um2jfnl3Jq8JacpAS4eaRI3qSV44kU1uh+jj+v1P2IIHZG87HKxtAYImVClOBgXN5dyAGMXlcYk1IED9mXJt/uyP0jizHc9S6LTJhGVeyHm8r4SfqaqWVn2ZltkvHV4Obf4IcB6jquv8ssHmkvMvJ+c/UJ7P5NRt2ZFiRZ9h5h7j9tmWaoaLHsF6Xjq9i3PNggK79KKgcvlfBI8Dxxrwhxi17nMM+hOtw350UA3AufN4mJoyrrnpYdGIScCqFRtwaBWuZ1jG1KdnSAWKbl36O9sFZbTtU8ZTSOpi7u6NQb6NbBpqEftHjM2ijoGvsvKlWyDFfJol/F7s4ojB+ieKVZVOb9DP671r21wznrl2aGlVxisOAVi2UY27wYw7JJzynq2L7pQJMQMZAC+vmsovG+BB+JPzLoGOok08qdJUuxIz+UcxWI16nE1jcMjd8Wp4ojtrIleQ0VbzQHE=\",\"mac\":\"Lvtq2jumm7OC8+pu1nDTuING2VgIUhfXBWY+jEC818w=\",\"nonce\":\"qoy2Xti0oyzTVwvFbvZ7bQ==\",\"timestamp\":1757316677976".getBytes(StandardCharsets.UTF_8);
+        String headerInvalid = "PowerAuth application_key=\"4rVingHqXITsWvGj1K+EBQ==\" version=\"4.0\"";
 
         Map<String, String> headers = new HashMap<>();
         headers.put("Accept", "application/json");
         headers.put("Content-Type", "application/json");
-        headers.put(PowerAuthTokenHttpHeader.HEADER_NAME, tokenHeaderInvalid);
+        headers.put(PowerAuthTokenHttpHeader.HEADER_NAME, headerInvalid);
 
         try {
             RestClientFactory.getRestClient().post(
-                    config.getPowerAuthIntegrationUrl() + "/pa/v3/activation/create",
+                    config.getPowerAuthIntegrationUrl() + "/pa/v4/activation/create",
                     data,
                     null,
                     MapUtil.toMultiValueMap(headers),

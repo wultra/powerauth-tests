@@ -46,6 +46,8 @@ public class PowerAuthConfigurationTest {
         assertNotNull(config.getApplicationId());
         assertNotNull(config.getApplicationVersionId());
         assertNotNull(config.getMasterPublicKeyP256());
+        assertNotNull(config.getMasterPublicKeyP384());
+        assertNotNull(config.getMasterPublicKeyMlDsa65());
         assertNotNull(config.getApplicationKey());
         assertNotEquals("", config.getApplicationKey());
         assertNotNull(config.getApplicationSecret());
