@@ -30,7 +30,6 @@ import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatu
 import com.wultra.security.powerauth.client.model.response.v4.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
@@ -42,7 +41,6 @@ import com.wultra.security.powerauth.lib.cmd.steps.GetStatusStep;
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.test.shared.util.ResponseVerificationUtil;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
@@ -172,7 +170,8 @@ public class PowerAuthActivationShared {
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        ResponseVerificationUtil.verifyErrorResponse(model, errorResponse);
+        assertEquals("ERR_TEMPORARY_KEY", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_TEMPORARY_KEY_FAILURE", errorResponse.getResponseObject().getMessage());
 
         // Support application version
         powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
@@ -371,7 +370,8 @@ public class PowerAuthActivationShared {
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        ResponseVerificationUtil.verifyErrorResponse(model, errorResponse);
+        assertEquals("ERR_TEMPORARY_KEY", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_TEMPORARY_KEY_FAILURE", errorResponse.getResponseObject().getMessage());
     }
 
     public static void activationInvalidApplicationSecretTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
@@ -401,7 +401,8 @@ public class PowerAuthActivationShared {
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        ResponseVerificationUtil.verifyErrorResponse(model, errorResponse);
+        assertEquals("ERR_TEMPORARY_KEY", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_TEMPORARY_KEY_FAILURE", errorResponse.getResponseObject().getMessage());
     }
 
     public static void lookupActivationsTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PowerAuthVersion version) throws Exception {

@@ -23,7 +23,7 @@ import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
-import com.wultra.security.powerauth.test.shared.PowerAuthTokenShared;
+import com.wultra.security.powerauth.test.shared.v4.PowerAuthTokenShared;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;

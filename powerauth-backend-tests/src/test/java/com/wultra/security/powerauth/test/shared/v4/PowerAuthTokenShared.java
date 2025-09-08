@@ -15,22 +15,21 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.shared;
+package com.wultra.security.powerauth.test.shared.v4;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.core.rest.model.base.response.ErrorResponse;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
+import com.wultra.security.powerauth.lib.cmd.steps.CreateTokenStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.CreateTokenStep;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
 
 import java.io.File;
@@ -210,7 +209,7 @@ public class PowerAuthTokenShared {
         assertTrue(stepLogger2.getResult().success());
         assertEquals(200, stepLogger2.getResponse().statusCode());
 
-        checkResponse(model.getVersion(), stepLogger2);
+        checkResponse(stepLogger2);
     }
 
     public static void tokenCounterIncrementTest(final CreateTokenStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
@@ -233,16 +232,9 @@ public class PowerAuthTokenShared {
         return config.getPowerAuthIntegrationUrl() + "/api/auth/token/app/operation/list";
     }
 
-    private static void checkResponse(PowerAuthVersion version, ObjectStepLogger stepLogger) {
-        if (version.getMajorVersion() == 3) {
-            final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
-            assertNotNull(responseOK.getEncryptedData());
-            assertNotNull(responseOK.getMac());
-        } else {
-            final AeadEncryptedResponse responseOK = (AeadEncryptedResponse) stepLogger.getResponse().responseObject();
-            assertNotNull(responseOK.getEncryptedData());
-            assertNotNull(responseOK.getTimestamp());
-        }
-
+    private static void checkResponse(ObjectStepLogger stepLogger) {
+        final AeadEncryptedResponse responseOK = (AeadEncryptedResponse) stepLogger.getResponse().responseObject();
+        assertNotNull(responseOK.getEncryptedData());
+        assertNotNull(responseOK.getTimestamp());
     }
 }

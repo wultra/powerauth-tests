@@ -15,21 +15,25 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.shared;
+package com.wultra.security.powerauth.test.shared.v4;
 
-import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.LookupActivationsRequest;
-import com.wultra.security.powerauth.client.model.response.*;
+import com.wultra.security.powerauth.client.model.response.CommitActivationResponse;
+import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
+import com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse;
+import com.wultra.security.powerauth.client.model.response.LookupActivationsResponse;
+import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.CreateActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
-import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
+import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
+import com.wultra.security.powerauth.rest.api.model.response.v4.ActivationLayer2Response;
 
 import java.io.File;
 import java.util.*;
@@ -143,11 +147,14 @@ public class PowerAuthActivationFlagsShared {
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
+        model.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
+        model.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
         model.setResultStatusObject(config.getResultStatusObject(version));
         model.setUriString("http://localhost:" + port);
+        model.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
         model.setVersion(version);
         model.setDeviceInfo("backend-tests");
 

@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.shared;
+package com.wultra.security.powerauth.test.shared.v4;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -23,15 +23,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
-import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
-import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
+import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import com.wultra.security.powerauth.rest.api.model.request.UserInfoRequest;
 import com.wultra.security.powerauth.rest.api.model.response.ServerStatusResponse;
 import org.opentest4j.AssertionFailedError;
@@ -55,7 +55,7 @@ public class PowerAuthInfoShared {
     private static final long SERVER_CLIENT_TIME_DIFF_TOLERANCE_MILLIS = 60000;
 
     public static void testUserInfo(final PowerAuthTestConfiguration config, final EncryptStepModel encryptModel, final PowerAuthVersion version) throws Exception {
-        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/pa/v3/user/info");
+        encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/pa/v4/user/info");
         encryptModel.setScope("activation");
         encryptModel.setData(objectMapper.writeValueAsBytes(new UserInfoRequest()));
 
@@ -64,9 +64,9 @@ public class PowerAuthInfoShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        final EciesEncryptedResponse response = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
+        final AeadEncryptedResponse response = (AeadEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(response.getEncryptedData());
-        assertNotNull(response.getMac());
+        assertNotNull(response.getTimestamp());
 
         final Map<String, Object> decryptedData = stepLogger.getItems().stream()
                 .filter(isStepItemDecryptedResponse())
@@ -84,7 +84,7 @@ public class PowerAuthInfoShared {
 
     public static void testServerStatus(final PowerAuthTestConfiguration config) throws Exception {
         final RestClient restClient = new DefaultRestClient(config.getEnrollmentServiceUrl());
-        final ObjectResponse<ServerStatusResponse> objectResponse = restClient.postObject("/pa/v3/status", new ObjectRequest<>(), ServerStatusResponse.class);
+        final ObjectResponse<ServerStatusResponse> objectResponse = restClient.postObject("/pa/v4/status", new ObjectRequest<>(), ServerStatusResponse.class);
         assertTrue(Math.abs(objectResponse.getResponseObject().serverTime() - System.currentTimeMillis()) < SERVER_CLIENT_TIME_DIFF_TOLERANCE_MILLIS);
     }
 

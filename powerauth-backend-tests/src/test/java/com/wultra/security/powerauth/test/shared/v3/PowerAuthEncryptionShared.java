@@ -43,7 +43,7 @@ import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
 import com.wultra.security.powerauth.model.TemporaryKey;
-import com.wultra.security.powerauth.test.shared.util.TemporaryKeyFetchUtil;
+import com.wultra.security.powerauth.test.shared.v3.util.TemporaryKeyFetchUtil;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.io.BufferedWriter;

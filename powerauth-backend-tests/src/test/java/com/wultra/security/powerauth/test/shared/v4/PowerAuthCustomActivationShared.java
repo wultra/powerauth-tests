@@ -36,7 +36,6 @@ import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepMod
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import com.wultra.security.powerauth.rest.api.model.response.v4.ActivationLayer1Response;
 import com.wultra.security.powerauth.rest.api.model.response.v4.ActivationLayer2Response;
-import com.wultra.security.powerauth.test.shared.util.ResponseVerificationUtil;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.io.File;
@@ -282,7 +281,8 @@ public class PowerAuthCustomActivationShared {
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        ResponseVerificationUtil.verifyErrorResponse(model, errorResponse);
+        assertEquals("ERR_TEMPORARY_KEY", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_TEMPORARY_KEY_FAILURE", errorResponse.getResponseObject().getMessage());
 
         // Support application version
         powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
@@ -312,7 +312,8 @@ public class PowerAuthCustomActivationShared {
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        ResponseVerificationUtil.verifyErrorResponse(model, errorResponse);
+        assertEquals("ERR_TEMPORARY_KEY", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_TEMPORARY_KEY_FAILURE", errorResponse.getResponseObject().getMessage());
 
         model.setApplicationKey(config.getApplicationKey());
     }
@@ -333,7 +334,8 @@ public class PowerAuthCustomActivationShared {
         ObjectMapper objectMapper = config.getObjectMapper();
         final ErrorResponse errorResponse = objectMapper.readValue(stepLogger.getResponse().responseObject().toString(), ErrorResponse.class);
         assertEquals("ERROR", errorResponse.getStatus());
-        ResponseVerificationUtil.verifyErrorResponse(model, errorResponse);
+        assertEquals("ERR_TEMPORARY_KEY", errorResponse.getResponseObject().getCode());
+        assertEquals("POWER_AUTH_TEMPORARY_KEY_FAILURE", errorResponse.getResponseObject().getMessage());
 
         model.setApplicationSecret(config.getApplicationSecret());
     }

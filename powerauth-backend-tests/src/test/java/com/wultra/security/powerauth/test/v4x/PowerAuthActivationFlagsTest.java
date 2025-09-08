@@ -1,6 +1,6 @@
 /*
  * PowerAuth test and related software components
- * Copyright (C) 2024 Wultra s.r.o.
+ * Copyright (C) 2020 Wultra s.r.o.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published
@@ -15,14 +15,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v32;
+package com.wultra.security.powerauth.test.v4x;
 
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
+import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.v3.PowerAuthActivationCommitPhaseShared;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
-import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
+import com.wultra.security.powerauth.test.shared.v4.PowerAuthActivationFlagsShared;
+import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.File;
@@ -39,25 +42,26 @@ import java.util.HashMap;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Tests for commit phase.
+ * Activation flag tests.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(classes = PowerAuthTestConfiguration.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
-class PowerAuthActivationCommitPhaseTest {
+@ComponentScan(basePackages = "com.wultra.security.powerauth")
+public class PowerAuthActivationFlagsTest {
 
-    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_2;
+    // Test only in the latestPowerAuth protocol version
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
     private PrepareActivationStepModel model;
-    private GetStatusStepModel statusModel;
     private File tempStatusFile;
 
-    private final String validOtpValue = "1234-5678";
-    private final String invalidOtpValue = "8765-4321";
+    @LocalServerPort
+    private int port;
 
     @Autowired
     public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
@@ -74,25 +78,22 @@ class PowerAuthActivationCommitPhaseTest {
         // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_" + VERSION, ".json");
 
-        // Models shared among tests
+        // Model shared among tests
         model = new PrepareActivationStepModel();
-        model.setActivationName("test v" + VERSION);
+        model.setActivationName("test v4 flags");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
+        model.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
+        model.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(config.getResultStatusObject(VERSION));
+        model.setResultStatusObject(new JSONObject());
         model.setUriString(config.getPowerAuthIntegrationUrl());
+        model.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
         model.setVersion(VERSION);
         model.setDeviceInfo("backend-tests");
-
-        statusModel = new GetStatusStepModel();
-        statusModel.setHeaders(new HashMap<>());
-        statusModel.setResultStatusObject(config.getResultStatusObject(VERSION));
-        statusModel.setUriString(config.getPowerAuthIntegrationUrl());
-        statusModel.setVersion(VERSION);
     }
 
     @AfterEach
@@ -101,38 +102,17 @@ class PowerAuthActivationCommitPhaseTest {
     }
 
     @Test
-    void validOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationCommitPhaseShared.validOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
+    void activationFlagCrudTest() throws Exception {
+        PowerAuthActivationFlagsShared.activationFlagCrudTest(powerAuthClient, config, model, VERSION);
     }
 
     @Test
-    void invalidOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationCommitPhaseShared.invalidOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
+    void activationFlagLookupTest() throws Exception {
+        PowerAuthActivationFlagsShared.activationFlagLookupTest(powerAuthClient, config, model, VERSION);
     }
 
     @Test
-    void validOtpOnCommitTest() throws Exception {
-        PowerAuthActivationCommitPhaseShared.validOtpOnCommitTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
+    void activationProviderFlagTest() throws Exception {
+        PowerAuthActivationFlagsShared.activationProviderFlagTest(powerAuthClient, config, tempStatusFile, port, VERSION);
     }
-
-    @Test
-    void invalidOtpOnCommitTest() throws Exception {
-        PowerAuthActivationCommitPhaseShared.invalidOtpOnCommitTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
-    }
-
-    @Test
-    void updateValidOtpOnCommitTest() throws Exception {
-        PowerAuthActivationCommitPhaseShared.updateValidOtpOnCommitTest(powerAuthClient, config, model, statusModel, validOtpValue, invalidOtpValue, VERSION);
-    }
-
-    @Test
-    void updateInvalidOtpOnCommitTest() throws Exception {
-        PowerAuthActivationCommitPhaseShared.updateInvalidOtpOnCommitTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
-    }
-
-    @Test
-    void wrongActivationInitParamTest() {
-        PowerAuthActivationCommitPhaseShared.wrongActivationInitParamTest(powerAuthClient, config, VERSION);
-    }
-
 }

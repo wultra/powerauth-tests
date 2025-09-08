@@ -23,7 +23,7 @@ import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlg
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.test.shared.PowerAuthActivationOtpShared;
+import com.wultra.security.powerauth.test.shared.v4.PowerAuthActivationOtpShared;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

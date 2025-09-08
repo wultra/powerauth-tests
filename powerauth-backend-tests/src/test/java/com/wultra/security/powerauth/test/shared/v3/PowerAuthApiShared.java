@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.shared;
+package com.wultra.security.powerauth.test.shared.v3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.response.v3.*;
@@ -35,7 +35,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncrypte
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.model.TemporaryKey;
-import com.wultra.security.powerauth.test.shared.util.TemporaryKeyFetchUtil;
+import com.wultra.security.powerauth.test.shared.v3.util.TemporaryKeyFetchUtil;
 import com.wultra.security.powerauth.crypto.client.keyfactory.PowerAuthClientKeyFactory;
 import com.wultra.security.powerauth.crypto.client.authentication.PowerAuthClientAuthentication;
 import com.wultra.security.powerauth.crypto.client.token.ClientTokenGenerator;

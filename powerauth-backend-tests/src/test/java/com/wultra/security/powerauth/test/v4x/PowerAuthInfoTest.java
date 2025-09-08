@@ -15,12 +15,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v3x;
+package com.wultra.security.powerauth.test.v4x;
 
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.v3.PowerAuthInfoShared;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
+import com.wultra.security.powerauth.test.shared.v4.PowerAuthInfoShared;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,7 +33,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.util.HashMap;
 
 /**
- * Test for {@code /pa/v3/user/info}.
+ * Test for {@code /pa/v4/user/info}.
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
@@ -43,7 +43,7 @@ import java.util.HashMap;
 @EnabledIf(expression = "${powerauth.test.includeCustomTests}", loadContext = true)
 class PowerAuthInfoTest {
 
-    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_3;
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
     @Autowired
     private PowerAuthTestConfiguration config;
@@ -56,6 +56,8 @@ class PowerAuthInfoTest {
         encryptModel.setApplicationKey(config.getApplicationKey());
         encryptModel.setApplicationSecret(config.getApplicationSecret());
         encryptModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
+        encryptModel.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
+        encryptModel.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
         encryptModel.setHeaders(new HashMap<>());
         encryptModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         encryptModel.setBaseUriString(config.getPowerAuthIntegrationUrl());

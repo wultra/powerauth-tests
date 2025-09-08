@@ -17,9 +17,9 @@
  */
 package com.wultra.security.powerauth.test.v33;
 
-import com.wultra.security.powerauth.client.v4.PowerAuthClient;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.PowerAuthActivationCommitPhaseShared;
+import com.wultra.security.powerauth.test.shared.v3.PowerAuthActivationCommitPhaseShared;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;

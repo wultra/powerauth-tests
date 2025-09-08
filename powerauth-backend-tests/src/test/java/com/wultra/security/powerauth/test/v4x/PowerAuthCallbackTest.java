@@ -15,16 +15,17 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v3x;
+package com.wultra.security.powerauth.test.v4x;
 
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
+import com.wultra.core.rest.client.base.RestClientException;
+import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
+import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.v3.PowerAuthActivationFlagsShared;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
-import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import org.json.simple.JSONObject;
+import com.wultra.security.powerauth.test.shared.v4.PowerAuthCallbackShared;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,14 +35,8 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 /**
- * Activation flag tests.
+ * Callback tests.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
@@ -49,15 +44,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @EnableConfigurationProperties
 @ComponentScan(basePackages = "com.wultra.security.powerauth")
-public class PowerAuthActivationFlagsTest {
+class PowerAuthCallbackTest {
 
     // Test only in the latestPowerAuth protocol version
-    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_3;
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
-    private PrepareActivationStepModel model;
-    private File tempStatusFile;
 
     @LocalServerPort
     private int port;
@@ -72,43 +65,18 @@ public class PowerAuthActivationFlagsTest {
         this.config = config;
     }
 
-    @BeforeEach
-    void setUp() throws IOException {
-        // Create temp status file
-        tempStatusFile = File.createTempFile("pa_status_" + VERSION, ".json");
-
-        // Model shared among tests
-        model = new PrepareActivationStepModel();
-        model.setActivationName("test v3 flags");
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(new JSONObject());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setVersion(VERSION);
-        model.setDeviceInfo("backend-tests");
-    }
-
     @AfterEach
-    void tearDown() {
-        assertTrue(tempStatusFile.delete());
+    void tearDown() throws PowerAuthClientException {
+        // Remove all callbacks on test application, they slow down tests
+        final GetCallbackUrlListResponse callbacks = powerAuthClient.getCallbackUrlList(config.getApplicationId());
+        for (CallbackUrl callback: callbacks.getCallbackUrlList()) {
+            powerAuthClient.removeCallbackUrl(callback.getId());
+        }
     }
 
     @Test
-    void activationFlagCrudTest() throws Exception {
-        PowerAuthActivationFlagsShared.activationFlagCrudTest(powerAuthClient, config, model, VERSION);
+    void callbackExecutionTest() throws PowerAuthClientException, RestClientException {
+        PowerAuthCallbackShared.callbackExecutionTest(powerAuthClient, config, port, VERSION);
     }
 
-    @Test
-    void activationFlagLookupTest() throws Exception {
-        PowerAuthActivationFlagsShared.activationFlagLookupTest(powerAuthClient, config, model, VERSION);
-    }
-
-    @Test
-    void activationProviderFlagTest() throws Exception {
-        PowerAuthActivationFlagsShared.activationProviderFlagTest(powerAuthClient, config, tempStatusFile, port, VERSION);
-    }
 }
