@@ -107,13 +107,13 @@ class PowerAuthActivationOtpTest {
     }
 
     @Test
-    void validOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationOtpShared.validOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
+    void validOtpOnKeyExchangeTest() throws Exception {
+        PowerAuthActivationOtpShared.validOtpOnKeyExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
     }
 
     @Test
-    void invalidOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationOtpShared.invalidOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
+    void invalidOtpOnKeyExchangeTest() throws Exception {
+        PowerAuthActivationOtpShared.invalidOtpOnKeyExchangeTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
     }
 
     @Test
@@ -162,8 +162,8 @@ class PowerAuthActivationOtpTest {
     }
 
     @Test
-    void missingOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationOtpShared.missingOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
+    void missingOtpOnKeyExchangeTest() throws Exception {
+        PowerAuthActivationOtpShared.missingOtpOnKeyExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
     }
 
 }

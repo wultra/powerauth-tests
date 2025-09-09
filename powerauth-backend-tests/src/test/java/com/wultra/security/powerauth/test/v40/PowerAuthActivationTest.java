@@ -140,9 +140,6 @@ class PowerAuthActivationTest {
         PowerAuthActivationShared.activationPrepareWithoutInitTest(config, model);
     }
 
-    // Test activationPrepareBadMasterPublicKeyTest is skipped, because master public key is not used
-    // in protocol version 4.0 for encryption due to use of temporary keys.
-
     @Test
     void activationStatusTest() throws Exception {
         PowerAuthActivationShared.activationStatusTest(powerAuthClient, config, model, VERSION);

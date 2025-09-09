@@ -156,7 +156,7 @@ class PowerAuthAuthenticationTest {
 
     @Test
     void authValidGetNoParamTest() throws Exception {
-        PowerAuthAuthenticationShared.authValidGetNoParamTest(config, model, stepLogger);
+        PowerAuthAuthenticationShared.authValidGetNoParamTest(model, stepLogger);
     }
 
     @Test

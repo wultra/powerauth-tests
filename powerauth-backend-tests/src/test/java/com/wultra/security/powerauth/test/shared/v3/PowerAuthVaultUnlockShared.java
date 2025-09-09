@@ -260,7 +260,7 @@ public class PowerAuthVaultUnlockShared {
     }
 
     private static void checkError(ErrorResponse errorResponse) {
-        // Errors differ when Web Flow is used because of its Exception handler, for protocol version 3.3 temporary key error is present
+        // For protocol version 3.3 temporary key error is present
         assertTrue("ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()) || "ERR_TEMPORARY_KEY".equals(errorResponse.getResponseObject().getCode()));
         assertTrue("POWER_AUTH_CODE_INVALID".equals(errorResponse.getResponseObject().getMessage()) || "POWER_AUTH_TEMPORARY_KEY_FAILURE".equals(errorResponse.getResponseObject().getMessage()));
     }

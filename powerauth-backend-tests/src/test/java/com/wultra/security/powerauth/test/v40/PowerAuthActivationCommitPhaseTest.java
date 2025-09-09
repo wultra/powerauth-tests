@@ -107,13 +107,13 @@ class PowerAuthActivationCommitPhaseTest {
     }
 
     @Test
-    void validOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationCommitPhaseShared.validOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
+    void validOtpOnKeyExchangeTest() throws Exception {
+        PowerAuthActivationCommitPhaseShared.validOtpOnKeyExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
     }
 
     @Test
-    void invalidOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationCommitPhaseShared.invalidOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
+    void invalidOtpOnKeyExchangeTest() throws Exception {
+        PowerAuthActivationCommitPhaseShared.invalidOtpOnKeyExchangeTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
     }
 
     @Test

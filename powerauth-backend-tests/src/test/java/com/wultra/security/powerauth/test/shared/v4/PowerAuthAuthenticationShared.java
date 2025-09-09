@@ -149,6 +149,11 @@ public class PowerAuthAuthenticationShared {
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
+    public static void authBiometryNoResponseCheckTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_BIOMETRY);
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
+    }
+
     public static void authThreeFactorTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY);
 
@@ -183,7 +188,7 @@ public class PowerAuthAuthenticationShared {
         assertEquals("OK", responseOK.getStatus());
     }
 
-    public static void authValidGetNoParamTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+    public static void authValidGetNoParamTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         model.setHttpMethod("GET");
         new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());

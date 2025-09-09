@@ -15,15 +15,15 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.test.v3x;
+package com.wultra.security.powerauth.test.v4x;
 
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.v3.PowerAuthApiShared;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
+import com.wultra.security.powerauth.test.shared.v4.PowerAuthApiShared;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,16 +34,16 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.security.InvalidKeyException;
 
 /**
- * PowerAuth API tests.
+ * PowerAuth additional authentication tests.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-class PowerAuthApiTest {
+class PowerAuthAuthenticationTest {
 
-    private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_3;
+    private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
@@ -59,23 +59,8 @@ class PowerAuthApiTest {
     }
 
     @Test
-    void verifySignatureTest() throws GenericCryptoException, CryptoProviderException, InvalidKeyException, PowerAuthClientException {
-        PowerAuthApiShared.verifySignatureTest(powerAuthClient, config, VERSION);
+    void verifyAuthenticationTest() throws GenericCryptoException, CryptoProviderException, InvalidKeyException, PowerAuthClientException {
+        PowerAuthApiShared.verifyAuthenticationTest(powerAuthClient, config, VERSION);
     }
-
-    @Test
-    void unlockVaultAndECDSASignatureTest() throws Exception {
-        PowerAuthApiShared.unlockVaultAndECDSASignatureTest(powerAuthClient, config, VERSION);
-    }
-
-    // createApplication and createApplication version tests are skipped to avoid creating too many applications
-
-    @Test
-    void createValidateAndRemoveTokenTestActiveActivation() throws Exception {
-        PowerAuthApiShared.createValidateAndRemoveTokenTestActiveActivation(powerAuthClient, config, VERSION);
-    }
-
-    // Activation flags are tested using PowerAuthActivationFlagsTest
-    // Application roles are tested using PowerAuthApplicationRolesTest
 
 }

@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthActivationCommitPhaseShared {
 
-    public static void validOtpOnKeysExchangeTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
+    public static void validOtpOnKeyExchangeTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                                   PrepareActivationStepModel model, String validOtpValue, PowerAuthVersion version) throws Exception {
 
         final JSONObject resultStatusObject = new JSONObject();
@@ -80,7 +80,7 @@ public class PowerAuthActivationCommitPhaseShared {
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
     }
 
-    public static void invalidOtpOnKeysExchangeTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
+    public static void invalidOtpOnKeyExchangeTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                                     PrepareActivationStepModel model, String validOtpValue,
                                                     String invalidOtpValue, PowerAuthVersion version) throws Exception {
 

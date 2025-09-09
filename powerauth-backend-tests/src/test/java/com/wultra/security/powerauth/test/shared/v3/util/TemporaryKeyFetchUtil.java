@@ -173,7 +173,7 @@ public class TemporaryKeyFetchUtil {
         final Base64URL encodedSignature = jwtParts[2];
         final String signingInput = encodedHeader + "." + encodedPayload;
         final byte[] signatureBytes = convertRawSignatureToDER(encodedSignature.decode());
-        return SIGNATURE_UTILS.validateECDSASignature(signingInput.getBytes(StandardCharsets.UTF_8), signatureBytes, publicKey);
+        return SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, signingInput.getBytes(StandardCharsets.UTF_8), signatureBytes, publicKey);
     }
 
     private static byte[] convertRawSignatureToDER(byte[] rawSignature) throws Exception {
