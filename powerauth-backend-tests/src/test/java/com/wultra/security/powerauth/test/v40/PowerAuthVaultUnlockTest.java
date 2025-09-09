@@ -85,6 +85,22 @@ class PowerAuthVaultUnlockTest {
     }
 
     @Test
+    void vaultUnlockKdkAppVault2faTest() throws Exception {
+        VaultUnlockStepModel modelAppVault2fa = new VaultUnlockStepModel();
+        modelAppVault2fa.fromMap(model.toMap());
+        modelAppVault2fa.setKeyIdentifier("KDK_APP_VAULT_2FA");
+        PowerAuthVaultUnlockShared.vaultUnlockTest(modelAppVault2fa, stepLogger);
+    }
+
+    @Test
+    void vaultUnlockKdkAppVaultKnowledgeTest() throws Exception {
+        VaultUnlockStepModel modelAppVaultKnowledge = new VaultUnlockStepModel();
+        modelAppVaultKnowledge.fromMap(model.toMap());
+        modelAppVaultKnowledge.setKeyIdentifier("KDK_APP_VAULT_KNOWLEDGE");
+        PowerAuthVaultUnlockShared.vaultUnlockTest(modelAppVaultKnowledge, stepLogger);
+    }
+
+    @Test
     void vaultUnlockInvalidPasswordTest() throws Exception {
         PowerAuthVaultUnlockShared.vaultUnlockInvalidPasswordTest(config, model, stepLogger);
     }
@@ -95,8 +111,24 @@ class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    void vaultUnlockBiometryFactorTest() throws Exception {
+    void vaultUnlockKekDevicePrivateBiometryFactorTest() throws Exception {
         PowerAuthVaultUnlockShared.vaultUnlockBiometryFactorTest(model, stepLogger);
+    }
+
+    @Test
+    void vaultUnlockKdkAppVault2faBiometryFactorTest() throws Exception {
+        VaultUnlockStepModel modelAppVault2fa = new VaultUnlockStepModel();
+        modelAppVault2fa.fromMap(model.toMap());
+        modelAppVault2fa.setKeyIdentifier("KDK_APP_VAULT_2FA");
+        PowerAuthVaultUnlockShared.vaultUnlockBiometryFactorTest(modelAppVault2fa, stepLogger);
+    }
+
+    @Test
+    void vaultUnlockKdkAppVaultKnowledgeBiometryFactorFailTest() throws Exception {
+        VaultUnlockStepModel modelAppVaultKnowledge = new VaultUnlockStepModel();
+        modelAppVaultKnowledge.fromMap(model.toMap());
+        modelAppVaultKnowledge.setKeyIdentifier("KDK_APP_VAULT_KNOWLEDGE");
+        PowerAuthVaultUnlockShared.vaultUnlockBiometryFactorFailTest(modelAppVaultKnowledge, stepLogger);
     }
 
     @Test

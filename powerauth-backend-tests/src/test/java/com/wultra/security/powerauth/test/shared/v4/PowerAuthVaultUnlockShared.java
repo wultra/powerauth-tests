@@ -23,7 +23,6 @@ import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
-import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -90,10 +89,21 @@ public class PowerAuthVaultUnlockShared {
     public static void vaultUnlockBiometryFactorTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_BIOMETRY);
 
-        // Biometry can be used for vault unlock unlike in v3 where it is disabled by default
+        // Biometry can be used for vault unlock unlike in v3:
+        // KEK_DEVICE_PRIVATE - biometry is enabled by default (can be disabled)
+        // KDK_APP_VAULT_2FA - biometry is enabled
         new VaultUnlockStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
+    }
+
+    public static void vaultUnlockBiometryFactorFailTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_BIOMETRY);
+
+        // Biometry test for disabled biometry key identifier KDK_APP_VAULT_KNOWLEDGE
+        new VaultUnlockStep().execute(stepLogger, model.toMap());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
     }
 
     public static void vaultUnlockThreeFactorTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {
@@ -180,15 +190,15 @@ public class PowerAuthVaultUnlockShared {
     }
 
     private static void checkAuthenticationError(ErrorResponse errorResponse) {
-        assertTrue("ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()));
+        assertEquals("ERR_AUTHENTICATION", errorResponse.getResponseObject().getCode());
     }
 
     private static void checkTemporaryKeyError(ErrorResponse errorResponse) {
-        assertTrue("ERR_TEMPORARY_KEY".equals(errorResponse.getResponseObject().getCode()));
+        assertEquals("ERR_TEMPORARY_KEY", errorResponse.getResponseObject().getCode());
     }
 
     private static void checkSecureVaultError(ErrorResponse errorResponse) {
-        assertTrue("ERR_SECURE_VAULT".equals(errorResponse.getResponseObject().getCode()));
+        assertEquals("ERR_SECURE_VAULT", errorResponse.getResponseObject().getCode());
     }
 
 }
