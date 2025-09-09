@@ -30,22 +30,21 @@ import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatu
 import com.wultra.security.powerauth.client.model.response.v4.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
-import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
+import com.wultra.security.powerauth.crypto.client.v4.activation.PowerAuthClientActivation;
 import com.wultra.security.powerauth.crypto.lib.model.ActivationStatusBlobInfo;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
+import com.wultra.security.powerauth.lib.cmd.steps.ConfirmActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.GetStatusStep;
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.model.ConfirmActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
-import java.security.KeyPair;
-import java.security.PublicKey;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -78,7 +77,7 @@ public class PowerAuthActivationShared {
         assertTrue(stepLoggerPrepare.getResult().success());
         assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
-        checkEncryptedResponse(version, stepLoggerPrepare.getResponse().responseObject());
+        checkEncryptedResponse(stepLoggerPrepare.getResponse().responseObject());
 
         // Verify decrypted activationId
         String activationIdPrepareResponse = null;
@@ -127,6 +126,67 @@ public class PowerAuthActivationShared {
         // Verify activation status
         GetActivationStatusResponse statusResponseRemoved = powerAuthClient.getActivationStatus(initResponse.getActivationId());
         assertEquals(ActivationStatus.REMOVED, statusResponseRemoved.getActivationStatus());
+    }
+
+    public static void activationConfirmTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
+                                             PrepareActivationStepModel model, PowerAuthVersion version, boolean enableBiometry) throws Exception {
+        // Init activation
+        final InitActivationRequest initRequest = new InitActivationRequest();
+        initRequest.setApplicationId(config.getApplicationId());
+        initRequest.setUserId(config.getUser(version));
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+
+        // Prepare activation
+        model.setActivationCode(initResponse.getActivationCode());
+        ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
+        new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
+
+        // Verify activation status including status bits
+        GetActivationStatusResponse statusResponseBeforeConfirm = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseBeforeConfirm.getActivationStatus());
+        byte[] statusBlob = Base64.getDecoder().decode(statusResponseBeforeConfirm.getStatusBlob());
+        ActivationStatusBlobInfo statusBlobInfo = new PowerAuthClientActivation().getStatusFromBlob(statusBlob);
+        assertTrue(statusBlobInfo.isValid());
+        // Status bits are set to 0001 (pending confirmation)
+        assertEquals(1, statusBlobInfo.getStatusFlags());
+
+        // Confirm activation
+        ConfirmActivationStepModel confirmModel = new ConfirmActivationStepModel();
+        confirmModel.setApplicationKey(config.getApplicationKey());
+        confirmModel.setApplicationSecret(config.getApplicationSecret());
+        confirmModel.setEnableBiometry(enableBiometry);
+        confirmModel.setPassword(config.getPassword());
+        confirmModel.setVersion(version);
+        confirmModel.setStatusFileName(model.getStatusFileName());
+        confirmModel.setResultStatusObject(model.getResultStatusObject());
+        confirmModel.setUriString(config.getPowerAuthIntegrationUrl());
+        ObjectStepLogger stepLoggerConfirm = new ObjectStepLogger(System.out);
+        new ConfirmActivationStep().execute(stepLoggerConfirm, confirmModel.toMap());
+        assertTrue(stepLoggerConfirm.getResult().success());
+
+        // Verify activation status including status bits
+        GetActivationStatusResponse statusResponseConfirmed = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseConfirmed.getActivationStatus());
+        byte[] statusBlobConfirmed = Base64.getDecoder().decode(statusResponseConfirmed.getStatusBlob());
+        ActivationStatusBlobInfo statusBlobInfoConfirmed = new PowerAuthClientActivation().getStatusFromBlob(statusBlobConfirmed);
+        assertTrue(statusBlobInfoConfirmed.isValid());
+        if (enableBiometry) {
+            // Status bits are 1000 (biometry enabled, confirmed)
+            assertEquals(8, statusBlobInfoConfirmed.getStatusFlags());
+        } else {
+            // Status bits are 0000 (biometry disabled, confirmed)
+            assertEquals(0, statusBlobInfoConfirmed.getStatusFlags());
+        }
+
+        // Commit activation
+        CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+        assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
+
+        // Verify activation status
+        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
     }
 
     public static void activationNonExistentTest(PowerAuthClient powerAuthClient) throws PowerAuthClientException {
@@ -214,40 +274,6 @@ public class PowerAuthActivationShared {
         assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
-    public static void activationPrepareBadMasterPublicKeyTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
-                                                               PrepareActivationStepModel model, PowerAuthVersion version) throws Exception {
-        // Init activation
-        InitActivationRequest initRequest = new InitActivationRequest();
-        initRequest.setApplicationId(config.getApplicationId());
-        initRequest.setUserId(config.getUser(version));
-        InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
-
-        // Verify activation status
-        GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
-        assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
-
-        KeyPair keyPair = new KeyGenerator().generateKeyPair(EcCurve.P256);
-        PublicKey originalKey = model.getMasterPublicKeyP256();
-
-        // Prepare activation
-        model.setActivationCode(initResponse.getActivationCode());
-        model.setMasterPublicKeyP256(keyPair.getPublic());
-        ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
-        new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
-        assertFalse(stepLoggerPrepare.getResult().success());
-        assertEquals(400, stepLoggerPrepare.getResponse().statusCode());
-
-        // Verify error response
-        ObjectMapper objectMapper = config.getObjectMapper();
-        final ErrorResponse errorResponse = objectMapper.readValue(stepLoggerPrepare.getResponse().responseObject().toString(), ErrorResponse.class);
-        assertEquals("ERROR", errorResponse.getStatus());
-        assertEquals("ERR_ACTIVATION", errorResponse.getResponseObject().getCode());
-        assertEquals("POWER_AUTH_ACTIVATION_INVALID", errorResponse.getResponseObject().getMessage());
-
-        // Revert master public key change
-        model.setMasterPublicKeyP256(originalKey);
-    }
-
     public static void activationStatusTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config,
                                             PrepareActivationStepModel model, PowerAuthVersion version) throws Exception {
         final JSONObject resultStatusObject = new JSONObject();
@@ -267,7 +293,7 @@ public class PowerAuthActivationShared {
         assertTrue(stepLoggerPrepare.getResult().success());
         assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
-        checkEncryptedResponse(version, stepLoggerPrepare.getResponse().responseObject());
+        checkEncryptedResponse(stepLoggerPrepare.getResponse().responseObject());
 
         // Verify activation status
         GetStatusStepModel statusModel = new GetStatusStepModel();
@@ -495,7 +521,7 @@ public class PowerAuthActivationShared {
         assertTrue(stepLoggerPrepare.getResult().success());
         assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
-        checkEncryptedResponse(version, stepLoggerPrepare.getResponse().responseObject());
+        checkEncryptedResponse(stepLoggerPrepare.getResponse().responseObject());
 
         // Verify activation status
         GetStatusStepModel statusModel = new GetStatusStepModel();
@@ -531,7 +557,7 @@ public class PowerAuthActivationShared {
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
     }
 
-    private static void checkEncryptedResponse(PowerAuthVersion version, Object response) {
+    private static void checkEncryptedResponse(Object response) {
         final AeadEncryptedResponse aeadResponse = (AeadEncryptedResponse) response;
         assertNotNull(aeadResponse.getEncryptedData());
         assertNotNull(aeadResponse.getTimestamp());

@@ -111,6 +111,16 @@ class PowerAuthActivationTest {
     }
 
     @Test
+    void activationConfirmBiometryEnabledTest() throws Exception {
+        PowerAuthActivationShared.activationConfirmTest(powerAuthClient, config, model, VERSION, true);
+    }
+
+    @Test
+    void activationConfirmBiometryDisabledTest() throws Exception {
+        PowerAuthActivationShared.activationConfirmTest(powerAuthClient, config, model, VERSION, false);
+    }
+
+    @Test
     void activationNonExistentTest() throws PowerAuthClientException {
         PowerAuthActivationShared.activationNonExistentTest(powerAuthClient);
     }

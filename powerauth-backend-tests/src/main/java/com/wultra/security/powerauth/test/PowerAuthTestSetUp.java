@@ -190,7 +190,7 @@ public class PowerAuthTestSetUp {
             confirmModel.setUriString(config.getPowerAuthIntegrationUrl());
             ObjectStepLogger stepLoggerConfirm = new ObjectStepLogger(System.out);
             new ConfirmActivationStep().execute(stepLoggerConfirm, confirmModel.toMap());
-            assertTrue(stepLogger.getResult().success());
+            assertTrue(stepLoggerConfirm.getResult().success());
         }
 
         // Commit activation
