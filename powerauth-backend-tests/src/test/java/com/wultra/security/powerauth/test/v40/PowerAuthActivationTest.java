@@ -37,6 +37,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -96,8 +97,17 @@ class PowerAuthActivationTest {
     }
 
     @Test
-    void activationPrepareTest() throws Exception {
+    void activationPrepareHybridTest() throws Exception {
         PowerAuthActivationShared.activationPrepareTest(powerAuthClient, config, model, VERSION);
+    }
+
+    @Test
+    void activationPrepareEcTest() throws Exception {
+        final Map<String, Object> modelMap = model.toMap();
+        final PrepareActivationStepModel modelEc = new PrepareActivationStepModel();
+        modelEc.fromMap(modelMap);
+        modelEc.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384);
+        PowerAuthActivationShared.activationPrepareTest(powerAuthClient, config, modelEc, VERSION);
     }
 
     @Test
