@@ -20,7 +20,11 @@ package com.wultra.security.powerauth.test.shared.v4;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.ChangePasswordStep;
+import com.wultra.security.powerauth.lib.cmd.steps.RemoveBiometryStep;
+import com.wultra.security.powerauth.lib.cmd.steps.SetupBiometryStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.ChangePasswordStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.RemoveBiometryStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.SetupBiometryStepModel;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,6 +43,22 @@ public class PowerAuthDynamicFactorShared {
         final AeadEncryptedResponse response = (AeadEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(response.getEncryptedData());
         assertNotNull(response.getTimestamp());
+    }
+
+    public static void addBiometryTest(final SetupBiometryStepModel addBiometryModel, final ObjectStepLogger stepLogger) throws Exception {
+        new SetupBiometryStep().execute(stepLogger, addBiometryModel.toMap());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
+
+        final AeadEncryptedResponse response = (AeadEncryptedResponse) stepLogger.getResponse().responseObject();
+        assertNotNull(response.getEncryptedData());
+        assertNotNull(response.getTimestamp());
+    }
+
+    public static void removeBiometryTest(final RemoveBiometryStepModel removeBiometryModel, final ObjectStepLogger stepLogger) throws Exception {
+        new RemoveBiometryStep().execute(stepLogger, removeBiometryModel.toMap());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
 }
