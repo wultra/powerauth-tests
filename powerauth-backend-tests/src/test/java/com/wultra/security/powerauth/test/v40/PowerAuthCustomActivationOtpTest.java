@@ -102,7 +102,6 @@ class PowerAuthCustomActivationOtpTest {
         createModel.setActivationName("test v" + VERSION);
         createModel.setApplicationKey(config.getApplicationKey());
         createModel.setApplicationSecret(config.getApplicationSecret());
-        createModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         createModel.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
         createModel.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
         createModel.setHeaders(new HashMap<>());

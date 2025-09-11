@@ -256,12 +256,9 @@ public class PowerAuthAuthenticationShared {
         modelPrepare.setActivationName("test v" + version);
         modelPrepare.setApplicationKey(config.getApplicationKey());
         modelPrepare.setApplicationSecret(config.getApplicationSecret());
-        modelPrepare.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
-        if (version.getMajorVersion() == 4) {
-            modelPrepare.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
-            modelPrepare.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
-            modelPrepare.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
-        }
+        modelPrepare.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
+        modelPrepare.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
+        modelPrepare.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
         modelPrepare.setHeaders(new HashMap<>());
         modelPrepare.setPassword(config.getPassword());
         modelPrepare.setStatusFileName(tempStatusFile.getAbsolutePath());
@@ -336,12 +333,9 @@ public class PowerAuthAuthenticationShared {
         modelPrepare.setActivationName("test v" + version);
         modelPrepare.setApplicationKey(config.getApplicationKey());
         modelPrepare.setApplicationSecret(config.getApplicationSecret());
-        modelPrepare.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
-        if (version.getMajorVersion() == 4) {
-            modelPrepare.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
-            modelPrepare.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
-            modelPrepare.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
-        }
+        modelPrepare.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
+        modelPrepare.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
+        modelPrepare.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
         modelPrepare.setHeaders(new HashMap<>());
         modelPrepare.setPassword(config.getPassword());
         modelPrepare.setStatusFileName(tempStatusFile.getAbsolutePath());

@@ -73,7 +73,6 @@ class PowerAuthApplicationConfigurationTest {
         encryptModel = new EncryptStepModel();
         encryptModel.setApplicationKey(config.getApplicationKey());
         encryptModel.setApplicationSecret(config.getApplicationSecret());
-        encryptModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         encryptModel.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
         encryptModel.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
         encryptModel.setHeaders(new HashMap<>());

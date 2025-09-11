@@ -83,7 +83,6 @@ public class PowerAuthActivationFlagsTest {
         model.setActivationName("test v4 flags");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         model.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
         model.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
         model.setHeaders(new HashMap<>());

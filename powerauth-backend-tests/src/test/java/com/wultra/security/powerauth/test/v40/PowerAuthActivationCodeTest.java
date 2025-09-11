@@ -75,7 +75,6 @@ public class PowerAuthActivationCodeTest {
         activationModel.setActivationName("test v" + VERSION);
         activationModel.setApplicationKey(config.getApplicationKey());
         activationModel.setApplicationSecret(config.getApplicationSecret());
-        activationModel.setMasterPublicKeyP256(config.getMasterPublicKeyP256());
         activationModel.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
         activationModel.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
         activationModel.setHeaders(new HashMap<>());
