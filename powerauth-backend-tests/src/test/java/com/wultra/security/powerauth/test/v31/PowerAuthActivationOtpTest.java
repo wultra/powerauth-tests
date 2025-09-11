@@ -19,7 +19,7 @@ package com.wultra.security.powerauth.test.v31;
 
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.PowerAuthActivationOtpShared;
+import com.wultra.security.powerauth.test.shared.v3.PowerAuthActivationOtpShared;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
@@ -101,13 +101,13 @@ class PowerAuthActivationOtpTest {
     }
 
     @Test
-    void validOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationOtpShared.validOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
+    void validOtpOnKeyExchangeTest() throws Exception {
+        PowerAuthActivationOtpShared.validOtpOnKeyExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
     }
 
     @Test
-    void invalidOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationOtpShared.invalidOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
+    void invalidOtpOnKeyExchangeTest() throws Exception {
+        PowerAuthActivationOtpShared.invalidOtpOnKeyExchangeTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
     }
 
     @Test
@@ -156,8 +156,8 @@ class PowerAuthActivationOtpTest {
     }
 
     @Test
-    void missingOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationOtpShared.missingOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
+    void missingOtpOnKeyExchangeTest() throws Exception {
+        PowerAuthActivationOtpShared.missingOtpOnKeyExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
     }
 
 }

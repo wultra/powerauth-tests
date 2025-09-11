@@ -19,8 +19,7 @@ package com.wultra.security.powerauth.test.v32;
 
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.PowerAuthActivationCommitPhaseShared;
-import com.wultra.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
+import com.wultra.security.powerauth.test.shared.v3.PowerAuthActivationCommitPhaseShared;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
@@ -59,8 +58,6 @@ class PowerAuthActivationCommitPhaseTest {
 
     private final String validOtpValue = "1234-5678";
     private final String invalidOtpValue = "8765-4321";
-
-    private static final PowerAuthClientActivation activation = new PowerAuthClientActivation();
 
     @Autowired
     public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
@@ -104,13 +101,13 @@ class PowerAuthActivationCommitPhaseTest {
     }
 
     @Test
-    void validOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationCommitPhaseShared.validOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
+    void validOtpOnKeyExchangeTest() throws Exception {
+        PowerAuthActivationCommitPhaseShared.validOtpOnKeyExchangeTest(powerAuthClient, config, model, validOtpValue, VERSION);
     }
 
     @Test
-    void invalidOtpOnKeysExchangeTest() throws Exception {
-        PowerAuthActivationCommitPhaseShared.invalidOtpOnKeysExchangeTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
+    void invalidOtpOnKeyExchangeTest() throws Exception {
+        PowerAuthActivationCommitPhaseShared.invalidOtpOnKeyExchangeTest(powerAuthClient, config, model, validOtpValue, invalidOtpValue, VERSION);
     }
 
     @Test

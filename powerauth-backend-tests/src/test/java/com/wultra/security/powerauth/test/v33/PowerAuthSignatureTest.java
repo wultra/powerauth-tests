@@ -19,7 +19,7 @@ package com.wultra.security.powerauth.test.v33;
 
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.PowerAuthSignatureShared;
+import com.wultra.security.powerauth.test.shared.v3.PowerAuthSignatureShared;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -74,9 +74,9 @@ class PowerAuthSignatureTest {
 
     @BeforeAll
     static void setUpBeforeClass() throws IOException {
-        dataFile = File.createTempFile("data", ".json");
+        dataFile = File.createTempFile("data", ".txt");
         FileWriter fw = new FileWriter(dataFile);
-        fw.write("All your base are belong to us!");
+        fw.write("Confidential test message used for testing");
         fw.close();
     }
 

@@ -19,7 +19,7 @@ package com.wultra.security.powerauth.test.v3x;
 
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.PowerAuthActivationFlagsShared;
+import com.wultra.security.powerauth.test.shared.v3.PowerAuthActivationFlagsShared;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import org.json.simple.JSONObject;
@@ -79,7 +79,7 @@ public class PowerAuthActivationFlagsTest {
 
         // Model shared among tests
         model = new PrepareActivationStepModel();
-        model.setActivationName("test v31 flags");
+        model.setActivationName("test v3 flags");
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKeyP256(config.getMasterPublicKeyP256());

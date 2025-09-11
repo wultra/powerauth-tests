@@ -23,7 +23,7 @@ import com.wultra.security.powerauth.client.model.entity.CallbackUrl;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.response.GetCallbackUrlListResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.test.shared.PowerAuthCallbackShared;
+import com.wultra.security.powerauth.test.shared.v3.PowerAuthCallbackShared;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

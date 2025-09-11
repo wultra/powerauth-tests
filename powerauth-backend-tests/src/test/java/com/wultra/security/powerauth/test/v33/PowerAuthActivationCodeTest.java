@@ -86,7 +86,7 @@ public class PowerAuthActivationCodeTest {
         signatureModel = new VerifyAuthenticationStepModel();
         signatureModel.setApplicationKey(config.getApplicationKey());
         signatureModel.setApplicationSecret(config.getApplicationSecret());
-        signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_BIOMETRY);
+        signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE);
         signatureModel.setPassword(config.getPassword());
         signatureModel.setHttpMethod("POST");
         signatureModel.setHeaders(new HashMap<>());
