@@ -526,8 +526,7 @@ public class PowerAuthSignatureShared {
 
         // The remainder of last line is Base64 encoded ECDSA signature
         final String ecdsaSignature = lastLine.substring(1);
-        final byte[] serverPublicKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("ecServerPublicKey"));
-        final PublicKey serverPublicKey = config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
+        final PublicKey serverPublicKey = model.getResultStatus().getEcServerPublicKeyObject();
 
         // Prepare offline data without signature
         final String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
@@ -768,8 +767,7 @@ public class PowerAuthSignatureShared {
 
         // The remainder of last line is Base64 encoded ECDSA signature
         final String ecdsaSignature = lastLine.substring(1);
-        final byte[] serverPublicKeyBytes = Base64.getDecoder().decode(model.getResultStatus().getEcServerPublicKey());
-        final PublicKey serverPublicKey = config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
+        final PublicKey serverPublicKey = model.getResultStatus().getEcServerPublicKeyObject();
 
         // Prepare offline data without signature
         final String offlineDataWithoutSignature = offlineDataResponse.substring(0, offlineDataResponse.length() - ecdsaSignature.length());
