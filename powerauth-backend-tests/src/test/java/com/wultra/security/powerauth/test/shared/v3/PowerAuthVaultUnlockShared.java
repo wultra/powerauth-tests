@@ -26,6 +26,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncrypte
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -51,6 +52,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthVaultUnlockShared {
 
+    private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
 
     public static void vaultUnlockTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {
