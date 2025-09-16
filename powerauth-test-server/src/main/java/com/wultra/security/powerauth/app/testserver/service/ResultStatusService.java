@@ -61,14 +61,14 @@ public class ResultStatusService {
         final Optional<TestStatusEntity> statusOptional = appStatusRepository.findById(activationId);
         final TestStatusEntity statusEntity = statusOptional.orElseGet(TestStatusEntity::new);
 
-        final String serverPublicKey = getStringValue(resultStatusObject, "serverPublicKey");
+        final String serverPublicKey = getStringValue(resultStatusObject, "ecServerPublicKey");
         final Long counter = getLongValue(resultStatusObject, "counter");
         final String ctrData = getStringValue(resultStatusObject, "ctrData");
-        final String encryptedDevicePrivateKey = getStringValue(resultStatusObject, "encryptedDevicePrivateKey");
-        final String signatureBiometryKey = getStringValue(resultStatusObject, "signatureBiometryKey");
-        final String signatureKnowledgeKeyEncrypted = getStringValue(resultStatusObject, "signatureKnowledgeKeyEncrypted");
-        final String signatureKnowledgeKeySalt = getStringValue(resultStatusObject, "signatureKnowledgeKeySalt");
-        final String signaturePossessionKey = getStringValue(resultStatusObject, "signaturePossessionKey");
+        final String encryptedDevicePrivateKey = getStringValue(resultStatusObject, "encryptedEcDevicePrivateKey");
+        final String signatureBiometryKey = getStringValue(resultStatusObject, "biometryFactorKey");
+        final String signatureKnowledgeKeyEncrypted = getStringValue(resultStatusObject, "knowledgeFactorKeyEncrypted");
+        final String signatureKnowledgeKeySalt = getStringValue(resultStatusObject, "knowledgeFactorKeySalt");
+        final String signaturePossessionKey = getStringValue(resultStatusObject, "possessionFactorKey");
         final String transportMasterKey = getStringValue(resultStatusObject, "transportMasterKey");
 
         statusEntity.setActivationId(activationId);
@@ -96,14 +96,14 @@ public class ResultStatusService {
 
         final JSONObject result = new JSONObject();
         result.put("activationId", testStatusEntity.getActivationId());
-        result.put("serverPublicKey", testStatusEntity.getServerPublicKey());
+        result.put("ecServerPublicKey", testStatusEntity.getServerPublicKey());
         result.put("counter", testStatusEntity.getCounter());
         result.put("ctrData", testStatusEntity.getCtrData());
-        result.put("encryptedDevicePrivateKey", testStatusEntity.getEncryptedDevicePrivateKey());
-        result.put("signatureBiometryKey", testStatusEntity.getSignatureBiometryKey());
-        result.put("signatureKnowledgeKeyEncrypted", testStatusEntity.getSignatureKnowledgeKeyEncrypted());
-        result.put("signatureKnowledgeKeySalt", testStatusEntity.getSignatureKnowledgeKeySalt());
-        result.put("signaturePossessionKey", testStatusEntity.getSignaturePossessionKey());
+        result.put("encryptedEcDevicePrivateKey", testStatusEntity.getEncryptedDevicePrivateKey());
+        result.put("biometryFactorKey", testStatusEntity.getSignatureBiometryKey());
+        result.put("knowledgeFactorKeyEncrypted", testStatusEntity.getSignatureKnowledgeKeyEncrypted());
+        result.put("knowledgeFactorKeySalt", testStatusEntity.getSignatureKnowledgeKeySalt());
+        result.put("possessionFactorKey", testStatusEntity.getSignaturePossessionKey());
         result.put("transportMasterKey", testStatusEntity.getTransportMasterKey());
         result.put("version", 3L);
 

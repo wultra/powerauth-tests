@@ -61,12 +61,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class PowerAuthApiShared {
 
     private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
-    private static final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
     private static final PowerAuthClientAuthentication CLIENT_AUTHENTICATION = new PowerAuthClientAuthentication();
     private static final PowerAuthClientKeyFactory KEY_FACTORY = new PowerAuthClientKeyFactory();
-    private static final ClientTokenGenerator CLIENT_TOKEN_GENERATOR = new ClientTokenGenerator();
 
     private static final int TIME_SYNCHRONIZATION_WINDOW_SECONDS = 60;
 

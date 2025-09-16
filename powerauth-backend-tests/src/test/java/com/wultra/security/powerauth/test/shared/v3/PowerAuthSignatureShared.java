@@ -453,51 +453,49 @@ public class PowerAuthSignatureShared {
     public static void signatureOfflinePersonalizedValidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         final CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(
                 config.getActivationId(version), offlineData);
-        String nonce = offlineResponse.getNonce();
-        String offlineData = offlineResponse.getOfflineData();
+        final String nonce = offlineResponse.getNonce();
+        final String offlineData = offlineResponse.getOfflineData();
 
         // Split the offline data into individual lines
-        String[] parts = offlineData.split("\n");
+        final String[] parts = offlineData.split("\n");
 
         // Extract last line which contains information about key and ECDSA signature
-        String lastLine = parts[parts.length-1];
+        final String lastLine = parts[parts.length-1];
 
         // 1 = KEY_SERVER_PRIVATE was used to sign data (personalized offline signature)
         assertEquals("1", lastLine.substring(0, 1));
 
         // The remainder of last line is Base64 encoded ECDSA signature
-        String ecdsaSignature = lastLine.substring(1);
-        final byte[] serverPublicKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("serverPublicKey"));
-        final PublicKey serverPublicKey = config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
+        final String ecdsaSignature = lastLine.substring(1);
+        final PublicKey serverPublicKey = model.getResultStatus().getEcServerPublicKeyObject();
 
         // Prepare offline data without signature
-        String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
+        final String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
         assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
 
         // Prepare data for PowerAuth signature
-        String dataForSignature = operationId + "&" + operationData;
+        final String dataForSignature = operationId + "&" + operationData;
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
+        final String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
-        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
-        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
-        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
+        final byte[] signatureKnowledgeKeySalt = model.getResultStatus().getKnowledgeFactorKeySaltBytes();
+        final byte[] signatureKnowledgeKeyEncryptedBytes = model.getResultStatus().getKnowledgeFactorKeyEncryptedBytes();
 
         // Get the signature keys
-        SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
-        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
+        final SecretKey signaturePossessionKey = model.getResultStatus().getPossessionFactorKeyObject();
+        final SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list
-        List<SecretKey> signatureKeys = new ArrayList<>();
+        final List<SecretKey> signatureKeys = new ArrayList<>();
         signatureKeys.add(signaturePossessionKey);
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
+        final String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
         final VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
@@ -512,49 +510,47 @@ public class PowerAuthSignatureShared {
     }
 
     public static void signatureOfflinePersonalizedInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
-
-        CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(
+        final CreatePersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineSignaturePayload(
                 config.getActivationId(version), offlineData);
-        String nonce = offlineResponse.getNonce();
-        String offlineData = offlineResponse.getOfflineData();
+        final String nonce = offlineResponse.getNonce();
+        final String offlineData = offlineResponse.getOfflineData();
 
         // Split the offline data into individual lines
-        String[] parts = offlineData.split("\n");
+        final String[] parts = offlineData.split("\n");
 
         // Extract last line which contains information about key and ECDSA signature
-        String lastLine = parts[parts.length-1];
+        final String lastLine = parts[parts.length-1];
 
         // 1 = KEY_SERVER_PRIVATE was used to sign data (personalized offline signature)
         assertEquals("1", lastLine.substring(0, 1));
 
         // The remainder of last line is Base64 encoded ECDSA signature
-        String ecdsaSignature = lastLine.substring(1);
-        final byte[] serverPublicKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("serverPublicKey"));
+        final String ecdsaSignature = lastLine.substring(1);
+        final byte[] serverPublicKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("ecServerPublicKey"));
         final PublicKey serverPublicKey = config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
 
         // Prepare offline data without signature
-        String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
+        final String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
         assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), serverPublicKey));
 
         // Prepare data for PowerAuth signature
-        String dataForSignature = operationId + "&" + operationData;
+        final String dataForSignature = operationId + "&" + operationData;
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
+        final String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
-        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
-        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
-        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
+        final byte[] signatureKnowledgeKeySalt = model.getResultStatus().getKnowledgeFactorKeySaltBytes();
+        final byte[] signatureKnowledgeKeyEncryptedBytes = model.getResultStatus().getKnowledgeFactorKeyEncryptedBytes();
 
         // Get the signature keys
-        SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
-        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
+        final SecretKey signaturePossessionKey = model.getResultStatus().getPossessionFactorKeyObject();
+        final SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list
-        List<SecretKey> signatureKeys = new ArrayList<>();
+        final List<SecretKey> signatureKeys = new ArrayList<>();
         signatureKeys.add(signaturePossessionKey);
         signatureKeys.add(signatureKnowledgeKey);
 
@@ -562,11 +558,11 @@ public class PowerAuthSignatureShared {
         String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
         // Cripple signature
-        String digitToReplace = signature.substring(0, 1);
+        final String digitToReplace = signature.substring(0, 1);
         final String replacedDigit = String.valueOf((Integer.parseInt(digitToReplace) + 1) % 10);
         signature = signature.replace(digitToReplace, replacedDigit);
 
-        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), signatureBaseString, signature, true);
+        final VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), signatureBaseString, signature, true);
         assertFalse(signatureResponse.isSignatureValid());
         assertEquals(config.getActivationId(version), signatureResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, signatureResponse.getActivationStatus());
@@ -576,53 +572,52 @@ public class PowerAuthSignatureShared {
     }
 
     public static void signatureOfflineNonPersonalizedValidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
-        CreateNonPersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(
+        final CreateNonPersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(
                 config.getApplicationId(), offlineData);
-        String nonce = offlineResponse.getNonce();
-        String offlineData = offlineResponse.getOfflineData();
+        final String nonce = offlineResponse.getNonce();
+        final String offlineData = offlineResponse.getOfflineData();
 
         // Split the offline data into individual lines
-        String[] parts = offlineData.split("\n");
+        final String[] parts = offlineData.split("\n");
 
         // Extract last line which contains information about key and ECDSA signature
-        String lastLine = parts[parts.length-1];
+        final String lastLine = parts[parts.length-1];
 
         // 1 = KEY_SERVER_MASTER_PRIVATE was used to sign data (non-personalized offline signature)
         assertEquals("0", lastLine.substring(0, 1));
 
         // The remainder of last line is Base64 encoded ECDSA signature
-        String ecdsaSignature = lastLine.substring(1);
+        final String ecdsaSignature = lastLine.substring(1);
 
         // Prepare offline data without signature
-        String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
+        final String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
         assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKeyP256()));
 
         // Prepare data for PowerAuth signature
-        String dataForSignature = operationId + "&" + operationData;
+        final String dataForSignature = operationId + "&" + operationData;
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
+        final String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
-        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
-        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
-        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
+        final byte[] signatureKnowledgeKeySalt = model.getResultStatus().getKnowledgeFactorKeySaltBytes();
+        final byte[] signatureKnowledgeKeyEncryptedBytes = model.getResultStatus().getKnowledgeFactorKeyEncryptedBytes();
 
         // Get the signature keys
-        SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
-        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
+        final SecretKey signaturePossessionKey = model.getResultStatus().getPossessionFactorKeyObject();
+        final SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list
-        List<SecretKey> signatureKeys = new ArrayList<>();
+        final List<SecretKey> signatureKeys = new ArrayList<>();
         signatureKeys.add(signaturePossessionKey);
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
+        final String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
-        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), signatureBaseString, signature, true);
+        final VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
         assertEquals(config.getActivationId(version), signatureResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, signatureResponse.getActivationStatus());
@@ -635,46 +630,45 @@ public class PowerAuthSignatureShared {
     }
 
     public static void signatureOfflineNonPersonalizedInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
-        CreateNonPersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(
+        final CreateNonPersonalizedOfflineSignaturePayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineSignaturePayload(
                 config.getApplicationId(), offlineData);
-        String nonce = offlineResponse.getNonce();
-        String offlineData = offlineResponse.getOfflineData();
+        final String nonce = offlineResponse.getNonce();
+        final String offlineData = offlineResponse.getOfflineData();
 
         // Split the offline data into individual lines
-        String[] parts = offlineData.split("\n");
+        final String[] parts = offlineData.split("\n");
 
         // Extract last line which contains information about key and ECDSA signature
-        String lastLine = parts[parts.length-1];
+        final String lastLine = parts[parts.length-1];
 
         // 1 = KEY_SERVER_MASTER_PRIVATE was used to sign data (non-personalized offline signature)
         assertEquals("0", lastLine.substring(0, 1));
 
         // The remainder of last line is Base64 encoded ECDSA signature
-        String ecdsaSignature = lastLine.substring(1);
+        final String ecdsaSignature = lastLine.substring(1);
 
         // Prepare offline data without signature
-        String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
+        final String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
 
         // Validate ECDSA signature of data using server public key
         assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKeyP256()));
 
         // Prepare data for PowerAuth signature
-        String dataForSignature = operationId + "&" + operationData;
+        final String dataForSignature = operationId + "&" + operationData;
 
         // Prepare normalized data for signature
-        String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
+        final String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
-        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
-        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
-        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
+        byte[] signatureKnowledgeKeySalt = model.getResultStatus().getKnowledgeFactorKeySaltBytes();
+        byte[] signatureKnowledgeKeyEncryptedBytes = model.getResultStatus().getKnowledgeFactorKeyEncryptedBytes();
 
         // Get the signature keys
-        SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
-        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
+        final SecretKey signaturePossessionKey = model.getResultStatus().getPossessionFactorKeyObject();
+        final SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list
-        List<SecretKey> signatureKeys = new ArrayList<>();
+        final List<SecretKey> signatureKeys = new ArrayList<>();
         signatureKeys.add(signaturePossessionKey);
         signatureKeys.add(signatureKnowledgeKey);
 
@@ -682,11 +676,11 @@ public class PowerAuthSignatureShared {
         String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
 
         // Cripple signature
-        String digitToReplace = signature.substring(0, 1);
+        final String digitToReplace = signature.substring(0, 1);
         final String replacedDigit = String.valueOf((Integer.parseInt(digitToReplace) + 1) % 10);
         signature = signature.replace(digitToReplace, replacedDigit);
 
-        VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), signatureBaseString, signature, true);
+        final VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), signatureBaseString, signature, true);
         assertFalse(signatureResponse.isSignatureValid());
         assertEquals(config.getActivationId(version), signatureResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, signatureResponse.getActivationStatus());
@@ -697,9 +691,9 @@ public class PowerAuthSignatureShared {
 
     public static void signatureSwappedKeyTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         // Save biometry key
-        String biometryKeyOrig = (String) model.getResultStatusObject().get("signatureBiometryKey");
+        String biometryKeyOrig = (String) model.getResultStatusObject().get("biometryFactorKey");
         // Set possession key as biometry key
-        model.getResultStatusObject().put("signatureBiometryKey", model.getResultStatusObject().get("signaturePossessionKey"));
+        model.getResultStatusObject().put("biometryFactorKey", model.getResultStatusObject().get("possessionFactorKey"));
         // Verify three factor signature
         model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY);
 
@@ -713,7 +707,7 @@ public class PowerAuthSignatureShared {
         checkError(errorResponse);
 
         // Revert biometry key change
-        model.getResultStatusObject().put("signatureBiometryKey", biometryKeyOrig);
+        model.getResultStatusObject().put("biometryFactorKey", biometryKeyOrig);
     }
 
     public static void signatureInvalidResourceIdTest(final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
@@ -791,12 +785,11 @@ public class PowerAuthSignatureShared {
         final String signatureBaseStringWithOtp = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignatureWithOtp.getBytes(StandardCharsets.UTF_8));
 
         // Prepare keys
-        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signaturePossessionKey"));
-        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeySalt"));
-        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode((String) model.getResultStatusObject().get("signatureKnowledgeKeyEncrypted"));
+        final byte[] signatureKnowledgeKeySalt = model.getResultStatus().getKnowledgeFactorKeySaltBytes();
+        final byte[] signatureKnowledgeKeyEncryptedBytes = model.getResultStatus().getKnowledgeFactorKeyEncryptedBytes();
 
         // Get the signature keys
-        final SecretKey signaturePossessionKey = config.getKeyConvertor().convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
+        final SecretKey signaturePossessionKey =  model.getResultStatus().getPossessionFactorKeyObject();
         final SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, new KeyGenerator());
 
         // Put keys into a list
