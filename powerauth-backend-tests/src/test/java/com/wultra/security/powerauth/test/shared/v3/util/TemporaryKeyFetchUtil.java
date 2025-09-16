@@ -148,7 +148,7 @@ public class TemporaryKeyFetchUtil {
         final SignedJWT decodedJWT = SignedJWT.parse(jwtResponse);
         final PublicKey publicKey = switch (scope) {
             case ACTIVATION_SCOPE -> {
-                final byte[] serverPublicKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "serverPublicKey"));
+                final byte[] serverPublicKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "ecServerPublicKey"));
                 yield KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
             }
             case APPLICATION_SCOPE -> config.getMasterPublicKeyP256();

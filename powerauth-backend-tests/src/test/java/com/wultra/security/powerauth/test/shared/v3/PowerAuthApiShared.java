@@ -89,28 +89,27 @@ public class PowerAuthApiShared {
     private static final int TIME_SYNCHRONIZATION_WINDOW_SECONDS = 60;
 
     public static void verifySignatureTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PowerAuthVersion version) throws GenericCryptoException, CryptoProviderException, InvalidKeyException, PowerAuthClientException {
-        Calendar before = new GregorianCalendar();
-        before.add(Calendar.SECOND, -TIME_SYNCHRONIZATION_WINDOW_SECONDS);
-        byte[] nonceBytes = KEY_GENERATOR.generateRandomBytes(16);
-        String data = "test_data";
-        String normalizedData = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/pa/signature/validate", nonceBytes, data.getBytes(StandardCharsets.UTF_8));
-        String normalizedDataWithSecret = normalizedData + "&" + config.getApplicationSecret();
-        byte[] ctrData = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "ctrData"));
-        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "signaturePossessionKey"));
-        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "signatureKnowledgeKeySalt"));
-        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "signatureKnowledgeKeyEncrypted"));
-        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, KEY_GENERATOR);
-        SecretKey signaturePossessionKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
-        String signatureValue = CLIENT_SIGNATURE.computeAuthCode(normalizedDataWithSecret.getBytes(StandardCharsets.UTF_8), KEY_FACTORY.keysForAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE,
-                signaturePossessionKey, signatureKnowledgeKey, null), ctrData, AuthenticationCodeConfiguration.base64());
-        VerifySignatureResponse signatureResponse = powerAuthClient.verifySignature(config.getActivationId(version), config.getApplicationKey(), normalizedData, signatureValue, SignatureType.POSSESSION_KNOWLEDGE, version.value(), null);
-        assertTrue(signatureResponse.isSignatureValid());
-        BaseStepModel model = new BaseStepModel();
+        final BaseStepModel model = new BaseStepModel();
         model.setResultStatusObject(config.getResultStatusObject(version));
+        final Calendar before = new GregorianCalendar();
+        before.add(Calendar.SECOND, -TIME_SYNCHRONIZATION_WINDOW_SECONDS);
+        final byte[] nonceBytes = KEY_GENERATOR.generateRandomBytes(16);
+        final String data = "test_data";
+        final String normalizedData = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/pa/signature/validate", nonceBytes, data.getBytes(StandardCharsets.UTF_8));
+        final String normalizedDataWithSecret = normalizedData + "&" + config.getApplicationSecret();
+        final byte[] ctrData = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "ctrData"));
+        final byte[] signatureKnowledgeKeySalt = model.getResultStatus().getKnowledgeFactorKeySaltBytes();
+        final byte[] signatureKnowledgeKeyEncryptedBytes = model.getResultStatus().getKnowledgeFactorKeyEncryptedBytes();
+        final SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, KEY_GENERATOR);
+        final SecretKey signaturePossessionKey = model.getResultStatus().getPossessionFactorKeyObject();
+        final String signatureValue = CLIENT_SIGNATURE.computeAuthCode(normalizedDataWithSecret.getBytes(StandardCharsets.UTF_8), KEY_FACTORY.keysForAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE,
+                signaturePossessionKey, signatureKnowledgeKey, null), ctrData, AuthenticationCodeConfiguration.base64());
+        final VerifySignatureResponse signatureResponse = powerAuthClient.verifySignature(config.getActivationId(version), config.getApplicationKey(), normalizedData, signatureValue, SignatureType.POSSESSION_KNOWLEDGE, version.value(), null);
+        assertTrue(signatureResponse.isSignatureValid());
         CounterUtil.incrementCounter(model);
-        Calendar after = new GregorianCalendar();
+        final Calendar after = new GregorianCalendar();
         after.add(Calendar.SECOND, TIME_SYNCHRONIZATION_WINDOW_SECONDS);
-        List<SignatureAuditItem> auditItems = powerAuthClient.getSignatureAuditLog(config.getUser(version), config.getApplicationId(), before.getTime(), after.getTime());
+        final List<SignatureAuditItem> auditItems = powerAuthClient.getSignatureAuditLog(config.getUser(version), config.getApplicationId(), before.getTime(), after.getTime());
         boolean signatureFound = false;
         for (SignatureAuditItem item : auditItems) {
             if (signatureValue.equals(item.getSignature())) {
@@ -129,22 +128,24 @@ public class PowerAuthApiShared {
     }
 
     public static void unlockVaultAndECDSASignatureTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PowerAuthVersion version) throws Exception {
-        byte[] transportMasterKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "transportMasterKey"));
-        byte[] serverPublicKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "serverPublicKey"));
-        byte[] encryptedDevicePrivateKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "encryptedDevicePrivateKey"));
-        byte[] nonceBytes = KEY_GENERATOR.generateRandomBytes(16);
-        final PublicKey serverPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
+        final BaseStepModel model = new BaseStepModel();
+        model.setResultStatusObject(config.getResultStatusObject(version));
+        final String transportMasterKeyBase64 = model.getResultStatus().getTransportMasterKey();
+        final byte[] transportMasterKeyBytes = Base64.getDecoder().decode(transportMasterKeyBase64);
+        final byte[] encryptedDevicePrivateKeyBytes = model.getResultStatus().getEncryptedEcDevicePrivateKeyBytes();
+        final byte[] nonceBytes = KEY_GENERATOR.generateRandomBytes(16);
+        final PublicKey serverPublicKey = model.getResultStatus().getEcServerPublicKeyObject();;
         final TemporaryKey temporaryKey = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.ACTIVATION_SCOPE, config);
         final ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.VAULT_UNLOCK,
                 new EncryptorParameters(version.value(), config.getApplicationKey(), config.getActivationId(version), temporaryKey != null ? temporaryKey.getId() : null),
                 new ClientEciesSecrets(temporaryKey != null ? temporaryKey.getPublicKey() : serverPublicKey, config.getApplicationSecret(), transportMasterKeyBytes)
         );
-        VaultUnlockRequestPayload requestPayload = new VaultUnlockRequestPayload();
+        final VaultUnlockRequestPayload requestPayload = new VaultUnlockRequestPayload();
         requestPayload.setReason("TEST");
         final byte[] requestBytesPayload = OBJECT_MAPPER.writeValueAsBytes(requestPayload);
         final EciesEncryptedRequest encryptedRequest = clientEncryptor.encryptRequest(requestBytesPayload);
-        EciesEncryptedRequest eciesRequest = new EciesEncryptedRequest();
+        final EciesEncryptedRequest eciesRequest = new EciesEncryptedRequest();
         eciesRequest.setEphemeralPublicKey(encryptedRequest.getEphemeralPublicKey());
         eciesRequest.setEncryptedData(encryptedRequest.getEncryptedData());
         eciesRequest.setMac(encryptedRequest.getMac());
@@ -152,15 +153,14 @@ public class PowerAuthApiShared {
         eciesRequest.setTimestamp(encryptedRequest.getTimestamp());
         eciesRequest.setTemporaryKeyId(temporaryKey != null ? temporaryKey.getId() : null);
         final byte[] requestBytes = OBJECT_MAPPER.writeValueAsBytes(eciesRequest);
-        String normalizedData = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/pa/signature/validate", nonceBytes, requestBytes);
-        String normalizedDataWithSecret = normalizedData + "&" + config.getApplicationSecret();
-        byte[] ctrData = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "ctrData"));
-        byte[] signaturePossessionKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "signaturePossessionKey"));
-        byte[] signatureKnowledgeKeySalt = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "signatureKnowledgeKeySalt"));
-        byte[] signatureKnowledgeKeyEncryptedBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "signatureKnowledgeKeyEncrypted"));
-        SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, KEY_GENERATOR);
-        SecretKey signaturePossessionKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(signaturePossessionKeyBytes);
-        String signatureValue = CLIENT_SIGNATURE.computeAuthCode(normalizedDataWithSecret.getBytes(StandardCharsets.UTF_8), KEY_FACTORY.keysForAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE,
+        final String normalizedData = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/pa/signature/validate", nonceBytes, requestBytes);
+        final String normalizedDataWithSecret = normalizedData + "&" + config.getApplicationSecret();
+        final byte[] ctrData = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "ctrData"));
+        final byte[] signatureKnowledgeKeySalt = model.getResultStatus().getKnowledgeFactorKeySaltBytes();
+        final byte[] signatureKnowledgeKeyEncryptedBytes = model.getResultStatus().getKnowledgeFactorKeyEncryptedBytes();
+        final SecretKey signatureKnowledgeKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), signatureKnowledgeKeyEncryptedBytes, signatureKnowledgeKeySalt, KEY_GENERATOR);
+        final SecretKey signaturePossessionKey = model.getResultStatus().getPossessionFactorKeyObject();
+        final String signatureValue = CLIENT_SIGNATURE.computeAuthCode(normalizedDataWithSecret.getBytes(StandardCharsets.UTF_8), KEY_FACTORY.keysForAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE,
                 signaturePossessionKey, signatureKnowledgeKey, null), ctrData, AuthenticationCodeConfiguration.base64());
         final VaultUnlockRequest unlockRequest = new VaultUnlockRequest();
         unlockRequest.setActivationId(config.getActivationId(version));
@@ -175,27 +175,25 @@ public class PowerAuthApiShared {
         unlockRequest.setNonce(eciesRequest.getNonce());
         unlockRequest.setTimestamp(eciesRequest.getTimestamp());
         unlockRequest.setTemporaryKeyId(eciesRequest.getTemporaryKeyId());
-        VaultUnlockResponse unlockResponse = powerAuthClient.unlockVault(unlockRequest);
+        final VaultUnlockResponse unlockResponse = powerAuthClient.unlockVault(unlockRequest);
         assertTrue(unlockResponse.isSignatureValid());
-        byte[] decryptedData = clientEncryptor.decryptResponse(new EciesEncryptedResponse(
+        final byte[] decryptedData = clientEncryptor.decryptResponse(new EciesEncryptedResponse(
                 unlockResponse.getEncryptedData(),
                 unlockResponse.getMac(),
                 unlockResponse.getNonce(),
                 unlockResponse.getTimestamp()
         ));
-        VaultUnlockResponsePayload response = OBJECT_MAPPER.readValue(decryptedData, VaultUnlockResponsePayload.class);
+        final VaultUnlockResponsePayload response = OBJECT_MAPPER.readValue(decryptedData, VaultUnlockResponsePayload.class);
         assertNotNull(response.getEncryptedVaultEncryptionKey());
-        byte[] encryptedVaultEncryptionKey = Base64.getDecoder().decode(response.getEncryptedVaultEncryptionKey());
-        SecretKey transportMasterKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(transportMasterKeyBytes);
-        SecretKey vaultEncryptionKey = CLIENT_VAULT.decryptVaultEncryptionKey(encryptedVaultEncryptionKey, transportMasterKey);
-        PrivateKey devicePrivateKey = CLIENT_VAULT.decryptDevicePrivateKey(encryptedDevicePrivateKeyBytes, vaultEncryptionKey);
+        final byte[] encryptedVaultEncryptionKey = Base64.getDecoder().decode(response.getEncryptedVaultEncryptionKey());
+        final SecretKey transportMasterKey = model.getResultStatus().getTransportMasterKeyObject();
+        final SecretKey vaultEncryptionKey = CLIENT_VAULT.decryptVaultEncryptionKey(encryptedVaultEncryptionKey, transportMasterKey);
+        final PrivateKey devicePrivateKey = CLIENT_VAULT.decryptDevicePrivateKey(encryptedDevicePrivateKeyBytes, vaultEncryptionKey);
         assertNotNull(devicePrivateKey);
-        BaseStepModel model = new BaseStepModel();
-        model.setResultStatusObject(config.getResultStatusObject(version));
         CounterUtil.incrementCounter(model);
-        String testData = "test_data";
-        byte[] ecdsaSignature = SIGNATURE_UTILS.computeECDSASignature(EcCurve.P256, testData.getBytes(StandardCharsets.UTF_8), devicePrivateKey);
-        VerifyECDSASignatureResponse ecdsaResponse = powerAuthClient.verifyECDSASignature(config.getActivationId(version),
+        final String testData = "test_data";
+        final byte[] ecdsaSignature = SIGNATURE_UTILS.computeECDSASignature(EcCurve.P256, testData.getBytes(StandardCharsets.UTF_8), devicePrivateKey);
+        final VerifyECDSASignatureResponse ecdsaResponse = powerAuthClient.verifyECDSASignature(config.getActivationId(version),
                 Base64.getEncoder().encodeToString(testData.getBytes(StandardCharsets.UTF_8)), Base64.getEncoder().encodeToString(ecdsaSignature));
         assertTrue(ecdsaResponse.isSignatureValid());
     }
@@ -223,9 +221,11 @@ public class PowerAuthApiShared {
     // Application roles are tested using PowerAuthApplicationRolesTest
 
     private static TokenInfo createToken(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PowerAuthVersion version) throws Exception {
-        byte[] transportMasterKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "transportMasterKey"));
-        byte[] serverPublicKeyBytes = Base64.getDecoder().decode(JsonUtil.stringValue(config.getResultStatusObject(version), "serverPublicKey"));
-        final PublicKey serverPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, serverPublicKeyBytes);
+        final BaseStepModel model = new BaseStepModel();
+        model.setResultStatusObject(config.getResultStatusObject(version));
+        final String transportMasterKeyBase64 = model.getResultStatus().getTransportMasterKey();
+        final byte[] transportMasterKeyBytes = Base64.getDecoder().decode(transportMasterKeyBase64);
+        final PublicKey serverPublicKey = model.getResultStatus().getEcServerPublicKeyObject();
         final TemporaryKey temporaryKey = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.ACTIVATION_SCOPE, config);
         final ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.CREATE_TOKEN,
@@ -255,8 +255,6 @@ public class PowerAuthApiShared {
         final TokenResponsePayload response = OBJECT_MAPPER.readValue(decryptedData, TokenResponsePayload.class);
         assertNotNull(response.getTokenId());
         assertNotNull(response.getTokenSecret());
-        final BaseStepModel model = new BaseStepModel();
-        model.setResultStatusObject(config.getResultStatusObject(version));
         CounterUtil.incrementCounter(model);
         final TokenInfo tokenInfo = new TokenInfo();
         tokenInfo.setTokenId(response.getTokenId());
