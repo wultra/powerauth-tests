@@ -26,9 +26,12 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncrypte
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
+import com.wultra.security.powerauth.lib.cmd.steps.SignAsymmetricStep;
+import com.wultra.security.powerauth.lib.cmd.steps.model.SignAsymmetricStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.VaultUnlockStep;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
@@ -36,6 +39,7 @@ import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.Base64;
 import java.util.Map;
 
@@ -48,6 +52,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthVaultUnlockShared {
 
+    private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
 
     public static void vaultUnlockTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {
@@ -238,6 +243,29 @@ public class PowerAuthVaultUnlockShared {
 
         final VerifyECDSASignatureResponse verifyResponse = powerAuthClient.verifyECDSASignature("AAAAA-BBBBB-CCCCC-DDDDD", data, Base64.getEncoder().encodeToString(signature));
         assertFalse(verifyResponse.isSignatureValid());
+    }
+
+    public static void vaultUnlockDevicePrivateKeyAndSignTest(final PowerAuthTestConfiguration config, final SignAsymmetricStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+        new SignAsymmetricStep().execute(stepLogger, model.toMap());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
+
+        final String signatureEc = stepLogger.getItems().stream()
+                .filter(item -> item.name().equals("Sign Asymmetric Succeeded"))
+                .map(item -> (Map<String, Object>) item.object())
+                .map(item -> (String) item.get("signature"))
+                .findAny()
+                .orElse(null);
+        assertNotNull(signatureEc);
+        final byte[] signatureEcBytes = Base64.getDecoder().decode(signatureEc);
+
+        // Verify EC signature
+        final byte[] requestBytes = "Confidential test message used for testing".getBytes(StandardCharsets.UTF_8);
+        final String ecDevicePublicKeyBase64 = (String) config.getResultStatusObject(version).get("devicePublicKey");
+        assertNotNull(ecDevicePublicKeyBase64);
+        final byte[] ecDevicePublicKeyBytes = Base64.getDecoder().decode(ecDevicePublicKeyBase64);
+        final PublicKey ecDevicePublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256, ecDevicePublicKeyBytes);
+        assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, requestBytes, signatureEcBytes, ecDevicePublicKey));
     }
 
     private static PrivateKey obtainDevicePrivateKeyUsingVaultUnlock(final ObjectStepLogger stepLogger, final VaultUnlockStepModel model, final PowerAuthTestConfiguration config) throws Exception {

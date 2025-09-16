@@ -22,8 +22,10 @@ import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
+import com.wultra.security.powerauth.lib.cmd.steps.model.SignAsymmetricStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
 import com.wultra.security.powerauth.test.shared.v4.PowerAuthVaultUnlockShared;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,6 +34,11 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
 /**
@@ -47,6 +54,7 @@ class PowerAuthVaultUnlockTest {
     private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
     private PowerAuthTestConfiguration config;
+    private static File dataFile;
     private PowerAuthClient powerAuthClient;
     private VaultUnlockStepModel model;
     private ObjectStepLogger stepLogger;
@@ -59,6 +67,14 @@ class PowerAuthVaultUnlockTest {
     @Autowired
     public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
         this.powerAuthClient = powerAuthClient;
+    }
+
+    @BeforeAll
+    static void setUpBeforeClass() throws IOException {
+        dataFile = File.createTempFile("data", ".txt");
+        FileWriter fw = new FileWriter(dataFile);
+        fw.write("Confidential test message used for testing");
+        fw.close();
     }
 
     @BeforeEach
@@ -154,6 +170,22 @@ class PowerAuthVaultUnlockTest {
     @Test
     void vaultUnlockTooLongReasonTest() throws Exception {
         PowerAuthVaultUnlockShared.vaultUnlockTooLongReasonTest(config, model, stepLogger);
+    }
+
+    @Test
+    void vaultUnlockDevicePrivateKeyAndSignTest() throws Exception {
+        final SignAsymmetricStepModel model = new SignAsymmetricStepModel();
+        model.setApplicationKey(config.getApplicationKey());
+        model.setApplicationSecret(config.getApplicationSecret());
+        model.setHeaders(new HashMap<>());
+        model.setPassword(config.getPassword());
+        model.setResultStatusObject(config.getResultStatusObject(VERSION));
+        model.setStatusFileName(config.getStatusFile(VERSION).getAbsolutePath());
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE);
+        model.setUriString(config.getPowerAuthIntegrationUrl());
+        model.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
+        model.setVersion(VERSION);
+        PowerAuthVaultUnlockShared.vaultUnlockDevicePrivateKeyAndSignTest(config, model, stepLogger, VERSION);
     }
 
 }
