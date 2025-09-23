@@ -20,10 +20,10 @@ package com.wultra.security.powerauth.fido2.service;
 
 import com.webauthn4j.data.AuthenticatorTransport;
 import com.webauthn4j.data.PublicKeyCredentialType;
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
+import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.Application;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
-import com.wultra.security.powerauth.client.model.response.OperationTemplateDetailResponse;
+import com.wultra.security.powerauth.client.model.response.v4.OperationTemplateDetailResponse;
 import com.wultra.security.powerauth.fido2.controller.response.CredentialDescriptor;
 import com.wultra.security.powerauth.fido2.model.entity.Credential;
 import lombok.AllArgsConstructor;

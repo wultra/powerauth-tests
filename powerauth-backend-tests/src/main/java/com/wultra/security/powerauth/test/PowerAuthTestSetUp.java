@@ -17,14 +17,15 @@
  */
 package com.wultra.security.powerauth.test;
 
+import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
 import com.wultra.security.powerauth.client.model.response.v4.GetApplicationDetailResponse;
+import com.wultra.security.powerauth.client.model.response.v4.OperationTemplateDetailResponse;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.Application;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
-import com.wultra.security.powerauth.client.model.enumeration.v3.SignatureType;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
-import com.wultra.security.powerauth.client.model.request.OperationTemplateCreateRequest;
+import com.wultra.security.powerauth.client.model.request.v4.OperationTemplateCreateRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
@@ -84,7 +85,7 @@ public class PowerAuthTestSetUp {
         final OperationTemplateCreateRequest request = new OperationTemplateCreateRequest();
         request.setTemplateName(UUID.randomUUID().toString());
         request.setOperationType("login");
-        request.getSignatureType().addAll(Arrays.asList(SignatureType.values()));
+        request.getAuthenticationCodeType().addAll(Arrays.asList(AuthenticationCodeType.values()));
         request.setDataTemplate("A2");
         request.setExpiration(300L);
         request.setMaxFailureCount(5L);
