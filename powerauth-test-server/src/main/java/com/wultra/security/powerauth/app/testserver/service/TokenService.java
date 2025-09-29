@@ -22,7 +22,6 @@ import com.wultra.security.powerauth.app.testserver.database.TestConfigRepositor
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
 import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeTokenDigestRequest;
@@ -42,7 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.security.PublicKey;
 import java.util.Collections;
 import java.util.Map;
 
@@ -81,18 +79,16 @@ public class TokenService extends BaseService {
      * Create a new token.
      * @param request Request for creating a new token.
      * @return Response with a created token.
-     * @throws GenericCryptographyException In case a crypto provider is not initialized properly.
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws AppConfigNotFoundException In case app configuration is incorrect.
      * @throws ActivationFailedException In case activation is not found.
      */
     @Transactional
     @SuppressWarnings("unchecked")
-    public CreateTokenResponse createToken(CreateTokenRequest request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException, ActivationFailedException {
+    public CreateTokenResponse createToken(CreateTokenRequest request) throws AppConfigNotFoundException, RemoteExecutionException, ActivationFailedException {
 
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
-        final PublicKey publicKey = getMasterPublicKey(appConfig);
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
         PowerAuthCodeType signatureType = SignatureTypeConverter.convert(request.getSignatureType());
         if (signatureType == null) {

@@ -80,7 +80,8 @@ public class ApplicationService extends BaseService {
             }
             applicationKey = config.appKey();
             applicationSecret = config.appSecret();
-            masterPublicKey = config.masterPublicKeyP256();
+            // Removed in crypto4
+            masterPublicKey = null;
         } else {
             applicationKey = request.getApplicationKey();
             applicationSecret = request.getApplicationSecret();
@@ -91,6 +92,7 @@ public class ApplicationService extends BaseService {
         appConfig.setApplicationKey(applicationKey);
         appConfig.setApplicationSecret(applicationSecret);
         appConfig.setMasterPublicKey(masterPublicKey);
+        appConfig.setMobileSdkConfig(mobileSdkConfig);
 
         appConfigRepository.save(appConfig);
 

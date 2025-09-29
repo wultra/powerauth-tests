@@ -13,5 +13,6 @@
     <property name="blob_type" value="varbinary(max)" dbms="mssql"/>
 
     <include file="1.5.x/db.changelog-version.xml" relativeToChangelogFile="true" />
+    <include file="2.0.x/db.changelog-version.xml" relativeToChangelogFile="true" />
 
 </databaseChangeLog>

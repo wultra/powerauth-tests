@@ -60,8 +60,11 @@ public class TestConfigEntity implements Serializable {
     @Column(name = "application_secret", nullable = false)
     private String applicationSecret;
 
-    @Column(name = "master_public_key", nullable = false)
+    @Column(name = "master_public_key")
     private String masterPublicKey;
+
+    @Column(name = "mobile_sdk_config", columnDefinition = "TEXT")
+    private String mobileSdkConfig;
 
     @Override
     public boolean equals(Object o) {

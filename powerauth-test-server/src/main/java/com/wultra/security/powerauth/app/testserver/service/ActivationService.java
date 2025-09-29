@@ -82,7 +82,7 @@ public class ActivationService extends BaseService {
         // TODO - input validation
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
-        final PublicKey publicKey = getMasterPublicKey(appConfig);
+        final PublicKey publicKey = getMasterPublicKeyP256(appConfig);
         final JSONObject resultStatusObject = new JSONObject();
 
         // Prepare activation

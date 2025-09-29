@@ -21,7 +21,10 @@ import com.wultra.security.powerauth.app.testserver.database.TestConfigRepositor
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
+import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfiguration;
+import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfigurationSerializer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.security.PublicKey;
@@ -66,11 +69,18 @@ public class BaseService {
      * @return Master public key.
      * @throws GenericCryptographyException Thrown in case public key conversion fails.
      */
-    protected PublicKey getMasterPublicKey(TestConfigEntity appConfig) throws GenericCryptographyException {
-        final byte[] masterKeyBytes = Base64.getDecoder().decode(appConfig.getMasterPublicKey());
+    protected PublicKey getMasterPublicKeyP256(TestConfigEntity appConfig) throws GenericCryptographyException {
+        final String masterPublicKeyP256;
+        if (appConfig.getMobileSdkConfig() != null) {
+            final SdkConfiguration sdkConfig = SdkConfigurationSerializer.deserialize(appConfig.getMobileSdkConfig());
+            masterPublicKeyP256 = sdkConfig.masterPublicKeyP256();
+        } else {
+            masterPublicKeyP256 = appConfig.getMasterPublicKey();
+        }
+        final byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKeyP256);
 
         try {
-            return keyConvertor.convertBytesToPublicKey(masterKeyBytes);
+            return keyConvertor.convertBytesToPublicKey(EcCurve.P256, masterKeyBytes);
         } catch (Exception ex) {
             logger.warn("Key conversion failed, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
