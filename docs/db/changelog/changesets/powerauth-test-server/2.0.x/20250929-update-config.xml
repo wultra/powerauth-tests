@@ -23,6 +23,6 @@
             <notNullConstraintExists tableName="pa_test_config" columnName="master_public_key"/>
         </preConditions>
         <comment>Make master_public_key nullable in table pa_test_config</comment>
-        <dropNotNullConstraint  tableName="pa_test_config" columnName="master_public_key" columnDataType="varchar(255)"/>
+        <dropNotNullConstraint tableName="pa_test_config" columnName="master_public_key" columnDataType="varchar(255)"/>
     </changeSet>
 </databaseChangeLog>
