@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="1" logicalFilePath="powerauth-test-server/2.0.x/20250929-update-config.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_test_config" columnName="mobile_sdk_config"/>
+            </not>
+        </preConditions>
+        <comment>Create column mobile_sdk_config in table pa_test_config</comment>
+        <addColumn tableName="pa_test_config">
+            <column name="mobile_sdk_config" type="clob" />
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="2" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="pa_test_config" columnName="master_public_key"/>
+            <notNullConstraintExists tableName="pa_test_config" columnName="master_public_key"/>
+        </preConditions>
+        <comment>Make master_public_key nullable in table pa_test_config</comment>
+        <dropNotNullConstraint  tableName="pa_test_config" columnName="master_public_key" columnDataType="varchar(255)"/>
+    </changeSet>
+</databaseChangeLog>

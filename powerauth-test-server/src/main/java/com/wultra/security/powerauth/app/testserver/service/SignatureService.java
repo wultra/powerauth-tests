@@ -163,9 +163,9 @@ public class SignatureService extends BaseService {
         }
 
         final Optional<String> otpCode = stepLogger.getItems().stream()
-                .filter(item -> "signature-offline-compute-finished".equals(item.id()))
+                .filter(item -> "authentication-offline-compute-finished".equals(item.id()))
                 .map(item -> (Map<String, Object>) item.object())
-                .map(item -> item.get("offlineSignature").toString())
+                .map(item -> item.get("offlineAuthentication").toString())
                 .findAny();
 
         if (otpCode.isPresent()) {
