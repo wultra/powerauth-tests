@@ -255,8 +255,8 @@ public class OperationsService extends BaseService {
 
         stepLogger.getItems().stream()
                 .map(StepItem::name)
-                .filter("Signature verified"::equals)
+                .filter("Authentication code verified"::equals)
                 .findAny()
-                .orElseThrow(() -> new SignatureVerificationException("Signature verification failed"));
+                .orElseThrow(() -> new SignatureVerificationException("Authentication verification failed"));
     }
 }
