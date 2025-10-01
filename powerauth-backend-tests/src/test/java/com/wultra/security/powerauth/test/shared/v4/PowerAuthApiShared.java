@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.test.shared.v4;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
@@ -27,9 +26,7 @@ import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.client.v4.authentication.PowerAuthClientAuthentication;
 import com.wultra.security.powerauth.crypto.client.v4.keyfactory.PowerAuthClientKeyFactory;
-import com.wultra.security.powerauth.crypto.client.v4.token.ClientTokenGenerator;
 import com.wultra.security.powerauth.crypto.lib.config.AuthenticationCodeConfiguration;
-import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
@@ -82,7 +79,7 @@ public class PowerAuthApiShared {
         SecretKey possessionKey = KEY_CONVERTOR.convertBytesToSharedSecretKey(possessionKeyBytes);
         String authCodeValue = CLIENT_AUTHENTICATION.computeAuthCode(normalizedDataWithSecret.getBytes(StandardCharsets.UTF_8), KEY_FACTORY.keysForAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE,
                 possessionKey, knowledgeKey, null), ctrData, AuthenticationCodeConfiguration.base64());
-        VerifyAuthenticationResponse signatureResponse = powerAuthClient.verifyAuthentication(config.getActivationId(version), config.getApplicationKey(), normalizedData, authCodeValue, AuthenticationCodeType.POSSESSION_KNOWLEDGE, version.value(), null);
+        VerifyAuthenticationResponse signatureResponse = powerAuthClient.verifyAuthentication(config.getActivationId(version), config.getApplicationKey(), normalizedData, authCodeValue, AuthenticationCodeType.POSSESSION_KNOWLEDGE, version.value());
         assertTrue(signatureResponse.isAuthenticationValid());
         BaseStepModel model = new BaseStepModel();
         model.setResultStatusObject(config.getResultStatusObject(version));
