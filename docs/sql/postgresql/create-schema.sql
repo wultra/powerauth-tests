@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS pa_test_config
     application_name   VARCHAR(255) NOT NULL,             -- Application name
     application_key    VARCHAR(255) NOT NULL,             -- Application key
     application_secret VARCHAR(255) NOT NULL,             -- Application secret
-    master_public_key  VARCHAR(255) NOT NULL              -- Master public key in Base64 format
+    master_public_key  VARCHAR(255)                       -- Master public key in Base64 format (v3)
+    mobile_sdk_config  TEXT                               -- Mobile SDK configuration in Base64 format (v4)
 );
 
 CREATE TABLE IF NOT EXISTS pa_test_status
