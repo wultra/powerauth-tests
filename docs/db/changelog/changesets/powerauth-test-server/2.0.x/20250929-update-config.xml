@@ -13,14 +13,13 @@
         </preConditions>
         <comment>Create column mobile_sdk_config in table pa_test_config</comment>
         <addColumn tableName="pa_test_config">
-            <column name="mobile_sdk_config" type="clob" />
+            <column name="mobile_sdk_config" type="clob"/>
         </addColumn>
     </changeSet>
 
     <changeSet id="2" author="Roman Strobl">
         <preConditions onFail="MARK_RAN">
             <columnExists tableName="pa_test_config" columnName="master_public_key"/>
-            <notNullConstraintExists tableName="pa_test_config" columnName="master_public_key"/>
         </preConditions>
         <comment>Make master_public_key nullable in table pa_test_config</comment>
         <dropNotNullConstraint tableName="pa_test_config" columnName="master_public_key" columnDataType="varchar(255)"/>
