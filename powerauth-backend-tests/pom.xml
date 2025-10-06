@@ -68,7 +68,7 @@
 
         <health.timeout.seconds>120</health.timeout.seconds>
 
-        <exec-maven-plugin.version>3.5.1</exec-maven-plugin.version>
+        <exec-maven-plugin.version>3.6.1</exec-maven-plugin.version>
         <maven-scm-plugin.version>2.2.1</maven-scm-plugin.version>
     </properties>
 
