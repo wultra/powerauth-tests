@@ -345,6 +345,7 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
         --spring.datasource.password=
         --spring.datasource.driver-class-name=org.h2.Driver
         --spring.jpa.hibernate.ddl-auto=create-drop
+        --bouncycastle.provider.initialization.enabled=true
         --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest
         &gt; &quot;${runtime.dir}/enrollment-server.log&quot; 2&gt;&amp;1 &amp;
         echo $! &gt; &quot;${runtime.dir}/enrollment-server.pid&quot;"/>
@@ -366,6 +367,7 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
         --spring.datasource.password=
         --spring.datasource.driver-class-name=org.h2.Driver
         --spring.jpa.hibernate.ddl-auto=create-drop
+        --bouncycastle.provider.initialization.enabled=true
         --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest
         --enrollment-server-onboarding.onboarding-process.enabled=true
         --enrollment-server-onboarding.identity-verification.enabled=true
