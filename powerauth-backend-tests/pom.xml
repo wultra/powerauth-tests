@@ -151,7 +151,8 @@
                 <executions>
                     <execution>
                         <id>clone-powerauth-server</id>
-                        <phase>generate-resources</phase>
+                        <!--  using 'process-test-classes' to run before 'test' but after 'test-compile'  -->
+                        <phase>process-test-classes</phase>
                         <goals>
                             <goal>checkout</goal>
                         </goals>
@@ -164,7 +165,7 @@
                     </execution>
                     <execution>
                         <id>clone-enrollment-server-wultra</id>
-                        <phase>generate-resources</phase>
+                        <phase>process-test-classes</phase>
                         <goals>
                             <goal>checkout</goal>
                         </goals>
@@ -188,7 +189,7 @@
                     <!-- Build steps -->
                     <execution>
                         <id>build-powerauth-server</id>
-                        <phase>process-resources</phase>
+                        <phase>process-test-classes</phase>
                         <goals><goal>exec</goal></goals>
                         <configuration>
                             <executable>mvn</executable>
@@ -206,7 +207,7 @@
                     </execution>
                     <execution>
                         <id>build-enrollment-server</id>
-                        <phase>process-resources</phase>
+                        <phase>process-test-classes</phase>
                         <goals><goal>exec</goal></goals>
                         <configuration>
                             <executable>mvn</executable>
@@ -232,7 +233,7 @@
                 <executions>
                     <execution>
                         <id>fetch-h2</id>
-                        <phase>process-resources</phase>
+                        <phase>process-test-classes</phase>
                         <goals><goal>copy</goal></goals>
                         <configuration>
                             <artifactItems>
@@ -255,7 +256,7 @@
                     <!-- Copy freshly built WARs from target dirs and rename -->
                     <execution>
                         <id>copy-wars-from-targets</id>
-                        <phase>process-resources</phase>
+                        <phase>process-test-classes</phase>
                         <goals><goal>run</goal></goals>
                         <configuration>
                             <target>
@@ -288,7 +289,7 @@
                     <!-- Create missing tables -->
                     <execution>
                         <id>write-schema</id>
-                        <phase>process-resources</phase>
+                        <phase>process-test-classes</phase>
                         <goals><goal>run</goal></goals>
                         <configuration>
                             <target>
@@ -305,7 +306,7 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
                     <!-- Start all apps with java -jar -->
                     <execution>
                         <id>start-apps</id>
-                        <phase>process-resources</phase>
+                        <phase>process-test-classes</phase>
                         <goals><goal>run</goal></goals>
                         <configuration>
                             <target>
@@ -384,7 +385,7 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
                     <!-- Wait for readiness -->
                     <execution>
                         <id>wait-for-ready</id>
-                        <phase>process-resources</phase>
+                        <phase>process-test-classes</phase>
                         <goals><goal>run</goal></goals>
                         <configuration>
                             <target>
