@@ -17,7 +17,9 @@
  */
 package com.wultra.security.powerauth.test;
 
+import com.wultra.security.powerauth.client.model.enumeration.ActivationTransferType;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
+import com.wultra.security.powerauth.client.model.request.CreateApplicationConfigRequest;
 import com.wultra.security.powerauth.client.model.response.v4.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.client.model.response.v4.OperationTemplateDetailResponse;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
@@ -39,9 +41,7 @@ import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfiguration;
 import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfigurationSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -111,6 +111,15 @@ public class PowerAuthTestSetUp {
             assertEquals(config.getApplicationName(), response.getApplicationId());
             config.setApplicationId(response.getApplicationId());
         }
+
+        // Configure activation transfer
+        CreateApplicationConfigRequest configRequest = new CreateApplicationConfigRequest();
+        configRequest.setApplicationId(config.getApplicationId());
+        configRequest.setKey("activation_transfer");
+        ActivationCodeConfiguration transferConfig = new ActivationCodeConfiguration(List.of("PA_Tests"), ActivationTransferType.SPAWN, null);
+        configRequest.setValues(List.of(transferConfig));
+        powerAuthClient.createApplicationConfig(configRequest);
+
 
         // Create application version if it does not exist
         final GetApplicationDetailResponse detail = powerAuthClient.getApplicationDetail(config.getApplicationId());
@@ -200,5 +209,7 @@ public class PowerAuthTestSetUp {
 
         config.setActivationId(initResponse.getActivationId(), version);
     }
+
+    private record ActivationCodeConfiguration(List<String> allowedTargetApplicationIds, ActivationTransferType type, List<String> initialFlags) {}
 
 }
