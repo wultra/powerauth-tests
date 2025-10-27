@@ -116,7 +116,7 @@ public class PowerAuthTestSetUp {
         CreateApplicationConfigRequest configRequest = new CreateApplicationConfigRequest();
         configRequest.setApplicationId(config.getApplicationId());
         configRequest.setKey("activation_transfer");
-        ActivationCodeConfiguration transferConfig = new ActivationCodeConfiguration(List.of("PA_Tests"), ActivationTransferType.SPAWN, null);
+        ActivationTransferConfiguration transferConfig = new ActivationTransferConfiguration(List.of("PA_Tests"), ActivationTransferType.SPAWN, null);
         configRequest.setValues(List.of(transferConfig));
         powerAuthClient.createApplicationConfig(configRequest);
 
@@ -210,6 +210,6 @@ public class PowerAuthTestSetUp {
         config.setActivationId(initResponse.getActivationId(), version);
     }
 
-    private record ActivationCodeConfiguration(List<String> allowedTargetApplicationIds, ActivationTransferType type, List<String> initialFlags) {}
+    private record ActivationTransferConfiguration(List<String> allowedTargetApplicationIds, ActivationTransferType type, List<String> initialFlags) {}
 
 }
