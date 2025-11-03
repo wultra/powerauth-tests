@@ -58,10 +58,6 @@
         </developer>
     </developers>
 
-    <properties>
-        <maven-war-plugin.version>3.5.0</maven-war-plugin.version>
-    </properties>
-
     <dependencies>
         <!-- Spring Dependencies -->
         <dependency>
@@ -216,12 +212,6 @@
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
-
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <version>${maven-war-plugin.version}</version>
             </plugin>
         </plugins>
     </build>
