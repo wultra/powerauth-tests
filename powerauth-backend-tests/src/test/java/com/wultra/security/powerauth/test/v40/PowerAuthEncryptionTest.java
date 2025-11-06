@@ -20,6 +20,7 @@ package com.wultra.security.powerauth.test.v40;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
@@ -99,6 +100,7 @@ class PowerAuthEncryptionTest {
         encryptModel.setHeaders(new HashMap<>());
         encryptModel.setResultStatusObject(config.getResultStatusObject(VERSION));
         encryptModel.setBaseUriString(config.getPowerAuthIntegrationUrl());
+        encryptModel.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
         encryptModel.setVersion(VERSION);
 
         signatureModel = new VerifyAuthenticationStepModel();
