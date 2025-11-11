@@ -33,7 +33,7 @@ import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
 import com.wultra.security.powerauth.rest.api.model.request.UserInfoRequest;
-import com.wultra.security.powerauth.rest.api.model.response.ServerStatusResponse;
+import com.wultra.security.powerauth.rest.api.model.response.v3.ServerStatusResponse;
 import org.opentest4j.AssertionFailedError;
 
 import java.util.Map;
