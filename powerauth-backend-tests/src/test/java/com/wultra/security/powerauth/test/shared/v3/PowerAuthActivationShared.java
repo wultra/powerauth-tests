@@ -327,7 +327,7 @@ public class PowerAuthActivationShared {
         assertEquals(10, statusBlob.getMaxFailedAttempts());
         assertEquals(0, statusBlob.getFailedAttempts());
         assertEquals(3, statusBlob.getCurrentVersion());
-        assertEquals(3, statusBlob.getUpgradeVersion());
+        assertEquals(4, statusBlob.getUpgradeVersion());
 
         // Commit activation
         CommitActivationResponse commitResponse = powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
