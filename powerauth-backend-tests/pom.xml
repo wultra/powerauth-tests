@@ -286,9 +286,8 @@
                         </configuration>
                     </execution>
 
-                    <!-- Create missing tables -->
                     <execution>
-                        <id>write-schema</id>
+                        <id>copy-database-scripts</id>
                         <phase>process-test-classes</phase>
                         <goals><goal>run</goal></goals>
                         <configuration>
@@ -296,6 +295,9 @@
                                 <mkdir dir="${runtime.dir}/schema/powerauth"/>
                                 <copy file="${project.basedir}/src/test/resources/schema/powerauth/extra-tables.sql"
                                       tofile="${runtime.dir}/schema/powerauth/extra-tables.sql"/>
+                                <mkdir dir="${runtime.dir}/data/enrollment-onboarding"/>
+                                <copy file="${project.basedir}/src/test/resources/data/enrollment-onboarding/extra-data.sql"
+                                      tofile="${runtime.dir}/data/enrollment-onboarding/extra-data.sql"/>
                             </target>
                         </configuration>
                     </execution>
@@ -372,6 +374,7 @@
         --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest
         --enrollment-server-onboarding.onboarding-process.enabled=true
         --enrollment-server-onboarding.identity-verification.enabled=true
+        --spring.sql.init.data-locations=file:${runtime.dir}/data/enrollment-onboarding/extra-data.sql
         &gt; &quot;${runtime.dir}/enrollment-server-onboarding.log&quot; 2&gt;&amp;1 &amp;
         echo $! &gt; &quot;${runtime.dir}/enrollment-server-onboarding.pid&quot;"/>
                                 </exec>
