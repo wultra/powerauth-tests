@@ -66,6 +66,37 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthOnboardingShared {
 
+    /**
+     * Test of {@code POST /api/configuration}.
+     *
+     * @param ctx test context
+     * @implNote requires data from {@code /src/test/resources/data/enrollment-onboarding/extra-data.sql}; maven test runner is configured to insert the data
+     */
+    public static void testConfiguration(final TestContext ctx) throws Exception {
+        final ObjectStepLogger stepLogger = new ObjectStepLogger();
+        ctx.encryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/configuration");
+        final Map<String, Object> request = Map.of("processType", "reactivation");
+        executeRequest(ctx, request, stepLogger);
+
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
+        assertNotNull(responseOK.getEncryptedData());
+        assertNotNull(responseOK.getMac());
+
+        // TODO Lubos change response type
+        final OnboardingStartResponse response = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Response".equals(item.name()))
+                .map(item -> item.object().toString())
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OnboardingStartResponse>>() {}))
+                .map(ObjectResponse::getResponseObject)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+
+        final String processId = response.getProcessId();
+
+        // TODO Lubos add asserts
+        assertNotNull(processId);
+    }
+
     @SuppressWarnings("unchecked")
     public static void testSuccessfulOnboarding(final TestContext ctx) throws Exception {
         // Test onboarding start
