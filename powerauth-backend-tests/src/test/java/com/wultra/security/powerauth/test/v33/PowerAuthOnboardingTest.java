@@ -111,7 +111,7 @@ class PowerAuthOnboardingTest {
     }
 
     @Test
-    void testConfiguration() throws Exception  {
+    void testConfiguration() throws Exception {
         PowerAuthOnboardingShared.testConfiguration(ctx);
     }
 
