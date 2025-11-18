@@ -24,27 +24,28 @@ import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingCl
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingOtpResendRequest;
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingStartRequest;
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingStatusRequest;
+import com.wultra.app.enrollmentserver.api.model.onboarding.response.ConfigurationResponse;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.OnboardingStartResponse;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.OnboardingStatusResponse;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.error.ActivationOtpErrorResponse;
 import com.wultra.app.enrollmentserver.model.enumeration.OnboardingStatus;
 import com.wultra.app.enrollmentserver.model.enumeration.OtpType;
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
-import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
-import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
-import com.wultra.security.powerauth.model.request.OtpDetailRequest;
-import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
+import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.CreateActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
 import com.wultra.security.powerauth.lib.cmd.steps.GetStatusStep;
+import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
+import com.wultra.security.powerauth.model.request.OtpDetailRequest;
+import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
 import org.junit.jupiter.api.AssertionFailureBuilder;
@@ -82,19 +83,31 @@ public class PowerAuthOnboardingShared {
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
-        // TODO Lubos change response type
-        final OnboardingStartResponse response = stepLogger.getItems().stream()
+        final ConfigurationResponse response = stepLogger.getItems().stream()
                 .filter(item -> "Decrypted Response".equals(item.name()))
                 .map(item -> item.object().toString())
-                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OnboardingStartResponse>>() {}))
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<ConfigurationResponse>>() {}))
                 .map(ObjectResponse::getResponseObject)
                 .findAny()
                 .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
-        final String processId = response.getProcessId();
+        assertTrue(response.enabled());
+        assertTrue(response.otpForIdentification());
+        assertTrue(response.otpForIdentityVerification());
 
-        // TODO Lubos add asserts
-        assertNotNull(processId);
+        final var documents = response.documents();
+        assertEquals(2, documents.requiredDocumentsCount());
+        assertEquals(2, documents.items().size());
+
+        final var item1 = documents.items().get(0);
+        assertEquals(ConfigurationResponse.DocumentType.ID_CARD, item1.type());
+        assertEquals(2, item1.sideCount());
+        assertTrue(item1.mandatory());
+
+        final var item2 = documents.items().get(1);
+        assertEquals(ConfigurationResponse.DocumentType.DRIVING_LICENCE, item2.type());
+        assertEquals(1, item2.sideCount());
+        assertFalse(item2.mandatory());
     }
 
     @SuppressWarnings("unchecked")
