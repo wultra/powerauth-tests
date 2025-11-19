@@ -376,6 +376,7 @@
         --enrollment-server-onboarding.identity-verification.enabled=true
         --spring.jpa.defer-datasource-initialization=true
         --spring.sql.init.data-locations=file:${runtime.dir}/data/enrollment-onboarding/extra-data.sql
+        --spring.sql.init.mode=always
         --logging.level.org.springframework.jdbc.datasource.init=DEBUG
         --logging.level.org.springframework.boot.autoconfigure.sql.init=DEBUG
         &gt; &quot;${runtime.dir}/enrollment-server-onboarding.log&quot; 2&gt;&amp;1 &amp;
