@@ -374,6 +374,7 @@
         --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest
         --enrollment-server-onboarding.onboarding-process.enabled=true
         --enrollment-server-onboarding.identity-verification.enabled=true
+        --enrollment-server-onboarding.onboarding-process.default-type=reactivation
         --spring.jpa.defer-datasource-initialization=true
         --spring.sql.init.data-locations=file:${runtime.dir}/data/enrollment-onboarding/extra-data.sql
         --spring.sql.init.mode=always
