@@ -295,8 +295,9 @@ public class PowerAuthOnboardingShared {
         identification.put("birthDate", "1970-03-21");
         // instruction for MockOnboardingProvider#lookupUser(LookupUserRequest) whether to fail
         identification.put("shouldFail", shouldUserLookupFail);
-        OnboardingStartRequest request = new OnboardingStartRequest();
-        request.setIdentification(identification);
+        final OnboardingStartRequest request = OnboardingStartRequest.builder()
+                .identification(identification)
+                .build();
         executeRequest(ctx, request, stepLogger);
 
         final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
@@ -311,8 +312,8 @@ public class PowerAuthOnboardingShared {
                 .findAny()
                 .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
-        final String processId = response.getProcessId();
-        final OnboardingStatus onboardingStatus = response.getOnboardingStatus();
+        final String processId = response.processId();
+        final OnboardingStatus onboardingStatus = response.onboardingStatus();
 
         assertNotNull(processId);
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, onboardingStatus);

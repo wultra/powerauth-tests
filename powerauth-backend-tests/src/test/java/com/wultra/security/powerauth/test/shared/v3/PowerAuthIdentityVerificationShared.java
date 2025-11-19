@@ -621,8 +621,9 @@ public class PowerAuthIdentityVerificationShared {
         Map<String, Object> identification = new LinkedHashMap<>();
         identification.put("clientNumber", clientId != null ? clientId : generateRandomClientId());
         identification.put("birthDate", "1970-03-21");
-        OnboardingStartRequest request = new OnboardingStartRequest();
-        request.setIdentification(identification);
+        final OnboardingStartRequest request = OnboardingStartRequest.builder()
+                .identification(identification)
+                .build();
         executeRequest(request, ctx.encryptModel, stepLogger, ctx.objectMapper);
 
         final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
@@ -637,8 +638,8 @@ public class PowerAuthIdentityVerificationShared {
                 .findAny()
                 .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
-        final String processId = response.getProcessId();
-        final OnboardingStatus onboardingStatus = response.getOnboardingStatus();
+        final String processId = response.processId();
+        final OnboardingStatus onboardingStatus = response.onboardingStatus();
 
         assertNotNull(processId);
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, onboardingStatus);
