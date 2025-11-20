@@ -286,19 +286,18 @@
                         </configuration>
                     </execution>
 
-                    <!-- Create missing tables -->
                     <execution>
-                        <id>write-schema</id>
+                        <id>copy-database-scripts</id>
                         <phase>process-test-classes</phase>
                         <goals><goal>run</goal></goals>
                         <configuration>
                             <target>
-                                <mkdir dir="${runtime.dir}/schema"/>
-                                <echo file="${runtime.dir}/schema/extra-tables.sql"><![CDATA[
-CREATE TABLE shedlock (name VARCHAR(64) NOT NULL, lock_until TIMESTAMP(3) NOT NULL, locked_at TIMESTAMP(3) NOT NULL, locked_by VARCHAR(255) NOT NULL, PRIMARY KEY (name));
-CREATE TABLE audit_log (audit_log_id VARCHAR(36) NOT NULL, application_name VARCHAR(256) NOT NULL, audit_level VARCHAR(32) NOT NULL, audit_type VARCHAR(256), timestamp_created TIMESTAMP DEFAULT now(), message CLOB NOT NULL, exception_message CLOB, stack_trace CLOB, param CLOB, calling_class VARCHAR(256) NOT NULL, thread_name VARCHAR(256) NOT NULL, version VARCHAR(256), build_time TIMESTAMP, CONSTRAINT PK_AUDIT_LOG PRIMARY KEY (audit_log_id));
-CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP, param_key VARCHAR(256), param_value VARCHAR(4000));
-]]></echo>
+                                <mkdir dir="${runtime.dir}/schema/powerauth"/>
+                                <copy file="${project.basedir}/src/test/resources/schema/powerauth/extra-tables.sql"
+                                      tofile="${runtime.dir}/schema/powerauth/extra-tables.sql"/>
+                                <mkdir dir="${runtime.dir}/data/enrollment-onboarding"/>
+                                <copy file="${project.basedir}/src/test/resources/data/enrollment-onboarding/extra-data.sql"
+                                      tofile="${runtime.dir}/data/enrollment-onboarding/extra-data.sql"/>
                             </target>
                         </configuration>
                     </execution>
@@ -330,7 +329,7 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
         --spring.datasource.driver-class-name=org.h2.Driver
         --spring.jpa.hibernate.ddl-auto=create-drop
         --spring.sql.init.mode=always
-        --spring.sql.init.schema-locations=file:${runtime.dir}/schema/extra-tables.sql
+        --spring.sql.init.schema-locations=file:${runtime.dir}/schema/powerauth/extra-tables.sql
         &gt; &quot;${runtime.dir}/powerauth-server.log&quot; 2&gt;&amp;1 &amp;
         echo $! &gt; &quot;${runtime.dir}/powerauth-server.pid&quot;"/>
                                 </exec>
@@ -375,6 +374,10 @@ CREATE TABLE audit_param (audit_log_id VARCHAR(36), timestamp_created TIMESTAMP,
         --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest
         --enrollment-server-onboarding.onboarding-process.enabled=true
         --enrollment-server-onboarding.identity-verification.enabled=true
+        --enrollment-server-onboarding.onboarding-process.default-type=reactivation
+        --spring.jpa.defer-datasource-initialization=true
+        --spring.sql.init.data-locations=file:${runtime.dir}/data/enrollment-onboarding/extra-data.sql
+        --spring.sql.init.mode=always
         &gt; &quot;${runtime.dir}/enrollment-server-onboarding.log&quot; 2&gt;&amp;1 &amp;
         echo $! &gt; &quot;${runtime.dir}/enrollment-server-onboarding.pid&quot;"/>
                                 </exec>
