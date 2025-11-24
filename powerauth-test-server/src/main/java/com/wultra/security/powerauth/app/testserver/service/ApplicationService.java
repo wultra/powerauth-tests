@@ -18,12 +18,12 @@
 
 package com.wultra.security.powerauth.app.testserver.service;
 
+import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.app.testserver.database.TestConfigRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigInvalidException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.model.request.ConfigureApplicationRequest;
-import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfiguration;
 import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfigurationSerializer;
 import lombok.extern.slf4j.Slf4j;

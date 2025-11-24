@@ -67,6 +67,28 @@ public class BaseService {
     }
 
     /**
+     * Get P-256 master public key from test application configuration.
+     * @param appConfig Test application configuration.
+     * @return Master public key.
+     * @throws GenericCryptographyException Thrown in case public key conversion fails.
+     */
+    protected PublicKey getMasterPublicKeyP256(TestConfigEntity appConfig) throws GenericCryptographyException {
+        if (appConfig.getMobileSdkConfig() == null) {
+            throw new GenericCryptographyException("Mobile SDK configuration is missing");
+        }
+        final SdkConfiguration sdkConfig = SdkConfigurationSerializer.deserialize(appConfig.getMobileSdkConfig());
+        final String masterPublicKeyP256 = sdkConfig.masterPublicKeyP256();
+        final byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKeyP256);
+        try {
+            return KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P256, masterKeyBytes);
+        } catch (Exception ex) {
+            logger.warn("Key conversion failed for P-256 master public key, reason: {}", ex.getMessage());
+            logger.debug(ex.getMessage(), ex);
+            throw new GenericCryptographyException("Key conversion failed");
+        }
+    }
+
+    /**
      * Get P-384 master public key from test application configuration.
      * @param appConfig Test application configuration.
      * @return Master public key.
@@ -94,13 +116,13 @@ public class BaseService {
      * @return Master public key.
      * @throws GenericCryptographyException Thrown in case public key conversion fails.
      */
-    protected PublicKey getMasterPublicKeyMlDsa67(TestConfigEntity appConfig) throws GenericCryptographyException {
+    protected PublicKey getMasterPublicKeyMlDsa65(TestConfigEntity appConfig) throws GenericCryptographyException {
         if (appConfig.getMobileSdkConfig() == null) {
             throw new GenericCryptographyException("Mobile SDK configuration is missing");
         }
         final SdkConfiguration sdkConfig = SdkConfigurationSerializer.deserialize(appConfig.getMobileSdkConfig());
-        final String masterPublicKeyMlDsa67 = sdkConfig.masterPublicKeyMlDsa65();
-        final byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKeyMlDsa67);
+        final String masterPublicKeyMlDsa65 = sdkConfig.masterPublicKeyMlDsa65();
+        final byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKeyMlDsa65);
         try {
             return KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(masterKeyBytes);
         } catch (Exception ex) {

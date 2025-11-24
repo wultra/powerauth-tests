@@ -30,13 +30,14 @@ import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineA
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineAuthResponse;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnlineAuthResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
+import com.wultra.security.powerauth.app.testserver.util.VersionCheckService;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.ComputeOfflineAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.ComputeOfflineAuthenticationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject;
 import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -57,21 +58,25 @@ public class AuthenticationService extends BaseService {
     private final ResultStatusService resultStatusUtil;
     private final VerifyAuthenticationStep VerifyAuthenticationStep;
     private final ComputeOfflineAuthenticationStep computeOfflineSignatureStep;
+    private final VersionCheckService versionCheckService;
 
     /**
      * Service constructor.
      * @param config Test server configuration.
+     * @param appConfigRepository Test application configuration repository.
      * @param resultStatusUtil Result status utilities.
-     * @param VerifyAuthenticationStep Verify signature step.
+     * @param verifyAuthenticationStep Verify signature step.
      * @param computeOfflineSignatureStep Compute offline signature step.
+     * @param versionCheckService Version check service.
      */
     @Autowired
-    public AuthenticationService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, VerifyAuthenticationStep VerifyAuthenticationStep, ComputeOfflineAuthenticationStep computeOfflineSignatureStep) {
+    public AuthenticationService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, VerifyAuthenticationStep verifyAuthenticationStep, ComputeOfflineAuthenticationStep computeOfflineSignatureStep, VersionCheckService versionCheckService) {
         super(appConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
-        this.VerifyAuthenticationStep = VerifyAuthenticationStep;
+        this.VerifyAuthenticationStep = verifyAuthenticationStep;
         this.computeOfflineSignatureStep = computeOfflineSignatureStep;
+        this.versionCheckService = versionCheckService;
     }
 
     /**
@@ -83,16 +88,13 @@ public class AuthenticationService extends BaseService {
      * @throws AppConfigNotFoundException In case application configuration is not found.
      * @throws GenericCryptographyException In case of a cryptography error.
      */
-    @SuppressWarnings("unchecked")
     public ComputeOnlineAuthResponse computeOnlineAuth(ComputeOnlineAuthRequest request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException, GenericCryptographyException {
 
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
-        final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+        final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
 
-        if (resultStatusObject.get("version") == null || (!Long.valueOf(4).equals(resultStatusObject.get("version")))) {
-            throw new GenericCryptographyException("Unsupported protocol version: " + resultStatusObject.get("version"));
-        }
+        versionCheckService.checkVersion(resultStatus);
 
         final VerifyAuthenticationStepModel model = new VerifyAuthenticationStepModel();
         model.setHttpMethod(request.getHttpMethod());
@@ -106,7 +108,7 @@ public class AuthenticationService extends BaseService {
         model.setPassword(request.getPassword());
         model.setVersion(config.getVersion());
         model.setUriString(config.getEnrollmentServiceUrl());
-        model.setResultStatusObject(resultStatusObject);
+        model.setResultStatus(resultStatus);
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
         model.setDryRun(true);
@@ -131,7 +133,7 @@ public class AuthenticationService extends BaseService {
                 .findAny();
 
         if (authHeader.isPresent()) {
-            resultStatusUtil.incrementCounter(request.getActivationId());
+            resultStatusUtil.incrementCounter(request.getActivationId(), config.getVersion().startsWith("3") ? 3 : 4);
         }
 
         final ComputeOnlineAuthResponse response = new ComputeOnlineAuthResponse();
@@ -147,21 +149,18 @@ public class AuthenticationService extends BaseService {
      * @throws ActivationFailedException In case activation is not found.
      * @throws GenericCryptographyException In case of a cryptography error.
      */
-    @SuppressWarnings("unchecked")
     public ComputeOfflineAuthResponse computeOfflineAuth(ComputeOfflineAuthRequest request) throws RemoteExecutionException, ActivationFailedException, GenericCryptographyException {
 
-        final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+        final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
 
-        if (resultStatusObject.get("version") == null || (!Long.valueOf(4).equals(resultStatusObject.get("version")))) {
-            throw new GenericCryptographyException("Unsupported protocol version: " + resultStatusObject.get("version"));
-        }
+        versionCheckService.checkVersion(resultStatus);
 
         final ComputeOfflineAuthenticationStepModel model = new ComputeOfflineAuthenticationStepModel();
         model.setQrCodeData(request.getQrCodeData());
         model.setPassword(request.getPassword());
         model.setVersion(config.getVersion());
         model.setUriString(config.getEnrollmentServiceUrl());
-        model.setResultStatusObject(resultStatusObject);
+        model.setResultStatus(resultStatus);
 
         final ObjectStepLogger stepLogger;
         try {
@@ -182,7 +181,7 @@ public class AuthenticationService extends BaseService {
                 .findAny();
 
         if (otpCode.isPresent()) {
-            resultStatusUtil.incrementCounter(request.getActivationId());
+            resultStatusUtil.incrementCounter(request.getActivationId(), config.getVersion().startsWith("3") ? 3 : 4);
         }
 
         final ComputeOfflineAuthResponse response = new ComputeOfflineAuthResponse();

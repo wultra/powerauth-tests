@@ -31,11 +31,11 @@ import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.ConfirmActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.ConfirmActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
-import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject;
 import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -84,15 +84,15 @@ public class ActivationService extends BaseService {
      * @throws GenericCryptographyException Thrown when cryptography computation fails.
      */
     @Transactional
-    @SuppressWarnings("unchecked")
     public CreateActivationResponse createActivation(CreateActivationRequest request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException, ActivationFailedException {
         // TODO - input validation
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
+        final PublicKey publicKeyP256 = getMasterPublicKeyP256(appConfig);
         final PublicKey publicKeyP384 = getMasterPublicKeyP384(appConfig);
-        final PublicKey publicKeyMlDsa67 = getMasterPublicKeyMlDsa67(appConfig);
+        final PublicKey publicKeyMlDsa65 = getMasterPublicKeyMlDsa65(appConfig);
 
-        final JSONObject resultStatusObject = new JSONObject();
+        final ResultStatusObject resultStatusObject = new ResultStatusObject();
 
         // Prepare activation
         final PrepareActivationStepModel model = new PrepareActivationStepModel();
@@ -100,13 +100,18 @@ public class ActivationService extends BaseService {
         model.setActivationName(request.getActivationName());
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
-        model.setMasterPublicKeyP384(publicKeyP384);
-        model.setMasterPublicKeyMlDsa65(publicKeyMlDsa67);
-        model.setSharedSecretAlgorithm(SHARED_SECRET_ALGORITHM_DEFAULT);
+
+        if (config.getVersion().startsWith("3")) {
+            model.setMasterPublicKeyP256(publicKeyP256);
+        } else {
+            model.setMasterPublicKeyP384(publicKeyP384);
+            model.setMasterPublicKeyMlDsa65(publicKeyMlDsa65);
+            model.setSharedSecretAlgorithm(SHARED_SECRET_ALGORITHM_DEFAULT);
+        }
 
         model.setHeaders(new HashMap<>());
         model.setPassword(request.getPassword());
-        model.setResultStatusObject(resultStatusObject);
+        model.setResultStatus(resultStatusObject);
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setVersion(config.getVersion());
         model.setDeviceInfo("backend-tests");
@@ -135,13 +140,13 @@ public class ActivationService extends BaseService {
 
         boolean confirmed = false;
 
-        if (request.isConfirmActivation()) {
+        if (config.getVersion().startsWith("4") && request.isConfirmActivation()) {
             final ConfirmActivationStepModel confirmModel = new ConfirmActivationStepModel();
             confirmModel.setApplicationKey(appConfig.getApplicationKey());
             confirmModel.setApplicationSecret(appConfig.getApplicationSecret());
             confirmModel.setHeaders(new HashMap<>());
             confirmModel.setPassword(request.getPassword());
-            confirmModel.setResultStatusObject(resultStatusObject);
+            confirmModel.setResultStatus(resultStatusObject);
             confirmModel.setUriString(config.getEnrollmentServiceUrl());
             confirmModel.setVersion(config.getVersion());
             confirmModel.setEnableBiometry(request.isEnableBiometry());
@@ -152,7 +157,7 @@ public class ActivationService extends BaseService {
                 confirmActivationStep.execute(stepLoggerConfirm, confirmModel.toMap());
                 stepLoggerConfirm.getItems().forEach(item -> StepItemLogger.log(logger, item));
 
-                resultStatusUtil.incrementCounter(activationId);
+                resultStatusUtil.incrementCounter(activationId, 4);
 
                 confirmed = true;
             } catch (Exception ex) {

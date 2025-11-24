@@ -102,6 +102,10 @@ public class TestStatusEntity implements Serializable {
     @Column(name = "status_blob_mac_key")
     private String statusBlobMacKey;
 
+    @Deprecated
+    @Column(name = "transport_master_key")
+    private String transportMasterKey;
+
     @Column(name = "version")
     private Long version;
 
