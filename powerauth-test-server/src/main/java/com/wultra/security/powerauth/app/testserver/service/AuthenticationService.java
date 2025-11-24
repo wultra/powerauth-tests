@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.app.testserver.database.TestConfigRepositor
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
+import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
 import com.wultra.security.powerauth.app.testserver.model.converter.AuthenticationCodeTypeConverter;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeOfflineAuthRequest;
@@ -80,13 +81,18 @@ public class AuthenticationService extends BaseService {
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case application configuration is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @SuppressWarnings("unchecked")
-    public ComputeOnlineAuthResponse computeOnlineAuth(ComputeOnlineAuthRequest request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
+    public ComputeOnlineAuthResponse computeOnlineAuth(ComputeOnlineAuthRequest request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException, GenericCryptographyException {
 
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        if (resultStatusObject.get("version") == null || (!Long.valueOf(4).equals(resultStatusObject.get("version")))) {
+            throw new GenericCryptographyException("Unsupported protocol version: " + resultStatusObject.get("version"));
+        }
 
         final VerifyAuthenticationStepModel model = new VerifyAuthenticationStepModel();
         model.setHttpMethod(request.getHttpMethod());
@@ -139,11 +145,16 @@ public class AuthenticationService extends BaseService {
      * @return Response for computing an offline signature.
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @SuppressWarnings("unchecked")
-    public ComputeOfflineAuthResponse computeOfflineAuth(ComputeOfflineAuthRequest request) throws RemoteExecutionException, ActivationFailedException {
+    public ComputeOfflineAuthResponse computeOfflineAuth(ComputeOfflineAuthRequest request) throws RemoteExecutionException, ActivationFailedException, GenericCryptographyException {
 
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        if (resultStatusObject.get("version") == null || (!Long.valueOf(4).equals(resultStatusObject.get("version")))) {
+            throw new GenericCryptographyException("Unsupported protocol version: " + resultStatusObject.get("version"));
+        }
 
         final ComputeOfflineAuthenticationStepModel model = new ComputeOfflineAuthenticationStepModel();
         model.setQrCodeData(request.getQrCodeData());

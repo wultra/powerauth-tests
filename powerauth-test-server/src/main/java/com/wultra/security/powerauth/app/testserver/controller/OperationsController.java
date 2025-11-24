@@ -18,10 +18,7 @@
 package com.wultra.security.powerauth.app.testserver.controller;
 
 import com.wultra.core.rest.client.base.RestClientException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.SignatureVerificationException;
+import com.wultra.security.powerauth.app.testserver.errorhandling.*;
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationRejectInternalRequest;
@@ -70,10 +67,11 @@ public class OperationsController {
      * @throws RestClientException In case REST client call fails (fetching operations).
      * @throws SignatureVerificationException In case signature verification fails.
      * @throws ActivationFailedException In case activation is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @Parameter(name = HttpHeaders.ACCEPT_LANGUAGE, in = ParameterIn.HEADER, allowEmptyValue = true, description = "Preferred language in which we want to get the operations.", example = "en")
     @PostMapping("pending")
-    public ObjectResponse<OperationListResponse> fetchOperations(@Valid @RequestBody ObjectRequest<GetOperationsRequest> request) throws RemoteExecutionException, RestClientException, SignatureVerificationException, ActivationFailedException {
+    public ObjectResponse<OperationListResponse> fetchOperations(@Valid @RequestBody ObjectRequest<GetOperationsRequest> request) throws RemoteExecutionException, RestClientException, SignatureVerificationException, ActivationFailedException, GenericCryptographyException {
         final OperationListResponse response = operationsService.getOperations(request.getRequestObject());
         return new ObjectResponse<>(response);
     }
@@ -86,9 +84,10 @@ public class OperationsController {
      * @throws SignatureVerificationException In case signature verification fails.
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case app configuration is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @PostMapping("approve")
-    public Response approveOperations(@Valid @RequestBody ObjectRequest<OperationApproveInternalRequest> request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException {
+    public Response approveOperations(@Valid @RequestBody ObjectRequest<OperationApproveInternalRequest> request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException, GenericCryptographyException {
         return operationsService.approveOperation(request.getRequestObject());
     }
 
@@ -100,9 +99,10 @@ public class OperationsController {
      * @throws SignatureVerificationException In case signature verification fails.
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case app configuration is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @PostMapping("reject")
-    public Response rejectOperations(@Valid @RequestBody ObjectRequest<OperationRejectInternalRequest> request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException {
+    public Response rejectOperations(@Valid @RequestBody ObjectRequest<OperationRejectInternalRequest> request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException, GenericCryptographyException {
         return operationsService.rejectOperation(request.getRequestObject());
     }
 

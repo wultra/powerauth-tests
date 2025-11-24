@@ -25,10 +25,7 @@ import com.wultra.core.rest.client.base.RestClientException;
 import com.wultra.security.powerauth.app.testserver.config.TestServerConfiguration;
 import com.wultra.security.powerauth.app.testserver.database.TestConfigRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
-import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.SignatureVerificationException;
+import com.wultra.security.powerauth.app.testserver.errorhandling.*;
 import com.wultra.security.powerauth.app.testserver.model.converter.AuthenticationCodeTypeConverter;
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
@@ -98,10 +95,15 @@ public class OperationsService extends BaseService {
      * @throws RestClientException In case REST client call fails (fetching operations).
      * @throws SignatureVerificationException In case signature verification fails.
      * @throws ActivationFailedException In case activation is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @SuppressWarnings("unchecked")
-    public OperationListResponse getOperations(GetOperationsRequest request) throws RemoteExecutionException, RestClientException, SignatureVerificationException, ActivationFailedException {
+    public OperationListResponse getOperations(GetOperationsRequest request) throws RemoteExecutionException, RestClientException, SignatureVerificationException, ActivationFailedException, GenericCryptographyException {
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        if (resultStatusObject.get("version") == null || (!Long.valueOf(4).equals(resultStatusObject.get("version")))) {
+            throw new GenericCryptographyException("Unsupported protocol version: " + resultStatusObject.get("version"));
+        }
 
         final VerifyTokenStepModel model = new VerifyTokenStepModel();
         model.setTokenId(request.getTokenId());
@@ -155,11 +157,16 @@ public class OperationsService extends BaseService {
      * @throws SignatureVerificationException In case signature verification fails.
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case app configuration is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
-    public Response approveOperation(OperationApproveInternalRequest request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException {
+    public Response approveOperation(OperationApproveInternalRequest request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException, GenericCryptographyException {
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        if (resultStatusObject.get("version") == null || (!Long.valueOf(4).equals(resultStatusObject.get("version")))) {
+            throw new GenericCryptographyException("Unsupported protocol version: " + resultStatusObject.get("version"));
+        }
 
         final Map<String, Object> map = new HashMap<>();
         map.put("id", request.getOperationId());
@@ -201,11 +208,16 @@ public class OperationsService extends BaseService {
      * @throws SignatureVerificationException In case signature verification fails.
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case app configuration is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
-    public Response rejectOperation(OperationRejectInternalRequest request) throws AppConfigNotFoundException, ActivationFailedException, SignatureVerificationException, RemoteExecutionException {
+    public Response rejectOperation(OperationRejectInternalRequest request) throws AppConfigNotFoundException, ActivationFailedException, SignatureVerificationException, RemoteExecutionException, GenericCryptographyException {
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        if (resultStatusObject.get("version") == null || (!Long.valueOf(4).equals(resultStatusObject.get("version")))) {
+            throw new GenericCryptographyException("Unsupported protocol version: " + resultStatusObject.get("version"));
+        }
 
         final String operationId = request.getOperationId();
         final String reason = request.getReason();

@@ -21,6 +21,7 @@ package com.wultra.security.powerauth.app.testserver.service;
 import com.wultra.security.powerauth.app.testserver.database.TestStatusRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestStatusEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
+import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
@@ -57,38 +58,45 @@ public class ResultStatusService {
      * @param resultStatusObject Result status object.
      */
     public void persistResultStatus(JSONObject resultStatusObject) {
+
         final String activationId = getStringValue(resultStatusObject, "activationId");
         final Optional<TestStatusEntity> statusOptional = appStatusRepository.findById(activationId);
         final TestStatusEntity statusEntity = statusOptional.orElseGet(TestStatusEntity::new);
 
-        final String serverPublicKey = getStringValue(resultStatusObject, "ecServerPublicKey");
+        final String ecServerPublicKey = getStringValue(resultStatusObject, "ecServerPublicKey");
+        final String pqcServerPublicKey = getStringValue(resultStatusObject, "pqcServerPublicKey");
         final Long counter = getLongValue(resultStatusObject, "counter");
         final String ctrData = getStringValue(resultStatusObject, "ctrData");
-        final String encryptedDevicePrivateKey = getStringValue(resultStatusObject, "encryptedEcDevicePrivateKey");
-        final String signatureBiometryKey = getStringValue(resultStatusObject, "biometryFactorKey");
-        final String signatureKnowledgeKeyEncrypted = getStringValue(resultStatusObject, "knowledgeFactorKeyEncrypted");
-        final String signatureKnowledgeKeySalt = getStringValue(resultStatusObject, "knowledgeFactorKeySalt");
-        final String signaturePossessionKey = getStringValue(resultStatusObject, "possessionFactorKey");
+        final String encryptedEcDevicePrivateKey = getStringValue(resultStatusObject, "encryptedEcDevicePrivateKey");
+        final String encryptedPqcDevicePrivateKey = getStringValue(resultStatusObject, "encryptedPqcDevicePrivateKey");
+        final String biometryFactorKey = getStringValue(resultStatusObject, "biometryFactorKey");
+        final String knowledgeFactorKeyEncrypted = getStringValue(resultStatusObject, "knowledgeFactorKeyEncrypted");
+        final String knowledgeFactorKeySalt = getStringValue(resultStatusObject, "knowledgeFactorKeySalt");
+        final String possessionFactorKey = getStringValue(resultStatusObject, "possessionFactorKey");
         final String sharedSecretAlgorithm = getStringValue(resultStatusObject, "sharedSecretAlgorithm");
         final String temporaryKeyActSignRequestKey = getStringValue(resultStatusObject, "temporaryKeyActSignRequestKey");
-        final String pqcServerPublicKey = getStringValue(resultStatusObject, "pqcServerPublicKey");
         final String sharedInfo2Key = getStringValue(resultStatusObject, "sharedInfo2Key");
         final String macPersonalizedDataKey = getStringValue(resultStatusObject, "macPersonalizedDataKey");
+        final String statusBlobMacKey = getStringValue(resultStatusObject, "statusBlobMacKey");
+        final Long version = getLongValue(resultStatusObject, "version");
 
         statusEntity.setActivationId(activationId);
-        statusEntity.setServerPublicKey(serverPublicKey);
+        statusEntity.setEcServerPublicKey(ecServerPublicKey);
+        statusEntity.setPqcServerPublicKey(pqcServerPublicKey);
         statusEntity.setCounter(counter);
         statusEntity.setCtrData(ctrData);
-        statusEntity.setEncryptedDevicePrivateKey(encryptedDevicePrivateKey);
-        statusEntity.setSignatureBiometryKey(signatureBiometryKey);
-        statusEntity.setSignatureKnowledgeKeyEncrypted(signatureKnowledgeKeyEncrypted);
-        statusEntity.setSignatureKnowledgeKeySalt(signatureKnowledgeKeySalt);
-        statusEntity.setSignaturePossessionKey(signaturePossessionKey);
+        statusEntity.setEncryptedEcDevicePrivateKey(encryptedEcDevicePrivateKey);
+        statusEntity.setEncryptedPqcDevicePrivateKey(encryptedPqcDevicePrivateKey);
+        statusEntity.setBiometryFactorKey(biometryFactorKey);
+        statusEntity.setKnowledgeFactorKeyEncrypted(knowledgeFactorKeyEncrypted);
+        statusEntity.setKnowledgeFactorKeySalt(knowledgeFactorKeySalt);
+        statusEntity.setPossessionFactorKey(possessionFactorKey);
         statusEntity.setSharedSecretAlgorithm(sharedSecretAlgorithm);
         statusEntity.setTemporaryKeyActSignRequestKey(temporaryKeyActSignRequestKey);
-        statusEntity.setPqcServerPublicKey(pqcServerPublicKey);
         statusEntity.setSharedInfo2Key(sharedInfo2Key);
         statusEntity.setMacPersonalizedDataKey(macPersonalizedDataKey);
+        statusEntity.setStatusBlobMacKey(statusBlobMacKey);
+        statusEntity.setVersion(version);
 
         appStatusRepository.save(statusEntity);
     }
@@ -104,25 +112,32 @@ public class ResultStatusService {
 
         final JSONObject result = new JSONObject();
         result.put("activationId", testStatusEntity.getActivationId());
-        result.put("ecServerPublicKey", testStatusEntity.getServerPublicKey());
+        result.put("ecServerPublicKey", testStatusEntity.getEcServerPublicKey());
+        result.put("pqcServerPublicKey", testStatusEntity.getPqcServerPublicKey());
         result.put("counter", testStatusEntity.getCounter());
         result.put("ctrData", testStatusEntity.getCtrData());
-        result.put("encryptedEcDevicePrivateKey", testStatusEntity.getEncryptedDevicePrivateKey());
-        result.put("biometryFactorKey", testStatusEntity.getSignatureBiometryKey());
-        result.put("knowledgeFactorKeyEncrypted", testStatusEntity.getSignatureKnowledgeKeyEncrypted());
-        result.put("knowledgeFactorKeySalt", testStatusEntity.getSignatureKnowledgeKeySalt());
-        result.put("possessionFactorKey", testStatusEntity.getSignaturePossessionKey());
-        result.put("version", 4L);
+        result.put("encryptedEcDevicePrivateKey", testStatusEntity.getEncryptedEcDevicePrivateKey());
+        result.put("encryptedPqcDevicePrivateKey", testStatusEntity.getEncryptedPqcDevicePrivateKey());
+        result.put("biometryFactorKey", testStatusEntity.getBiometryFactorKey());
+        result.put("knowledgeFactorKeyEncrypted", testStatusEntity.getKnowledgeFactorKeyEncrypted());
+        result.put("knowledgeFactorKeySalt", testStatusEntity.getKnowledgeFactorKeySalt());
+        result.put("possessionFactorKey", testStatusEntity.getPossessionFactorKey());
         result.put("sharedSecretAlgorithm", testStatusEntity.getSharedSecretAlgorithm());
         result.put("temporaryKeyActSignRequestKey", testStatusEntity.getTemporaryKeyActSignRequestKey());
-        result.put("pqcServerPublicKey", testStatusEntity.getPqcServerPublicKey());
         result.put("sharedInfo2Key", testStatusEntity.getSharedInfo2Key());
         result.put("macPersonalizedDataKey", testStatusEntity.getMacPersonalizedDataKey());
-
+        result.put("statusBlobMacKey", testStatusEntity.getStatusBlobMacKey());
+        result.put("version", testStatusEntity.getVersion());
         return result;
     }
 
-    public void incrementCounter(String activationId) throws ActivationFailedException {
+    /**
+     * Increment cryptographic counter.
+     * @param activationId Activation identifier.
+     * @throws ActivationFailedException In case activation is not found.
+     * @throws GenericCryptographyException In case counter could not be incremented.
+     */
+    public void incrementCounter(String activationId) throws ActivationFailedException, GenericCryptographyException {
         final TestStatusEntity testStatusEntity = fetchTestStatus(activationId);
 
         // Increment numeric counter
@@ -137,9 +152,7 @@ public class ResultStatusService {
             try {
                 ctrData = new HashBasedCounter(PowerAuthVersion.V4_0.value()).next(ctrData);
             } catch (GenericCryptoException e) {
-                logger.warn("Cryptography error occurred: {}", e.getMessage());
-                logger.debug(e.getMessage(), e);
-                throw new RuntimeException(e);
+                throw new GenericCryptographyException(e.getMessage(), e);
             }
             testStatusEntity.setCtrData(Base64.getEncoder().encodeToString(ctrData));
         }

@@ -19,6 +19,7 @@ package com.wultra.security.powerauth.app.testserver.controller;
 
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
+import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeOfflineAuthRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineAuthRequest;
@@ -60,9 +61,10 @@ public class AuthenticationController {
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case application configuration is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @PostMapping("compute-online")
-    public ObjectResponse<ComputeOnlineAuthResponse> computeOnlineAuthCode(@Valid @RequestBody ObjectRequest<ComputeOnlineAuthRequest> request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
+    public ObjectResponse<ComputeOnlineAuthResponse> computeOnlineAuthCode(@Valid @RequestBody ObjectRequest<ComputeOnlineAuthRequest> request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException, GenericCryptographyException {
         final ComputeOnlineAuthResponse response = authenticationService.computeOnlineAuth(request.getRequestObject());
         return new ObjectResponse<>(response);
     }
@@ -73,9 +75,10 @@ public class AuthenticationController {
      * @return Compute an offline PowerAuth signature response.
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @PostMapping("compute-offline")
-    public ObjectResponse<ComputeOfflineAuthResponse> computeOfflineSignature(@Valid @RequestBody ObjectRequest<ComputeOfflineAuthRequest> request) throws RemoteExecutionException, ActivationFailedException {
+    public ObjectResponse<ComputeOfflineAuthResponse> computeOfflineSignature(@Valid @RequestBody ObjectRequest<ComputeOfflineAuthRequest> request) throws RemoteExecutionException, ActivationFailedException, GenericCryptographyException {
         final ComputeOfflineAuthResponse response = authenticationService.computeOfflineAuth(request.getRequestObject());
         return new ObjectResponse<>(response);
     }

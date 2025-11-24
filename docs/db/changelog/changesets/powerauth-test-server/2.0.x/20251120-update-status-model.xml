@@ -65,7 +65,187 @@
         </addColumn>
     </changeSet>
 
-    <changeSet id="6" author="Roman Strobl">
+    <changeSet id="6" logicalFilePath="powerauth-test-server/2.0.x/20251120-update-status-model.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_test_status" columnName="biometry_factor_key"/>
+            </not>
+        </preConditions>
+        <comment>Create column biometry_factor_key in table pa_test_status</comment>
+        <addColumn tableName="pa_test_status">
+            <column name="biometry_factor_key" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="7" logicalFilePath="powerauth-test-server/2.0.x/20251120-update-status-model.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_test_status" columnName="knowledge_factor_key_encrypted"/>
+            </not>
+        </preConditions>
+        <comment>Create column knowledge_factor_key_encrypted in table pa_test_status</comment>
+        <addColumn tableName="pa_test_status">
+            <column name="knowledge_factor_key_encrypted" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="8" logicalFilePath="powerauth-test-server/2.0.x/20251120-update-status-model.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_test_status" columnName="knowledge_factor_key_salt"/>
+            </not>
+        </preConditions>
+        <comment>Create column knowledge_factor_key_salt in table pa_test_status</comment>
+        <addColumn tableName="pa_test_status">
+            <column name="knowledge_factor_key_salt" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="9" logicalFilePath="powerauth-test-server/2.0.x/20251120-update-status-model.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_test_status" columnName="possession_factor_key"/>
+            </not>
+        </preConditions>
+        <comment>Create column possession_factor_key in table pa_test_status</comment>
+        <addColumn tableName="pa_test_status">
+            <column name="possession_factor_key" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="10" logicalFilePath="powerauth-test-server/2.0.x/20251120-update-status-model.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_test_status" columnName="encrypted_ec_device_private_key"/>
+            </not>
+        </preConditions>
+        <comment>Create column encrypted_ec_device_private_key in table pa_test_status</comment>
+        <addColumn tableName="pa_test_status">
+            <column name="encrypted_ec_device_private_key" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="11" logicalFilePath="powerauth-test-server/2.0.x/20251120-update-status-model.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_test_status" columnName="encrypted_pqc_device_private_key"/>
+            </not>
+        </preConditions>
+        <comment>Create column encrypted_pqc_device_private_key in table pa_test_status</comment>
+        <addColumn tableName="pa_test_status">
+            <column name="encrypted_pqc_device_private_key" type="clob"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="12" logicalFilePath="powerauth-test-server/2.0.x/20251120-update-status-model.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_test_status" columnName="ec_device_public_key"/>
+            </not>
+        </preConditions>
+        <comment>Create column ec_device_public_key in table pa_test_status</comment>
+        <addColumn tableName="pa_test_status">
+            <column name="ec_device_public_key" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="13" logicalFilePath="powerauth-test-server/2.0.x/20251120-update-status-model.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_test_status" columnName="pqc_device_public_key"/>
+            </not>
+        </preConditions>
+        <comment>Create column pqc_device_public_key in table pa_test_status</comment>
+        <addColumn tableName="pa_test_status">
+            <column name="pqc_device_public_key" type="clob"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="14" logicalFilePath="powerauth-test-server/2.0.x/20251120-update-status-model.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_test_status" columnName="ec_server_public_key"/>
+            </not>
+        </preConditions>
+        <comment>Create column ec_server_public_key in table pa_test_status</comment>
+        <addColumn tableName="pa_test_status">
+            <column name="ec_server_public_key" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="15" logicalFilePath="powerauth-test-server/2.0.x/20251120-update-status-model.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_test_status" columnName="status_blob_mac_key"/>
+            </not>
+        </preConditions>
+        <comment>Create column status_blob_mac_key in table pa_test_status</comment>
+        <addColumn tableName="pa_test_status">
+            <column name="status_blob_mac_key" type="varchar(255)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="16" logicalFilePath="powerauth-test-server/2.0.x/20251120-update-status-model.xml" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="pa_test_status" columnName="version"/>
+            </not>
+        </preConditions>
+        <comment>Create column version in table pa_test_status</comment>
+        <addColumn tableName="pa_test_status">
+            <column name="version" type="bigint"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="17" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="pa_test_status" columnName="server_public_key"/>
+        </preConditions>
+        <comment>Make server_public_key nullable in table pa_test_status</comment>
+        <dropNotNullConstraint tableName="pa_test_status" columnName="server_public_key" columnDataType="varchar(255)"/>
+    </changeSet>
+
+    <changeSet id="18" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="pa_test_status" columnName="encrypted_device_private_key"/>
+        </preConditions>
+        <comment>Make encrypted_device_private_key nullable in table pa_test_status</comment>
+        <dropNotNullConstraint tableName="pa_test_status" columnName="encrypted_device_private_key" columnDataType="varchar(255)"/>
+    </changeSet>
+
+    <changeSet id="19" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="pa_test_status" columnName="signature_biometry_key"/>
+        </preConditions>
+        <comment>Make signature_biometry_key nullable in table pa_test_status</comment>
+        <dropNotNullConstraint tableName="pa_test_status" columnName="signature_biometry_key" columnDataType="varchar(255)"/>
+    </changeSet>
+
+    <changeSet id="20" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="pa_test_status" columnName="signature_knowledge_key_encrypted"/>
+        </preConditions>
+        <comment>Make signature_knowledge_key_encrypted nullable in table pa_test_status</comment>
+        <dropNotNullConstraint tableName="pa_test_status" columnName="signature_knowledge_key_encrypted" columnDataType="varchar(255)"/>
+    </changeSet>
+
+    <changeSet id="21" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="pa_test_status" columnName="signature_knowledge_key_salt"/>
+        </preConditions>
+        <comment>Make signature_knowledge_key_salt nullable in table pa_test_status</comment>
+        <dropNotNullConstraint tableName="pa_test_status" columnName="signature_knowledge_key_salt" columnDataType="varchar(255)"/>
+    </changeSet>
+
+    <changeSet id="22" author="Roman Strobl">
+        <preConditions onFail="MARK_RAN">
+            <columnExists tableName="pa_test_status" columnName="signature_possession_key"/>
+        </preConditions>
+        <comment>Make signature_possession_key nullable in table pa_test_status</comment>
+        <dropNotNullConstraint tableName="pa_test_status" columnName="signature_possession_key" columnDataType="varchar(255)"/>
+    </changeSet>
+
+    <changeSet id="23" author="Roman Strobl">
         <preConditions onFail="MARK_RAN">
             <columnExists tableName="pa_test_status" columnName="transport_master_key"/>
         </preConditions>

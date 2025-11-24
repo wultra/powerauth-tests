@@ -22,6 +22,7 @@ import com.wultra.security.powerauth.app.testserver.database.TestConfigRepositor
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
+import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
 import com.wultra.security.powerauth.app.testserver.model.converter.AuthenticationCodeTypeConverter;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeTokenDigestRequest;
@@ -82,14 +83,20 @@ public class TokenService extends BaseService {
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws AppConfigNotFoundException In case app configuration is incorrect.
      * @throws ActivationFailedException In case activation is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @Transactional
     @SuppressWarnings("unchecked")
-    public CreateTokenResponse createToken(CreateTokenRequest request) throws AppConfigNotFoundException, RemoteExecutionException, ActivationFailedException {
+    public CreateTokenResponse createToken(CreateTokenRequest request) throws AppConfigNotFoundException, RemoteExecutionException, ActivationFailedException, GenericCryptographyException {
 
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        if (resultStatusObject.get("version") == null || (!Long.valueOf(4).equals(resultStatusObject.get("version")))) {
+            throw new GenericCryptographyException("Unsupported protocol version: " + resultStatusObject.get("version"));
+        }
+
         PowerAuthCodeType authCodeType = AuthenticationCodeTypeConverter.convert(request.getAuthenticationCodeType() != null
                 ? request.getAuthenticationCodeType()
                 : request.getSignatureType());
@@ -141,11 +148,16 @@ public class TokenService extends BaseService {
      * @return Response for computing a token digest.
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @SuppressWarnings("unchecked")
-    public ComputeTokenDigestResponse computeTokenDigest(ComputeTokenDigestRequest request) throws RemoteExecutionException, ActivationFailedException {
+    public ComputeTokenDigestResponse computeTokenDigest(ComputeTokenDigestRequest request) throws RemoteExecutionException, ActivationFailedException, GenericCryptographyException {
 
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        if (resultStatusObject.get("version") == null || (!Long.valueOf(4).equals(resultStatusObject.get("version")))) {
+            throw new GenericCryptographyException("Unsupported protocol version: " + resultStatusObject.get("version"));
+        }
 
         final VerifyTokenStepModel model = new VerifyTokenStepModel();
         model.setTokenId(request.getTokenId());
