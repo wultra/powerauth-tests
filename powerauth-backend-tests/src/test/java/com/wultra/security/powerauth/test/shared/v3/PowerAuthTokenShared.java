@@ -30,7 +30,7 @@ import com.wultra.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.CreateTokenStep;
-import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
+import com.wultra.security.powerauth.util.TestCounterUtil;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -213,14 +213,14 @@ public class PowerAuthTokenShared {
     }
 
     public static void tokenCounterIncrementTest(final CreateTokenStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
-        byte[] ctrData = CounterUtil.getCtrData(model, stepLogger);
+        byte[] ctrData = TestCounterUtil.getCtrData(model.getResultStatus());
         new CreateTokenStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
         // Verify counter after createToken
         byte[] ctrDataExpected = new HashBasedCounter(version.value()).next(ctrData);
-        assertArrayEquals(ctrDataExpected, CounterUtil.getCtrData(model, stepLogger));
+        assertArrayEquals(ctrDataExpected, TestCounterUtil.getCtrData(model.getResultStatus()));
     }
 
     private static void checkError(final ErrorResponse errorResponse) {

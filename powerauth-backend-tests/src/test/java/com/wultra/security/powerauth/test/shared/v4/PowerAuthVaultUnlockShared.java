@@ -37,7 +37,7 @@ import com.wultra.security.powerauth.lib.cmd.steps.SignAsymmetricStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VaultUnlockStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.SignAsymmetricStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
-import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
+import com.wultra.security.powerauth.util.TestCounterUtil;
 
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
@@ -182,14 +182,14 @@ public class PowerAuthVaultUnlockShared {
     }
 
     public static void vaultUnlockCounterIncrementTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
-        byte[] ctrData = CounterUtil.getCtrData(model, stepLogger);
+        byte[] ctrData = TestCounterUtil.getCtrData(model.getResultStatus());
         new VaultUnlockStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
         // Verify counter after createToken - in version 3.0 the counter is incremented once
         byte[] ctrDataExpected = new HashBasedCounter(version.value()).next(ctrData);
-        assertArrayEquals(ctrDataExpected, CounterUtil.getCtrData(model, stepLogger));
+        assertArrayEquals(ctrDataExpected, TestCounterUtil.getCtrData(model.getResultStatus()));
     }
 
     public static void vaultUnlockTooLongReasonTest(final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {
