@@ -71,36 +71,6 @@
 
     </dependencies>
 
-    <!-- Build profiles -->
-    <profiles>
-        <profile>
-            <id>test-repository</id>
-            <activation>
-                <property>
-                    <name>!useInternalRepo</name>
-                </property>
-            </activation>
-            <properties>
-            </properties>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.sonatype.central</groupId>
-                        <artifactId>central-publishing-maven-plugin</artifactId>
-                        <extensions>true</extensions>
-                        <configuration>
-                            <publishingServerId>${env.server_id}</publishingServerId>
-                            <autoPublish>true</autoPublish>
-                            <waitUntil>published</waitUntil>
-                            <waitMaxTime>${env.wait_max_time}</waitMaxTime>
-                            <skipPublishing>true</skipPublishing>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
-
     <build>
         <plugins>
             <plugin>
