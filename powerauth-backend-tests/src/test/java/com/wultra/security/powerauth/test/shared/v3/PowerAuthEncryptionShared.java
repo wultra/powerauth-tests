@@ -41,9 +41,9 @@ import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
 import com.wultra.security.powerauth.lib.cmd.steps.SignAndEncryptStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
-import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
 import com.wultra.security.powerauth.model.TemporaryKey;
 import com.wultra.security.powerauth.test.shared.v3.util.TemporaryKeyFetchUtil;
+import com.wultra.security.powerauth.util.TestCounterUtil;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.io.BufferedWriter;
@@ -405,7 +405,7 @@ public class PowerAuthEncryptionShared {
         signatureModel.setResourceId("/exchange/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
-        byte[] ctrData = CounterUtil.getCtrData(signatureModel, stepLogger);
+        byte[] ctrData = TestCounterUtil.getCtrData(signatureModel.getResultStatus());
         HashBasedCounter counter = new HashBasedCounter(version.value());
         for (int i = 1; i <= 10; i++) {
             ObjectStepLogger stepLoggerLoop = new ObjectStepLogger();
@@ -415,7 +415,7 @@ public class PowerAuthEncryptionShared {
 
             // Verify hash based counter
             ctrData = counter.next(ctrData);
-            assertArrayEquals(ctrData, CounterUtil.getCtrData(signatureModel, stepLoggerLoop));
+            assertArrayEquals(ctrData, TestCounterUtil.getCtrData(signatureModel.getResultStatus()));
         }
     }
 

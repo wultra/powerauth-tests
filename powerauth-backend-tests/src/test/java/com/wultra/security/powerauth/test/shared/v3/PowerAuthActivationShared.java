@@ -45,9 +45,9 @@ import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.GetStatusStep;
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
-import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
 import com.wultra.security.powerauth.rest.api.model.request.v3.ActivationStatusRequest;
 import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
+import com.wultra.security.powerauth.util.TestCounterUtil;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
@@ -320,7 +320,7 @@ public class PowerAuthActivationShared {
             statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
             // Added in V3.1
             assertEquals(20, statusBlob.getCtrLookAhead());
-            assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey, ProtocolVersion.fromValue(version.value())));
+            assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), TestCounterUtil.getCtrData(model.getResultStatus()), transportMasterKey, ProtocolVersion.fromValue(version.value())));
         }
         assertTrue(statusBlob.isValid());
         assertEquals(0x2, statusBlob.getActivationStatus());
@@ -607,7 +607,7 @@ public class PowerAuthActivationShared {
             statusBlob = CLIENT_ACTIVATION.getStatusFromEncryptedBlob(cStatusBlob, challengeData, nonceData, transportMasterKey);
             // Added in V3.1
             assertEquals(20, statusBlob.getCtrLookAhead());
-            assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), CounterUtil.getCtrData(model, stepLoggerStatus), transportMasterKey, ProtocolVersion.fromValue(version.value())));
+            assertTrue(CLIENT_ACTIVATION.verifyHashForHashBasedCounter(statusBlob.getCtrDataHash(), TestCounterUtil.getCtrData(model.getResultStatus()), transportMasterKey, ProtocolVersion.fromValue(version.value())));
         }
 
         assertTrue(statusBlob.isValid());

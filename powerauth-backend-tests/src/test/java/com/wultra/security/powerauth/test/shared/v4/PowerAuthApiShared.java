@@ -83,7 +83,7 @@ public class PowerAuthApiShared {
         assertTrue(signatureResponse.isAuthenticationValid());
         BaseStepModel model = new BaseStepModel();
         model.setResultStatusObject(config.getResultStatusObject(version));
-        CounterUtil.incrementCounter(model);
+        CounterUtil.incrementCounter(model.getResultStatus());
         Calendar after = new GregorianCalendar();
         after.add(Calendar.SECOND, TIME_SYNCHRONIZATION_WINDOW_SECONDS);
         List<SignatureAuditItem> auditItems = powerAuthClient.getSignatureAuditLog(config.getUser(version), config.getApplicationId(), before.getTime(), after.getTime());
