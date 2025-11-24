@@ -22,22 +22,22 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- * Test for {@link SignatureType}.
+ * Test for {@link AuthenticationCodeType}.
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
  */
-class SignatureTypeTest {
+class AuthenticationCodeTypeTest {
 
     @Test
     void testFromString_allCaps() {
-        final SignatureType result = SignatureType.fromString("POSSESSION");
-        assertEquals(SignatureType.POSSESSION, result);
+        final AuthenticationCodeType result = AuthenticationCodeType.fromString("POSSESSION");
+        assertEquals(AuthenticationCodeType.POSSESSION, result);
     }
 
     @Test
     void testFromString_lower() {
-        final SignatureType result = SignatureType.fromString("possession");
-        assertEquals(SignatureType.POSSESSION, result);
+        final AuthenticationCodeType result = AuthenticationCodeType.fromString("possession");
+        assertEquals(AuthenticationCodeType.POSSESSION, result);
     }
 
 }

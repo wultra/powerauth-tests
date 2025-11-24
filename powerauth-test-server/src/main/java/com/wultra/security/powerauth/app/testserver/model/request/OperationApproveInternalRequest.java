@@ -19,7 +19,7 @@ package com.wultra.security.powerauth.app.testserver.model.request;
 
 import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.annotation.Nulls;
-import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.app.testserver.model.enumeration.AuthenticationCodeType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
@@ -42,7 +42,11 @@ public class OperationApproveInternalRequest {
 
     @Schema(defaultValue = "possession_knowledge")
     @JsonSetter(nulls = Nulls.SKIP)
-    private SignatureType signatureType = SignatureType.POSSESSION_KNOWLEDGE;
+    private AuthenticationCodeType signatureType = AuthenticationCodeType.POSSESSION_KNOWLEDGE;
+
+    @Schema(defaultValue = "possession_knowledge")
+    @JsonSetter(nulls = Nulls.SKIP)
+    private AuthenticationCodeType authenticationCodeType = AuthenticationCodeType.POSSESSION_KNOWLEDGE;
 
     private String password;
 

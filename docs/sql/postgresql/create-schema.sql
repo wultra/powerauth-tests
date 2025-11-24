@@ -10,14 +10,18 @@ CREATE TABLE IF NOT EXISTS pa_test_config
 
 CREATE TABLE IF NOT EXISTS pa_test_status
 (
-    activation_id                     VARCHAR(255) NOT NULL PRIMARY KEY, -- Activation identifier
-    server_public_key                 VARCHAR(255) NOT NULL,             -- Server public key in Base64 format
-    counter                           INTEGER      NOT NULL,             -- Numeric counter
-    ctr_data                          VARCHAR(255) NOT NULL,             -- Hashed counter data
-    encrypted_device_private_key      VARCHAR(255) NOT NULL,             -- Encrypted device private key in Base64 format
-    signature_biometry_key            VARCHAR(255) NOT NULL,             -- Signature biometry key in Base64 format
-    signature_knowledge_key_encrypted VARCHAR(255) NOT NULL,             -- Encrypted signature knowledge key in Base64 format
-    signature_knowledge_key_salt      VARCHAR(255) NOT NULL,             -- Signature knowledge key in Base64 format
-    signature_possession_key          VARCHAR(255) NOT NULL,             -- Signature possession key in Base64 format
-    transport_master_key              VARCHAR(255) NOT NULL              -- Transport master key in Base64 format
+    activation_id                      VARCHAR(255) NOT NULL PRIMARY KEY, -- Activation identifier
+    server_public_key                  VARCHAR(255) NOT NULL,             -- Server public key (EC) in Base64 format
+    counter                            INTEGER      NOT NULL,             -- Numeric counter
+    ctr_data                           VARCHAR(255) NOT NULL,             -- Hashed counter data
+    encrypted_device_private_key       VARCHAR(255) NOT NULL,             -- Encrypted device private key in Base64 format
+    signature_biometry_key             VARCHAR(255) NOT NULL,             -- Signature biometry key in Base64 format
+    signature_knowledge_key_encrypted  VARCHAR(255) NOT NULL,             -- Encrypted signature knowledge key in Base64 format
+    signature_knowledge_key_salt       VARCHAR(255) NOT NULL,             -- Signature knowledge key in Base64 format
+    signature_possession_key           VARCHAR(255) NOT NULL,             -- Signature possession key in Base64 format
+    transport_master_key               VARCHAR(255) NOT NULL              -- Transport master key in Base64 format
+    shared_secret_algorithm            VARCHAR(255)                       -- Used shared secret algorithm
+    temporary_key_act_sign_request_key VARCHAR(255)                       -- Key for signing temporary key requests in activation scope
+    pqc_server_public_key              TEXT                               -- Server public key (PQC) in Base64 format
+    shared_info2_key                   VARCHAR(255)                       -- Key for deriving sharedInfo2 parameter
 );

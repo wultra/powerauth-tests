@@ -17,9 +17,8 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.request;
 
-import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.app.testserver.model.enumeration.AuthenticationCodeType;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
@@ -29,11 +28,14 @@ import lombok.Data;
  */
 @Data
 public class CreateTokenRequest {
+
     @NotBlank
     private String activationId;
     @NotBlank
     private String applicationId;
     private String password;
-    @NotNull
-    private SignatureType signatureType;
+    @Deprecated
+    private AuthenticationCodeType signatureType;
+    private AuthenticationCodeType authenticationCodeType;
+
 }

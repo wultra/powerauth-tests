@@ -23,7 +23,7 @@ import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEn
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
-import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
+import com.wultra.security.powerauth.app.testserver.model.converter.AuthenticationCodeTypeConverter;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeTokenDigestRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.CreateTokenRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeTokenDigestResponse;
@@ -90,16 +90,18 @@ public class TokenService extends BaseService {
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
-        PowerAuthCodeType signatureType = SignatureTypeConverter.convert(request.getSignatureType());
-        if (signatureType == null) {
+        PowerAuthCodeType authCodeType = AuthenticationCodeTypeConverter.convert(request.getAuthenticationCodeType() != null
+                ? request.getAuthenticationCodeType()
+                : request.getSignatureType());
+        if (authCodeType == null) {
             // Fallback to previous behavior when there was no signatureType property in the request.
-            signatureType = PowerAuthCodeType.POSSESSION_KNOWLEDGE;
+            authCodeType = PowerAuthCodeType.POSSESSION_KNOWLEDGE;
         }
         final CreateTokenStepModel model = new CreateTokenStepModel();
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
         model.setPassword(request.getPassword());
-        model.setAuthenticationCodeType(signatureType);
+        model.setAuthenticationCodeType(authCodeType);
         model.setVersion(config.getVersion());
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatusObject(resultStatusObject);

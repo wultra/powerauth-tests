@@ -51,6 +51,7 @@ public class TestStatusEntity implements Serializable {
     @Column(name = "activation_id", nullable = false)
     private String activationId;
 
+    @Deprecated
     @Column(name = "server_public_key", nullable = false)
     private String serverPublicKey;
 
@@ -60,23 +61,44 @@ public class TestStatusEntity implements Serializable {
     @Column(name = "ctr_data", nullable = false)
     private String ctrData;
 
+    @Deprecated
     @Column(name = "encrypted_device_private_key", nullable = false)
     private String encryptedDevicePrivateKey;
 
+    @Deprecated
     @Column(name = "signature_biometry_key", nullable = false)
     private String signatureBiometryKey;
 
+    @Deprecated
     @Column(name = "signature_knowledge_key_encrypted", nullable = false)
     private String signatureKnowledgeKeyEncrypted;
 
+    @Deprecated
     @Column(name = "signature_knowledge_key_salt", nullable = false)
     private String signatureKnowledgeKeySalt;
 
+    @Deprecated
     @Column(name = "signature_possession_key", nullable = false)
     private String signaturePossessionKey;
 
-    @Column(name = "transport_master_key", nullable = false)
+    @Deprecated
+    @Column(name = "transport_master_key")
     private String transportMasterKey;
+
+    @Column(name = "shared_secret_algorithm")
+    private String sharedSecretAlgorithm;
+
+    @Column(name = "temporary_key_act_sign_request_key")
+    private String temporaryKeyActSignRequestKey;
+
+    @Column(name = "pqc_server_public_key", columnDefinition = "TEXT")
+    private String pqcServerPublicKey;
+
+    @Column(name = "shared_info2_key")
+    private String sharedInfo2Key;
+
+    @Column(name = "mac_personalized_data_key")
+    private String macPersonalizedDataKey;
 
     @Override
     public boolean equals(Object o) {

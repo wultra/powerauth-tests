@@ -23,11 +23,11 @@ import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEn
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
-import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
-import com.wultra.security.powerauth.app.testserver.model.request.ComputeOfflineSignatureRequest;
-import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineSignatureRequest;
-import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineSignatureResponse;
-import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnlineSignatureResponse;
+import com.wultra.security.powerauth.app.testserver.model.converter.AuthenticationCodeTypeConverter;
+import com.wultra.security.powerauth.app.testserver.model.request.ComputeOfflineAuthRequest;
+import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineAuthRequest;
+import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineAuthResponse;
+import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnlineAuthResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.ComputeOfflineAuthenticationStep;
@@ -50,7 +50,7 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
-public class SignatureService extends BaseService {
+public class AuthenticationService extends BaseService {
 
     private final TestServerConfiguration config;
     private final ResultStatusService resultStatusUtil;
@@ -65,7 +65,7 @@ public class SignatureService extends BaseService {
      * @param computeOfflineSignatureStep Compute offline signature step.
      */
     @Autowired
-    public SignatureService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, VerifyAuthenticationStep VerifyAuthenticationStep, ComputeOfflineAuthenticationStep computeOfflineSignatureStep) {
+    public AuthenticationService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, VerifyAuthenticationStep VerifyAuthenticationStep, ComputeOfflineAuthenticationStep computeOfflineSignatureStep) {
         super(appConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
@@ -82,7 +82,7 @@ public class SignatureService extends BaseService {
      * @throws AppConfigNotFoundException In case application configuration is not found.
      */
     @SuppressWarnings("unchecked")
-    public ComputeOnlineSignatureResponse computeOnlineSignature(ComputeOnlineSignatureRequest request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
+    public ComputeOnlineAuthResponse computeOnlineAuth(ComputeOnlineAuthRequest request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
 
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
@@ -91,7 +91,9 @@ public class SignatureService extends BaseService {
         final VerifyAuthenticationStepModel model = new VerifyAuthenticationStepModel();
         model.setHttpMethod(request.getHttpMethod());
         model.setResourceId(request.getResourceId());
-        model.setAuthenticationCodeType(SignatureTypeConverter.convert(request.getSignatureType()));
+        model.setAuthenticationCodeType(AuthenticationCodeTypeConverter.convert(request.getAuthenticationCodeType() != null
+                ? request.getAuthenticationCodeType()
+                : request.getSignatureType()));
         if (request.getRequestBody() != null) {
             model.setData(Base64.getDecoder().decode(request.getRequestBody()));
         }
@@ -126,7 +128,7 @@ public class SignatureService extends BaseService {
             resultStatusUtil.incrementCounter(request.getActivationId());
         }
 
-        final ComputeOnlineSignatureResponse response = new ComputeOnlineSignatureResponse();
+        final ComputeOnlineAuthResponse response = new ComputeOnlineAuthResponse();
         response.setAuthHeader(authHeader.orElse(null));
         return response;
     }
@@ -139,7 +141,7 @@ public class SignatureService extends BaseService {
      * @throws ActivationFailedException In case activation is not found.
      */
     @SuppressWarnings("unchecked")
-    public ComputeOfflineSignatureResponse computeOfflineSignature(ComputeOfflineSignatureRequest request) throws RemoteExecutionException, ActivationFailedException {
+    public ComputeOfflineAuthResponse computeOfflineAuth(ComputeOfflineAuthRequest request) throws RemoteExecutionException, ActivationFailedException {
 
         final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
 
@@ -172,7 +174,7 @@ public class SignatureService extends BaseService {
             resultStatusUtil.incrementCounter(request.getActivationId());
         }
 
-        final ComputeOfflineSignatureResponse response = new ComputeOfflineSignatureResponse();
+        final ComputeOfflineAuthResponse response = new ComputeOfflineAuthResponse();
         response.setOtp(otpCode.orElse(null));
         return response;
     }

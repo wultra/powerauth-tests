@@ -69,7 +69,11 @@ public class ResultStatusService {
         final String signatureKnowledgeKeyEncrypted = getStringValue(resultStatusObject, "knowledgeFactorKeyEncrypted");
         final String signatureKnowledgeKeySalt = getStringValue(resultStatusObject, "knowledgeFactorKeySalt");
         final String signaturePossessionKey = getStringValue(resultStatusObject, "possessionFactorKey");
-        final String transportMasterKey = getStringValue(resultStatusObject, "transportMasterKey");
+        final String sharedSecretAlgorithm = getStringValue(resultStatusObject, "sharedSecretAlgorithm");
+        final String temporaryKeyActSignRequestKey = getStringValue(resultStatusObject, "temporaryKeyActSignRequestKey");
+        final String pqcServerPublicKey = getStringValue(resultStatusObject, "pqcServerPublicKey");
+        final String sharedInfo2Key = getStringValue(resultStatusObject, "sharedInfo2Key");
+        final String macPersonalizedDataKey = getStringValue(resultStatusObject, "macPersonalizedDataKey");
 
         statusEntity.setActivationId(activationId);
         statusEntity.setServerPublicKey(serverPublicKey);
@@ -80,7 +84,11 @@ public class ResultStatusService {
         statusEntity.setSignatureKnowledgeKeyEncrypted(signatureKnowledgeKeyEncrypted);
         statusEntity.setSignatureKnowledgeKeySalt(signatureKnowledgeKeySalt);
         statusEntity.setSignaturePossessionKey(signaturePossessionKey);
-        statusEntity.setTransportMasterKey(transportMasterKey);
+        statusEntity.setSharedSecretAlgorithm(sharedSecretAlgorithm);
+        statusEntity.setTemporaryKeyActSignRequestKey(temporaryKeyActSignRequestKey);
+        statusEntity.setPqcServerPublicKey(pqcServerPublicKey);
+        statusEntity.setSharedInfo2Key(sharedInfo2Key);
+        statusEntity.setMacPersonalizedDataKey(macPersonalizedDataKey);
 
         appStatusRepository.save(statusEntity);
     }
@@ -104,8 +112,12 @@ public class ResultStatusService {
         result.put("knowledgeFactorKeyEncrypted", testStatusEntity.getSignatureKnowledgeKeyEncrypted());
         result.put("knowledgeFactorKeySalt", testStatusEntity.getSignatureKnowledgeKeySalt());
         result.put("possessionFactorKey", testStatusEntity.getSignaturePossessionKey());
-        result.put("transportMasterKey", testStatusEntity.getTransportMasterKey());
-        result.put("version", 3L);
+        result.put("version", 4L);
+        result.put("sharedSecretAlgorithm", testStatusEntity.getSharedSecretAlgorithm());
+        result.put("temporaryKeyActSignRequestKey", testStatusEntity.getTemporaryKeyActSignRequestKey());
+        result.put("pqcServerPublicKey", testStatusEntity.getPqcServerPublicKey());
+        result.put("sharedInfo2Key", testStatusEntity.getSharedInfo2Key());
+        result.put("macPersonalizedDataKey", testStatusEntity.getMacPersonalizedDataKey());
 
         return result;
     }
@@ -123,7 +135,7 @@ public class ResultStatusService {
         if (!ctrDataBase64.isEmpty()) {
             byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
             try {
-                ctrData = new HashBasedCounter(PowerAuthVersion.V3_3.value()).next(ctrData);
+                ctrData = new HashBasedCounter(PowerAuthVersion.V4_0.value()).next(ctrData);
             } catch (GenericCryptoException e) {
                 logger.warn("Cryptography error occurred: {}", e.getMessage());
                 logger.debug(e.getMessage(), e);

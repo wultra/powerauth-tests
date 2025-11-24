@@ -29,7 +29,7 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFail
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.SignatureVerificationException;
-import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
+import com.wultra.security.powerauth.app.testserver.model.converter.AuthenticationCodeTypeConverter;
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationRejectInternalRequest;
@@ -181,7 +181,9 @@ public class OperationsService extends BaseService {
         model.setHttpMethod("POST");
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
-        model.setAuthenticationCodeType(SignatureTypeConverter.convert(request.getSignatureType()));
+        model.setAuthenticationCodeType(AuthenticationCodeTypeConverter.convert(request.getAuthenticationCodeType() != null
+                ? request.getAuthenticationCodeType()
+                : request.getSignatureType()));
         model.setPassword(request.getPassword());
         model.setVersion(config.getVersion());
         model.setResultStatusObject(resultStatusObject);

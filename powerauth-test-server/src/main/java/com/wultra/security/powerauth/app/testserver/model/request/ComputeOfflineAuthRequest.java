@@ -15,20 +15,26 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.app.testserver.model.response;
+package com.wultra.security.powerauth.app.testserver.model.request;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Response for computing an online PowerAuth signature.
+ * Request for computing an offline PowerAuth authentication code.
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 @Getter
 @Setter
-public class ComputeOnlineSignatureResponse {
+public class ComputeOfflineAuthRequest {
 
-    private String authHeader;
+    @NotBlank
+    private String activationId;
+    @NotBlank
+    private String qrCodeData;
+    @NotBlank
+    private String password;
 
 }
