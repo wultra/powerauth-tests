@@ -106,7 +106,7 @@ public class PowerAuthApiShared {
                 signaturePossessionKey, signatureKnowledgeKey, null), ctrData, AuthenticationCodeConfiguration.base64());
         final VerifySignatureResponse signatureResponse = powerAuthClient.verifySignature(config.getActivationId(version), config.getApplicationKey(), normalizedData, signatureValue, SignatureType.POSSESSION_KNOWLEDGE, version.value(), null);
         assertTrue(signatureResponse.isSignatureValid());
-        CounterUtil.incrementCounter(model);
+        CounterUtil.incrementCounter(model.getResultStatus());
         final Calendar after = new GregorianCalendar();
         after.add(Calendar.SECOND, TIME_SYNCHRONIZATION_WINDOW_SECONDS);
         final List<SignatureAuditItem> auditItems = powerAuthClient.getSignatureAuditLog(config.getUser(version), config.getApplicationId(), before.getTime(), after.getTime());
@@ -134,7 +134,7 @@ public class PowerAuthApiShared {
         final byte[] transportMasterKeyBytes = Base64.getDecoder().decode(transportMasterKeyBase64);
         final byte[] encryptedDevicePrivateKeyBytes = model.getResultStatus().getEncryptedEcDevicePrivateKeyBytes();
         final byte[] nonceBytes = KEY_GENERATOR.generateRandomBytes(16);
-        final PublicKey serverPublicKey = model.getResultStatus().getEcServerPublicKeyObject();;
+        final PublicKey serverPublicKey = model.getResultStatus().getEcServerPublicKeyObject();
         final TemporaryKey temporaryKey = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.ACTIVATION_SCOPE, config);
         final ClientEncryptor<EciesEncryptedRequest, EciesEncryptedResponse> clientEncryptor = ENCRYPTOR_FACTORY.getClientEncryptor(
                 EncryptorId.VAULT_UNLOCK,
@@ -190,7 +190,7 @@ public class PowerAuthApiShared {
         final SecretKey vaultEncryptionKey = CLIENT_VAULT.decryptVaultEncryptionKey(encryptedVaultEncryptionKey, transportMasterKey);
         final PrivateKey devicePrivateKey = CLIENT_VAULT.decryptDevicePrivateKey(encryptedDevicePrivateKeyBytes, vaultEncryptionKey);
         assertNotNull(devicePrivateKey);
-        CounterUtil.incrementCounter(model);
+        CounterUtil.incrementCounter(model.getResultStatus());
         final String testData = "test_data";
         final byte[] ecdsaSignature = SIGNATURE_UTILS.computeECDSASignature(EcCurve.P256, testData.getBytes(StandardCharsets.UTF_8), devicePrivateKey);
         final VerifyECDSASignatureResponse ecdsaResponse = powerAuthClient.verifyECDSASignature(config.getActivationId(version),
@@ -255,7 +255,7 @@ public class PowerAuthApiShared {
         final TokenResponsePayload response = OBJECT_MAPPER.readValue(decryptedData, TokenResponsePayload.class);
         assertNotNull(response.getTokenId());
         assertNotNull(response.getTokenSecret());
-        CounterUtil.incrementCounter(model);
+        CounterUtil.incrementCounter(model.getResultStatus());
         final TokenInfo tokenInfo = new TokenInfo();
         tokenInfo.setTokenId(response.getTokenId());
         tokenInfo.setTokenSecret(response.getTokenSecret());

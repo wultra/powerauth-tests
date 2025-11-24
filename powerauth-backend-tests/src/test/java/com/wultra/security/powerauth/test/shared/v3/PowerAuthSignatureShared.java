@@ -48,6 +48,7 @@ import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationSte
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
 import com.wultra.security.powerauth.lib.cmd.util.EncryptedStorageUtil;
+import com.wultra.security.powerauth.util.TestCounterUtil;
 import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
 import org.json.simple.JSONObject;
@@ -413,7 +414,7 @@ public class PowerAuthSignatureShared {
     }
 
     public static void signatureCounterIncrementTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
-        byte[] ctrData = CounterUtil.getCtrData(model, stepLogger);
+        byte[] ctrData = TestCounterUtil.getCtrData(model.getResultStatus());
         HashBasedCounter counter = new HashBasedCounter(version.value());
         for (int i = 1; i <= 10; i++) {
             ObjectStepLogger stepLoggerLoop = new ObjectStepLogger();
@@ -423,7 +424,7 @@ public class PowerAuthSignatureShared {
 
             // Verify hash based counter
             ctrData = counter.next(ctrData);
-            assertArrayEquals(ctrData, CounterUtil.getCtrData(model, stepLoggerLoop));
+            assertArrayEquals(ctrData, TestCounterUtil.getCtrData(model.getResultStatus()));
         }
     }
 
@@ -495,7 +496,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        final String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
+        final String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, TestCounterUtil.getCtrData(model.getResultStatus()), AuthenticationCodeConfiguration.decimal());
 
         final VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
@@ -506,7 +507,7 @@ public class PowerAuthSignatureShared {
         assertEquals(config.getApplicationId(), signatureResponse.getApplicationId());
 
         // Increment counter
-        CounterUtil.incrementCounter(model);
+        CounterUtil.incrementCounter(model.getResultStatus());
     }
 
     public static void signatureOfflinePersonalizedInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
@@ -554,7 +555,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
+        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, TestCounterUtil.getCtrData(model.getResultStatus()), AuthenticationCodeConfiguration.decimal());
 
         // Cripple signature
         final String digitToReplace = signature.substring(0, 1);
@@ -614,7 +615,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        final String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
+        final String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, TestCounterUtil.getCtrData(model.getResultStatus()), AuthenticationCodeConfiguration.decimal());
 
         final VerifyOfflineSignatureResponse signatureResponse = powerAuthClient.verifyOfflineSignature(config.getActivationId(version), signatureBaseString, signature, true);
         assertTrue(signatureResponse.isSignatureValid());
@@ -625,7 +626,7 @@ public class PowerAuthSignatureShared {
         assertEquals(config.getApplicationId(), signatureResponse.getApplicationId());
 
         // Increment counter
-        CounterUtil.incrementCounter(model);
+        CounterUtil.incrementCounter(model.getResultStatus());
     }
 
     public static void signatureOfflineNonPersonalizedInvalidTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
@@ -672,7 +673,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
+        String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseString + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, TestCounterUtil.getCtrData(model.getResultStatus()), AuthenticationCodeConfiguration.decimal());
 
         // Cripple signature
         final String digitToReplace = signature.substring(0, 1);
@@ -796,7 +797,7 @@ public class PowerAuthSignatureShared {
         signatureKeys.add(signatureKnowledgeKey);
 
         // Calculate signature of normalized signature base string with 'offline' as application secret
-        final String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseStringWithOtp + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, CounterUtil.getCtrData(model, stepLogger), AuthenticationCodeConfiguration.decimal());
+        final String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseStringWithOtp + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, TestCounterUtil.getCtrData(model.getResultStatus()), AuthenticationCodeConfiguration.decimal());
 
         final String dataForSignature= operationId + "&" + operationData;
         final String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
@@ -820,7 +821,7 @@ public class PowerAuthSignatureShared {
         assertEquals(SignatureType.POSSESSION_KNOWLEDGE, signatureResponse.getSignatureType());
         assertEquals(config.getApplicationId(), signatureResponse.getApplicationId());
 
-        CounterUtil.incrementCounter(model);
+        CounterUtil.incrementCounter(model.getResultStatus());
     }
 
 }

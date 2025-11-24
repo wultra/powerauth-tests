@@ -36,7 +36,7 @@ import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
-import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
+import com.wultra.security.powerauth.util.TestCounterUtil;
 import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
 import org.json.simple.JSONObject;
@@ -393,7 +393,7 @@ public class PowerAuthAuthenticationShared {
     }
 
     public static void authCounterIncrementTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
-        byte[] ctrData = CounterUtil.getCtrData(model, stepLogger);
+        byte[] ctrData = TestCounterUtil.getCtrData(model.getResultStatus());
         HashBasedCounter counter = new HashBasedCounter(version.value());
         for (int i = 1; i <= 10; i++) {
             ObjectStepLogger stepLoggerLoop = new ObjectStepLogger();
@@ -403,7 +403,7 @@ public class PowerAuthAuthenticationShared {
 
             // Verify hash based counter
             ctrData = counter.next(ctrData);
-            assertArrayEquals(ctrData, CounterUtil.getCtrData(model, stepLoggerLoop));
+            assertArrayEquals(ctrData, TestCounterUtil.getCtrData(model.getResultStatus()));
         }
     }
 
