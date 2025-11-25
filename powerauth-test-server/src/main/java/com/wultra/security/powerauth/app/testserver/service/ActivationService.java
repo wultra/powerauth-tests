@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.app.testserver.model.request.CreateActivati
 import com.wultra.security.powerauth.app.testserver.model.response.CreateActivationResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.ConfirmActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
@@ -157,7 +158,7 @@ public class ActivationService extends BaseService {
                 confirmActivationStep.execute(stepLoggerConfirm, confirmModel.toMap());
                 stepLoggerConfirm.getItems().forEach(item -> StepItemLogger.log(logger, item));
 
-                resultStatusUtil.incrementCounter(activationId, 4);
+                resultStatusUtil.incrementCounter(activationId, PowerAuthVersion.fromValue(config.getVersion()));
 
                 confirmed = true;
             } catch (Exception ex) {

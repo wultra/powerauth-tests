@@ -22,7 +22,6 @@ import com.wultra.security.powerauth.app.testserver.config.TestServerConfigurati
 import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject;
 import lombok.AllArgsConstructor;
-import org.json.simple.JSONObject;
 import org.springframework.stereotype.Service;
 
 @Service

@@ -31,6 +31,7 @@ import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflin
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnlineAuthResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import com.wultra.security.powerauth.app.testserver.util.VersionCheckService;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.ComputeOfflineAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
@@ -133,7 +134,7 @@ public class AuthenticationService extends BaseService {
                 .findAny();
 
         if (authHeader.isPresent()) {
-            resultStatusUtil.incrementCounter(request.getActivationId(), config.getVersion().startsWith("3") ? 3 : 4);
+            resultStatusUtil.incrementCounter(request.getActivationId(), PowerAuthVersion.fromValue(config.getVersion()));
         }
 
         final ComputeOnlineAuthResponse response = new ComputeOnlineAuthResponse();
@@ -181,7 +182,7 @@ public class AuthenticationService extends BaseService {
                 .findAny();
 
         if (otpCode.isPresent()) {
-            resultStatusUtil.incrementCounter(request.getActivationId(), config.getVersion().startsWith("3") ? 3 : 4);
+            resultStatusUtil.incrementCounter(request.getActivationId(), PowerAuthVersion.fromValue(config.getVersion()));
         }
 
         final ComputeOfflineAuthResponse response = new ComputeOfflineAuthResponse();

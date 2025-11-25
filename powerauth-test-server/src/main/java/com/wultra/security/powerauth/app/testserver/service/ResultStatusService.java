@@ -147,7 +147,7 @@ public class ResultStatusService {
      * @throws ActivationFailedException In case activation is not found.
      * @throws GenericCryptographyException In case counter could not be incremented.
      */
-    public void incrementCounter(String activationId, int version) throws ActivationFailedException, GenericCryptographyException {
+    public void incrementCounter(String activationId, PowerAuthVersion version) throws ActivationFailedException, GenericCryptographyException {
         final TestStatusEntity testStatusEntity = fetchTestStatus(activationId);
 
         // Increment numeric counter
@@ -160,11 +160,7 @@ public class ResultStatusService {
         if (!ctrDataBase64.isEmpty()) {
             byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
             try {
-                ctrData = switch (version) {
-                    case 3 -> new HashBasedCounter(PowerAuthVersion.V3_3.value()).next(ctrData);
-                    case 4 -> new HashBasedCounter(PowerAuthVersion.V4_0.value()).next(ctrData);
-                    default -> throw new GenericCryptographyException("Unsupported version: " + version);
-                };
+                ctrData = new HashBasedCounter(version.value()).next(ctrData);
             } catch (GenericCryptoException e) {
                 throw new GenericCryptographyException(e.getMessage(), e);
             }
