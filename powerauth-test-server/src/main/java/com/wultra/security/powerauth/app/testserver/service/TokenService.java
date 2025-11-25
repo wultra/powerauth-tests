@@ -22,21 +22,23 @@ import com.wultra.security.powerauth.app.testserver.database.TestConfigRepositor
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
+import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
-import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
+import com.wultra.security.powerauth.app.testserver.model.converter.AuthenticationCodeTypeConverter;
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeTokenDigestRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.CreateTokenRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeTokenDigestResponse;
 import com.wultra.security.powerauth.app.testserver.model.response.CreateTokenResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
+import com.wultra.security.powerauth.app.testserver.util.VersionCheckService;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.CreateTokenStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateTokenStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject;
 import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -58,21 +60,25 @@ public class TokenService extends BaseService {
     private final ResultStatusService resultStatusUtil;
     private final CreateTokenStep createTokenStep;
     private final VerifyTokenStep verifyTokenStep;
+    private final VersionCheckService versionCheckService;
 
     /**
      * Service constructor.
      * @param config Test server configuration.
+     * @param testConfigRepository Test application configuration repository.
      * @param resultStatusUtil Result status utilities.
      * @param createTokenStep Create token step.
      * @param verifyTokenStep Verify token step.
+     * @param versionCheckService Version check service.
      */
     @Autowired
-    public TokenService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, CreateTokenStep createTokenStep, VerifyTokenStep verifyTokenStep) {
-        super(appConfigRepository);
+    public TokenService(TestServerConfiguration config, TestConfigRepository testConfigRepository, ResultStatusService resultStatusUtil, CreateTokenStep createTokenStep, VerifyTokenStep verifyTokenStep, VersionCheckService versionCheckService) {
+        super(testConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
         this.createTokenStep = createTokenStep;
         this.verifyTokenStep = verifyTokenStep;
+        this.versionCheckService = versionCheckService;
     }
 
     /**
@@ -82,27 +88,32 @@ public class TokenService extends BaseService {
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws AppConfigNotFoundException In case app configuration is incorrect.
      * @throws ActivationFailedException In case activation is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @Transactional
-    @SuppressWarnings("unchecked")
-    public CreateTokenResponse createToken(CreateTokenRequest request) throws AppConfigNotFoundException, RemoteExecutionException, ActivationFailedException {
+    public CreateTokenResponse createToken(CreateTokenRequest request) throws AppConfigNotFoundException, RemoteExecutionException, ActivationFailedException, GenericCryptographyException {
 
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
-        final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
-        PowerAuthCodeType signatureType = SignatureTypeConverter.convert(request.getSignatureType());
-        if (signatureType == null) {
+        final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        versionCheckService.checkVersion(resultStatus);
+
+        PowerAuthCodeType authCodeType = AuthenticationCodeTypeConverter.convert(request.getAuthenticationCodeType() != null
+                ? request.getAuthenticationCodeType()
+                : request.getSignatureType());
+        if (authCodeType == null) {
             // Fallback to previous behavior when there was no signatureType property in the request.
-            signatureType = PowerAuthCodeType.POSSESSION_KNOWLEDGE;
+            authCodeType = PowerAuthCodeType.POSSESSION_KNOWLEDGE;
         }
         final CreateTokenStepModel model = new CreateTokenStepModel();
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
         model.setPassword(request.getPassword());
-        model.setAuthenticationCodeType(signatureType);
+        model.setAuthenticationCodeType(authCodeType);
         model.setVersion(config.getVersion());
         model.setUriString(config.getEnrollmentServiceUrl());
-        model.setResultStatusObject(resultStatusObject);
+        model.setResultStatus(resultStatus);
 
         final ObjectStepLogger stepLogger;
         try {
@@ -116,7 +127,7 @@ public class TokenService extends BaseService {
             throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
-        resultStatusUtil.persistResultStatus(resultStatusObject);
+        resultStatusUtil.persistResultStatus(resultStatus);
 
         final Map<String, Object> responseMap = stepLogger.getItems().stream()
                 .filter(item -> "Token successfully obtained".equals(item.name()))
@@ -139,11 +150,13 @@ public class TokenService extends BaseService {
      * @return Response for computing a token digest.
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
-    @SuppressWarnings("unchecked")
-    public ComputeTokenDigestResponse computeTokenDigest(ComputeTokenDigestRequest request) throws RemoteExecutionException, ActivationFailedException {
+    public ComputeTokenDigestResponse computeTokenDigest(ComputeTokenDigestRequest request) throws RemoteExecutionException, ActivationFailedException, GenericCryptographyException {
 
-        final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+        final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        versionCheckService.checkVersion(resultStatus);
 
         final VerifyTokenStepModel model = new VerifyTokenStepModel();
         model.setTokenId(request.getTokenId());
@@ -151,7 +164,7 @@ public class TokenService extends BaseService {
         model.setHttpMethod("POST");
         model.setVersion(config.getVersion());
         model.setUriString(config.getEnrollmentServiceUrl());
-        model.setResultStatusObject(resultStatusObject);
+        model.setResultStatus(resultStatus);
         model.setDryRun(true);
 
         final ObjectStepLogger stepLogger;

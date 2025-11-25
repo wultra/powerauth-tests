@@ -23,8 +23,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
  * Enum with signature type values. For backward compatibility is not case-sensitive, see {@link #fromString(String)}.
  *
  * @author Lubos Racansky, lubos.racansky@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-public enum SignatureType {
+public enum AuthenticationCodeType {
 
     /**
      * 1FA signature using possession factor key.
@@ -63,8 +64,8 @@ public enum SignatureType {
      * @return signature type
      */
     @JsonCreator
-    public static SignatureType fromString(String value) {
-        return value == null ? null : SignatureType.valueOf(value.toUpperCase());
+    public static AuthenticationCodeType fromString(String value) {
+        return value == null ? null : AuthenticationCodeType.valueOf(value.toUpperCase());
     }
 
 }

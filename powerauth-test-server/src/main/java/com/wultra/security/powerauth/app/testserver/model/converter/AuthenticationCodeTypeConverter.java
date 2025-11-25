@@ -17,22 +17,23 @@
  */
 package com.wultra.security.powerauth.app.testserver.model.converter;
 
-import com.wultra.security.powerauth.app.testserver.model.enumeration.SignatureType;
+import com.wultra.security.powerauth.app.testserver.model.enumeration.AuthenticationCodeType;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 
 /**
- * Converter for signature types
+ * Converter for authentication code types.
  *
  * @author Petr Dvorak, petr@wultra.com
+ * @author Roman Strobl, roman.strobl@wultra.com
  */
-public class SignatureTypeConverter {
+public class AuthenticationCodeTypeConverter {
 
     /**
      * Convert REST model to cryptographic library model.
      * @param source Signature type from REST API.
      * @return Signature type for cryptographic library.
      */
-    public static PowerAuthCodeType convert(final SignatureType source) {
+    public static PowerAuthCodeType convert(final AuthenticationCodeType source) {
         return switch (source) {
             case POSSESSION -> PowerAuthCodeType.POSSESSION;
             case KNOWLEDGE-> PowerAuthCodeType.KNOWLEDGE;

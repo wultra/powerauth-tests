@@ -22,31 +22,29 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
+import com.wultra.core.rest.model.base.request.ObjectRequest;
+import com.wultra.core.rest.model.base.response.ObjectResponse;
+import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.app.testserver.config.TestServerConfiguration;
 import com.wultra.security.powerauth.app.testserver.database.TestConfigRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
-import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.SignatureVerificationException;
-import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
+import com.wultra.security.powerauth.app.testserver.errorhandling.*;
+import com.wultra.security.powerauth.app.testserver.model.converter.AuthenticationCodeTypeConverter;
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationRejectInternalRequest;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
+import com.wultra.security.powerauth.app.testserver.util.VersionCheckService;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
-import com.wultra.security.powerauth.lib.mtoken.model.response.OperationListResponse;
-import com.wultra.core.rest.model.base.request.ObjectRequest;
-import com.wultra.core.rest.model.base.response.ObjectResponse;
-import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyTokenStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyTokenStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject;
+import com.wultra.security.powerauth.lib.mtoken.model.response.OperationListResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.ParameterizedTypeReference;
@@ -72,21 +70,25 @@ public class OperationsService extends BaseService {
     private final ResultStatusService resultStatusUtil;
     private final VerifyTokenStep verifyTokenStep;
     private final VerifyAuthenticationStep VerifyAuthenticationStep;
+    private final VersionCheckService versionCheckService;
 
     /**
      * Service constructor.
      * @param config Test server configuration.
      * @param resultStatusUtil Result status utilities.
+     * @param appConfigRepository Test application configuration repository.
      * @param verifyTokenStep Step for verifying a token.
      * @param VerifyAuthenticationStep Step for verifying signature.
+     * @param versionCheckService Version check service.
      */
     @Autowired
-    public OperationsService(TestServerConfiguration config, ResultStatusService resultStatusUtil, TestConfigRepository appConfigRepository, VerifyTokenStep verifyTokenStep, VerifyAuthenticationStep VerifyAuthenticationStep) {
+    public OperationsService(TestServerConfiguration config, ResultStatusService resultStatusUtil, TestConfigRepository appConfigRepository, VerifyTokenStep verifyTokenStep, VerifyAuthenticationStep VerifyAuthenticationStep, VersionCheckService versionCheckService) {
         super(appConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
         this.verifyTokenStep = verifyTokenStep;
         this.VerifyAuthenticationStep = VerifyAuthenticationStep;
+        this.versionCheckService = versionCheckService;
     }
 
 
@@ -98,10 +100,12 @@ public class OperationsService extends BaseService {
      * @throws RestClientException In case REST client call fails (fetching operations).
      * @throws SignatureVerificationException In case signature verification fails.
      * @throws ActivationFailedException In case activation is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
-    @SuppressWarnings("unchecked")
-    public OperationListResponse getOperations(GetOperationsRequest request) throws RemoteExecutionException, RestClientException, SignatureVerificationException, ActivationFailedException {
-        final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+    public OperationListResponse getOperations(GetOperationsRequest request) throws RemoteExecutionException, RestClientException, SignatureVerificationException, ActivationFailedException, GenericCryptographyException {
+        final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        versionCheckService.checkVersion(resultStatus);
 
         final VerifyTokenStepModel model = new VerifyTokenStepModel();
         model.setTokenId(request.getTokenId());
@@ -110,7 +114,7 @@ public class OperationsService extends BaseService {
         model.setHttpMethod("POST");
         model.setVersion(config.getVersion());
         model.setUriString(config.getEnrollmentServiceUrl());
-        model.setResultStatusObject(resultStatusObject);
+        model.setResultStatus(resultStatus);
 
         final ObjectStepLogger stepLogger;
         try {
@@ -124,7 +128,7 @@ public class OperationsService extends BaseService {
             throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
-        resultStatusUtil.persistResultStatus(resultStatusObject);
+        resultStatusUtil.persistResultStatus(resultStatus);
 
         final String header = stepLogger.getItems().stream()
                 .filter(item -> "Sending Request".equals(item.name()))
@@ -155,11 +159,14 @@ public class OperationsService extends BaseService {
      * @throws SignatureVerificationException In case signature verification fails.
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case app configuration is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
-    public Response approveOperation(OperationApproveInternalRequest request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException {
+    public Response approveOperation(OperationApproveInternalRequest request) throws RemoteExecutionException, AppConfigNotFoundException, SignatureVerificationException, ActivationFailedException, GenericCryptographyException {
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
-        final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+        final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        versionCheckService.checkVersion(resultStatus);
 
         final Map<String, Object> map = new HashMap<>();
         map.put("id", request.getOperationId());
@@ -181,12 +188,14 @@ public class OperationsService extends BaseService {
         model.setHttpMethod("POST");
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
-        model.setAuthenticationCodeType(SignatureTypeConverter.convert(request.getSignatureType()));
+        model.setAuthenticationCodeType(AuthenticationCodeTypeConverter.convert(request.getAuthenticationCodeType() != null
+                ? request.getAuthenticationCodeType()
+                : request.getSignatureType()));
         model.setPassword(request.getPassword());
         model.setVersion(config.getVersion());
-        model.setResultStatusObject(resultStatusObject);
+        model.setResultStatus(resultStatus);
 
-        verifySignature(model, resultStatusObject);
+        verifySignature(model, resultStatus);
 
         return new Response();
     }
@@ -199,11 +208,14 @@ public class OperationsService extends BaseService {
      * @throws SignatureVerificationException In case signature verification fails.
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case app configuration is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
-    public Response rejectOperation(OperationRejectInternalRequest request) throws AppConfigNotFoundException, ActivationFailedException, SignatureVerificationException, RemoteExecutionException {
+    public Response rejectOperation(OperationRejectInternalRequest request) throws AppConfigNotFoundException, ActivationFailedException, SignatureVerificationException, RemoteExecutionException, GenericCryptographyException {
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
-        final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+        final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        versionCheckService.checkVersion(resultStatus);
 
         final String operationId = request.getOperationId();
         final String reason = request.getReason();
@@ -231,15 +243,15 @@ public class OperationsService extends BaseService {
         model.setApplicationSecret(appConfig.getApplicationSecret());
         model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION);
         model.setVersion(config.getVersion());
-        model.setResultStatusObject(resultStatusObject);
+        model.setResultStatus(resultStatus);
 
-        verifySignature(model, resultStatusObject);
+        verifySignature(model, resultStatus);
 
         return new Response();
     }
 
     @SuppressWarnings("java:S2201")
-    private void verifySignature(final VerifyAuthenticationStepModel model, final JSONObject resultStatusObject) throws RemoteExecutionException, SignatureVerificationException {
+    private void verifySignature(final VerifyAuthenticationStepModel model, final ResultStatusObject resultStatus) throws RemoteExecutionException, SignatureVerificationException {
         final ObjectStepLogger stepLogger;
         try {
             stepLogger = new ObjectStepLogger();
@@ -251,7 +263,7 @@ public class OperationsService extends BaseService {
             throw new RemoteExecutionException("Remote execution failed", ex);
         }
 
-        resultStatusUtil.persistResultStatus(resultStatusObject);
+        resultStatusUtil.persistResultStatus(resultStatus);
 
         stepLogger.getItems().stream()
                 .map(StepItem::name)

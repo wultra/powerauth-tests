@@ -28,11 +28,15 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutio
 import com.wultra.security.powerauth.app.testserver.model.request.CreateActivationRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.CreateActivationResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
-import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.ConfirmActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
+import com.wultra.security.powerauth.lib.cmd.steps.model.ConfirmActivationStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject;
 import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,9 +54,12 @@ import java.util.Map;
 @Slf4j
 public class ActivationService extends BaseService {
 
+    public static final SharedSecretAlgorithm SHARED_SECRET_ALGORITHM_DEFAULT = SharedSecretAlgorithm.EC_P384_ML_L3;
+
     private final TestServerConfiguration config;
     private final ResultStatusService resultStatusUtil;
     private final PrepareActivationStep prepareActivationStep;
+    private final ConfirmActivationStep confirmActivationStep;
 
     /**
      * Service constructor.
@@ -62,11 +69,12 @@ public class ActivationService extends BaseService {
      * @param prepareActivationStep Prepare activation step.
      */
     @Autowired
-    public ActivationService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, PrepareActivationStep prepareActivationStep) {
+    public ActivationService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, PrepareActivationStep prepareActivationStep, ConfirmActivationStep confirmActivationStep) {
         super(appConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
         this.prepareActivationStep = prepareActivationStep;
+        this.confirmActivationStep = confirmActivationStep;
     }
 
     /**
@@ -77,13 +85,15 @@ public class ActivationService extends BaseService {
      * @throws GenericCryptographyException Thrown when cryptography computation fails.
      */
     @Transactional
-    @SuppressWarnings("unchecked")
     public CreateActivationResponse createActivation(CreateActivationRequest request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException, ActivationFailedException {
         // TODO - input validation
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
-        final PublicKey publicKey = getMasterPublicKeyP256(appConfig);
-        final JSONObject resultStatusObject = new JSONObject();
+        final PublicKey publicKeyP256 = getMasterPublicKeyP256(appConfig);
+        final PublicKey publicKeyP384 = getMasterPublicKeyP384(appConfig);
+        final PublicKey publicKeyMlDsa65 = getMasterPublicKeyMlDsa65(appConfig);
+
+        final ResultStatusObject resultStatusObject = new ResultStatusObject();
 
         // Prepare activation
         final PrepareActivationStepModel model = new PrepareActivationStepModel();
@@ -91,10 +101,18 @@ public class ActivationService extends BaseService {
         model.setActivationName(request.getActivationName());
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
-        model.setMasterPublicKeyP256(publicKey);
+
+        if (config.getVersion().startsWith("3")) {
+            model.setMasterPublicKeyP256(publicKeyP256);
+        } else {
+            model.setMasterPublicKeyP384(publicKeyP384);
+            model.setMasterPublicKeyMlDsa65(publicKeyMlDsa65);
+            model.setSharedSecretAlgorithm(SHARED_SECRET_ALGORITHM_DEFAULT);
+        }
+
         model.setHeaders(new HashMap<>());
         model.setPassword(request.getPassword());
-        model.setResultStatusObject(resultStatusObject);
+        model.setResultStatus(resultStatusObject);
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setVersion(config.getVersion());
         model.setDeviceInfo("backend-tests");
@@ -121,9 +139,39 @@ public class ActivationService extends BaseService {
 
         resultStatusUtil.persistResultStatus(resultStatusObject);
 
+        boolean confirmed = false;
+
+        if (config.getVersion().startsWith("4") && request.isConfirmActivation()) {
+            final ConfirmActivationStepModel confirmModel = new ConfirmActivationStepModel();
+            confirmModel.setApplicationKey(appConfig.getApplicationKey());
+            confirmModel.setApplicationSecret(appConfig.getApplicationSecret());
+            confirmModel.setHeaders(new HashMap<>());
+            confirmModel.setPassword(request.getPassword());
+            confirmModel.setResultStatus(resultStatusObject);
+            confirmModel.setUriString(config.getEnrollmentServiceUrl());
+            confirmModel.setVersion(config.getVersion());
+            confirmModel.setEnableBiometry(request.isEnableBiometry());
+
+            final ObjectStepLogger stepLoggerConfirm;
+            try {
+                stepLoggerConfirm = new ObjectStepLogger();
+                confirmActivationStep.execute(stepLoggerConfirm, confirmModel.toMap());
+                stepLoggerConfirm.getItems().forEach(item -> StepItemLogger.log(logger, item));
+
+                resultStatusUtil.incrementCounter(activationId, PowerAuthVersion.fromValue(config.getVersion()));
+
+                confirmed = true;
+            } catch (Exception ex) {
+                logger.warn("Remote execution failed, reason: {}", ex.getMessage());
+                logger.debug(ex.getMessage(), ex);
+                throw new RemoteExecutionException("Remote execution failed", ex);
+            }
+        }
+
         // TODO - extract response from steps
         final CreateActivationResponse response = new CreateActivationResponse();
         response.setActivationId(activationId);
+        response.setConfirmed(confirmed);
         return response;
     }
 

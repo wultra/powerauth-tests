@@ -56,7 +56,7 @@ public class TokenController {
      * Call to create a new token.
      * @param request Request for creating a new token.
      * @return Response with token ID and secret.
-     * @throws GenericCryptographyException In case a crypto provider is not initialized properly.
+     * @throws GenericCryptographyException In case of a cryptography error.
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws AppConfigNotFoundException In case app configuration is incorrect.
      * @throws ActivationFailedException In case activation is not found.
@@ -73,9 +73,10 @@ public class TokenController {
      * @return Compute token digest response.
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @PostMapping("compute-digest")
-    public ObjectResponse<ComputeTokenDigestResponse> computeTokenDigest(@Valid@RequestBody ObjectRequest<ComputeTokenDigestRequest> request) throws RemoteExecutionException, ActivationFailedException {
+    public ObjectResponse<ComputeTokenDigestResponse> computeTokenDigest(@Valid@RequestBody ObjectRequest<ComputeTokenDigestRequest> request) throws RemoteExecutionException, ActivationFailedException, GenericCryptographyException {
         final ComputeTokenDigestResponse response = tokenService.computeTokenDigest(request.getRequestObject());
         return new ObjectResponse<>(response);
     }

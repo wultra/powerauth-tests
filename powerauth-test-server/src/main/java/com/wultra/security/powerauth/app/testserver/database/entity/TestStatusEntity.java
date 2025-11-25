@@ -51,8 +51,11 @@ public class TestStatusEntity implements Serializable {
     @Column(name = "activation_id", nullable = false)
     private String activationId;
 
-    @Column(name = "server_public_key", nullable = false)
-    private String serverPublicKey;
+    @Column(name = "ec_server_public_key")
+    private String ecServerPublicKey;
+
+    @Column(name = "pqc_server_public_key", columnDefinition = "TEXT")
+    private String pqcServerPublicKey;
 
     @Column(name = "counter", nullable = false)
     private Long counter;
@@ -60,23 +63,51 @@ public class TestStatusEntity implements Serializable {
     @Column(name = "ctr_data", nullable = false)
     private String ctrData;
 
-    @Column(name = "encrypted_device_private_key", nullable = false)
-    private String encryptedDevicePrivateKey;
+    @Column(name = "encrypted_ec_device_private_key")
+    private String encryptedEcDevicePrivateKey;
 
-    @Column(name = "signature_biometry_key", nullable = false)
-    private String signatureBiometryKey;
+    @Column(name = "encrypted_pqc_device_private_key", columnDefinition = "TEXT")
+    private String encryptedPqcDevicePrivateKey;
 
-    @Column(name = "signature_knowledge_key_encrypted", nullable = false)
-    private String signatureKnowledgeKeyEncrypted;
+    @Column(name = "ec_device_public_key")
+    private String ecDevicePublicKey;
 
-    @Column(name = "signature_knowledge_key_salt", nullable = false)
-    private String signatureKnowledgeKeySalt;
+    @Column(name = "pqc_device_public_key", columnDefinition = "TEXT")
+    private String pqcDevicePublicKey;
 
-    @Column(name = "signature_possession_key", nullable = false)
-    private String signaturePossessionKey;
+    @Column(name = "biometry_factor_key")
+    private String biometryFactorKey;
 
-    @Column(name = "transport_master_key", nullable = false)
+    @Column(name = "knowledge_factor_key_encrypted")
+    private String knowledgeFactorKeyEncrypted;
+
+    @Column(name = "knowledge_factor_key_salt")
+    private String knowledgeFactorKeySalt;
+
+    @Column(name = "possession_factor_key")
+    private String possessionFactorKey;
+
+    @Column(name = "shared_secret_algorithm")
+    private String sharedSecretAlgorithm;
+
+    @Column(name = "temporary_key_act_sign_request_key")
+    private String temporaryKeyActSignRequestKey;
+
+    @Column(name = "shared_info2_key")
+    private String sharedInfo2Key;
+
+    @Column(name = "mac_personalized_data_key")
+    private String macPersonalizedDataKey;
+
+    @Column(name = "status_blob_mac_key")
+    private String statusBlobMacKey;
+
+    @Deprecated
+    @Column(name = "transport_master_key")
     private String transportMasterKey;
+
+    @Column(name = "version")
+    private Long version;
 
     @Override
     public boolean equals(Object o) {
@@ -90,4 +121,5 @@ public class TestStatusEntity implements Serializable {
     public int hashCode() {
         return Objects.hash(activationId);
     }
+
 }

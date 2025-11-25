@@ -19,12 +19,13 @@ package com.wultra.security.powerauth.app.testserver.controller;
 
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
+import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
-import com.wultra.security.powerauth.app.testserver.model.request.ComputeOfflineSignatureRequest;
-import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineSignatureRequest;
-import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineSignatureResponse;
-import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnlineSignatureResponse;
-import com.wultra.security.powerauth.app.testserver.service.SignatureService;
+import com.wultra.security.powerauth.app.testserver.model.request.ComputeOfflineAuthRequest;
+import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineAuthRequest;
+import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineAuthResponse;
+import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnlineAuthResponse;
+import com.wultra.security.powerauth.app.testserver.service.AuthenticationService;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import jakarta.validation.Valid;
@@ -39,18 +40,18 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @Validated
-@RequestMapping("signature")
-public class SignatureController {
+@RequestMapping({"signature", "auth"})
+public class AuthenticationController {
 
-    private final SignatureService signatureService;
+    private final AuthenticationService authenticationService;
 
     /**
      * Constructor with signature service.
-     * @param signatureService Signature service.
+     * @param authenticationService Signature service.
      */
     @Autowired
-    public SignatureController(SignatureService signatureService) {
-        this.signatureService = signatureService;
+    public AuthenticationController(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
     }
 
     /**
@@ -60,10 +61,11 @@ public class SignatureController {
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case application configuration is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @PostMapping("compute-online")
-    public ObjectResponse<ComputeOnlineSignatureResponse> computeOnlineSignature(@Valid @RequestBody ObjectRequest<ComputeOnlineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
-        final ComputeOnlineSignatureResponse response = signatureService.computeOnlineSignature(request.getRequestObject());
+    public ObjectResponse<ComputeOnlineAuthResponse> computeOnlineAuthCode(@Valid @RequestBody ObjectRequest<ComputeOnlineAuthRequest> request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException, GenericCryptographyException {
+        final ComputeOnlineAuthResponse response = authenticationService.computeOnlineAuth(request.getRequestObject());
         return new ObjectResponse<>(response);
     }
 
@@ -73,10 +75,11 @@ public class SignatureController {
      * @return Compute an offline PowerAuth signature response.
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
     @PostMapping("compute-offline")
-    public ObjectResponse<ComputeOfflineSignatureResponse> computeOfflineSignature(@Valid @RequestBody ObjectRequest<ComputeOfflineSignatureRequest> request) throws RemoteExecutionException, ActivationFailedException {
-        final ComputeOfflineSignatureResponse response = signatureService.computeOfflineSignature(request.getRequestObject());
+    public ObjectResponse<ComputeOfflineAuthResponse> computeOfflineSignature(@Valid @RequestBody ObjectRequest<ComputeOfflineAuthRequest> request) throws RemoteExecutionException, ActivationFailedException, GenericCryptographyException {
+        final ComputeOfflineAuthResponse response = authenticationService.computeOfflineAuth(request.getRequestObject());
         return new ObjectResponse<>(response);
     }
 

@@ -29,5 +29,6 @@ import lombok.Data;
 public class CreateActivationResponse {
 
     private String activationId;
+    private boolean confirmed;
 
 }

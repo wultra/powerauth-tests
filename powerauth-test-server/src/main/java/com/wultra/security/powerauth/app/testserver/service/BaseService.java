@@ -23,6 +23,8 @@ import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFo
 import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
 import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfiguration;
 import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfigurationSerializer;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +43,8 @@ public class BaseService {
 
     protected final TestConfigRepository appConfigRepository;
 
-    private static final KeyConvertor keyConvertor = new KeyConvertor();
+    private static final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
+    private static final PqcDsaKeyConvertor KEY_CONVERTOR_PQC_DSA = new MlDsaKeyConvertor();
 
     public BaseService(TestConfigRepository appConfigRepository) {
         this.appConfigRepository = appConfigRepository;
@@ -64,25 +67,66 @@ public class BaseService {
     }
 
     /**
-     * Get master public key from test application configuration.
+     * Get P-256 master public key from test application configuration.
      * @param appConfig Test application configuration.
      * @return Master public key.
      * @throws GenericCryptographyException Thrown in case public key conversion fails.
      */
     protected PublicKey getMasterPublicKeyP256(TestConfigEntity appConfig) throws GenericCryptographyException {
-        final String masterPublicKeyP256;
-        if (appConfig.getMobileSdkConfig() != null) {
-            final SdkConfiguration sdkConfig = SdkConfigurationSerializer.deserialize(appConfig.getMobileSdkConfig());
-            masterPublicKeyP256 = sdkConfig.masterPublicKeyP256();
-        } else {
-            masterPublicKeyP256 = appConfig.getMasterPublicKey();
+        if (appConfig.getMobileSdkConfig() == null) {
+            throw new GenericCryptographyException("Mobile SDK configuration is missing");
         }
+        final SdkConfiguration sdkConfig = SdkConfigurationSerializer.deserialize(appConfig.getMobileSdkConfig());
+        final String masterPublicKeyP256 = sdkConfig.masterPublicKeyP256();
         final byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKeyP256);
-
         try {
-            return keyConvertor.convertBytesToPublicKey(EcCurve.P256, masterKeyBytes);
+            return KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P256, masterKeyBytes);
         } catch (Exception ex) {
-            logger.warn("Key conversion failed, reason: {}", ex.getMessage());
+            logger.warn("Key conversion failed for P-256 master public key, reason: {}", ex.getMessage());
+            logger.debug(ex.getMessage(), ex);
+            throw new GenericCryptographyException("Key conversion failed");
+        }
+    }
+
+    /**
+     * Get P-384 master public key from test application configuration.
+     * @param appConfig Test application configuration.
+     * @return Master public key.
+     * @throws GenericCryptographyException Thrown in case public key conversion fails.
+     */
+    protected PublicKey getMasterPublicKeyP384(TestConfigEntity appConfig) throws GenericCryptographyException {
+        if (appConfig.getMobileSdkConfig() == null) {
+            throw new GenericCryptographyException("Mobile SDK configuration is missing");
+        }
+        final SdkConfiguration sdkConfig = SdkConfigurationSerializer.deserialize(appConfig.getMobileSdkConfig());
+        final String masterPublicKeyP384 = sdkConfig.masterPublicKeyP384();
+        final byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKeyP384);
+        try {
+            return KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, masterKeyBytes);
+        } catch (Exception ex) {
+            logger.warn("Key conversion failed for P-384 master public key, reason: {}", ex.getMessage());
+            logger.debug(ex.getMessage(), ex);
+            throw new GenericCryptographyException("Key conversion failed");
+        }
+    }
+
+    /**
+     * Get ML-DSA-65 master public key from test application configuration.
+     * @param appConfig Test application configuration.
+     * @return Master public key.
+     * @throws GenericCryptographyException Thrown in case public key conversion fails.
+     */
+    protected PublicKey getMasterPublicKeyMlDsa65(TestConfigEntity appConfig) throws GenericCryptographyException {
+        if (appConfig.getMobileSdkConfig() == null) {
+            throw new GenericCryptographyException("Mobile SDK configuration is missing");
+        }
+        final SdkConfiguration sdkConfig = SdkConfigurationSerializer.deserialize(appConfig.getMobileSdkConfig());
+        final String masterPublicKeyMlDsa65 = sdkConfig.masterPublicKeyMlDsa65();
+        final byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKeyMlDsa65);
+        try {
+            return KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(masterKeyBytes);
+        } catch (Exception ex) {
+            logger.warn("Key conversion failed for ML-DSA-65 master public key, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
             throw new GenericCryptographyException("Key conversion failed");
         }

@@ -22,20 +22,23 @@ import com.wultra.security.powerauth.app.testserver.database.TestConfigRepositor
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
+import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
-import com.wultra.security.powerauth.app.testserver.model.converter.SignatureTypeConverter;
-import com.wultra.security.powerauth.app.testserver.model.request.ComputeOfflineSignatureRequest;
-import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineSignatureRequest;
-import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineSignatureResponse;
-import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnlineSignatureResponse;
+import com.wultra.security.powerauth.app.testserver.model.converter.AuthenticationCodeTypeConverter;
+import com.wultra.security.powerauth.app.testserver.model.request.ComputeOfflineAuthRequest;
+import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineAuthRequest;
+import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineAuthResponse;
+import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnlineAuthResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
+import com.wultra.security.powerauth.app.testserver.util.VersionCheckService;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.ComputeOfflineAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.ComputeOfflineAuthenticationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject;
 import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -50,27 +53,31 @@ import java.util.Optional;
  */
 @Service
 @Slf4j
-public class SignatureService extends BaseService {
+public class AuthenticationService extends BaseService {
 
     private final TestServerConfiguration config;
     private final ResultStatusService resultStatusUtil;
     private final VerifyAuthenticationStep VerifyAuthenticationStep;
     private final ComputeOfflineAuthenticationStep computeOfflineSignatureStep;
+    private final VersionCheckService versionCheckService;
 
     /**
      * Service constructor.
      * @param config Test server configuration.
+     * @param appConfigRepository Test application configuration repository.
      * @param resultStatusUtil Result status utilities.
-     * @param VerifyAuthenticationStep Verify signature step.
+     * @param verifyAuthenticationStep Verify signature step.
      * @param computeOfflineSignatureStep Compute offline signature step.
+     * @param versionCheckService Version check service.
      */
     @Autowired
-    public SignatureService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, VerifyAuthenticationStep VerifyAuthenticationStep, ComputeOfflineAuthenticationStep computeOfflineSignatureStep) {
+    public AuthenticationService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, VerifyAuthenticationStep verifyAuthenticationStep, ComputeOfflineAuthenticationStep computeOfflineSignatureStep, VersionCheckService versionCheckService) {
         super(appConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
-        this.VerifyAuthenticationStep = VerifyAuthenticationStep;
+        this.VerifyAuthenticationStep = verifyAuthenticationStep;
         this.computeOfflineSignatureStep = computeOfflineSignatureStep;
+        this.versionCheckService = versionCheckService;
     }
 
     /**
@@ -80,25 +87,29 @@ public class SignatureService extends BaseService {
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
      * @throws AppConfigNotFoundException In case application configuration is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
-    @SuppressWarnings("unchecked")
-    public ComputeOnlineSignatureResponse computeOnlineSignature(ComputeOnlineSignatureRequest request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException {
+    public ComputeOnlineAuthResponse computeOnlineAuth(ComputeOnlineAuthRequest request) throws RemoteExecutionException, ActivationFailedException, AppConfigNotFoundException, GenericCryptographyException {
 
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
-        final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+        final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        versionCheckService.checkVersion(resultStatus);
 
         final VerifyAuthenticationStepModel model = new VerifyAuthenticationStepModel();
         model.setHttpMethod(request.getHttpMethod());
         model.setResourceId(request.getResourceId());
-        model.setAuthenticationCodeType(SignatureTypeConverter.convert(request.getSignatureType()));
+        model.setAuthenticationCodeType(AuthenticationCodeTypeConverter.convert(request.getAuthenticationCodeType() != null
+                ? request.getAuthenticationCodeType()
+                : request.getSignatureType()));
         if (request.getRequestBody() != null) {
             model.setData(Base64.getDecoder().decode(request.getRequestBody()));
         }
         model.setPassword(request.getPassword());
         model.setVersion(config.getVersion());
         model.setUriString(config.getEnrollmentServiceUrl());
-        model.setResultStatusObject(resultStatusObject);
+        model.setResultStatus(resultStatus);
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
         model.setDryRun(true);
@@ -123,10 +134,10 @@ public class SignatureService extends BaseService {
                 .findAny();
 
         if (authHeader.isPresent()) {
-            resultStatusUtil.incrementCounter(request.getActivationId());
+            resultStatusUtil.incrementCounter(request.getActivationId(), PowerAuthVersion.fromValue(config.getVersion()));
         }
 
-        final ComputeOnlineSignatureResponse response = new ComputeOnlineSignatureResponse();
+        final ComputeOnlineAuthResponse response = new ComputeOnlineAuthResponse();
         response.setAuthHeader(authHeader.orElse(null));
         return response;
     }
@@ -137,18 +148,20 @@ public class SignatureService extends BaseService {
      * @return Response for computing an offline signature.
      * @throws RemoteExecutionException In case remote communication fails.
      * @throws ActivationFailedException In case activation is not found.
+     * @throws GenericCryptographyException In case of a cryptography error.
      */
-    @SuppressWarnings("unchecked")
-    public ComputeOfflineSignatureResponse computeOfflineSignature(ComputeOfflineSignatureRequest request) throws RemoteExecutionException, ActivationFailedException {
+    public ComputeOfflineAuthResponse computeOfflineAuth(ComputeOfflineAuthRequest request) throws RemoteExecutionException, ActivationFailedException, GenericCryptographyException {
 
-        final JSONObject resultStatusObject = resultStatusUtil.getTestStatus(request.getActivationId());
+        final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
+
+        versionCheckService.checkVersion(resultStatus);
 
         final ComputeOfflineAuthenticationStepModel model = new ComputeOfflineAuthenticationStepModel();
         model.setQrCodeData(request.getQrCodeData());
         model.setPassword(request.getPassword());
         model.setVersion(config.getVersion());
         model.setUriString(config.getEnrollmentServiceUrl());
-        model.setResultStatusObject(resultStatusObject);
+        model.setResultStatus(resultStatus);
 
         final ObjectStepLogger stepLogger;
         try {
@@ -169,10 +182,10 @@ public class SignatureService extends BaseService {
                 .findAny();
 
         if (otpCode.isPresent()) {
-            resultStatusUtil.incrementCounter(request.getActivationId());
+            resultStatusUtil.incrementCounter(request.getActivationId(), PowerAuthVersion.fromValue(config.getVersion()));
         }
 
-        final ComputeOfflineSignatureResponse response = new ComputeOfflineSignatureResponse();
+        final ComputeOfflineAuthResponse response = new ComputeOfflineAuthResponse();
         response.setOtp(otpCode.orElse(null));
         return response;
     }

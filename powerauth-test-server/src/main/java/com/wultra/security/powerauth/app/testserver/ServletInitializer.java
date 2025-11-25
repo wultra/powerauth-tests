@@ -15,11 +15,8 @@
  */
 package com.wultra.security.powerauth.app.testserver;
 
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
-
-import java.security.Security;
 
 /**
  * Spring Boot servlet initializer.
@@ -30,9 +27,6 @@ public class ServletInitializer extends SpringBootServletInitializer {
 
     @Override
     protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
-        // Register BC provider
-        Security.addProvider(new BouncyCastleProvider());
-
         return application.sources(TestServerApplication.class);
     }
 
