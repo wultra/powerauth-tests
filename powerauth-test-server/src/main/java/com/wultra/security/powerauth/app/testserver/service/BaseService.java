@@ -111,7 +111,7 @@ public class BaseService {
     }
 
     /**
-     * Get ML-DSA-67 master public key from test application configuration.
+     * Get ML-DSA-65 master public key from test application configuration.
      * @param appConfig Test application configuration.
      * @return Master public key.
      * @throws GenericCryptographyException Thrown in case public key conversion fails.
@@ -126,7 +126,7 @@ public class BaseService {
         try {
             return KEY_CONVERTOR_PQC_DSA.convertBytesToPublicKey(masterKeyBytes);
         } catch (Exception ex) {
-            logger.warn("Key conversion failed for ML-DSA-67 master public key, reason: {}", ex.getMessage());
+            logger.warn("Key conversion failed for ML-DSA-65 master public key, reason: {}", ex.getMessage());
             logger.debug(ex.getMessage(), ex);
             throw new GenericCryptographyException("Key conversion failed");
         }
