@@ -33,7 +33,7 @@ jobs:
       INTERNAL_USERNAME: ${{ secrets.JFROG_USERNAME }}
       INTERNAL_PASSWORD: ${{ secrets.JFROG_PASSWORD }}
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           sparse-checkout: powerauth-fido2-tests
       - uses: actions/setup-java@v5
