@@ -27,7 +27,6 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject;
 import lombok.extern.slf4j.Slf4j;
-import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -100,7 +99,7 @@ public class ResultStatusService {
         statusEntity.setStatusBlobMacKey(statusBlobMacKey);
         statusEntity.setVersion(version);
 
-        if (version == 3) {
+        if (version == null || version == 3) {
             statusEntity.setTransportMasterKey(transportMasterKey);
         }
 
@@ -168,14 +167,6 @@ public class ResultStatusService {
         }
 
         appStatusRepository.save(testStatusEntity);
-    }
-
-    private String getStringValue(JSONObject resultStatusObject, String key) {
-        return (String) resultStatusObject.get(key);
-    }
-
-    private Long getLongValue(JSONObject resultStatusObject, String key) {
-        return (Long) resultStatusObject.get(key);
     }
 
     private TestStatusEntity fetchTestStatus(String activationId) throws ActivationFailedException {
