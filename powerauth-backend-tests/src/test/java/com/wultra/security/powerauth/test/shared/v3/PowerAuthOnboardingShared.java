@@ -111,10 +111,10 @@ public class PowerAuthOnboardingShared {
     }
 
     @SuppressWarnings("unchecked")
-    public static void testSuccessfulOnboarding(final TestContext ctx) throws Exception {
+    public static void testSuccessfulOnboardingWithCustomActivation(final TestContext ctx) throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
-        String processId = startOnboarding(ctx, clientId);
+        final String processId = startOnboarding(ctx, clientId).processId();
 
         // Test onboarding status
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
@@ -143,10 +143,37 @@ public class PowerAuthOnboardingShared {
         assertEquals(ActivationStatus.REMOVED, activationStatusResponse.getActivationStatus(), "Cleanup should remove the activation");
     }
 
+    @SuppressWarnings("unchecked")
+    public static void testSuccessfulOnboardingWithActivationCode(final TestContext ctx) throws Exception {
+        final String clientId = generateRandomClientId();
+        final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId);
+        final String processId = onboardingStartResponse.processId();
+
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
+
+        // TODO Lubos prepare activation
+        // Test onboarding status
+        assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, getProcessStatus(ctx, processId));
+
+        // Verify activation flags using custom object in status
+        final ObjectStepLogger stepLoggerStatus = new ObjectStepLogger();
+        new GetStatusStep().execute(stepLoggerStatus, ctx.statusModel.toMap());
+        assertTrue(stepLoggerStatus.getResult().success());
+        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
+        final ObjectResponse<ActivationStatusResponse> objectResponse = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
+        Map<String, Object> customObject = objectResponse.getResponseObject().getCustomObject();
+        assertNotNull(customObject);
+        assertEquals(Collections.singletonList("VERIFICATION_PENDING"), customObject.get("activationFlags"));
+
+        onboardingCleanup(ctx, processId);
+//        final GetActivationStatusResponse activationStatusResponse = ctx.powerAuthClient.getActivationStatus(activationId);
+//        assertEquals(ActivationStatus.REMOVED, activationStatusResponse.getActivationStatus(), "Cleanup should remove the activation");
+    }
+
     public static void testInvalidOtp(final TestContext ctx) throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
-        String processId = startOnboarding(ctx, clientId);
+        final String processId = startOnboarding(ctx, clientId).processId();
 
         // Test onboarding status
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
@@ -162,7 +189,7 @@ public class PowerAuthOnboardingShared {
     public static void testOtpForNonExistingUser(final TestContext ctx) throws Exception {
 
         final String clientId = generateRandomClientId();
-        final String processId = startOnboarding(ctx, clientId, true);
+        final String processId = startOnboarding(ctx, clientId, true).processId();
 
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
 
@@ -180,7 +207,7 @@ public class PowerAuthOnboardingShared {
 
     public static void testOnboardingCleanup(final TestContext ctx) throws Exception {
         // Test onboarding start
-        String processId = startOnboarding(ctx);
+        final String processId = startOnboarding(ctx).processId();
 
         // Test onboarding status
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
@@ -194,7 +221,7 @@ public class PowerAuthOnboardingShared {
 
     public static void testResendPeriod(final TestContext ctx) throws Exception {
         // Test onboarding start
-        String processId = startOnboarding(ctx);
+        final String processId = startOnboarding(ctx).processId();
 
         // Test failed OTP resend
         ObjectStepLogger stepLogger = ctx.stepLogger;
@@ -218,7 +245,7 @@ public class PowerAuthOnboardingShared {
         final String clientId = generateRandomClientId();
 
         for (int i = 0; i < 5; i++) {
-            final String processId = startOnboarding(ctx, clientId);
+            final String processId = startOnboarding(ctx, clientId).processId();
             onboardingCleanup(ctx, processId);
         }
 
@@ -229,7 +256,7 @@ public class PowerAuthOnboardingShared {
     public static void testOtpMaxFailedAttemptsReached(final TestContext ctx) throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
-        String processId = startOnboarding(ctx, clientId);
+        final String processId = startOnboarding(ctx, clientId).processId();
 
         // Test onboarding status
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
@@ -254,7 +281,7 @@ public class PowerAuthOnboardingShared {
     public static void testMaxAttemptsNotReached(final TestContext ctx) throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
-        String processId = startOnboarding(ctx, clientId);
+        final String processId = startOnboarding(ctx, clientId).processId();
 
         // Test onboarding status
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
@@ -273,21 +300,21 @@ public class PowerAuthOnboardingShared {
 
     public static void testResumeProcesses(final TestContext ctx) throws Exception {
         final String clientId = generateRandomClientId();
-        final String processId1 = startOnboarding(ctx, clientId);
-        final String processId2 = startOnboarding(ctx, clientId);
+        final String processId1 = startOnboarding(ctx, clientId).processId();
+        final String processId2 = startOnboarding(ctx, clientId).processId();
         assertEquals(processId1, processId2, "Process must resume for the given clientId");
     }
 
     // Shared test logic
-    private static String startOnboarding(final TestContext ctx) throws Exception {
+    private static OnboardingStartResponse startOnboarding(final TestContext ctx) throws Exception {
         return startOnboarding(ctx, null);
     }
 
-    private static String startOnboarding(final TestContext ctx, final String clientId) throws Exception {
+    private static OnboardingStartResponse startOnboarding(final TestContext ctx, final String clientId) throws Exception {
         return startOnboarding(ctx, clientId, false);
     }
 
-    private static String startOnboarding(final TestContext ctx, final String clientId, final boolean shouldUserLookupFail) throws Exception {
+    private static OnboardingStartResponse startOnboarding(final TestContext ctx, final String clientId, final boolean shouldUserLookupFail) throws Exception {
         ObjectStepLogger stepLogger = new ObjectStepLogger();
         ctx.encryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
         Map<String, Object> identification = new LinkedHashMap<>();
@@ -317,7 +344,7 @@ public class PowerAuthOnboardingShared {
 
         assertNotNull(processId);
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, onboardingStatus);
-        return processId;
+        return response;
     }
 
     private static void executeRequest(final TestContext ctx, final Object request, final ObjectStepLogger stepLogger) throws Exception {
