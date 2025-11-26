@@ -37,13 +37,17 @@ import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatu
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.CreateActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
 import com.wultra.security.powerauth.lib.cmd.steps.GetStatusStep;
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.model.request.OtpDetailRequest;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
@@ -53,10 +57,7 @@ import org.opentest4j.AssertionFailedError;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -66,6 +67,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 public class PowerAuthOnboardingShared {
+
+    public static final SharedSecretAlgorithm SHARED_SECRET_ALGORITHM_DEFAULT = SharedSecretAlgorithm.EC_P384_ML_L3;
 
     /**
      * Test of {@code POST /api/configuration}.
@@ -151,7 +154,11 @@ public class PowerAuthOnboardingShared {
 
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
 
-        // TODO Lubos prepare activation
+        final String activationCode = onboardingStartResponse.activationCode();
+        assertNotNull(activationCode);
+
+        prepareActivation(ctx, activationCode);
+
         // Test onboarding status
         assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, getProcessStatus(ctx, processId));
 
@@ -168,6 +175,37 @@ public class PowerAuthOnboardingShared {
         onboardingCleanup(ctx, processId);
 //        final GetActivationStatusResponse activationStatusResponse = ctx.powerAuthClient.getActivationStatus(activationId);
 //        assertEquals(ActivationStatus.REMOVED, activationStatusResponse.getActivationStatus(), "Cleanup should remove the activation");
+    }
+
+    private static void prepareActivation(final TestContext ctx, final String activationCode) throws Exception {
+        final PrepareActivationStepModel model = new PrepareActivationStepModel();
+        model.setActivationCode(activationCode);
+        model.setActivationName(UUID.randomUUID().toString());
+        model.setApplicationKey(ctx.config().getApplicationKey());
+        model.setApplicationSecret(ctx.config().getApplicationSecret());
+
+        final PowerAuthVersion version = ctx.activationModel().getVersion();
+        if (version.getMajorVersion() == 3) {
+            model.setMasterPublicKeyP256(ctx.config().getMasterPublicKeyP256());
+        } else {
+            model.setMasterPublicKeyP384(ctx.config().getMasterPublicKeyP384());
+            model.setMasterPublicKeyMlDsa65(ctx.config().getMasterPublicKeyMlDsa65());
+            model.setSharedSecretAlgorithm(SHARED_SECRET_ALGORITHM_DEFAULT);
+        }
+
+        model.setHeaders(new HashMap<>());
+        model.setPassword(ctx.config().getPassword());
+        model.setResultStatusObject(ctx.config().getResultStatusObject(version));
+        model.setStatusFileName(ctx.config().getStatusFile(version).getName());
+        model.setUriString(ctx.config().getEnrollmentServiceUrl());
+        model.setVersion(version);
+        model.setDeviceInfo("backend-tests");
+        model.setActivationCode(activationCode);
+        final ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
+        new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
+        // TODO Lubos get PrepareActivationResponse
     }
 
     public static void testInvalidOtp(final TestContext ctx) throws Exception {
