@@ -157,7 +157,7 @@ public class PowerAuthOnboardingShared {
         final String activationCode = onboardingStartResponse.activationCode();
         assertNotNull(activationCode);
 
-        prepareActivation(ctx, activationCode);
+        finishActivation(ctx, activationCode);
 
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
 
@@ -169,7 +169,7 @@ public class PowerAuthOnboardingShared {
         onboardingCleanup(ctx, processId);
     }
 
-    private static void prepareActivation(final TestContext ctx, final String activationCode) throws Exception {
+    private static void finishActivation(final TestContext ctx, final String activationCode) throws Exception {
         final PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(activationCode);
         model.setActivationName(UUID.randomUUID().toString());

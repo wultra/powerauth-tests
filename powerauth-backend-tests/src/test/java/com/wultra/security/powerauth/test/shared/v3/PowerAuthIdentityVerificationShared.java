@@ -29,6 +29,8 @@ import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatu
 import com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.model.request.OtpDetailRequest;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
@@ -71,7 +73,9 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthIdentityVerificationShared {
 
-    public static void testSuccessfulIdentityVerification(final TestContext ctx) throws Exception {
+    public static final SharedSecretAlgorithm SHARED_SECRET_ALGORITHM_DEFAULT = SharedSecretAlgorithm.EC_P384_ML_L3;
+
+    public static void testSuccessfulIdentityVerificationWithCustomActivation(final TestContext ctx) throws Exception {
         final TestProcessContext processCtx = prepareActivation(ctx);
         final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
@@ -87,6 +91,64 @@ public class PowerAuthIdentityVerificationShared {
         }
 
         ctx.powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    public static void testSuccessfulIdentityVerificationWithActivationCode(final TestContext ctx) throws Exception {
+        final String clientId = generateRandomClientId();
+        final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId);
+        final String processId = onboardingStartResponse.processId();
+
+        final String activationCode = onboardingStartResponse.activationCode();
+        finishActivation(ctx, activationCode);
+
+        final TestProcessContext processContext = new TestProcessContext();
+        processContext.processId = processId;
+
+        final String activationId = "TODO"; // TODO Lubos
+        processContext.activationId = activationCode;
+
+        // TODO Lubos - approveConsent is failing
+        processDocuments(processContext, ctx);
+
+        initPresenceCheck(ctx, processId);
+        submitPresenceCheck(ctx, processId);
+        if (!ctx.config.isSkipResultVerification()) {
+            verifyStatusBeforeOtp(ctx);
+            verifyOtpCheckSuccessful(ctx, processId);
+            verifyProcessFinished(ctx, processId, activationId);
+        }
+
+        ctx.powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    private static void finishActivation(final TestContext ctx, final String activationCode) throws Exception {
+        final PrepareActivationStepModel model = new PrepareActivationStepModel();
+        model.setActivationCode(activationCode);
+        model.setActivationName(UUID.randomUUID().toString());
+        model.setApplicationKey(ctx.config().getApplicationKey());
+        model.setApplicationSecret(ctx.config().getApplicationSecret());
+
+        final PowerAuthVersion version = ctx.activationModel().getVersion();
+        if (version.getMajorVersion() == 3) {
+            model.setMasterPublicKeyP256(ctx.config().getMasterPublicKeyP256());
+        } else {
+            model.setMasterPublicKeyP384(ctx.config().getMasterPublicKeyP384());
+            model.setMasterPublicKeyMlDsa65(ctx.config().getMasterPublicKeyMlDsa65());
+            model.setSharedSecretAlgorithm(SHARED_SECRET_ALGORITHM_DEFAULT);
+        }
+
+        model.setHeaders(new HashMap<>());
+        model.setPassword(ctx.config().getPassword());
+        model.setResultStatusObject(ctx.config().getResultStatusObject(version));
+        model.setStatusFileName(ctx.config().getStatusFile(version).getAbsolutePath());
+        model.setUriString(ctx.config().getEnrollmentServiceUrl());
+        model.setVersion(version);
+        model.setDeviceInfo("backend-tests");
+        model.setActivationCode(activationCode);
+        final ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
+        new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
     }
 
     private static void processDocuments(final TestProcessContext processCtx, final TestContext ctx) throws Exception {
@@ -603,9 +665,9 @@ public class PowerAuthIdentityVerificationShared {
     }
 
     private static TestProcessContext prepareActivation(final TestContext ctx, final String clientIdPostfix) throws Exception {
-        String clientId = generateRandomClientId() + clientIdPostfix;
-        String processId = startOnboarding(ctx,  clientId);
-        String activationId = createCustomActivation(ctx, processId, getOtpCode(ctx, processId, OtpType.ACTIVATION), clientId);
+        final String clientId = generateRandomClientId() + clientIdPostfix;
+        final String processId = startOnboarding(ctx, clientId).processId();
+        final String activationId = createCustomActivation(ctx, processId, getOtpCode(ctx, processId, OtpType.ACTIVATION), clientId);
         createToken(ctx);
 
         final TestProcessContext testContext = new TestProcessContext();
@@ -614,7 +676,7 @@ public class PowerAuthIdentityVerificationShared {
         return testContext;
     }
 
-    private static String startOnboarding(final TestContext ctx, final String clientId) throws Exception {
+    private static OnboardingStartResponse startOnboarding(final TestContext ctx, final String clientId) throws Exception {
         ObjectStepLogger stepLogger = ctx.stepLogger;
         ctx.encryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
         ctx.encryptModel.setScope("application");
@@ -643,7 +705,7 @@ public class PowerAuthIdentityVerificationShared {
 
         assertNotNull(processId);
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, onboardingStatus);
-        return processId;
+        return response;
     }
 
     private static void executeRequest(final Object request, final EncryptStepModel encryptModel, final ObjectStepLogger stepLogger, final ObjectMapper objectMapper) throws Exception {
