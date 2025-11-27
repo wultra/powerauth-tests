@@ -173,8 +173,6 @@ public class PowerAuthOnboardingShared {
         assertEquals(Collections.singletonList("VERIFICATION_PENDING"), customObject.get("activationFlags"));
 
         onboardingCleanup(ctx, processId);
-//        final GetActivationStatusResponse activationStatusResponse = ctx.powerAuthClient.getActivationStatus(activationId);
-//        assertEquals(ActivationStatus.REMOVED, activationStatusResponse.getActivationStatus(), "Cleanup should remove the activation");
     }
 
     private static void prepareActivation(final TestContext ctx, final String activationCode) throws Exception {
@@ -196,7 +194,7 @@ public class PowerAuthOnboardingShared {
         model.setHeaders(new HashMap<>());
         model.setPassword(ctx.config().getPassword());
         model.setResultStatusObject(ctx.config().getResultStatusObject(version));
-        model.setStatusFileName(ctx.config().getStatusFile(version).getName());
+        model.setStatusFileName(ctx.config().getStatusFile(version).getAbsolutePath());
         model.setUriString(ctx.config().getEnrollmentServiceUrl());
         model.setVersion(version);
         model.setDeviceInfo("backend-tests");
@@ -205,7 +203,6 @@ public class PowerAuthOnboardingShared {
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
         assertTrue(stepLoggerPrepare.getResult().success());
         assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
-        // TODO Lubos get PrepareActivationResponse
     }
 
     public static void testInvalidOtp(final TestContext ctx) throws Exception {
