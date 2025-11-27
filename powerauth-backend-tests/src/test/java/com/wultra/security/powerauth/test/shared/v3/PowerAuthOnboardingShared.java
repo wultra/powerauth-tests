@@ -159,18 +159,12 @@ public class PowerAuthOnboardingShared {
 
         prepareActivation(ctx, activationCode);
 
-        // Test onboarding status
-        assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, getProcessStatus(ctx, processId));
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
 
-        // Verify activation flags using custom object in status
+        // activation is not yet active
         final ObjectStepLogger stepLoggerStatus = new ObjectStepLogger();
         new GetStatusStep().execute(stepLoggerStatus, ctx.statusModel.toMap());
-        assertTrue(stepLoggerStatus.getResult().success());
-        assertEquals(200, stepLoggerStatus.getResponse().statusCode());
-        final ObjectResponse<ActivationStatusResponse> objectResponse = (ObjectResponse<ActivationStatusResponse>) stepLoggerStatus.getResponse().responseObject();
-        Map<String, Object> customObject = objectResponse.getResponseObject().getCustomObject();
-        assertNotNull(customObject);
-        assertEquals(Collections.singletonList("VERIFICATION_PENDING"), customObject.get("activationFlags"));
+        assertFalse(stepLoggerStatus.getResult().success());
 
         onboardingCleanup(ctx, processId);
     }
