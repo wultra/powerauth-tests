@@ -106,7 +106,7 @@ public class PowerAuthIdentityVerificationShared {
 
         final TestProcessContext processContext = new TestProcessContext();
         processContext.processId = processId;
-        processContext.activationId = activationCode;
+        processContext.activationId = activationId;
 
         // skip approveConsent on purpose
         processDocuments(processContext, ctx);
@@ -833,7 +833,7 @@ public class PowerAuthIdentityVerificationShared {
         ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         ctx.signatureModel.setData(ctx.objectMapper.writeValueAsBytes(new ObjectRequest<>(initRequest)));
         ctx.signatureModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/identity/init");
-        ctx. signatureModel.setResourceId("/api/identity/init");
+        ctx.signatureModel.setResourceId("/api/identity/init");
 
         new VerifyAuthenticationStep().execute(stepLogger, ctx.signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
