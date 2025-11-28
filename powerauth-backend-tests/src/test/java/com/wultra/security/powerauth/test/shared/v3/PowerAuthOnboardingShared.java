@@ -157,7 +157,7 @@ public class PowerAuthOnboardingShared {
         final String activationCode = onboardingStartResponse.activationCode();
         assertNotNull(activationCode);
 
-        finishActivation(ctx, activationCode);
+        final String activationId = finishActivation(ctx, activationCode);
 
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
 
@@ -167,9 +167,11 @@ public class PowerAuthOnboardingShared {
         assertFalse(stepLoggerStatus.getResult().success());
 
         onboardingCleanup(ctx, processId);
+        final GetActivationStatusResponse activationStatusResponse = ctx.powerAuthClient.getActivationStatus(activationId);
+        assertEquals(ActivationStatus.REMOVED, activationStatusResponse.getActivationStatus(), "Cleanup should remove the activation");
     }
 
-    private static void finishActivation(final TestContext ctx, final String activationCode) throws Exception {
+    private static String finishActivation(final TestContext ctx, final String activationCode) throws Exception {
         final PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(activationCode);
         model.setActivationName(UUID.randomUUID().toString());
@@ -196,6 +198,14 @@ public class PowerAuthOnboardingShared {
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
         assertTrue(stepLoggerPrepare.getResult().success());
         assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
+
+        final ActivationLayer2Response layer2Response = stepLoggerPrepare.getItems().stream()
+                .filter(item -> "Decrypted Layer 2 Response".equals(item.name()))
+                .map(item -> (ActivationLayer2Response) item.object())
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+
+        return layer2Response.getActivationId();
     }
 
     public static void testInvalidOtp(final TestContext ctx) throws Exception {
