@@ -65,6 +65,8 @@ public class ResultStatusService {
 
         final String ecServerPublicKey = resultStatus.getEcServerPublicKey();
         final String pqcServerPublicKey = resultStatus.getPqcServerPublicKey();
+        final String ecDevicePublicKey = resultStatus.getEcDevicePublicKey();
+        final String pqcDevicePublicKey = resultStatus.getPqcDevicePublicKey();
         final Long counter = resultStatus.getCounter();
         final String ctrData = resultStatus.getCtrData();
         final String encryptedEcDevicePrivateKey = resultStatus.getEncryptedEcDevicePrivateKey();
@@ -84,6 +86,8 @@ public class ResultStatusService {
         statusEntity.setActivationId(activationId);
         statusEntity.setEcServerPublicKey(ecServerPublicKey);
         statusEntity.setPqcServerPublicKey(pqcServerPublicKey);
+        statusEntity.setEcDevicePublicKey(ecDevicePublicKey);
+        statusEntity.setPqcDevicePublicKey(pqcDevicePublicKey);
         statusEntity.setCounter(counter);
         statusEntity.setCtrData(ctrData);
         statusEntity.setEncryptedEcDevicePrivateKey(encryptedEcDevicePrivateKey);
