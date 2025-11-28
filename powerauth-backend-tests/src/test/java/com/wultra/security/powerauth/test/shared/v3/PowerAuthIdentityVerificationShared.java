@@ -145,7 +145,6 @@ public class PowerAuthIdentityVerificationShared {
         model.setUriString(ctx.config().getEnrollmentServiceUrl());
         model.setVersion(version);
         model.setDeviceInfo("backend-tests");
-        model.setActivationCode(activationCode);
         final ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
         assertTrue(stepLoggerPrepare.getResult().success());
