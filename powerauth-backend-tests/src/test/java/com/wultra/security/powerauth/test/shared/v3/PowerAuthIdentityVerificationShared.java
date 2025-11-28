@@ -99,15 +99,14 @@ public class PowerAuthIdentityVerificationShared {
         final String processId = onboardingStartResponse.processId();
 
         final String activationCode = onboardingStartResponse.activationCode();
-        finishActivation(ctx, activationCode);
+        final String activationId = finishActivation(ctx, activationCode);
+
+        createToken(ctx);
 
         final TestProcessContext processContext = new TestProcessContext();
         processContext.processId = processId;
-
-        final String activationId = "TODO"; // TODO Lubos
         processContext.activationId = activationCode;
 
-        // TODO Lubos - approveConsent is failing
         processDocuments(processContext, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -121,7 +120,7 @@ public class PowerAuthIdentityVerificationShared {
         ctx.powerAuthClient.removeActivation(activationId, "test");
     }
 
-    private static void finishActivation(final TestContext ctx, final String activationCode) throws Exception {
+    private static String finishActivation(final TestContext ctx, final String activationCode) throws Exception {
         final PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(activationCode);
         model.setActivationName(UUID.randomUUID().toString());
@@ -139,7 +138,7 @@ public class PowerAuthIdentityVerificationShared {
 
         model.setHeaders(new HashMap<>());
         model.setPassword(ctx.config().getPassword());
-        model.setResultStatusObject(ctx.config().getResultStatusObject(version));
+        model.setResultStatusObject(ctx.activationModel().getResultStatusObject());
         model.setStatusFileName(ctx.config().getStatusFile(version).getAbsolutePath());
         model.setUriString(ctx.config().getEnrollmentServiceUrl());
         model.setVersion(version);
@@ -149,6 +148,14 @@ public class PowerAuthIdentityVerificationShared {
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
         assertTrue(stepLoggerPrepare.getResult().success());
         assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
+
+        final ActivationLayer2Response layer2Response = stepLoggerPrepare.getItems().stream()
+                .filter(item -> "Decrypted Layer 2 Response".equals(item.name()))
+                .map(item -> (ActivationLayer2Response) item.object())
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+
+        return layer2Response.getActivationId();
     }
 
     private static void processDocuments(final TestProcessContext processCtx, final TestContext ctx) throws Exception {
