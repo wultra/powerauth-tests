@@ -80,6 +80,7 @@ public class PowerAuthIdentityVerificationShared {
         final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
 
+        approveConsent(ctx, processId);
         processDocuments(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -107,6 +108,7 @@ public class PowerAuthIdentityVerificationShared {
         processContext.processId = processId;
         processContext.activationId = activationCode;
 
+        // skip approveConsent on purpose
         processDocuments(processContext, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -162,7 +164,6 @@ public class PowerAuthIdentityVerificationShared {
         final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
 
-        approveConsent(ctx, processId);
         initIdentityVerification(ctx, activationId, processId);
 
         final List<FileSubmit> idCardSubmits = List.of(
@@ -197,6 +198,7 @@ public class PowerAuthIdentityVerificationShared {
         final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
 
+        approveConsent(ctx, processId);
         processDocuments(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -217,6 +219,7 @@ public class PowerAuthIdentityVerificationShared {
         final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
 
+        approveConsent(ctx, processId);
         processDocuments(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -610,6 +613,7 @@ public class PowerAuthIdentityVerificationShared {
         final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
 
+        approveConsent(ctx, processId);
         processDocuments(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -632,6 +636,8 @@ public class PowerAuthIdentityVerificationShared {
         final TestProcessContext processCtx = prepareActivation(ctx);
         final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
+
+        approveConsent(ctx, processId);
 
         // 1st identity verification
         processDocuments(processCtx, ctx);
