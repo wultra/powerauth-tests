@@ -37,13 +37,17 @@ import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatu
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.CreateActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
 import com.wultra.security.powerauth.lib.cmd.steps.GetStatusStep;
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.CreateActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
+import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.model.request.OtpDetailRequest;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
@@ -53,10 +57,7 @@ import org.opentest4j.AssertionFailedError;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -66,6 +67,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 public class PowerAuthOnboardingShared {
+
+    public static final SharedSecretAlgorithm SHARED_SECRET_ALGORITHM_DEFAULT = SharedSecretAlgorithm.EC_P384_ML_L3;
 
     /**
      * Test of {@code POST /api/configuration}.
@@ -111,10 +114,10 @@ public class PowerAuthOnboardingShared {
     }
 
     @SuppressWarnings("unchecked")
-    public static void testSuccessfulOnboarding(final TestContext ctx) throws Exception {
+    public static void testSuccessfulOnboardingWithCustomActivation(final TestContext ctx) throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
-        String processId = startOnboarding(ctx, clientId);
+        final String processId = startOnboarding(ctx, clientId).processId();
 
         // Test onboarding status
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
@@ -143,10 +146,71 @@ public class PowerAuthOnboardingShared {
         assertEquals(ActivationStatus.REMOVED, activationStatusResponse.getActivationStatus(), "Cleanup should remove the activation");
     }
 
+    @SuppressWarnings("unchecked")
+    public static void testSuccessfulOnboardingWithActivationCode(final TestContext ctx) throws Exception {
+        final String clientId = generateRandomClientId();
+        final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId);
+        final String processId = onboardingStartResponse.processId();
+
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
+
+        final String activationCode = onboardingStartResponse.activationCode();
+        assertNotNull(activationCode);
+
+        final String activationId = finishActivation(ctx, activationCode);
+
+        assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, getProcessStatus(ctx, processId));
+
+        // activation is not yet active
+        final ObjectStepLogger stepLoggerStatus = new ObjectStepLogger();
+        new GetStatusStep().execute(stepLoggerStatus, ctx.statusModel.toMap());
+        assertFalse(stepLoggerStatus.getResult().success());
+
+        onboardingCleanup(ctx, processId);
+        final GetActivationStatusResponse activationStatusResponse = ctx.powerAuthClient.getActivationStatus(activationId);
+        assertEquals(ActivationStatus.REMOVED, activationStatusResponse.getActivationStatus(), "Cleanup should remove the activation");
+    }
+
+    private static String finishActivation(final TestContext ctx, final String activationCode) throws Exception {
+        final PrepareActivationStepModel model = new PrepareActivationStepModel();
+        model.setActivationCode(activationCode);
+        model.setActivationName(UUID.randomUUID().toString());
+        model.setApplicationKey(ctx.config().getApplicationKey());
+        model.setApplicationSecret(ctx.config().getApplicationSecret());
+
+        final PowerAuthVersion version = ctx.activationModel().getVersion();
+        if (version.getMajorVersion() == 3) {
+            model.setMasterPublicKeyP256(ctx.config().getMasterPublicKeyP256());
+        } else {
+            model.setMasterPublicKeyP384(ctx.config().getMasterPublicKeyP384());
+            model.setMasterPublicKeyMlDsa65(ctx.config().getMasterPublicKeyMlDsa65());
+            model.setSharedSecretAlgorithm(SHARED_SECRET_ALGORITHM_DEFAULT);
+        }
+
+        model.setHeaders(new HashMap<>());
+        model.setPassword(ctx.config().getPassword());
+        model.setResultStatusObject(ctx.config().getResultStatusObject(version));
+        model.setStatusFileName(ctx.config().getStatusFile(version).getAbsolutePath());
+        model.setUriString(ctx.config().getEnrollmentServiceUrl());
+        model.setVersion(version);
+        model.setDeviceInfo("backend-tests");
+        final ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
+        new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
+
+        return stepLoggerPrepare.getItems().stream()
+                .filter(item -> "Decrypted Layer 2 Response".equals(item.name()))
+                .map(item -> (ActivationLayer2Response) item.object())
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build())
+                .getActivationId();
+    }
+
     public static void testInvalidOtp(final TestContext ctx) throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
-        String processId = startOnboarding(ctx, clientId);
+        final String processId = startOnboarding(ctx, clientId).processId();
 
         // Test onboarding status
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
@@ -162,7 +226,7 @@ public class PowerAuthOnboardingShared {
     public static void testOtpForNonExistingUser(final TestContext ctx) throws Exception {
 
         final String clientId = generateRandomClientId();
-        final String processId = startOnboarding(ctx, clientId, true);
+        final String processId = startOnboarding(ctx, clientId, true).processId();
 
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
 
@@ -180,7 +244,7 @@ public class PowerAuthOnboardingShared {
 
     public static void testOnboardingCleanup(final TestContext ctx) throws Exception {
         // Test onboarding start
-        String processId = startOnboarding(ctx);
+        final String processId = startOnboarding(ctx).processId();
 
         // Test onboarding status
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
@@ -194,7 +258,7 @@ public class PowerAuthOnboardingShared {
 
     public static void testResendPeriod(final TestContext ctx) throws Exception {
         // Test onboarding start
-        String processId = startOnboarding(ctx);
+        final String processId = startOnboarding(ctx).processId();
 
         // Test failed OTP resend
         ObjectStepLogger stepLogger = ctx.stepLogger;
@@ -218,7 +282,7 @@ public class PowerAuthOnboardingShared {
         final String clientId = generateRandomClientId();
 
         for (int i = 0; i < 5; i++) {
-            final String processId = startOnboarding(ctx, clientId);
+            final String processId = startOnboarding(ctx, clientId).processId();
             onboardingCleanup(ctx, processId);
         }
 
@@ -229,7 +293,7 @@ public class PowerAuthOnboardingShared {
     public static void testOtpMaxFailedAttemptsReached(final TestContext ctx) throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
-        String processId = startOnboarding(ctx, clientId);
+        final String processId = startOnboarding(ctx, clientId).processId();
 
         // Test onboarding status
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
@@ -254,7 +318,7 @@ public class PowerAuthOnboardingShared {
     public static void testMaxAttemptsNotReached(final TestContext ctx) throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
-        String processId = startOnboarding(ctx, clientId);
+        final String processId = startOnboarding(ctx, clientId).processId();
 
         // Test onboarding status
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
@@ -273,21 +337,21 @@ public class PowerAuthOnboardingShared {
 
     public static void testResumeProcesses(final TestContext ctx) throws Exception {
         final String clientId = generateRandomClientId();
-        final String processId1 = startOnboarding(ctx, clientId);
-        final String processId2 = startOnboarding(ctx, clientId);
+        final String processId1 = startOnboarding(ctx, clientId).processId();
+        final String processId2 = startOnboarding(ctx, clientId).processId();
         assertEquals(processId1, processId2, "Process must resume for the given clientId");
     }
 
     // Shared test logic
-    private static String startOnboarding(final TestContext ctx) throws Exception {
+    private static OnboardingStartResponse startOnboarding(final TestContext ctx) throws Exception {
         return startOnboarding(ctx, null);
     }
 
-    private static String startOnboarding(final TestContext ctx, final String clientId) throws Exception {
+    private static OnboardingStartResponse startOnboarding(final TestContext ctx, final String clientId) throws Exception {
         return startOnboarding(ctx, clientId, false);
     }
 
-    private static String startOnboarding(final TestContext ctx, final String clientId, final boolean shouldUserLookupFail) throws Exception {
+    private static OnboardingStartResponse startOnboarding(final TestContext ctx, final String clientId, final boolean shouldUserLookupFail) throws Exception {
         ObjectStepLogger stepLogger = new ObjectStepLogger();
         ctx.encryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
         Map<String, Object> identification = new LinkedHashMap<>();
@@ -317,7 +381,7 @@ public class PowerAuthOnboardingShared {
 
         assertNotNull(processId);
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, onboardingStatus);
-        return processId;
+        return response;
     }
 
     private static void executeRequest(final TestContext ctx, final Object request, final ObjectStepLogger stepLogger) throws Exception {

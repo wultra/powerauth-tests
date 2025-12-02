@@ -115,8 +115,13 @@ class PowerAuthOnboardingTest {
     }
 
     @Test
-    void testSuccessfulOnboarding() throws Exception {
-        PowerAuthOnboardingShared.testSuccessfulOnboarding(ctx);
+    void testSuccessfulOnboardingWithCustomActivation() throws Exception {
+        PowerAuthOnboardingShared.testSuccessfulOnboardingWithCustomActivation(ctx);
+    }
+
+    @Test
+    void testSuccessfulOnboardingWithActivationCode() throws Exception {
+        PowerAuthOnboardingShared.testSuccessfulOnboardingWithActivationCode(ctx);
     }
 
     @Test

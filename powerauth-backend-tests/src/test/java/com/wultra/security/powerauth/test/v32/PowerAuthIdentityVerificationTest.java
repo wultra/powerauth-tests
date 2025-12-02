@@ -140,8 +140,13 @@ class PowerAuthIdentityVerificationTest {
     }
 
     @Test
-    void testSuccessfulIdentityVerification() throws Exception {
-        PowerAuthIdentityVerificationShared.testSuccessfulIdentityVerification(ctx);
+    void testSuccessfulIdentityVerificationWithCustomActivation() throws Exception {
+        PowerAuthIdentityVerificationShared.testSuccessfulIdentityVerificationWithCustomActivation(ctx);
+    }
+
+    @Test
+    void testSuccessfulIdentityVerificationWithActivationCode() throws Exception {
+        PowerAuthIdentityVerificationShared.testSuccessfulIdentityVerificationWithActivationCode(ctx);
     }
 
     @Test
