@@ -108,6 +108,8 @@ public class PowerAuthIdentityVerificationShared {
         processContext.processId = processId;
         processContext.activationId = activationId;
 
+        assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
+
         // skip approveConsent on purpose
         processDocuments(processContext, ctx);
 
