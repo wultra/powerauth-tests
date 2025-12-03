@@ -108,12 +108,14 @@ public class PowerAuthIdentityVerificationShared {
         processContext.processId = processId;
         processContext.activationId = activationId;
 
-        assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
 
         // skip approveConsent on purpose
         processDocuments(processContext, ctx);
 
         initPresenceCheck(ctx, processId);
+        assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
+
         submitPresenceCheck(ctx, processId);
         if (!ctx.config.isSkipResultVerification()) {
             verifyStatusBeforeOtp(ctx);
