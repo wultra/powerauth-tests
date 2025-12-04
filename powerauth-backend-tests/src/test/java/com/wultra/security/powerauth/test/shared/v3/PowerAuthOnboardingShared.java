@@ -159,7 +159,8 @@ public class PowerAuthOnboardingShared {
 
         final String activationId = finishActivation(ctx, activationCode);
 
-        assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, getProcessStatus(ctx, processId));
+        // not yet synchronized, done in /api/identity/init
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
 
         // activation is not yet active
         final ObjectStepLogger stepLoggerStatus = new ObjectStepLogger();
