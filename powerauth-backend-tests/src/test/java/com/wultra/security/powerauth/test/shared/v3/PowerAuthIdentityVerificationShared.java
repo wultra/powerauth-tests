@@ -96,7 +96,7 @@ public class PowerAuthIdentityVerificationShared {
 
     public static void testSuccessfulIdentityVerificationWithActivationCode(final TestContext ctx) throws Exception {
         final String clientId = generateRandomClientId();
-        final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId);
+        final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId, "onboarding");
         final String processId = onboardingStartResponse.processId();
 
         final String activationCode = onboardingStartResponse.activationCode();
@@ -681,7 +681,7 @@ public class PowerAuthIdentityVerificationShared {
 
     private static TestProcessContext prepareActivation(final TestContext ctx, final String clientIdPostfix) throws Exception {
         final String clientId = generateRandomClientId() + clientIdPostfix;
-        final String processId = startOnboarding(ctx, clientId).processId();
+        final String processId = startOnboarding(ctx, clientId, null).processId();
         final String activationId = createCustomActivation(ctx, processId, getOtpCode(ctx, processId, OtpType.ACTIVATION), clientId);
         createToken(ctx);
 
@@ -691,7 +691,7 @@ public class PowerAuthIdentityVerificationShared {
         return testContext;
     }
 
-    private static OnboardingStartResponse startOnboarding(final TestContext ctx, final String clientId) throws Exception {
+    private static OnboardingStartResponse startOnboarding(final TestContext ctx, final String clientId, final String processType) throws Exception {
         ObjectStepLogger stepLogger = ctx.stepLogger;
         ctx.encryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
         ctx.encryptModel.setScope("application");
@@ -700,6 +700,7 @@ public class PowerAuthIdentityVerificationShared {
         identification.put("birthDate", "1970-03-21");
         final OnboardingStartRequest request = OnboardingStartRequest.builder()
                 .identification(identification)
+                .processType(processType)
                 .build();
         executeRequest(request, ctx.encryptModel, stepLogger, ctx.objectMapper);
 
