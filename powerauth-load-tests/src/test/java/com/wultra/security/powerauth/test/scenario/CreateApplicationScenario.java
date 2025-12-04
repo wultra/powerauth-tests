@@ -52,10 +52,7 @@ public class CreateApplicationScenario {
                                       ]
                                     }
                                     """.formatted(APP_NAME, APP_ROLE)))
-                            .check(jmesPath("masterServerPublicKey").saveAs("masterServerPublicKey"),
-                                    jmesPath("appKey").saveAs("appKey"),
-                                    jmesPath("appSecret").saveAs("appSecret"),
-                                    jmesPath("mobileSdkConfig").saveAs("mobileSdkConfig"),
+                            .check(jmesPath("mobileSdkConfig").saveAs("mobileSdkConfig"),
                                     jmesPath("id").saveAs("appId"))
             )
             .exec(
@@ -67,7 +64,7 @@ public class CreateApplicationScenario {
                                         "username": "%s"
                                         }
                                     }
-                                      """.formatted(INTEGRATION_USER_NAME)))
+                                    """.formatted(INTEGRATION_USER_NAME)))
                             .check(jmesPath("username").saveAs("pac-int-user"))
                             .check(jmesPath("password").saveAs("pac-int-user-pass")))
             .exec(
@@ -83,12 +80,9 @@ public class CreateApplicationScenario {
                                         "requestObject": {
                                             "applicationId": "#{appId}",
                                             "applicationName": "%s",
-                                            "applicationKey": "#{appKey}",
-                                            "applicationSecret": "#{appSecret}",
-                                            "masterPublicKey": "#{masterServerPublicKey}",
                                             "mobileSdkConfig": "#{mobileSdkConfig}"
                                         }
                                     }
-                                      """.formatted(APP_NAME))))
+                                    """.formatted(APP_NAME))))
             .exec(SessionDataUtils.saveSessionData());
 }
