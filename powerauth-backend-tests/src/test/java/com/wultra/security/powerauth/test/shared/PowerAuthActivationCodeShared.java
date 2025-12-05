@@ -27,7 +27,7 @@ import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
-import com.wultra.security.powerauth.lib.cmd.steps.SignAndEncryptStep;
+import com.wultra.security.powerauth.lib.cmd.steps.AuthAndEncryptStep;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 
 import java.io.BufferedWriter;
@@ -77,7 +77,7 @@ public class PowerAuthActivationCodeShared {
 
         signatureModel.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 

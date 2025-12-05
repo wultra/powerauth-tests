@@ -38,7 +38,7 @@ import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
-import com.wultra.security.powerauth.lib.cmd.steps.SignAndEncryptStep;
+import com.wultra.security.powerauth.lib.cmd.steps.AuthAndEncryptStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
 import com.wultra.security.powerauth.model.TemporaryKey;
@@ -174,7 +174,7 @@ public class PowerAuthEncryptionShared {
         signatureModel.setResourceId("/exchange/signed");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
@@ -193,7 +193,7 @@ public class PowerAuthEncryptionShared {
 
         signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION);
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertFalse(stepLogger.getResult().success());
         assertEquals(401, stepLogger.getResponse().statusCode());
     }
@@ -203,7 +203,7 @@ public class PowerAuthEncryptionShared {
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         signatureModel.setPassword("0000");
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertFalse(stepLogger.getResult().success());
         assertEquals(401, stepLogger.getResponse().statusCode());
     }
@@ -218,7 +218,7 @@ public class PowerAuthEncryptionShared {
 
         encryptModel.setData(Files.readAllBytes(Paths.get(emptyDataFile.getAbsolutePath())));
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         // It is allowed to encrypt and sign empty data
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
@@ -243,7 +243,7 @@ public class PowerAuthEncryptionShared {
 
         signatureModel.setData(Files.readAllBytes(Paths.get(dataFileLarge.getAbsolutePath())));
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
@@ -263,7 +263,7 @@ public class PowerAuthEncryptionShared {
 
         signatureModel.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
@@ -286,7 +286,7 @@ public class PowerAuthEncryptionShared {
 
         signatureModel.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
@@ -306,7 +306,7 @@ public class PowerAuthEncryptionShared {
         byte[] data = Files.readAllBytes(Paths.get(dataFileWithGenerics.getAbsolutePath()));
         signatureModel.setData(data);
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
@@ -327,7 +327,7 @@ public class PowerAuthEncryptionShared {
         signatureModel.setResourceId("/exchange/invalid");
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertFalse(stepLogger.getResult().success());
         assertEquals(401, stepLogger.getResponse().statusCode());
     }
@@ -339,14 +339,14 @@ public class PowerAuthEncryptionShared {
         // Block activation and verify that data exchange fails
         powerAuthClient.blockActivation(config.getActivationId(version), "test", "test");
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertFalse(stepLogger.getResult().success());
 
         // Unblock activation and verify that data exchange succeeds
         powerAuthClient.unblockActivation(config.getActivationId(version), "test");
 
         ObjectStepLogger stepLoggerSuccess = new ObjectStepLogger(System.out);
-        new SignAndEncryptStep().execute(stepLoggerSuccess, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLoggerSuccess, signatureModel.toMap());
         assertTrue(stepLoggerSuccess.getResult().success());
         assertEquals(200, stepLoggerSuccess.getResponse().statusCode());
 
@@ -372,7 +372,7 @@ public class PowerAuthEncryptionShared {
         powerAuthClient.unsupportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger1 = new ObjectStepLogger(System.out);
-        new SignAndEncryptStep().execute(stepLogger1, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger1, signatureModel.toMap());
         assertFalse(stepLogger1.getResult().success());
 
         ObjectMapper objectMapper = config.getObjectMapper();
@@ -382,7 +382,7 @@ public class PowerAuthEncryptionShared {
         powerAuthClient.supportApplicationVersion(config.getApplicationId(), config.getApplicationVersionId());
 
         ObjectStepLogger stepLogger2 = new ObjectStepLogger(System.out);
-        new SignAndEncryptStep().execute(stepLogger2, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger2, signatureModel.toMap());
         assertTrue(stepLogger2.getResult().success());
         assertEquals(200, stepLogger2.getResponse().statusCode());
 
@@ -409,7 +409,7 @@ public class PowerAuthEncryptionShared {
         HashBasedCounter counter = new HashBasedCounter(version.value());
         for (int i = 1; i <= 10; i++) {
             ObjectStepLogger stepLoggerLoop = new ObjectStepLogger();
-            new SignAndEncryptStep().execute(stepLoggerLoop, signatureModel.toMap());
+            new AuthAndEncryptStep().execute(stepLoggerLoop, signatureModel.toMap());
             assertTrue(stepLoggerLoop.getResult().success());
             assertEquals(200, stepLoggerLoop.getResponse().statusCode());
 
@@ -428,14 +428,14 @@ public class PowerAuthEncryptionShared {
             for (int j=0; j < i; j++) {
                 signatureModel.setPassword("1111");
                 ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
-                new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+                new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
                 assertFalse(stepLogger.getResult().success());
                 assertEquals(401, stepLogger.getResponse().statusCode());
             }
 
             signatureModel.setPassword(config.getPassword());
             ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
-            new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+            new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
             assertTrue(stepLogger.getResult().success());
             assertEquals(200, stepLogger.getResponse().statusCode());
         }
@@ -446,7 +446,7 @@ public class PowerAuthEncryptionShared {
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION);
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertFalse(stepLogger.getResult().success());
         assertEquals(401, stepLogger.getResponse().statusCode());
 
@@ -460,7 +460,7 @@ public class PowerAuthEncryptionShared {
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_BIOMETRY);
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
@@ -470,7 +470,7 @@ public class PowerAuthEncryptionShared {
         signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
         signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY);
 
-        new SignAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
