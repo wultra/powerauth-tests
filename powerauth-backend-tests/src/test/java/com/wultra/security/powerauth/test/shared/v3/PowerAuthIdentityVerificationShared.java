@@ -602,7 +602,7 @@ public class PowerAuthIdentityVerificationShared {
         ctx.signatureModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/identity/document/init-sdk");
         ctx.signatureModel.setResourceId("/api/identity/document/init-sdk");
 
-        new SignAndEncryptStep().execute(stepLogger, ctx.signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, ctx.signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
         final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
@@ -1004,7 +1004,7 @@ public class PowerAuthIdentityVerificationShared {
         ctx.signatureModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/identity/presence-check/init");
         ctx.signatureModel.setResourceId("/api/identity/presence-check/init");
 
-        new SignAndEncryptStep().execute(stepLogger, ctx.signatureModel.toMap());
+        new AuthAndEncryptStep().execute(stepLogger, ctx.signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
