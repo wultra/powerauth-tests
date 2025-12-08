@@ -115,7 +115,7 @@ RUN set -x \
     && mkdir /docker-entrypoint.d
 
 # Copy nginx configuration and files
-COPY deploy/nginx/ /etc/nginx/
+COPY powerauth-fido2-tests/docker/deploy/nginx/ /etc/nginx/
 
 # Clear root context
 RUN rm -rf $TOMCAT_HOME/webapps/*
@@ -137,12 +137,12 @@ RUN sed -i -e 's/<\/Host>/<Valve className="org.apache.catalina.valves.RemoteIpV
 RUN sed -i -e 's|<session-config>|<session-config>\n        <tracking-mode>COOKIE</tracking-mode>|' $TOMCAT_HOME/conf/web.xml
 
 # Deploy and run applications
-COPY deploy/conf/fido2-demo.xml \
+COPY powerauth-fido2-tests/docker/deploy/conf/fido2-demo.xml \
      $TOMCAT_HOME/conf/Catalina/localhost/
 
-COPY target/powerauth-fido2-tests*.war $TOMCAT_HOME/webapps/fido2-demo.war
+COPY powerauth-fido2-tests/target/powerauth-fido2-tests*.war $TOMCAT_HOME/webapps/fido2-demo.war
 
-COPY deploy/conf/logback/* $LOGBACK_CONF/
+COPY powerauth-fido2-tests/docker/deploy/conf/logback/* $LOGBACK_CONF/
 
 RUN set -x \
 # Uninstall packages which are no longer needed and clean apt caches
@@ -163,5 +163,5 @@ RUN groupadd -r powerauth \
 USER powerauth
 
 # Define entry point
-COPY deploy/docker-entrypoint.sh /
+COPY powerauth-fido2-tests/docker/docker-entrypoint.sh /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]

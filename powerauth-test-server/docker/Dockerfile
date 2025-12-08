@@ -11,7 +11,8 @@ ENV JAVA_HOME=/opt/java/openjdk \
     TOMCAT_VERSION=10.1.42 \
     TOMCAT_ARCHIVE_SHA512=eb09be6df829ebc1fb8851282888966101e878b2c4a507623f3acabc2a1337b89271b4ad7b9361f0bf4bcfe7b5cfec93617bd716043c68afef029c080fff6546 \
     LOGBACK_CONF=/opt/logback/conf \
-    TZ=UTC
+    TZ=UTC \
+    LQ_ENABLED=true
 
 ENV PATH=$PATH:$LB_HOME:$TOMCAT_HOME/bin
 
@@ -36,8 +37,8 @@ RUN sed -i 's/<\/Host>/<Valve className="org.apache.catalina.valves.RemoteIpValv
 RUN sed -i 's/<\/Host>/<Valve className="org.apache.catalina.valves.HealthCheckValve" \/><\/Host>/' $TOMCAT_HOME/conf/server.xml
 
 # Deploy and run applications
-COPY docker/powerauth-test-server.xml $TOMCAT_HOME/conf/Catalina/localhost/
-COPY target/powerauth-test-server-*.war $TOMCAT_HOME/webapps/powerauth-test-server.war
+COPY ./powerauth-test-server/docker/powerauth-test-server.xml $TOMCAT_HOME/conf/Catalina/localhost/
+COPY ./powerauth-test-server/target/powerauth-test-server-*.war $TOMCAT_HOME/webapps/powerauth-test-server.war
 
 # Add PowerAuth User
 RUN groupadd -r powerauth \
@@ -60,7 +61,7 @@ RUN set -x \
 
 # Liquibase - changesets
 RUN rm -rf $LB_HOME/data
-COPY deploy/liquibase/data $LB_HOME/data
+COPY ./powerauth-test-server/docker/deploy/liquibase/data $LB_HOME/data
 
 # Docker configuration
 EXPOSE 8080
@@ -68,7 +69,7 @@ STOPSIGNAL SIGQUIT
 
 USER powerauth
 
-COPY deploy/conf/logback/* $LOGBACK_CONF/
-COPY deploy/docker-entrypoint.sh /
+COPY ./powerauth-test-server/docker/deploy/conf/logback/* $LOGBACK_CONF/
+COPY ./powerauth-test-server/docker/docker-entrypoint.sh /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
