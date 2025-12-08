@@ -327,7 +327,7 @@
         --spring.datasource.username=sa
         --spring.datasource.password=
         --spring.datasource.driver-class-name=org.h2.Driver
-        --spring.jpa.hibernate.ddl-auto=create-drop
+        --spring.jpa.hibernate.ddl-auto=update
         --powerauth.server.db.master.encryption.aead-kmac.key=NlcNpEU4l79W2qc95FQfuxR10lm7uPV171vuFcblrNA=
         --spring.sql.init.mode=always
         --spring.sql.init.schema-locations=file:${runtime.dir}/schema/powerauth/extra-tables.sql
@@ -350,7 +350,7 @@
         --spring.datasource.username=sa
         --spring.datasource.password=
         --spring.datasource.driver-class-name=org.h2.Driver
-        --spring.jpa.hibernate.ddl-auto=create-drop
+        --spring.jpa.hibernate.ddl-auto=update
         --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest
         &gt; &quot;${runtime.dir}/enrollment-server.log&quot; 2&gt;&amp;1 &amp;
         echo $! &gt; &quot;${runtime.dir}/enrollment-server.pid&quot;"/>
@@ -371,7 +371,7 @@
         --spring.datasource.username=sa
         --spring.datasource.password=
         --spring.datasource.driver-class-name=org.h2.Driver
-        --spring.jpa.hibernate.ddl-auto=create-drop
+        --spring.jpa.hibernate.ddl-auto=update
         --powerauth.service.url=http://localhost:${powerauth.port}${powerauth.ctx}/rest
         --enrollment-server-onboarding.onboarding-process.enabled=true
         --enrollment-server-onboarding.identity-verification.enabled=true
