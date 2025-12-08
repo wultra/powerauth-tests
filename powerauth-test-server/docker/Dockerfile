@@ -61,7 +61,7 @@ RUN set -x \
 
 # Liquibase - changesets
 RUN rm -rf $LB_HOME/data
-COPY ./powerauth-test-server/docker/deploy/liquibase/data $LB_HOME/data
+COPY ./powerauth-test-server/docker/liquibase/data $LB_HOME/data
 
 # Docker configuration
 EXPOSE 8080

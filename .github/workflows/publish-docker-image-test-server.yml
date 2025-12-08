@@ -1,5 +1,5 @@
 
-name: Build and push docker image of Powerauth Fido2 Demo to Docker registry
+name: Build and push docker image of Powerauth Test Server to Docker registry
 
 on:
   workflow_dispatch:
@@ -106,7 +106,9 @@ jobs:
           mkdir -p ./powerauth-test-server/docker/sbom
           unzip -p ./powerauth-test-server/target/powerauth-test-server*.war WEB-INF/classes/META-INF/sbom/application.cdx.json > ./powerauth-test-server/docker/sbom/powerauth-test-server.cdx.json
       - name: Copy liquibase files
-        run: cp -r ./docs/db ./powerauth-test-server/docker/deploy/db/
+        run: |
+          mkdir -p ./powerauth-test-server/docker/liquibase/data/
+          cp -r ./docs/db/changelog/changesets/powerauth-test-server ./powerauth-test-server/docker-init/liquibase/data
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
