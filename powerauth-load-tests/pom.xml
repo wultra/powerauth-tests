@@ -44,7 +44,7 @@
 
         <!-- Gatling 3.13.5 is the latest version that is compatible with the current Spring Boot parent. -->
         <!-- See: https://community.gatling.io/t/java-lang-noclassdeffounderror-io-netty-channel-iohandle/9672 -->
-        <gatling.version>3.13.5</gatling.version>
+        <gatling.version>3.14.9</gatling.version>
     </properties>
 
     <dependencies>
