@@ -3,12 +3,6 @@ name: Integration Test with Maven
 on:
   workflow_dispatch:
     inputs:
-      environment:
-        type: string
-        description: environment
-        default: 'dev'
-        options:
-          - dev
       includeCustomTests:
         type: boolean
         description: Set whether to include custom tests, such as onboarding tests and test requiring specific customizations in enrollment-server-wultra
@@ -19,7 +13,6 @@ on:
 jobs:
   run-integration-tests:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment || 'dev' }}
     steps:
       - uses: actions/checkout@v6
       - name: Set up JDK 21
