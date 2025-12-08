@@ -108,7 +108,7 @@ jobs:
       - name: Copy liquibase files
         run: |
           mkdir -p ./powerauth-test-server/docker/liquibase/data/
-          cp -r ./docs/db/changelog/changesets/powerauth-test-server ./powerauth-test-server/docker-init/liquibase/data
+          cp -r ./docs/db/changelog/changesets/powerauth-test-server ./powerauth-test-server/docker/liquibase/data
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx

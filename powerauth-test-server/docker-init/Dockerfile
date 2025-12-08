@@ -2,7 +2,7 @@ FROM liquibase:4.33.0-alpine
 
 LABEL maintainer="Wultra <hello@wultra.com>"
 
-COPY ./powerauth-test-server/docker-init/liquibase/data /liquibase/changelog
+COPY ./powerauth-test-server/docker/liquibase/data /liquibase/changelog
 COPY ./powerauth-test-server/docker-init/docker-entrypoint.sh /docker-entrypoint.sh
 
 USER liquibase
