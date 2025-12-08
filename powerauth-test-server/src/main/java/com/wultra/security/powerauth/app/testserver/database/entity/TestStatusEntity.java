@@ -102,12 +102,36 @@ public class TestStatusEntity implements Serializable {
     @Column(name = "status_blob_mac_key")
     private String statusBlobMacKey;
 
+    @Column(name = "version")
+    private Long version;
+
     @Deprecated
     @Column(name = "transport_master_key")
     private String transportMasterKey;
 
-    @Column(name = "version")
-    private Long version;
+    @Deprecated
+    @Column(name = "server_public_key")
+    private String serverPublicKey;
+
+    @Deprecated
+    @Column(name = "encrypted_device_private_key")
+    private String encryptedDevicePrivateKey;
+
+    @Deprecated
+    @Column(name = "signature_biometry_key")
+    private String signatureBiometryKey;
+
+    @Deprecated
+    @Column(name = "signature_knowledge_key_encrypted")
+    private String signatureKnowledgeKeyEncrypted;
+
+    @Deprecated
+    @Column(name = "signature_knowledge_key_salt")
+    private String signatureKnowledgeKeySalt;
+
+    @Deprecated
+    @Column(name = "signature_possession_key")
+    private String signaturePossessionKey;
 
     @Override
     public boolean equals(Object o) {
