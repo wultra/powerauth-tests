@@ -47,41 +47,63 @@ RUN set -x \
     done; \
     gpg1 --batch --export $NGINX_GPGKEYS > "$NGINX_GPGKEY_PATH" ; \
     rm -rf "$GNUPGHOME"; \
-        apt-get remove --purge --auto-remove -y gnupg1 && rm -rf /var/lib/apt/lists/* \
+    apt-get remove --purge --auto-remove -y gnupg1 && rm -rf /var/lib/apt/lists/* \
     && dpkgArch="$(dpkg --print-architecture)" \
     && nginxPackages=" \
         nginx=${NGINX_VERSION}-${PKG_RELEASE} \
-        nginx-module-xslt=${NGINX_VERSION}-${PKG_RELEASE} \
-        nginx-module-geoip=${NGINX_VERSION}-${PKG_RELEASE} \
-        nginx-module-image-filter=${NGINX_VERSION}-${PKG_RELEASE} \
-        nginx-module-njs=${NGINX_VERSION}+${NJS_VERSION}-${PKG_RELEASE} \
+        nginx-module-xslt=${NGINX_VERSION}-${DYNPKG_RELEASE} \
+        nginx-module-geoip=${NGINX_VERSION}-${DYNPKG_RELEASE} \
+        nginx-module-image-filter=${NGINX_VERSION}-${DYNPKG_RELEASE} \
+        nginx-module-njs=${NGINX_VERSION}+${NJS_VERSION}-${NJS_RELEASE} \
     " \
     && case "$dpkgArch" in \
         amd64|arm64) \
 # arches officialy built by upstream
-            echo "deb https://nginx.org/packages/mainline/ubuntu jammy nginx" >> /etc/apt/sources.list.d/nginx.list \
+            echo "deb [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/mainline/debian/ trixie nginx" >> /etc/apt/sources.list.d/nginx.list \
             && apt-get update \
             ;; \
         *) \
 # we're on an architecture upstream doesn't officially build for
-# let's build binaries from the published source packages
-            echo "deb-src https://nginx.org/packages/mainline/ubuntu jammy nginx" >> /etc/apt/sources.list.d/nginx.list \
-            \
+# let's build binaries from the published packaging sources
 # new directory for storing sources and .deb files
-            && tempDir="$(mktemp -d)" \
+            tempDir="$(mktemp -d)" \
             && chmod 777 "$tempDir" \
 # (777 to ensure APT's "_apt" user can access it too)
             \
 # save list of currently-installed packages so build dependencies can be cleanly removed later
             && savedAptMark="$(apt-mark showmanual)" \
             \
-# build .deb files from upstream's source packages (which are verified by apt-get)
+# build .deb files from upstream's packaging sources
             && apt-get update \
-            && apt-get build-dep -y $nginxPackages \
+            && apt-get install --no-install-recommends --no-install-suggests -y \
+                curl \
+                devscripts \
+                equivs \
+                git \
+                libxml2-utils \
+                lsb-release \
+                xsltproc \
             && ( \
                 cd "$tempDir" \
-                && DEB_BUILD_OPTIONS="nocheck parallel=$(nproc)" \
-                    apt-get source --compile $nginxPackages \
+                && REVISION="${NGINX_VERSION}-${PKG_RELEASE}" \
+                && REVISION=${REVISION%~*} \
+                && curl -f -L -O https://github.com/nginx/pkg-oss/archive/${REVISION}.tar.gz \
+                && PKGOSSCHECKSUM="249858446828ace0c81ea3e057135aa368f3dab83430cf867bb9fc32598948f29c4bd50908491da704536af1106aa87553f6a76cc126c6833dc9b14dd00564b8 *${REVISION}.tar.gz" \
+                && if [ "$(openssl sha512 -r ${REVISION}.tar.gz)" = "$PKGOSSCHECKSUM" ]; then \
+                    echo "pkg-oss tarball checksum verification succeeded!"; \
+                else \
+                    echo "pkg-oss tarball checksum verification failed!"; \
+                    exit 1; \
+                fi \
+                && tar xzvf ${REVISION}.tar.gz \
+                && cd pkg-oss-${REVISION} \
+                && cd debian \
+                && for target in base module-geoip module-image-filter module-njs module-xslt; do \
+                    make rules-$target; \
+                    mk-build-deps --install --tool="apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends --yes" \
+                        debuild-$target/nginx-$NGINX_VERSION/debian/control; \
+                done \
+                && make base module-geoip module-image-filter module-njs module-xslt \
             ) \
 # we don't remove APT lists here because they get re-downloaded and removed later
             \
