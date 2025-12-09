@@ -2,9 +2,9 @@ FROM ibm-semeru-runtimes:open-21.0.8_9-jre
 
 # Prepare environment variables
 ENV JAVA_HOME=/opt/java/openjdk \
-    NGINX_VERSION=1.25.4 \
-    NJS_VERSION=0.8.3 \
-    PKG_RELEASE=1~jammy \
+    NGINX_VERSION=1.29.3 \
+    NJS_VERSION=0.9.4 \
+    PKG_RELEASE=1~trixie \
     TOMCAT_HOME=/usr/local/tomcat \
     TOMCAT_MAJOR=10 \
     TOMCAT_VERSION=10.1.42 \
