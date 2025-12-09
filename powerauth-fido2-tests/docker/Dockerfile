@@ -2,11 +2,11 @@ FROM ibm-semeru-runtimes:open-21.0.8_9-jre
 
 # Prepare environment variables
 ENV JAVA_HOME=/opt/java/openjdk \
-    NGINX_VERSION=1.29.3 \
-    NJS_VERSION=0.9.4 \
-    NJS_RELEASE=1~trixie \
-    PKG_RELEASE=1~trixie \
-    DYNPKG_RELEASE=1~trixie \
+    NGINX_VERSION=1.28.0 \
+    NJS_VERSION=0.8.10 \
+    NJS_RELEASE=1~bookworm \
+    PKG_RELEASE=1~bookworm \
+    DYNPKG_RELEASE=1~bookworm \
     TOMCAT_HOME=/usr/local/tomcat \
     TOMCAT_MAJOR=10 \
     TOMCAT_VERSION=10.1.42 \
@@ -30,6 +30,7 @@ RUN curl -jkSL -o /tmp/apache-tomcat.tar.gz http://archive.apache.org/dist/tomca
 
 # Install nginx - source: https://github.com/nginxinc/docker-nginx/blob/master/mainline/debian/Dockerfile
 RUN set -x \
+# create nginx user/group first, to be consistent throughout docker variants
     && apt-get update \
     && apt-get install --no-install-recommends --no-install-suggests -y gnupg1 ca-certificates \
     && \
@@ -61,7 +62,7 @@ RUN set -x \
     && case "$dpkgArch" in \
         amd64|arm64) \
 # arches officialy built by upstream
-            echo "deb [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/mainline/debian/ trixie nginx" >> /etc/apt/sources.list.d/nginx.list \
+            echo "deb [signed-by=$NGINX_GPGKEY_PATH] https://nginx.org/packages/debian/ bookworm nginx" >> /etc/apt/sources.list.d/nginx.list \
             && apt-get update \
             ;; \
         *) \
@@ -90,7 +91,7 @@ RUN set -x \
                 && REVISION="${NGINX_VERSION}-${PKG_RELEASE}" \
                 && REVISION=${REVISION%~*} \
                 && curl -f -L -O https://github.com/nginx/pkg-oss/archive/${REVISION}.tar.gz \
-                && PKGOSSCHECKSUM="249858446828ace0c81ea3e057135aa368f3dab83430cf867bb9fc32598948f29c4bd50908491da704536af1106aa87553f6a76cc126c6833dc9b14dd00564b8 *${REVISION}.tar.gz" \
+                && PKGOSSCHECKSUM="517bc18954ccf4efddd51986584ca1f37966833ad342a297e1fe58fd0faf14c5a4dabcb23519dca433878a2927a95d6bea05a6749ee2fa67a33bf24cdc41b1e4 *${REVISION}.tar.gz" \
                 && if [ "$(openssl sha512 -r ${REVISION}.tar.gz)" = "$PKGOSSCHECKSUM" ]; then \
                     echo "pkg-oss tarball checksum verification succeeded!"; \
                 else \
