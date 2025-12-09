@@ -28,6 +28,7 @@ import com.wultra.app.enrollmentserver.api.model.onboarding.response.Configurati
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.OnboardingStartResponse;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.OnboardingStatusResponse;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.error.ActivationOtpErrorResponse;
+import com.wultra.app.enrollmentserver.model.enumeration.ActivationType;
 import com.wultra.app.enrollmentserver.model.enumeration.OnboardingStatus;
 import com.wultra.app.enrollmentserver.model.enumeration.OtpType;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
@@ -117,7 +118,10 @@ public class PowerAuthOnboardingShared {
     public static void testSuccessfulOnboardingWithCustomActivation(final TestContext ctx) throws Exception {
         // Test onboarding start
         String clientId = generateRandomClientId();
-        final String processId = startOnboarding(ctx, clientId).processId();
+        final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId);
+        assertNull(onboardingStartResponse.activationCode());
+        assertEquals(ActivationType.IDENTITY, onboardingStartResponse.activationType());
+        final String processId = onboardingStartResponse.processId();
 
         // Test onboarding status
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
@@ -149,7 +153,9 @@ public class PowerAuthOnboardingShared {
     @SuppressWarnings("unchecked")
     public static void testSuccessfulOnboardingWithActivationCode(final TestContext ctx) throws Exception {
         final String clientId = generateRandomClientId();
-        final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId);
+        final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId, false, "onboarding");
+        assertNotNull(onboardingStartResponse.activationCode());
+        assertEquals(ActivationType.CODE, onboardingStartResponse.activationType());
         final String processId = onboardingStartResponse.processId();
 
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
@@ -227,7 +233,7 @@ public class PowerAuthOnboardingShared {
     public static void testOtpForNonExistingUser(final TestContext ctx) throws Exception {
 
         final String clientId = generateRandomClientId();
-        final String processId = startOnboarding(ctx, clientId, true).processId();
+        final String processId = startOnboarding(ctx, clientId, true, null).processId();
 
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, getProcessStatus(ctx, processId));
 
@@ -349,10 +355,10 @@ public class PowerAuthOnboardingShared {
     }
 
     private static OnboardingStartResponse startOnboarding(final TestContext ctx, final String clientId) throws Exception {
-        return startOnboarding(ctx, clientId, false);
+        return startOnboarding(ctx, clientId, false, null);
     }
 
-    private static OnboardingStartResponse startOnboarding(final TestContext ctx, final String clientId, final boolean shouldUserLookupFail) throws Exception {
+    private static OnboardingStartResponse startOnboarding(final TestContext ctx, final String clientId, final boolean shouldUserLookupFail, final String processType) throws Exception {
         ObjectStepLogger stepLogger = new ObjectStepLogger();
         ctx.encryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
         Map<String, Object> identification = new LinkedHashMap<>();
@@ -362,6 +368,7 @@ public class PowerAuthOnboardingShared {
         identification.put("shouldFail", shouldUserLookupFail);
         final OnboardingStartRequest request = OnboardingStartRequest.builder()
                 .identification(identification)
+                .processType(processType)
                 .build();
         executeRequest(ctx, request, stepLogger);
 
