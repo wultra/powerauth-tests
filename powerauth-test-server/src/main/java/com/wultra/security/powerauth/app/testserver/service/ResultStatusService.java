@@ -119,6 +119,10 @@ public class ResultStatusService {
     public ResultStatusObject getTestStatus(String activationId) throws ActivationFailedException {
         final TestStatusEntity testStatusEntity = fetchTestStatus(activationId);
 
+        if (testStatusEntity.getVersion() == null || testStatusEntity.getVersion() == 3) {
+            return convertV3(testStatusEntity);
+        }
+
         final ResultStatusObject result = new ResultStatusObject();
         result.setActivationId(testStatusEntity.getActivationId());
         result.setEcServerPublicKey(testStatusEntity.getEcServerPublicKey());
@@ -136,10 +140,23 @@ public class ResultStatusService {
         result.setSharedInfo2Key(testStatusEntity.getSharedInfo2Key());
         result.setMacPersonalizedDataKey(testStatusEntity.getMacPersonalizedDataKey());
         result.setStatusBlobMacKey(testStatusEntity.getStatusBlobMacKey());
-        if (testStatusEntity.getVersion() == null || testStatusEntity.getVersion() == 3) {
-            result.setTransportMasterKey(testStatusEntity.getTransportMasterKey());
-        }
         result.setVersion(testStatusEntity.getVersion());
+        return result;
+    }
+
+    private static ResultStatusObject convertV3(final TestStatusEntity testStatusEntity) {
+        final ResultStatusObject result = new ResultStatusObject();
+        result.setActivationId(testStatusEntity.getActivationId());
+        result.setEcServerPublicKey(testStatusEntity.getServerPublicKey());
+        result.setCounter(testStatusEntity.getCounter());
+        result.setCtrData(testStatusEntity.getCtrData());
+        result.setEncryptedEcDevicePrivateKey(testStatusEntity.getEncryptedDevicePrivateKey());
+        result.setBiometryFactorKey(testStatusEntity.getSignatureBiometryKey());
+        result.setKnowledgeFactorKeyEncrypted(testStatusEntity.getSignatureKnowledgeKeyEncrypted());
+        result.setKnowledgeFactorKeySalt(testStatusEntity.getSignatureKnowledgeKeySalt());
+        result.setPossessionFactorKey(testStatusEntity.getSignaturePossessionKey());
+        result.setTransportMasterKey(testStatusEntity.getTransportMasterKey());
+        result.setVersion(3L);
         return result;
     }
 
