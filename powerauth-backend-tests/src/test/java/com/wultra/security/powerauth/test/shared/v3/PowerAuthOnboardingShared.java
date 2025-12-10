@@ -196,8 +196,8 @@ public class PowerAuthOnboardingShared {
 
         model.setHeaders(new HashMap<>());
         model.setPassword(ctx.config().getPassword());
-        model.setResultStatusObject(ctx.config().getResultStatusObject(version));
-        model.setStatusFileName(ctx.config().getStatusFile(version).getAbsolutePath());
+        model.setResultStatusObject(new JSONObject());
+        model.setStatusFileName(File.createTempFile("pa_status_onboarding_test_" + version, ".json").getAbsolutePath());
         model.setUriString(ctx.config().getEnrollmentServiceUrl());
         model.setVersion(version);
         model.setDeviceInfo("backend-tests");
