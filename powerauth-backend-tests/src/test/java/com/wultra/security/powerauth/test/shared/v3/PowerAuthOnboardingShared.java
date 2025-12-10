@@ -53,9 +53,11 @@ import com.wultra.security.powerauth.model.request.OtpDetailRequest;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationStatusResponse;
+import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.opentest4j.AssertionFailedError;
 
+import java.io.File;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.*;
