@@ -23,24 +23,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.*;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.*;
 import com.wultra.app.enrollmentserver.model.enumeration.*;
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
+import com.wultra.core.rest.model.base.request.ObjectRequest;
+import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
-import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse;
+import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
-import com.wultra.security.powerauth.model.request.OtpDetailRequest;
-import com.wultra.security.powerauth.model.response.OtpDetailResponse;
-import com.wultra.core.rest.model.base.request.ObjectRequest;
-import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
-import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
-import com.wultra.security.powerauth.lib.cmd.steps.VerifyTokenStep;
-import com.wultra.security.powerauth.lib.cmd.steps.model.*;
 import com.wultra.security.powerauth.lib.cmd.steps.*;
+import com.wultra.security.powerauth.lib.cmd.steps.model.*;
+import com.wultra.security.powerauth.model.request.OtpDetailRequest;
+import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -57,11 +55,14 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.security.SecureRandom;
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static java.util.stream.Collectors.toList;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.startsWith;
 import static org.junit.jupiter.api.Assertions.*;
@@ -1157,9 +1158,22 @@ public class PowerAuthIdentityVerificationShared {
     }
 
     private static void verifyProcessFinished(final TestContext ctx, final String processId, final String activationId) throws Exception {
-        // Check onboarding process status
-        OnboardingStatus status = checkProcessStatus(ctx, processId);
-        assertEquals(OnboardingStatus.FINISHED, status);
+        final AtomicInteger attemptCounter = new AtomicInteger(1);
+
+        final Callable<Boolean> processStatusEvaluator = () -> {
+            final OnboardingStatus status = checkProcessStatus(ctx, processId);
+            if (status == OnboardingStatus.FINISHED) {
+                return true;
+            }
+            ctx.stepLogger.writeItem("assert-process-status-retry", "Assert failed this time", "Retrying process status assert " + attemptCounter.getAndIncrement(), "INFO", null);
+            return false;
+        };
+
+        await()
+                .alias("Process did not finish within the expected timeout")
+                .atMost(ctx.config.getAssertRetryWaitPeriod().multipliedBy(ctx.config.getAssertMaxRetries()))
+                .pollInterval(ctx.config.getAssertRetryWaitPeriod())
+                .until(processStatusEvaluator);
 
         // Check activation flags
         ListActivationFlagsResponse flagResponse3 = ctx.powerAuthClient.listActivationFlags(activationId);
