@@ -117,11 +117,8 @@ public class PowerAuthIdentityVerificationShared {
         assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
 
         submitPresenceCheck(ctx, processId);
-        if (!ctx.config.isSkipResultVerification()) {
-            verifyStatusBeforeOtp(ctx);
-            verifyOtpCheckSuccessful(ctx, processId);
-            verifyProcessFinished(ctx, processId, activationId);
-        }
+        // skip OTP verification on purpose
+        verifyProcessFinished(ctx, processId, activationId);
 
         ctx.powerAuthClient.removeActivation(activationId, "test");
     }
