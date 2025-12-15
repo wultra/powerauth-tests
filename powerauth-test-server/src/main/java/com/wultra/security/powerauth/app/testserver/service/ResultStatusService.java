@@ -27,6 +27,7 @@ import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoExc
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -147,14 +148,14 @@ public class ResultStatusService {
     private static ResultStatusObject convertV3(final TestStatusEntity testStatusEntity) {
         final ResultStatusObject result = new ResultStatusObject();
         result.setActivationId(testStatusEntity.getActivationId());
-        result.setEcServerPublicKey(testStatusEntity.getServerPublicKey());
+        result.setEcServerPublicKey(ObjectUtils.firstNonNull(testStatusEntity.getEcServerPublicKey(), testStatusEntity.getServerPublicKey()));
         result.setCounter(testStatusEntity.getCounter());
         result.setCtrData(testStatusEntity.getCtrData());
-        result.setEncryptedEcDevicePrivateKey(testStatusEntity.getEncryptedDevicePrivateKey());
-        result.setBiometryFactorKey(testStatusEntity.getSignatureBiometryKey());
-        result.setKnowledgeFactorKeyEncrypted(testStatusEntity.getSignatureKnowledgeKeyEncrypted());
-        result.setKnowledgeFactorKeySalt(testStatusEntity.getSignatureKnowledgeKeySalt());
-        result.setPossessionFactorKey(testStatusEntity.getSignaturePossessionKey());
+        result.setEncryptedEcDevicePrivateKey(ObjectUtils.firstNonNull(testStatusEntity.getEncryptedEcDevicePrivateKey(), testStatusEntity.getEncryptedDevicePrivateKey()));
+        result.setBiometryFactorKey(ObjectUtils.firstNonNull(testStatusEntity.getBiometryFactorKey(), testStatusEntity.getSignatureBiometryKey()));
+        result.setKnowledgeFactorKeyEncrypted(ObjectUtils.firstNonNull(testStatusEntity.getKnowledgeFactorKeyEncrypted(), testStatusEntity.getSignatureKnowledgeKeyEncrypted()));
+        result.setKnowledgeFactorKeySalt(ObjectUtils.firstNonNull(testStatusEntity.getKnowledgeFactorKeySalt(), testStatusEntity.getSignatureKnowledgeKeySalt()));
+        result.setPossessionFactorKey(ObjectUtils.firstNonNull(testStatusEntity.getPossessionFactorKey(), testStatusEntity.getSignaturePossessionKey()));
         result.setTransportMasterKey(testStatusEntity.getTransportMasterKey());
         result.setVersion(3L);
         return result;
