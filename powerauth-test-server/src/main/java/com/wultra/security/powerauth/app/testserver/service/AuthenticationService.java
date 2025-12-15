@@ -127,7 +127,7 @@ public class AuthenticationService extends BaseService {
         }
 
         final Optional<String> authHeader = stepLogger.getItems().stream()
-                .filter(item -> "signature-verify-request-sent".equals(item.id()))
+                .filter(item -> "authentication-verify-request-sent".equals(item.id()))
                 .map(item -> (Map<String, Object>) item.object())
                 .map(item -> (Map<String, Object>) item.get("requestHeaders"))
                 .map(item -> item.get("X-PowerAuth-Authorization").toString())
