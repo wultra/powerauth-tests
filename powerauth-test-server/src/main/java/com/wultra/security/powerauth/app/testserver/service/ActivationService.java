@@ -98,7 +98,7 @@ public class ActivationService extends BaseService {
         final SdkConfiguration sdkConfiguration = loadSdkConfiguration(appConfig);
         final ValidationResult configValidationResult = validateSdkConfig(sdkConfiguration, algorithm);
         if (!configValidationResult.isValid()) {
-            throw new AppConfigInvalidException("Invalid mobile SDK config: " +  configValidationResult.error());
+            throw new AppConfigInvalidException("Invalid mobile SDK config: " + configValidationResult.error());
         }
 
         final PublicKey publicKeyP256 = getMasterPublicKeyP256(sdkConfiguration);
@@ -199,16 +199,22 @@ public class ActivationService extends BaseService {
         if (appConfig.getMobileSdkConfig() == null) {
             throw new AppConfigInvalidException("Mobile SDK configuration is missing");
         }
-        return SdkConfigurationSerializer.deserialize(appConfig.getMobileSdkConfig());
+
+        try {
+            return SdkConfigurationSerializer.deserialize(appConfig.getMobileSdkConfig());
+        } catch (Exception ex) {
+            logger.warn("Invalid mobile SDK configuration: {}", ex.getMessage());
+            throw new AppConfigInvalidException("Invalid mobile SDK configuration", ex);
+        }
     }
 
     private static ValidationResult validateSdkConfig(final SdkConfiguration sdkConfig, final SharedSecretAlgorithm algorithm) {
         if (!StringUtils.hasText(sdkConfig.appKey())) {
-            ValidationResult.error("Application key is missing");
+            return ValidationResult.error("Application key is missing");
         }
 
         if (!StringUtils.hasText(sdkConfig.appSecret())) {
-            ValidationResult.error("Application secret is missing");
+            return ValidationResult.error("Application secret is missing");
         }
 
         final boolean p256 = StringUtils.hasText(sdkConfig.masterPublicKeyP256());

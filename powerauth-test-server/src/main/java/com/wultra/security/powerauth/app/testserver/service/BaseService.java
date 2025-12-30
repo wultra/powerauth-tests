@@ -117,7 +117,7 @@ public class BaseService {
      */
     protected PublicKey getMasterPublicKeyMlDsa65(final SdkConfiguration sdkConfig) throws GenericCryptographyException {
         final String masterPublicKeyMlDsa65 = sdkConfig.masterPublicKeyMlDsa65();
-        if  (masterPublicKeyMlDsa65 == null) {
+        if (masterPublicKeyMlDsa65 == null) {
             return null;
         }
 
@@ -139,7 +139,7 @@ public class BaseService {
      */
     protected PublicKey getMasterPublicKeyMlDsa87(final SdkConfiguration sdkConfig) throws GenericCryptographyException {
         final String masterPublicKeyMlDsa87 = sdkConfig.masterPublicKeyMlDsa87();
-        if  (masterPublicKeyMlDsa87 == null) {
+        if (masterPublicKeyMlDsa87 == null) {
             return null;
         }
 
