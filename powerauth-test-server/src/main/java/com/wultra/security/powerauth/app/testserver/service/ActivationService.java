@@ -21,10 +21,7 @@ package com.wultra.security.powerauth.app.testserver.service;
 import com.wultra.security.powerauth.app.testserver.config.TestServerConfiguration;
 import com.wultra.security.powerauth.app.testserver.database.TestConfigRepository;
 import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEntity;
-import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.AppConfigNotFoundException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
-import com.wultra.security.powerauth.app.testserver.errorhandling.RemoteExecutionException;
+import com.wultra.security.powerauth.app.testserver.errorhandling.*;
 import com.wultra.security.powerauth.app.testserver.model.request.CreateActivationRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.CreateActivationResponse;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
@@ -36,10 +33,14 @@ import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.ConfirmActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject;
+import com.wultra.security.powerauth.lib.cmd.util.SecurityUtil;
+import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfiguration;
+import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfigurationSerializer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.security.PublicKey;
 import java.util.HashMap;
@@ -53,8 +54,6 @@ import java.util.Map;
 @Service
 @Slf4j
 public class ActivationService extends BaseService {
-
-    public static final SharedSecretAlgorithm SHARED_SECRET_ALGORITHM_DEFAULT = SharedSecretAlgorithm.EC_P384_ML_L3;
 
     private final TestServerConfiguration config;
     private final ResultStatusService resultStatusUtil;
@@ -85,13 +84,27 @@ public class ActivationService extends BaseService {
      * @throws GenericCryptographyException Thrown when cryptography computation fails.
      */
     @Transactional
-    public CreateActivationResponse createActivation(CreateActivationRequest request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException, ActivationFailedException {
+    public CreateActivationResponse createActivation(CreateActivationRequest request) throws AppConfigNotFoundException, GenericCryptographyException, RemoteExecutionException, ActivationFailedException, AppConfigInvalidException {
         // TODO - input validation
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
-        final PublicKey publicKeyP256 = getMasterPublicKeyP256(appConfig);
-        final PublicKey publicKeyP384 = getMasterPublicKeyP384(appConfig);
-        final PublicKey publicKeyMlDsa65 = getMasterPublicKeyMlDsa65(appConfig);
+        final PowerAuthVersion version = PowerAuthVersion.fromValue(config.getVersion());
+        final SharedSecretAlgorithm algorithm = resolveSharedSecretAlgorithm(request, version);
+
+        if (config.getVersion().startsWith("3") && algorithm != SharedSecretAlgorithm.EC_P256) {
+            throw new AppConfigInvalidException("PowerAuth protocol version 3 does not support algorithm " + algorithm);
+        }
+
+        final SdkConfiguration sdkConfiguration = loadSdkConfiguration(appConfig);
+        final ValidationResult configValidationResult = validateSdkConfig(sdkConfiguration, algorithm);
+        if (!configValidationResult.isValid()) {
+            throw new AppConfigInvalidException("Invalid mobile SDK config: " +  configValidationResult.error());
+        }
+
+        final PublicKey publicKeyP256 = getMasterPublicKeyP256(sdkConfiguration);
+        final PublicKey publicKeyP384 = getMasterPublicKeyP384(sdkConfiguration);
+        final PublicKey publicKeyMlDsa65 = getMasterPublicKeyMlDsa65(sdkConfiguration);
+        final PublicKey publicKeyMlDsa87 = getMasterPublicKeyMlDsa87(sdkConfiguration);
 
         final ResultStatusObject resultStatusObject = new ResultStatusObject();
 
@@ -99,17 +112,13 @@ public class ActivationService extends BaseService {
         final PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(request.getActivationCode());
         model.setActivationName(request.getActivationName());
-        model.setApplicationKey(appConfig.getApplicationKey());
-        model.setApplicationSecret(appConfig.getApplicationSecret());
-
-        if (config.getVersion().startsWith("3")) {
-            model.setMasterPublicKeyP256(publicKeyP256);
-        } else {
-            model.setMasterPublicKeyP384(publicKeyP384);
-            model.setMasterPublicKeyMlDsa65(publicKeyMlDsa65);
-            model.setSharedSecretAlgorithm(SHARED_SECRET_ALGORITHM_DEFAULT);
-        }
-
+        model.setApplicationKey(sdkConfiguration.appKey());
+        model.setApplicationSecret(sdkConfiguration.appSecret());
+        model.setMasterPublicKeyP256(publicKeyP256);
+        model.setMasterPublicKeyP384(publicKeyP384);
+        model.setMasterPublicKeyMlDsa65(publicKeyMlDsa65);
+        model.setMasterPublicKeyMlDsa87(publicKeyMlDsa87);
+        model.setSharedSecretAlgorithm(algorithm);
         model.setHeaders(new HashMap<>());
         model.setPassword(request.getPassword());
         model.setResultStatus(resultStatusObject);
@@ -173,6 +182,73 @@ public class ActivationService extends BaseService {
         response.setActivationId(activationId);
         response.setConfirmed(confirmed);
         return response;
+    }
+
+    private static SharedSecretAlgorithm resolveSharedSecretAlgorithm(final CreateActivationRequest request, final PowerAuthVersion version) throws GenericCryptographyException {
+        try {
+            if (StringUtils.hasText(request.getAlgorithm())) {
+                return SharedSecretAlgorithm.valueOf(request.getAlgorithm());
+            }
+            return SecurityUtil.getDefaultSharedSecretAlgorithm(version);
+        } catch (IllegalArgumentException e) {
+            throw new GenericCryptographyException("Unsupported algorithm " + request.getAlgorithm(), e);
+        }
+    }
+
+    private static SdkConfiguration loadSdkConfiguration(final TestConfigEntity appConfig) throws AppConfigInvalidException {
+        if (appConfig.getMobileSdkConfig() == null) {
+            throw new AppConfigInvalidException("Mobile SDK configuration is missing");
+        }
+        return SdkConfigurationSerializer.deserialize(appConfig.getMobileSdkConfig());
+    }
+
+    private static ValidationResult validateSdkConfig(final SdkConfiguration sdkConfig, final SharedSecretAlgorithm algorithm) {
+        if (!StringUtils.hasText(sdkConfig.appKey())) {
+            ValidationResult.error("Application key is missing");
+        }
+
+        if (!StringUtils.hasText(sdkConfig.appSecret())) {
+            ValidationResult.error("Application secret is missing");
+        }
+
+        final boolean p256 = StringUtils.hasText(sdkConfig.masterPublicKeyP256());
+        final boolean p384 = StringUtils.hasText(sdkConfig.masterPublicKeyP384());
+        final boolean mldsa65 = StringUtils.hasText(sdkConfig.masterPublicKeyMlDsa65());
+        final boolean mldsa87 = StringUtils.hasText(sdkConfig.masterPublicKeyMlDsa87());
+
+        return switch (algorithm) {
+            case EC_P256 -> p256
+                    ? ValidationResult.ok()
+                    : ValidationResult.error("Algorithm EC_P256 requires P-256 master public key");
+
+            case EC_P384 -> p384
+                    ? ValidationResult.ok()
+                    : ValidationResult.error("Algorithm EC_P384 requires P-384 master public key");
+
+            case EC_P384_ML_L3 -> {
+                if (!p384) yield ValidationResult.error("Algorithm EC_P384_ML_L3 requires P-384 master public key");
+                if (!mldsa65) yield ValidationResult.error("Algorithm EC_P384_ML_L3 requires ML-DSA-65 master public key");
+                yield ValidationResult.ok();
+            }
+
+            case EC_P384_ML_L5 -> {
+                if (!p384) yield ValidationResult.error("Algorithm EC_P384_ML_L5 requires P-384 master public key");
+                if (!mldsa87) yield ValidationResult.error("Algorithm EC_P384_ML_L5 requires ML-DSA-87 master public key");
+                yield ValidationResult.ok();
+            }
+
+            default -> ValidationResult.error("Unsupported algorithm " + algorithm);
+        };
+    }
+
+    record ValidationResult(boolean isValid, String error) {
+        public static ValidationResult ok() {
+            return new ValidationResult(true, null);
+        }
+
+        public static ValidationResult error(final String error) {
+            return new ValidationResult(false, error);
+        }
     }
 
 }

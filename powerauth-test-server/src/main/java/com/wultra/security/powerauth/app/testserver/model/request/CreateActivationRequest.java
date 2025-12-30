@@ -37,5 +37,6 @@ public class CreateActivationRequest {
     private String activationOtp;
     private boolean confirmActivation = true;
     private boolean enableBiometry = true;
+    private String algorithm;
 
 }
