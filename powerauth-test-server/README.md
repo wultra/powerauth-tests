@@ -56,12 +56,12 @@ spring.datasource.url=jdbc:h2:file:~/powerauth-test;DB_CLOSE_ON_EXIT=FALSE;AUTO_
 The test server configuration is performed using following query:
 
 ```sql
-insert into PA_TEST_CONFIG (APPLICATION_ID, APPLICATION_NAME, APPLICATION_KEY, APPLICATION_SECRET, MASTER_PUBLIC_KEY)
-values  (1, 'test-app', '66arXznJzaEs1k4cNfyWzA==', 'CNtWEvyDyJupKL9n07y+aA==', 'BLWJ8cTWx/LxU8dTC7CiNbWKXExRSG/yMKmR3Iw5ZhlPpMQ9qTvBWhY0DnkFr++53JPEwfJaW6zEdIEdq34z59E=');
+insert into PA_TEST_CONFIG (APPLICATION_ID, APPLICATION_NAME, MOBILE_SDK_CONFIG)
+values  (1, 'test-app', 'ARCMW4/XoqrXcIepzlrXWc9ZEG28LfLgBuAYb...(truncated for brevity)');
 ```
 
 The `APPLICATION_ID` value should correspond to the PowerAuth application identifier of the application used for testing.
-You can obtain all the other values from PowerAuth Admin application.
+You can obtain all the other values from PowerAuth Admin application or PowerAuth Server REST API.
 
 ## Create Activation
 
@@ -96,6 +96,7 @@ The following request parameters are used:
 | `password` | PIN code for future signature verifications (knowledge factor) |
 | `activationCode` | Activation code, created using the previous initialization request |
 | `activationOtp` | Activation OTP used for the activation initialization. Required if the OTP validation of the activation is set to `ON_KEY_EXCHANGE`. |
+| `algorithm` | Optional. Identifier of the shared-secret algorithm suite. Defaults to `EC_P384_ML_L3`. |
 
 The response contains the `activationId` parameter which is the activation identifier:
 
