@@ -49,7 +49,7 @@ COPY ./docs/db/changelog $LB_HOME/db/changelog
 
 # Deploy and run applications
 COPY ./powerauth-test-server/src/main/resources/application.properties /app/application.properties
-COPY ./powerauth-test-server/target/powerauth-test-server.war "${APP_PATH}"
+COPY ./powerauth-test-server/target/powerauth-test-server*.war "${APP_PATH}"
 
 # Docker configuration
 EXPOSE 8080

@@ -28,7 +28,7 @@ RUN apt-get -y update  \
 
 # Deploy and run applications
 COPY ./powerauth-fido2-tests/src/main/resources/application.properties /app/application.properties
-COPY ./powerauth-fido2-tests/target/powerauth-fido2-tests.war "${APP_PATH}"
+COPY ./powerauth-fido2-tests/target/powerauth-fido2-tests*.war "${APP_PATH}"
 
 # Docker configuration
 EXPOSE 8080
