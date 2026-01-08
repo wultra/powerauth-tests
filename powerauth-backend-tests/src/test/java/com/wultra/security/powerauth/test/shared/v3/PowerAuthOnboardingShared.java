@@ -97,23 +97,8 @@ public class PowerAuthOnboardingShared {
                 .findAny()
                 .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
-        assertTrue(response.enabled());
-        assertTrue(response.otpForIdentification());
-        assertTrue(response.otpForIdentityVerification());
-
-        final var documents = response.documents();
-        assertEquals(2, documents.requiredDocumentsCount());
-        assertEquals(2, documents.items().size());
-
-        final var item1 = documents.items().get(0);
-        assertEquals(ConfigurationResponse.DocumentType.ID_CARD, item1.type());
-        assertEquals(2, item1.sideCount());
-        assertTrue(item1.mandatory());
-
-        final var item2 = documents.items().get(1);
-        assertEquals(ConfigurationResponse.DocumentType.DRIVING_LICENCE, item2.type());
-        assertEquals(1, item2.sideCount());
-        assertFalse(item2.mandatory());
+        final var expectedResponse = buildExpectedConfigurationResponse();
+        assertEquals(expectedResponse, response);
     }
 
     @SuppressWarnings("unchecked")
@@ -527,6 +512,33 @@ public class PowerAuthOnboardingShared {
                     .cause(e)
                     .build();
         }
+    }
+
+    private static ConfigurationResponse buildExpectedConfigurationResponse() {
+
+        return ConfigurationResponse.builder()
+                .enabled(true)
+                .otpForIdentification(true)
+                .otpForIdentityVerification(true)
+                .documents(ConfigurationResponse.Documents.builder()
+                        .totalRequiredDocumentsCount(2)
+                        .groups(Set.of(
+                                ConfigurationResponse.Group.builder()
+                                        .requiredDocumentsCount(2)
+                                        .items(Set.of(
+                                                ConfigurationResponse.Document.builder()
+                                                        .type(ConfigurationResponse.DocumentType.ID_CARD)
+                                                        .sideCount((byte) 2)
+                                                        .build(),
+                                                ConfigurationResponse.Document.builder()
+                                                        .type(ConfigurationResponse.DocumentType.DRIVING_LICENCE)
+                                                        .sideCount((byte) 1)
+                                                        .build()
+                                        ))
+                                        .build()
+                        ))
+                        .build())
+                .build();
     }
 
     public record TestContext(
