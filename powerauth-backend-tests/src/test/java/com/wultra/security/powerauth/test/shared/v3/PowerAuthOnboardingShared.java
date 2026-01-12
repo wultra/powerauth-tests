@@ -524,14 +524,23 @@ public class PowerAuthOnboardingShared {
                         .totalRequiredDocumentsCount(2)
                         .groups(Set.of(
                                 ConfigurationResponse.Group.builder()
-                                        .requiredDocumentsCount(2)
+                                        .requiredDocumentsCount(1)
                                         .items(Set.of(
                                                 ConfigurationResponse.Document.builder()
                                                         .type(ConfigurationResponse.DocumentType.ID_CARD)
                                                         .sideCount((byte) 2)
-                                                        .build(),
+                                                        .build()
+                                        ))
+                                        .build(),
+                                ConfigurationResponse.Group.builder()
+                                        .requiredDocumentsCount(1)
+                                        .items(Set.of(
                                                 ConfigurationResponse.Document.builder()
                                                         .type(ConfigurationResponse.DocumentType.DRIVING_LICENCE)
+                                                        .sideCount((byte) 1)
+                                                        .build(),
+                                                ConfigurationResponse.Document.builder()
+                                                        .type(ConfigurationResponse.DocumentType.PASSPORT)
                                                         .sideCount((byte) 1)
                                                         .build()
                                         ))
