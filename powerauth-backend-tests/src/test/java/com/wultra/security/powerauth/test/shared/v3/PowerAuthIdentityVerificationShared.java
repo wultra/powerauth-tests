@@ -119,9 +119,38 @@ public class PowerAuthIdentityVerificationShared {
 
         submitPresenceCheck(ctx, processId);
         // skip OTP verification on purpose
+        createTargetActivation(ctx, processId);
         verifyProcessFinished(ctx, processId, activationId);
 
         ctx.powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    private static void createTargetActivation(final TestContext ctx, final String processId) throws Exception {
+        assertIdentityVerificationStateWithRetries(ctx,
+                new IdentityVerificationState(IdentityVerificationPhase.ACTIVATION_FINISH, IdentityVerificationStatus.IN_PROGRESS));
+
+        final CreateTargetActivationRequest request = CreateTargetActivationRequest.builder()
+                .processId(processId)
+                .build();
+
+        final ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        ctx.tokenAndEncryptModel.setData(ctx.objectMapper.writeValueAsBytes(new ObjectRequest<>(request)));
+        ctx.tokenAndEncryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/identity/activation");
+
+        new TokenAndEncryptStep().execute(stepLogger, ctx.tokenAndEncryptModel.toMap());
+        assertTrue(stepLogger.getResult().success());
+
+        final String activationCode = stepLogger.getItems().stream()
+                .filter(isStepItemDecryptedResponse())
+                .map(item -> item.object().toString())
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<CreateTargetActivationResponse>>() {}))
+                .map(ObjectResponse::getResponseObject)
+                .map(CreateTargetActivationResponse::activationCode)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+
+        assertNotNull(activationCode);
+        finishActivation(ctx, activationCode);
     }
 
     private static String finishActivation(final TestContext ctx, final String activationCode) throws Exception {
