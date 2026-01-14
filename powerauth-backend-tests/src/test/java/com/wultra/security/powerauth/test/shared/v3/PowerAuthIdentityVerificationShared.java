@@ -246,8 +246,8 @@ public class PowerAuthIdentityVerificationShared {
 
         submitDocumentsV2(ctx, idCardSubmitRequest);
 
-        var expectedDocumentCount = idCardSubmitRequest.documents().size();
-        assertStatusOfSubmittedDocsWithRetries(ctx, processId, expectedDocumentCount, DocumentStatus.ACCEPTED);
+        final var expectedDocumentCount = new AtomicInteger(idCardSubmitRequest.documents().size());
+        assertStatusOfSubmittedDocsWithRetries(ctx, processId, expectedDocumentCount.get(), DocumentStatus.ACCEPTED);
 
         assertIdentityVerificationStateWithRetries(ctx,
                 new IdentityVerificationState(IdentityVerificationPhase.DOCUMENT_UPLOAD, IdentityVerificationStatus.IN_PROGRESS));
@@ -266,8 +266,8 @@ public class PowerAuthIdentityVerificationShared {
 
         submitDocumentsV2(ctx, driveLicenseSubmitRequest);
 
-        expectedDocumentCount += driveLicenseSubmitRequest.documents().size();
-        assertStatusOfSubmittedDocsWithRetries(ctx, processId, expectedDocumentCount, DocumentStatus.ACCEPTED);
+        expectedDocumentCount.getAndAdd(driveLicenseSubmitRequest.documents().size());
+        assertStatusOfSubmittedDocsWithRetries(ctx, processId, expectedDocumentCount.get(), DocumentStatus.ACCEPTED);
 
         assertIdentityVerificationStateWithRetries(ctx,
                 new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED));
@@ -1022,7 +1022,7 @@ public class PowerAuthIdentityVerificationShared {
     }
 
     private static void submitDocumentsV2(final TestContext ctx, final DocumentSubmitV2Request submitRequest) throws Exception {
-        ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        final var stepLogger = new ObjectStepLogger(System.out);
         ctx.tokenAndEncryptModel.setData(ctx.objectMapper.writeValueAsBytes(new ObjectRequest<>(submitRequest)));
         ctx.tokenAndEncryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/v2/identity/document/submit");
 
@@ -1030,7 +1030,7 @@ public class PowerAuthIdentityVerificationShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
 
-        final EciesEncryptedResponse response = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
+        final var response = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(response.getEncryptedData());
         assertNotNull(response.getMac());
     }
