@@ -150,6 +150,11 @@ class PowerAuthIdentityVerificationTest {
     }
 
     @Test
+    void testSuccessfulIdentityVerificationWithDocumentSubmitV2() throws Exception {
+        PowerAuthIdentityVerificationShared.testSuccessfulIdentityVerificationWithDocumentSubmitV2(ctx);
+    }
+
+    @Test
     void testScaFailedPresenceCheck() throws Exception {
         PowerAuthIdentityVerificationShared.testScaFailedPresenceCheck(ctx);
     }

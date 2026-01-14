@@ -124,6 +124,34 @@ public class PowerAuthIdentityVerificationShared {
         ctx.powerAuthClient.removeActivation(activationId, "test");
     }
 
+    public static void testSuccessfulIdentityVerificationWithDocumentSubmitV2(final TestContext ctx) throws Exception {
+        final String clientId = generateRandomClientId();
+        final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId, "onboarding");
+        final String processId = onboardingStartResponse.processId();
+
+        final String activationCode = onboardingStartResponse.activationCode();
+        final String activationId = finishActivation(ctx, activationCode);
+
+        createToken(ctx);
+
+        final TestProcessContext processContext = new TestProcessContext();
+        processContext.processId = processId;
+        processContext.activationId = activationId;
+
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
+
+        processDocumentsV2(processContext, ctx);
+
+        initPresenceCheck(ctx, processId);
+        assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
+
+        submitPresenceCheck(ctx, processId);
+
+        verifyProcessFinished(ctx, processId, activationId);
+
+        ctx.powerAuthClient.removeActivation(activationId, "test");
+    }
+
     private static String finishActivation(final TestContext ctx, final String activationCode) throws Exception {
         final PrepareActivationStepModel model = new PrepareActivationStepModel();
         model.setActivationCode(activationCode);
@@ -190,6 +218,65 @@ public class PowerAuthIdentityVerificationShared {
 
         assertIdentityVerificationStateWithRetries(ctx,
                 new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED));
+    }
+
+    private static void processDocumentsV2(final TestProcessContext processCtx, final TestContext ctx) throws Exception {
+        final String activationId = processCtx.activationId;
+        final String processId = processCtx.processId;
+
+        initIdentityVerification(ctx, activationId, processId);
+
+        final var idCardSubmitRequest = DocumentSubmitV2Request.builder()
+                .processId(processId)
+                .documents(List.of(
+                        DocumentSubmitV2Request.Document.builder()
+                                .type(DocumentType.ID_CARD)
+                                .side(CardSide.FRONT)
+                                .filename("images/id_card_mock_front.png")
+                                .data(readFileContentAsBase64("images/id_card_mock_front.png"))
+                                .build(),
+                        DocumentSubmitV2Request.Document.builder()
+                                .type(DocumentType.ID_CARD)
+                                .side(CardSide.BACK)
+                                .filename("images/id_card_mock_back.png")
+                                .data(readFileContentAsBase64("images/id_card_mock_back.png"))
+                                .build()
+                ))
+                .build();
+
+        submitDocumentsV2(ctx, idCardSubmitRequest);
+
+        final var expectedDocumentCount = new AtomicInteger(idCardSubmitRequest.documents().size());
+        assertStatusOfSubmittedDocsWithRetries(ctx, processId, expectedDocumentCount.get(), DocumentStatus.ACCEPTED);
+
+        assertIdentityVerificationStateWithRetries(ctx,
+                new IdentityVerificationState(IdentityVerificationPhase.DOCUMENT_UPLOAD, IdentityVerificationStatus.IN_PROGRESS));
+
+        final var driveLicenseSubmitRequest = DocumentSubmitV2Request.builder()
+                .processId(processId)
+                .documents(List.of(
+                        DocumentSubmitV2Request.Document.builder()
+                                .type(DocumentType.DRIVING_LICENSE)
+                                .side(CardSide.FRONT)
+                                .filename("images/driving_license_mock_front.png")
+                                .data(readFileContentAsBase64("images/driving_license_mock_front.png"))
+                                .build()
+                ))
+                .build();
+
+        submitDocumentsV2(ctx, driveLicenseSubmitRequest);
+
+        expectedDocumentCount.getAndAdd(driveLicenseSubmitRequest.documents().size());
+        assertStatusOfSubmittedDocsWithRetries(ctx, processId, expectedDocumentCount.get(), DocumentStatus.ACCEPTED);
+
+        assertIdentityVerificationStateWithRetries(ctx,
+                new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED));
+    }
+
+    private static String readFileContentAsBase64(final String fileName) throws IOException {
+        final var file = new ClassPathResource(fileName).getFile();
+        final var fileBytes = Files.readAllBytes(file.toPath());
+        return Base64.getEncoder().encodeToString(fileBytes);
     }
 
     public static void testScaFailedPresenceCheck(final TestContext ctx) throws Exception {
@@ -930,6 +1017,20 @@ public class PowerAuthIdentityVerificationShared {
         assertEquals(200, stepLogger.getResponse().statusCode());
 
         final EciesEncryptedResponse response = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
+        assertNotNull(response.getEncryptedData());
+        assertNotNull(response.getMac());
+    }
+
+    private static void submitDocumentsV2(final TestContext ctx, final DocumentSubmitV2Request submitRequest) throws Exception {
+        final var stepLogger = new ObjectStepLogger(System.out);
+        ctx.tokenAndEncryptModel.setData(ctx.objectMapper.writeValueAsBytes(new ObjectRequest<>(submitRequest)));
+        ctx.tokenAndEncryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/v2/identity/document/submit");
+
+        new TokenAndEncryptStep().execute(stepLogger, ctx.tokenAndEncryptModel.toMap());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
+
+        final var response = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(response.getEncryptedData());
         assertNotNull(response.getMac());
     }
