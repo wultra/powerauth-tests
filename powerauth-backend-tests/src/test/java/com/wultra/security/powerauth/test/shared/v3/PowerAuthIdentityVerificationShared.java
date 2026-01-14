@@ -101,13 +101,13 @@ public class PowerAuthIdentityVerificationShared {
         final String processId = onboardingStartResponse.processId();
 
         final String activationCode = onboardingStartResponse.activationCode();
-        final String activationId = finishActivation(ctx, activationCode);
+        final String temporaryActivationId = finishActivation(ctx, activationCode);
 
         createToken(ctx);
 
         final TestProcessContext processContext = new TestProcessContext();
         processContext.processId = processId;
-        processContext.activationId = activationId;
+        processContext.activationId = temporaryActivationId;
 
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
 
@@ -119,13 +119,14 @@ public class PowerAuthIdentityVerificationShared {
 
         submitPresenceCheck(ctx, processId);
         // skip OTP verification on purpose
-        createTargetActivation(ctx, processId);
-        verifyProcessFinished(ctx, processId, activationId);
+        final String targetActivationId = createTargetActivation(ctx, processId);
+        verifyProcessFinished(ctx, processId, targetActivationId);
 
-        ctx.powerAuthClient.removeActivation(activationId, "test");
+        ctx.powerAuthClient.removeActivation(temporaryActivationId, "test");
+        ctx.powerAuthClient.removeActivation(targetActivationId, "test");
     }
 
-    private static void createTargetActivation(final TestContext ctx, final String processId) throws Exception {
+    private static String createTargetActivation(final TestContext ctx, final String processId) throws Exception {
         assertIdentityVerificationStateWithRetries(ctx,
                 new IdentityVerificationState(IdentityVerificationPhase.ACTIVATION_FINISH, IdentityVerificationStatus.IN_PROGRESS));
 
@@ -150,7 +151,7 @@ public class PowerAuthIdentityVerificationShared {
                 .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
 
         assertNotNull(activationCode);
-        finishActivation(ctx, activationCode);
+        return finishActivation(ctx, activationCode);
     }
 
     private static String finishActivation(final TestContext ctx, final String activationCode) throws Exception {
