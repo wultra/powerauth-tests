@@ -101,13 +101,13 @@ public class PowerAuthIdentityVerificationShared {
         final String processId = onboardingStartResponse.processId();
 
         final String activationCode = onboardingStartResponse.activationCode();
-        final String activationId = finishActivation(ctx, activationCode);
+        final String temporaryActivationId = finishActivation(ctx, activationCode);
 
         createToken(ctx);
 
         final TestProcessContext processContext = new TestProcessContext();
         processContext.processId = processId;
-        processContext.activationId = activationId;
+        processContext.activationId = temporaryActivationId;
 
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
 
@@ -119,9 +119,39 @@ public class PowerAuthIdentityVerificationShared {
 
         submitPresenceCheck(ctx, processId);
         // skip OTP verification on purpose
-        verifyProcessFinished(ctx, processId, activationId);
+        final String targetActivationId = createTargetActivation(ctx, processId);
+        verifyProcessFinished(ctx, processId, targetActivationId);
 
-        ctx.powerAuthClient.removeActivation(activationId, "test");
+        ctx.powerAuthClient.removeActivation(temporaryActivationId, "test");
+        ctx.powerAuthClient.removeActivation(targetActivationId, "test");
+    }
+
+    private static String createTargetActivation(final TestContext ctx, final String processId) throws Exception {
+        assertIdentityVerificationStateWithRetries(ctx,
+                new IdentityVerificationState(IdentityVerificationPhase.ACTIVATION_FINISH, IdentityVerificationStatus.IN_PROGRESS));
+
+        final CreateTargetActivationRequest request = CreateTargetActivationRequest.builder()
+                .processId(processId)
+                .build();
+
+        final ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        ctx.tokenAndEncryptModel.setData(ctx.objectMapper.writeValueAsBytes(new ObjectRequest<>(request)));
+        ctx.tokenAndEncryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/identity/activation");
+
+        new TokenAndEncryptStep().execute(stepLogger, ctx.tokenAndEncryptModel.toMap());
+        assertTrue(stepLogger.getResult().success());
+
+        final String activationCode = stepLogger.getItems().stream()
+                .filter(isStepItemDecryptedResponse())
+                .map(item -> item.object().toString())
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<CreateTargetActivationResponse>>() {}))
+                .map(ObjectResponse::getResponseObject)
+                .map(CreateTargetActivationResponse::activationCode)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+
+        assertNotNull(activationCode);
+        return finishActivation(ctx, activationCode);
     }
 
     public static void testSuccessfulIdentityVerificationWithDocumentSubmitV2(final TestContext ctx) throws Exception {
