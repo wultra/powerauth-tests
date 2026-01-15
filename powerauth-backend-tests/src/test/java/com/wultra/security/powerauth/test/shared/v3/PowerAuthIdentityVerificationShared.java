@@ -156,7 +156,7 @@ public class PowerAuthIdentityVerificationShared {
 
     public static void testSuccessfulIdentityVerificationWithDocumentSubmitV2(final TestContext ctx) throws Exception {
         final String clientId = generateRandomClientId();
-        final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId, "onboarding");
+        final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId, "onboardingSimple");
         final String processId = onboardingStartResponse.processId();
 
         final String activationCode = onboardingStartResponse.activationCode();
