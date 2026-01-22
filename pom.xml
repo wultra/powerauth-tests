@@ -130,6 +130,12 @@
                 <version>${enrollment-server-onboarding.version}</version>
                 <scope>test</scope>
             </dependency>
+            <dependency>
+                <groupId>com.wultra.security</groupId>
+                <artifactId>enrollment-server-onboarding-domain-model</artifactId>
+                <version>${enrollment-server-onboarding.version}</version>
+                <scope>test</scope>
+            </dependency>
 
             <dependency>
                 <groupId>com.wultra.security</groupId>
