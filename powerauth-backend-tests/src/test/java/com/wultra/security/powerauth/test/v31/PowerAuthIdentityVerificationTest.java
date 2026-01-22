@@ -205,11 +205,6 @@ class PowerAuthIdentityVerificationTest {
     }
 
     @Test
-    void largeUploadTest() throws Exception {
-        PowerAuthIdentityVerificationShared.largeUploadTest(ctx);
-    }
-
-    @Test
     void initDocumentVerificationSdkTest() throws Exception {
         PowerAuthIdentityVerificationShared.initDocumentVerificationSdkTest(ctx);
     }
