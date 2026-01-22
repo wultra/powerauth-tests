@@ -46,7 +46,7 @@
 
     <properties>
         <enrollment-server.version>2.0.0</enrollment-server.version>
-        <!-- TODO (racansky, 2026-01-22) onboarding artifact is not released publicly and use in test scope only -->
+        <!-- TODO (racansky, 2026-01-22) onboarding artifact is not released publicly and use in tests only -->
         <enrollment-server-onboarding.version>2.0.0-SNAPSHOT</enrollment-server-onboarding.version>
         <powerauth-cmd.version>2.0.0</powerauth-cmd.version>
         <powerauth-crypto.version>2.0.1</powerauth-crypto.version>
@@ -128,13 +128,6 @@
                 <groupId>com.wultra.security</groupId>
                 <artifactId>enrollment-server-onboarding-api-model</artifactId>
                 <version>${enrollment-server-onboarding.version}</version>
-                <scope>test</scope>
-            </dependency>
-            <dependency>
-                <groupId>com.wultra.security</groupId>
-                <artifactId>enrollment-server-onboarding-domain-model</artifactId>
-                <version>${enrollment-server-onboarding.version}</version>
-                <scope>test</scope>
             </dependency>
 
             <dependency>
