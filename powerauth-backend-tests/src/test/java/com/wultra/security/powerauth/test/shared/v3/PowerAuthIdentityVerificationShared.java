@@ -136,7 +136,10 @@ public class PowerAuthIdentityVerificationShared {
                 new IdentityVerificationState(IdentityVerificationPhase.ONBOARDING_APPROVAL, IdentityVerificationStatus.IN_PROGRESS));
 
         final RestClient restClient = RestClient.builder()
-                .defaultHeaders(h -> h.setBasicAuth("integration-api", "password")) // TODO Lubos take it from config
+                .defaultHeaders(h ->
+                        h.setBasicAuth(
+                                ctx.config.getEnrollmentOnboardingPrivateApiUsername(),
+                                ctx.config.getEnrollmentOnboardingPrivateApiPassword()))
                 .build();
 
         final List<String> verificationIds = restClient.get()
