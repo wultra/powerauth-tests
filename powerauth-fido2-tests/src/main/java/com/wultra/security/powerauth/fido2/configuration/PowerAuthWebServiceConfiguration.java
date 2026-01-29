@@ -18,14 +18,14 @@
 
 package com.wultra.security.powerauth.fido2.configuration;
 
-import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
+import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.fido2.client.PowerAuthFido2Client;
 import com.wultra.security.powerauth.fido2.model.error.PowerAuthFido2Exception;
 import com.wultra.security.powerauth.rest.client.PowerAuthFido2RestClient;
 import com.wultra.security.powerauth.rest.client.PowerAuthFido2RestClientConfiguration;
-import com.wultra.security.powerauth.rest.client.v3.PowerAuthRestClient;
 import com.wultra.security.powerauth.rest.client.PowerAuthRestClientConfiguration;
+import com.wultra.security.powerauth.rest.client.v4.PowerAuthRestClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
