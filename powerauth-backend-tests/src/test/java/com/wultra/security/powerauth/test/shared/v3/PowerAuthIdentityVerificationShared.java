@@ -47,6 +47,7 @@ import lombok.ToString;
 import org.awaitility.core.ThrowingRunnable;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.opentest4j.AssertionFailedError;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
@@ -134,17 +135,27 @@ public class PowerAuthIdentityVerificationShared {
         assertIdentityVerificationStateWithRetries(ctx,
                 new IdentityVerificationState(IdentityVerificationPhase.ONBOARDING_APPROVAL, IdentityVerificationStatus.IN_PROGRESS));
 
-        final String identityVerificationId = null; // TODO Lubos
+        final RestClient restClient = RestClient.builder()
+                .defaultHeaders(h -> h.setBasicAuth("integration-api", "password")) // TODO Lubos take it from config
+                .build();
+
+        final List<String> verificationIds = restClient.get()
+                .uri(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/private/test/process/{processId}/identityVerifications", processId)
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {});
+
+        assertNotNull(verificationIds);
+        assertFalse(verificationIds.isEmpty());
+
         final AcknowledgeApproveClientRequest request = new AcknowledgeApproveClientRequest(
                 processId,
                 "userId",
-                identityVerificationId,
+                verificationIds.get(0),
                 AcknowledgeApproveClientRequest.ApprovalResult.OK);
 
-        final AcknowledgeApproveClientResponse result = RestClient.create().post()
+        final AcknowledgeApproveClientResponse result = restClient.post()
                 .uri(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/private/client/approve")
                 .contentType(MediaType.APPLICATION_JSON)
-                .headers(h -> h.setBasicAuth("integration-api", "password")) // TODO Lubos take it from config
                 .body(request)
                 .retrieve()
                 .body(AcknowledgeApproveClientResponse.class);
