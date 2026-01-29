@@ -48,6 +48,8 @@ import org.awaitility.core.ThrowingRunnable;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.MediaType;
+import org.springframework.web.client.RestClient;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -128,10 +130,27 @@ public class PowerAuthIdentityVerificationShared {
         ctx.powerAuthClient.removeActivation(targetActivationId, "test");
     }
 
-    private static void approveClient(final TestContext ctx, final String processId) throws Exception {
+    private static void approveClient(final TestContext ctx, final String processId) {
         assertIdentityVerificationStateWithRetries(ctx,
                 new IdentityVerificationState(IdentityVerificationPhase.ONBOARDING_APPROVAL, IdentityVerificationStatus.IN_PROGRESS));
-        // TODO Lubos call acknowledge
+
+        final String identityVerificationId = null; // TODO Lubos
+        final AcknowledgeApproveClientRequest request = new AcknowledgeApproveClientRequest(
+                processId,
+                "userId",
+                identityVerificationId,
+                AcknowledgeApproveClientRequest.ApprovalResult.OK);
+
+        final AcknowledgeApproveClientResponse result = RestClient.create().post()
+                .uri(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/private/client/approve")
+                .contentType(MediaType.APPLICATION_JSON)
+                .headers(h -> h.setBasicAuth("integration-api", "password")) // TODO Lubos take it from config
+                .body(request)
+                .retrieve()
+                .body(AcknowledgeApproveClientResponse.class);
+
+        assertNotNull(result);
+        assertEquals(AcknowledgeApproveClientResponse.Result.OK, result.result());
     }
 
     private static String createTargetActivation(final TestContext ctx, final String processId) throws Exception {
