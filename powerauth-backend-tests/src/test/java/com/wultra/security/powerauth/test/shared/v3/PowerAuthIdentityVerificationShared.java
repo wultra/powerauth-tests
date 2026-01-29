@@ -1013,7 +1013,7 @@ public class PowerAuthIdentityVerificationShared {
     private static void assertIdentityVerificationStateWithRetries(final TestContext ctx, final IdentityVerificationState state) {
         final AtomicInteger attemptCounter = new AtomicInteger(1);
 
-        final ThrowingRunnable assertation = () -> {
+        final ThrowingRunnable assertion = () -> {
             final IdentityVerificationState current = checkIdentityVerificationState(ctx);
             if (!current.equals(state)) {
                 ctx.stepLogger.writeItem("assert-identity-verification-status-retry", "Assert failed this time", "Retrying identity verification status assert " + attemptCounter.getAndIncrement(), "INFO", null);
@@ -1025,7 +1025,7 @@ public class PowerAuthIdentityVerificationShared {
                 .alias("Identity verification status")
                 .atMost(ctx.config.getAssertRetryWaitPeriod().multipliedBy(ctx.config.getAssertMaxRetries()))
                 .pollInterval(ctx.config.getAssertRetryWaitPeriod())
-                .untilAsserted(assertation);
+                .untilAsserted(assertion);
     }
 
     private static void assertStatusOfSubmittedDocs(final TestContext ctx, final String processId, final int expectedDocumentsCount, final DocumentStatus expectedStatus) throws Exception {
