@@ -44,6 +44,7 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import org.awaitility.core.ThrowingRunnable;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.core.io.ClassPathResource;
@@ -118,12 +119,19 @@ public class PowerAuthIdentityVerificationShared {
         assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
 
         submitPresenceCheck(ctx, processId);
+        approveClient(ctx, processId);
         // skip OTP verification on purpose
         final String targetActivationId = createTargetActivation(ctx, processId);
         verifyProcessFinished(ctx, processId, targetActivationId);
 
         ctx.powerAuthClient.removeActivation(temporaryActivationId, "test");
         ctx.powerAuthClient.removeActivation(targetActivationId, "test");
+    }
+
+    private static void approveClient(final TestContext ctx, final String processId) throws Exception {
+        assertIdentityVerificationStateWithRetries(ctx,
+                new IdentityVerificationState(IdentityVerificationPhase.ONBOARDING_APPROVAL, IdentityVerificationStatus.IN_PROGRESS));
+        // TODO Lubos call acknowledge
     }
 
     private static String createTargetActivation(final TestContext ctx, final String processId) throws Exception {
@@ -969,24 +977,22 @@ public class PowerAuthIdentityVerificationShared {
         }
     }
 
-    private static void assertIdentityVerificationStateWithRetries(final TestContext ctx, final IdentityVerificationState state) throws Exception {
-        int assertCounter = 1;
-        int assertMaxRetries = ctx.config.getAssertMaxRetries();
+    private static void assertIdentityVerificationStateWithRetries(final TestContext ctx, final IdentityVerificationState state) {
+        final AtomicInteger attemptCounter = new AtomicInteger(1);
 
-        while(assertCounter <= assertMaxRetries) {
-            try {
-                IdentityVerificationState idState = checkIdentityVerificationState(ctx);
-                assertEquals(state, idState);
-                break;
-            } catch (AssertionFailedError e) {
-                if (assertCounter >= assertMaxRetries) {
-                    throw e;
-                }
+        final ThrowingRunnable assertation = () -> {
+            final IdentityVerificationState current = checkIdentityVerificationState(ctx);
+            if (!current.equals(state)) {
+                ctx.stepLogger.writeItem("assert-identity-verification-status-retry", "Assert failed this time", "Retrying identity verification status assert " + attemptCounter.getAndIncrement(), "INFO", null);
             }
-            ctx.stepLogger.writeItem("assert-identity-verification-status-retry", "Assert failed this time", "Retrying identity verification status assert " + assertCounter, "INFO", null);
-            assertCounter++;
-            Thread.sleep(ctx.config.getAssertRetryWaitPeriod().toMillis());
-        }
+            assertEquals(state, current);
+        };
+
+        await()
+                .alias("Identity verification status")
+                .atMost(ctx.config.getAssertRetryWaitPeriod().multipliedBy(ctx.config.getAssertMaxRetries()))
+                .pollInterval(ctx.config.getAssertRetryWaitPeriod())
+                .untilAsserted(assertation);
     }
 
     private static void assertStatusOfSubmittedDocs(final TestContext ctx, final String processId, final int expectedDocumentsCount, final DocumentStatus expectedStatus) throws Exception {
