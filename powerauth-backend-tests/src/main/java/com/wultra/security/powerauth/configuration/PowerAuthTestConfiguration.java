@@ -30,6 +30,7 @@ import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.util.RestClientConfiguration;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
+import lombok.Getter;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -66,6 +67,14 @@ public class PowerAuthTestConfiguration {
 
     @Value("${powerauth.enrollment-onboarding.service.url:http://localhost:8080/enrollment-server-onboarding}")
     private String enrollmentOnboardingServiceUrl;
+
+    @Value("${powerauth.enrollment-onboarding.service.private-api.username}")
+    @Getter
+    private String enrollmentOnboardingPrivateApiUsername;
+
+    @Value("${powerauth.enrollment-onboarding.service.private-api.password}")
+    @Getter
+    private String enrollmentOnboardingPrivateApiPassword;
 
     @Value("${powerauth.service.security.clientToken:}")
     private String clientToken;
