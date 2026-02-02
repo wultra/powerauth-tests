@@ -377,7 +377,7 @@
         --enrollment-server-onboarding.identity-verification.enabled=true
         --enrollment-server-onboarding.onboarding-process.default-type=reactivation
         --spring.security.user.name=integration-api
-        --spring.security.user.password={bcrypt}$$2a$$10$$Im45aSJeMpove4pF8/ypB.ufkITjfjpFvby9AMkvy.hrOVixkfkxq
+        --spring.security.user.password='{bcrypt}$2a$10$Im45aSJeMpove4pF8/ypB.ufkITjfjpFvby9AMkvy.hrOVixkfkxq'
         --spring.jpa.defer-datasource-initialization=true
         --spring.sql.init.data-locations=file:${runtime.dir}/data/enrollment-onboarding/extra-data.sql
         --spring.sql.init.mode=always
