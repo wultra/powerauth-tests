@@ -122,7 +122,7 @@ public class PowerAuthIdentityVerificationShared {
         assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
 
         submitPresenceCheck(ctx, processId);
-        approveClient(ctx, processId);
+        approveClient(ctx, processId, clientId);
         // skip OTP verification on purpose
         final String targetActivationId = createTargetActivation(ctx, processId);
         verifyProcessFinished(ctx, processId, targetActivationId);
@@ -131,7 +131,7 @@ public class PowerAuthIdentityVerificationShared {
         ctx.powerAuthClient.removeActivation(targetActivationId, "test");
     }
 
-    private static void approveClient(final TestContext ctx, final String processId) {
+    private static void approveClient(final TestContext ctx, final String processId, String clientId) throws Exception {
         assertIdentityVerificationStateWithRetries(ctx,
                 new IdentityVerificationState(IdentityVerificationPhase.ONBOARDING_APPROVAL, IdentityVerificationStatus.IN_PROGRESS));
 
@@ -150,9 +150,11 @@ public class PowerAuthIdentityVerificationShared {
         assertNotNull(verificationIds);
         assertFalse(verificationIds.isEmpty());
 
+        final String userId = "mockuser_" + clientId; // this is logic of MockOnboardingProvider#userLookup
+
         final AcknowledgeApproveClientRequest request = new AcknowledgeApproveClientRequest(
                 processId,
-                "userId",
+                userId,
                 verificationIds.get(0),
                 AcknowledgeApproveClientRequest.ApprovalResult.OK);
 
@@ -164,7 +166,7 @@ public class PowerAuthIdentityVerificationShared {
                 .body(AcknowledgeApproveClientResponse.class);
 
         assertNotNull(result);
-        assertEquals(AcknowledgeApproveClientResponse.Result.OK, result.result());
+        assertEquals(AcknowledgeApproveClientResponse.Result.OK, result.result(), "Error message: " + result.resultReason());
     }
 
     private static String createTargetActivation(final TestContext ctx, final String processId) throws Exception {
