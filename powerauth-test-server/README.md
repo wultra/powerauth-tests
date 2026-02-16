@@ -45,12 +45,14 @@ Follow these steps to build and run (example commands were run from root) the Po
 
 ## Test Server Configuration
 
-Test server runs by default with embedded H2 database. The database structure is created automatically on application startup.
+Test server runs by default with the PostgreSQL database. The database structure is created automatically on docker startup via Liquibase.
 
-Once the database is created, you can connect to it using following URL:
+The following configuration is used:
 
 ```properties
-spring.datasource.url=jdbc:h2:file:~/powerauth-test;DB_CLOSE_ON_EXIT=FALSE;AUTO_SERVER=TRUE
+spring.datasource.url=${POWERAUTH_TEST_SERVER_DATASOURCE_URL:jdbc:postgresql://localhost:5432/powerauth}
+spring.datasource.username=${POWERAUTH_TEST_SERVER_DATASOURCE_USERNAME:powerauth}
+spring.datasource.password=${POWERAUTH_TEST_SERVER_DATASOURCE_PASSWORD:}
 ```
 
 The test server configuration is performed using following query:
