@@ -11,7 +11,7 @@ The released docker images are published to a [Docker Hub](https://hub.docker.co
 docker pull powerauth/powerauth-test-server:1.10.0-4f11211005c4175dd9a7f5e06f4d87bd32456700
 ```
 
-**The container environments variables**:
+**The container environment variables**:
 Mandatory variables
 ```shell
 # URL of an enrollment server, i.e., the public API required for device pairing or operation approvals.
