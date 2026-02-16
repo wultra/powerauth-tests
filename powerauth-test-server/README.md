@@ -14,7 +14,7 @@ docker pull powerauth/powerauth-test-server:1.10.0-4f11211005c4175dd9a7f5e06f4d8
 **The container environments variables**:
 Mandatory variables
 ```shell
-# URL of a enrollment server, i.e., the public API required for device pairing or operation approvals.
+# URL of an enrollment server, i.e., the public API required for device pairing or operation approvals.
 POWERAUTH_TEST_SERVER_ENROLLMENT_SERVER_URL=http://localhost:8080/enrollment-server
 # URL of a DB server persisting the emulated SDKs
 POWERAUTH_TEST_SERVER_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/powerauth
@@ -22,6 +22,8 @@ POWERAUTH_TEST_SERVER_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432
 POWERAUTH_TEST_SERVER_DATASOURCE_USERNAME=powerauth
 # Password for the DB
 POWERAUTH_TEST_SERVER_DATASOURCE_PASSWORD=
+# Toggle Liquibase database migrations in the main application container (true/false, default: true)
+LQ_ENABLED=true
 ```
 
 Optional variables
@@ -30,7 +32,7 @@ Optional variables
 # path to a customized logback logging configuration
 POWERAUTH_TEST_SERVER_LOGGING=
 # The version of a default Wultra crypto protocol used by the test server
-POWERAUTH_TEST_SERVER_POWERAUTH_VERSION=
+POWERAUTH_TEST_SERVER_POWERAUTH_VERSION=4.0
 ```
 
 ## Docker Build Instructions
@@ -78,14 +80,14 @@ You can build your own docker image by following these steps to build and run (e
 
 ## Standalone Test Server Configuration
 
-Test server  needs a configured database. H2 can be used for development, PostgreSQL is recommended for a usage in automated tests. The database structure is created automatically on application startup.
+Test server needs a configured database. H2 can be used for development, PostgreSQL is recommended for a usage in automated tests. The database structure is created automatically on application startup.
 
 Once the database is created, you can connect to it using following URL:
 
 ```properties
 # The DB configuration
 spring.datasource.url=jdbc:postgresql://localhost:5432/powerauth
-# Enable liquibase managed by the spring boot
+# Enable liquibase managed by the spring boot, the app should be build with liquibase profile to enable this
 spring.liquibase.enabled=${LIQUIBASE_ENABLED:false}
 ```
 
@@ -105,7 +107,7 @@ curl --request POST \
         "applicationName": "Test application",
         "applicationKey": "GlxZ1Qe70pPAC/ek0BvNXw==",
         "applicationSecret": "Psjvd99yCz3kB8gwYQWCMQ==",
-        "masterPublicKey": "BOyFTtFXtbyYHh3XxN3RXQwlNu+sxsMCcc8x/8U6pwzUWn3rD+O7BLHbzwDU4ZsWnDdnhyStuzCXS4nIpmqhTbk="
+        "masterPublicKey": "BOyFTtFXtbyYHh3XxN3RXQwlNu+sxsMCcc8x/8U6pwzUWn3rD+O7BLHbzwDU4ZsWnDdnhyStuzCXS4nIpmqhTbk=",
         "mobileSdkConfig" : "BOyFTtFXtbyYHh3XxN3RXQwlNu+sxsMCcc8x/8U6pwzUWn3rD+O7BLHbzwDU4ZsWnDdnhyStuzCXS4nIpmqhTbk=...."
     }
 }'
@@ -118,7 +120,7 @@ You can obtain all the other values from PowerAuth Admin application or PowerAut
 
 The activation needs to be at first initialized using one of the possible ways:
 - creating the activation in PowerAuth Admin in the `Activations` tab
-- calling the PowerAuth server POST `/rest/v3/activation/init` endpoint
+- calling the PowerAuth server POST `/rest/v4/activation/init` endpoint
 - calling the PowerAuth cloud POST `/registration` endpoint
 
 Once the activation is initialized, you can create the activation using following REST API call.
