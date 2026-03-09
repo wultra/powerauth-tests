@@ -104,7 +104,7 @@ jobs:
           mkdir -p ./powerauth-fido2-tests/docker/sbom
           unzip -p ./powerauth-fido2-tests/target/powerauth-fido2-tests*.war WEB-INF/classes/META-INF/sbom/application.cdx.json > ./powerauth-fido2-tests/docker/sbom/powerauth-fido2-tests.cdx.json
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
         with:
