@@ -86,7 +86,7 @@ public class PowerAuthIdentityVerificationShared {
         final String processId = processCtx.processId;
 
         approveConsent(ctx, processId);
-        processDocuments(processCtx, ctx);
+        processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
         submitPresenceCheck(ctx, processId);
@@ -100,7 +100,7 @@ public class PowerAuthIdentityVerificationShared {
     }
 
     public static void testSuccessfulIdentityVerificationWithActivationCode(final TestContext ctx) throws Exception {
-        final String clientId = generateRandomClientId();
+        final String clientId = generateRandomClientId() + "_async_evaluate";
         final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId, "onboarding");
         final String processId = onboardingStartResponse.processId();
 
@@ -116,7 +116,10 @@ public class PowerAuthIdentityVerificationShared {
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
 
         // skip approveConsent on purpose
-        processDocuments(processContext, ctx);
+        processDocumentsAsynchronous(processContext, ctx);
+        approveEvaluation(ctx, processId, clientId);
+        assertIdentityVerificationStateWithRetries(ctx,
+                new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED));
 
         initPresenceCheck(ctx, processId);
         assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
@@ -131,7 +134,43 @@ public class PowerAuthIdentityVerificationShared {
         ctx.powerAuthClient.removeActivation(targetActivationId, "test");
     }
 
-    private static void approveClient(final TestContext ctx, final String processId, String clientId) throws Exception {
+    private static void approveEvaluation(final TestContext ctx, final String processId, final String clientId) {
+        final RestClient restClient = RestClient.builder()
+                .defaultHeaders(h ->
+                        h.setBasicAuth(
+                                ctx.config.getEnrollmentOnboardingPrivateApiUsername(),
+                                ctx.config.getEnrollmentOnboardingPrivateApiPassword()))
+                .build();
+
+        final List<String> verificationIds = restClient.get()
+                .uri(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/private/test/process/{processId}/identityVerifications", processId)
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {});
+
+        assertNotNull(verificationIds);
+        assertFalse(verificationIds.isEmpty());
+
+        final String userId = "mockuser_" + clientId; // this is logic of MockOnboardingProvider#userLookup
+
+        final AcknowledgeEvaluationClientRequest request = new AcknowledgeEvaluationClientRequest(
+                processId,
+                userId,
+                verificationIds.get(0),
+                AcknowledgeEvaluationClientRequest.EvaluationResult.OK,
+                null);
+
+        final AcknowledgeEvaluationClientResponse result = restClient.post()
+                .uri(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/private/client/evaluate")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .retrieve()
+                .body(AcknowledgeEvaluationClientResponse.class);
+
+        assertNotNull(result);
+        assertEquals(AcknowledgeEvaluationClientResponse.Result.OK, result.result(), "Error message: " + result.resultReason());
+    }
+
+    private static void approveClient(final TestContext ctx, final String processId, String clientId) {
         assertIdentityVerificationStateWithRetries(ctx,
                 new IdentityVerificationState(IdentityVerificationPhase.ONBOARDING_APPROVAL, IdentityVerificationStatus.IN_PROGRESS));
 
@@ -262,6 +301,18 @@ public class PowerAuthIdentityVerificationShared {
                 .getActivationId();
     }
 
+    private static void processDocumentsSynchronous(final TestProcessContext processCtx, final TestContext ctx) throws Exception {
+        processDocuments(processCtx, ctx);
+        assertIdentityVerificationStateWithRetries(ctx,
+                new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED));
+    }
+
+    private static void processDocumentsAsynchronous(final TestProcessContext processCtx, final TestContext ctx) throws Exception {
+        processDocuments(processCtx, ctx);
+        assertIdentityVerificationStateWithRetries(ctx,
+                new IdentityVerificationState(IdentityVerificationPhase.CLIENT_EVALUATION, IdentityVerificationStatus.IN_PROGRESS));
+    }
+
     private static void processDocuments(final TestProcessContext processCtx, final TestContext ctx) throws Exception {
         final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
@@ -289,9 +340,6 @@ public class PowerAuthIdentityVerificationShared {
         submitDocuments(ctx, driveLicenseSubmitRequest);
 
         assertStatusOfSubmittedDocsWithRetries(ctx, processId, idCardSubmits.size() + drivingLicenseSubmits.size(), DocumentStatus.ACCEPTED);
-
-        assertIdentityVerificationStateWithRetries(ctx,
-                new IdentityVerificationState(IdentityVerificationPhase.PRESENCE_CHECK, IdentityVerificationStatus.NOT_INITIALIZED));
     }
 
     private static void processDocumentsV2(final TestProcessContext processCtx, final TestContext ctx) throws Exception {
@@ -360,7 +408,7 @@ public class PowerAuthIdentityVerificationShared {
         final String processId = processCtx.processId;
 
         approveConsent(ctx, processId);
-        processDocuments(processCtx, ctx);
+        processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
         submitPresenceCheck(ctx, processId);
@@ -381,7 +429,7 @@ public class PowerAuthIdentityVerificationShared {
         final String processId = processCtx.processId;
 
         approveConsent(ctx, processId);
-        processDocuments(processCtx, ctx);
+        processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
         submitPresenceCheck(ctx, processId);
@@ -660,7 +708,7 @@ public class PowerAuthIdentityVerificationShared {
         final String processId = processCtx.processId;
 
         approveConsent(ctx, processId);
-        processDocuments(processCtx, ctx);
+        processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
         submitPresenceCheck(ctx, processId);
@@ -686,7 +734,7 @@ public class PowerAuthIdentityVerificationShared {
         approveConsent(ctx, processId);
 
         // 1st identity verification
-        processDocuments(processCtx, ctx);
+        processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
         submitPresenceCheck(ctx, processId);
@@ -701,7 +749,7 @@ public class PowerAuthIdentityVerificationShared {
         }
 
         // 2nd identity verification
-        processDocuments(processCtx, ctx);
+        processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
         submitPresenceCheck(ctx, processId);
