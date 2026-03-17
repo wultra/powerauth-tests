@@ -92,7 +92,9 @@ public class ActivationService extends BaseService {
         // TODO - input validation
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
-        final PowerAuthVersion version = PowerAuthVersion.fromValue(request.getProtocolVersion());
+        final PowerAuthVersion version = PowerAuthVersion.fromValue(
+                request.getProtocolVersion() != null ? request.getProtocolVersion() : config.getVersion()
+        );
         final SharedSecretAlgorithm algorithm = resolveSharedSecretAlgorithm(request, version);
 
         if (version.getMajorVersion() == 3 && algorithm != SharedSecretAlgorithm.EC_P256) {
