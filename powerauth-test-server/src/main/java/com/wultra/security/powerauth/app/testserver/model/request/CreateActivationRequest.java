@@ -38,6 +38,6 @@ public class CreateActivationRequest {
     private boolean confirmActivation = true;
     private boolean enableBiometry = true;
     private String algorithm;
-    private Long version;
+    private String protocolVersion;
 
 }
