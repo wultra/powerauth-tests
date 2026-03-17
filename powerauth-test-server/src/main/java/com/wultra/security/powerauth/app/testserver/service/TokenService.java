@@ -29,9 +29,10 @@ import com.wultra.security.powerauth.app.testserver.model.request.ComputeTokenDi
 import com.wultra.security.powerauth.app.testserver.model.request.CreateTokenRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeTokenDigestResponse;
 import com.wultra.security.powerauth.app.testserver.model.response.CreateTokenResponse;
+import com.wultra.security.powerauth.app.testserver.util.PowerAuthVersionService;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
-import com.wultra.security.powerauth.app.testserver.util.VersionCheckService;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.CreateTokenStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyTokenStep;
@@ -60,7 +61,7 @@ public class TokenService extends BaseService {
     private final ResultStatusService resultStatusUtil;
     private final CreateTokenStep createTokenStep;
     private final VerifyTokenStep verifyTokenStep;
-    private final VersionCheckService versionCheckService;
+    private final PowerAuthVersionService powerAuthVersionService;
 
     /**
      * Service constructor.
@@ -69,16 +70,16 @@ public class TokenService extends BaseService {
      * @param resultStatusUtil Result status utilities.
      * @param createTokenStep Create token step.
      * @param verifyTokenStep Verify token step.
-     * @param versionCheckService Version check service.
+     * @param powerAuthVersionService PowerAuth version mapping service.
      */
     @Autowired
-    public TokenService(TestServerConfiguration config, TestConfigRepository testConfigRepository, ResultStatusService resultStatusUtil, CreateTokenStep createTokenStep, VerifyTokenStep verifyTokenStep, VersionCheckService versionCheckService) {
+    public TokenService(TestServerConfiguration config, TestConfigRepository testConfigRepository, ResultStatusService resultStatusUtil, CreateTokenStep createTokenStep, VerifyTokenStep verifyTokenStep, PowerAuthVersionService powerAuthVersionService) {
         super(testConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
         this.createTokenStep = createTokenStep;
         this.verifyTokenStep = verifyTokenStep;
-        this.versionCheckService = versionCheckService;
+        this.powerAuthVersionService = powerAuthVersionService;
     }
 
     /**
@@ -96,8 +97,7 @@ public class TokenService extends BaseService {
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
         final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
-
-        versionCheckService.checkVersion(resultStatus);
+        final PowerAuthVersion version = powerAuthVersionService.mapVersionToProtocol(resultStatus.getVersion());
 
         PowerAuthCodeType authCodeType = AuthenticationCodeTypeConverter.convert(request.getAuthenticationCodeType() != null
                 ? request.getAuthenticationCodeType()
@@ -111,7 +111,7 @@ public class TokenService extends BaseService {
         model.setApplicationSecret(appConfig.getApplicationSecret());
         model.setPassword(request.getPassword());
         model.setAuthenticationCodeType(authCodeType);
-        model.setVersion(config.getVersion());
+        model.setVersion(version);
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatus(resultStatus);
 
@@ -155,14 +155,13 @@ public class TokenService extends BaseService {
     public ComputeTokenDigestResponse computeTokenDigest(ComputeTokenDigestRequest request) throws RemoteExecutionException, ActivationFailedException, GenericCryptographyException {
 
         final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
-
-        versionCheckService.checkVersion(resultStatus);
+        final PowerAuthVersion version = powerAuthVersionService.mapVersionToProtocol(resultStatus.getVersion());
 
         final VerifyTokenStepModel model = new VerifyTokenStepModel();
         model.setTokenId(request.getTokenId());
         model.setTokenSecret(request.getTokenSecret());
         model.setHttpMethod("POST");
-        model.setVersion(config.getVersion());
+        model.setVersion(version);
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatus(resultStatus);
         model.setDryRun(true);
