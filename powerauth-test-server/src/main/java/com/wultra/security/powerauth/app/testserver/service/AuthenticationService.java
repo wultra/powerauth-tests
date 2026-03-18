@@ -29,8 +29,8 @@ import com.wultra.security.powerauth.app.testserver.model.request.ComputeOffline
 import com.wultra.security.powerauth.app.testserver.model.request.ComputeOnlineAuthRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOfflineAuthResponse;
 import com.wultra.security.powerauth.app.testserver.model.response.ComputeOnlineAuthResponse;
+import com.wultra.security.powerauth.app.testserver.util.PowerAuthVersionService;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
-import com.wultra.security.powerauth.app.testserver.util.VersionCheckService;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.ComputeOfflineAuthenticationStep;
@@ -57,9 +57,9 @@ public class AuthenticationService extends BaseService {
 
     private final TestServerConfiguration config;
     private final ResultStatusService resultStatusUtil;
-    private final VerifyAuthenticationStep VerifyAuthenticationStep;
+    private final VerifyAuthenticationStep verifyAuthenticationStep;
     private final ComputeOfflineAuthenticationStep computeOfflineSignatureStep;
-    private final VersionCheckService versionCheckService;
+    private final PowerAuthVersionService powerAuthVersionService;
 
     /**
      * Service constructor.
@@ -68,16 +68,16 @@ public class AuthenticationService extends BaseService {
      * @param resultStatusUtil Result status utilities.
      * @param verifyAuthenticationStep Verify signature step.
      * @param computeOfflineSignatureStep Compute offline signature step.
-     * @param versionCheckService Version check service.
+     * @param powerAuthVersionService PowerAuth version mapping service.
      */
     @Autowired
-    public AuthenticationService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, VerifyAuthenticationStep verifyAuthenticationStep, ComputeOfflineAuthenticationStep computeOfflineSignatureStep, VersionCheckService versionCheckService) {
+    public AuthenticationService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, VerifyAuthenticationStep verifyAuthenticationStep, ComputeOfflineAuthenticationStep computeOfflineSignatureStep, PowerAuthVersionService powerAuthVersionService) {
         super(appConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
-        this.VerifyAuthenticationStep = verifyAuthenticationStep;
+        this.verifyAuthenticationStep = verifyAuthenticationStep;
         this.computeOfflineSignatureStep = computeOfflineSignatureStep;
-        this.versionCheckService = versionCheckService;
+        this.powerAuthVersionService = powerAuthVersionService;
     }
 
     /**
@@ -94,8 +94,7 @@ public class AuthenticationService extends BaseService {
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
         final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
-
-        versionCheckService.checkVersion(resultStatus);
+        final PowerAuthVersion version = powerAuthVersionService.mapVersionToProtocol(resultStatus.getVersion());
 
         final VerifyAuthenticationStepModel model = new VerifyAuthenticationStepModel();
         model.setHttpMethod(request.getHttpMethod());
@@ -107,7 +106,7 @@ public class AuthenticationService extends BaseService {
             model.setData(Base64.getDecoder().decode(request.getRequestBody()));
         }
         model.setPassword(request.getPassword());
-        model.setVersion(config.getVersion());
+        model.setVersion(version);
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatus(resultStatus);
         model.setApplicationKey(appConfig.getApplicationKey());
@@ -117,7 +116,7 @@ public class AuthenticationService extends BaseService {
         final ObjectStepLogger stepLogger;
         try {
             stepLogger = new ObjectStepLogger();
-            VerifyAuthenticationStep.execute(stepLogger, model.toMap());
+            verifyAuthenticationStep.execute(stepLogger, model.toMap());
             stepLogger.getItems()
                     .forEach(item -> StepItemLogger.log(logger, item));
         } catch (Exception ex) {
@@ -134,7 +133,7 @@ public class AuthenticationService extends BaseService {
                 .findAny();
 
         if (authHeader.isPresent()) {
-            resultStatusUtil.incrementCounter(request.getActivationId(), PowerAuthVersion.fromValue(config.getVersion()));
+            resultStatusUtil.incrementCounter(request.getActivationId(), version);
         }
 
         final ComputeOnlineAuthResponse response = new ComputeOnlineAuthResponse();
@@ -153,13 +152,12 @@ public class AuthenticationService extends BaseService {
     public ComputeOfflineAuthResponse computeOfflineAuth(ComputeOfflineAuthRequest request) throws RemoteExecutionException, ActivationFailedException, GenericCryptographyException {
 
         final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
-
-        versionCheckService.checkVersion(resultStatus);
+        final PowerAuthVersion version = powerAuthVersionService.mapVersionToProtocol(resultStatus.getVersion());
 
         final ComputeOfflineAuthenticationStepModel model = new ComputeOfflineAuthenticationStepModel();
         model.setQrCodeData(request.getQrCodeData());
         model.setPassword(request.getPassword());
-        model.setVersion(config.getVersion());
+        model.setVersion(version);
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatus(resultStatus);
 
@@ -182,7 +180,7 @@ public class AuthenticationService extends BaseService {
                 .findAny();
 
         if (otpCode.isPresent()) {
-            resultStatusUtil.incrementCounter(request.getActivationId(), PowerAuthVersion.fromValue(config.getVersion()));
+            resultStatusUtil.incrementCounter(request.getActivationId(), version);
         }
 
         final ComputeOfflineAuthResponse response = new ComputeOfflineAuthResponse();

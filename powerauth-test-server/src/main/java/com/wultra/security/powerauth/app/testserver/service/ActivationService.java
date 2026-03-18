@@ -24,6 +24,7 @@ import com.wultra.security.powerauth.app.testserver.database.entity.TestConfigEn
 import com.wultra.security.powerauth.app.testserver.errorhandling.*;
 import com.wultra.security.powerauth.app.testserver.model.request.CreateActivationRequest;
 import com.wultra.security.powerauth.app.testserver.model.response.CreateActivationResponse;
+import com.wultra.security.powerauth.app.testserver.util.PowerAuthVersionService;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
@@ -59,6 +60,7 @@ public class ActivationService extends BaseService {
     private final ResultStatusService resultStatusUtil;
     private final PrepareActivationStep prepareActivationStep;
     private final ConfirmActivationStep confirmActivationStep;
+    private final PowerAuthVersionService powerAuthVersionService;
 
     /**
      * Service constructor.
@@ -66,14 +68,16 @@ public class ActivationService extends BaseService {
      * @param appConfigRepository Test application configuration repository.
      * @param resultStatusUtil Result status utilities.
      * @param prepareActivationStep Prepare activation step.
+     * @param powerAuthVersionService PowerAuth version mapping service.
      */
     @Autowired
-    public ActivationService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, PrepareActivationStep prepareActivationStep, ConfirmActivationStep confirmActivationStep) {
+    public ActivationService(TestServerConfiguration config, TestConfigRepository appConfigRepository, ResultStatusService resultStatusUtil, PrepareActivationStep prepareActivationStep, ConfirmActivationStep confirmActivationStep, PowerAuthVersionService powerAuthVersionService) {
         super(appConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
         this.prepareActivationStep = prepareActivationStep;
         this.confirmActivationStep = confirmActivationStep;
+        this.powerAuthVersionService = powerAuthVersionService;
     }
 
     /**
@@ -88,10 +92,12 @@ public class ActivationService extends BaseService {
         // TODO - input validation
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
-        final PowerAuthVersion version = PowerAuthVersion.fromValue(config.getVersion());
+        final PowerAuthVersion version = PowerAuthVersion.fromValue(
+                request.getProtocolVersion() != null ? request.getProtocolVersion() : config.getVersion()
+        );
         final SharedSecretAlgorithm algorithm = resolveSharedSecretAlgorithm(request, version);
 
-        if (config.getVersion().startsWith("3") && algorithm != SharedSecretAlgorithm.EC_P256) {
+        if (version.getMajorVersion() == 3 && algorithm != SharedSecretAlgorithm.EC_P256) {
             throw new AppConfigInvalidException("PowerAuth protocol version 3 does not support algorithm " + algorithm);
         }
 
@@ -123,7 +129,7 @@ public class ActivationService extends BaseService {
         model.setPassword(request.getPassword());
         model.setResultStatus(resultStatusObject);
         model.setUriString(config.getEnrollmentServiceUrl());
-        model.setVersion(config.getVersion());
+        model.setVersion(version);
         model.setDeviceInfo("backend-tests");
         model.setAdditionalActivationOtp(request.getActivationOtp());
 
@@ -150,7 +156,7 @@ public class ActivationService extends BaseService {
 
         boolean confirmed = false;
 
-        if (config.getVersion().startsWith("4") && request.isConfirmActivation()) {
+        if (version.getMajorVersion() == 4 && request.isConfirmActivation()) {
             final ConfirmActivationStepModel confirmModel = new ConfirmActivationStepModel();
             confirmModel.setApplicationKey(appConfig.getApplicationKey());
             confirmModel.setApplicationSecret(appConfig.getApplicationSecret());
@@ -158,7 +164,7 @@ public class ActivationService extends BaseService {
             confirmModel.setPassword(request.getPassword());
             confirmModel.setResultStatus(resultStatusObject);
             confirmModel.setUriString(config.getEnrollmentServiceUrl());
-            confirmModel.setVersion(config.getVersion());
+            confirmModel.setVersion(version);
             confirmModel.setEnableBiometry(request.isEnableBiometry());
 
             final ObjectStepLogger stepLoggerConfirm;
@@ -167,7 +173,7 @@ public class ActivationService extends BaseService {
                 confirmActivationStep.execute(stepLoggerConfirm, confirmModel.toMap());
                 stepLoggerConfirm.getItems().forEach(item -> StepItemLogger.log(logger, item));
 
-                resultStatusUtil.incrementCounter(activationId, PowerAuthVersion.fromValue(config.getVersion()));
+                resultStatusUtil.incrementCounter(activationId, version);
 
                 confirmed = true;
             } catch (Exception ex) {

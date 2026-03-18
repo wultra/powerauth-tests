@@ -33,9 +33,10 @@ import com.wultra.security.powerauth.app.testserver.model.converter.Authenticati
 import com.wultra.security.powerauth.app.testserver.model.request.GetOperationsRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationApproveInternalRequest;
 import com.wultra.security.powerauth.app.testserver.model.request.OperationRejectInternalRequest;
+import com.wultra.security.powerauth.app.testserver.util.PowerAuthVersionService;
 import com.wultra.security.powerauth.app.testserver.util.StepItemLogger;
-import com.wultra.security.powerauth.app.testserver.util.VersionCheckService;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
@@ -69,8 +70,8 @@ public class OperationsService extends BaseService {
     private final TestServerConfiguration config;
     private final ResultStatusService resultStatusUtil;
     private final VerifyTokenStep verifyTokenStep;
-    private final VerifyAuthenticationStep VerifyAuthenticationStep;
-    private final VersionCheckService versionCheckService;
+    private final VerifyAuthenticationStep verifyAuthenticationStep;
+    private final PowerAuthVersionService powerAuthVersionService;
 
     /**
      * Service constructor.
@@ -78,17 +79,17 @@ public class OperationsService extends BaseService {
      * @param resultStatusUtil Result status utilities.
      * @param appConfigRepository Test application configuration repository.
      * @param verifyTokenStep Step for verifying a token.
-     * @param VerifyAuthenticationStep Step for verifying signature.
-     * @param versionCheckService Version check service.
+     * @param verifyAuthenticationStep Step for verifying signature.
+     * @param powerAuthVersionService PowerAuth version mapping service.
      */
     @Autowired
-    public OperationsService(TestServerConfiguration config, ResultStatusService resultStatusUtil, TestConfigRepository appConfigRepository, VerifyTokenStep verifyTokenStep, VerifyAuthenticationStep VerifyAuthenticationStep, VersionCheckService versionCheckService) {
+    public OperationsService(TestServerConfiguration config, ResultStatusService resultStatusUtil, TestConfigRepository appConfigRepository, VerifyTokenStep verifyTokenStep, VerifyAuthenticationStep verifyAuthenticationStep, PowerAuthVersionService powerAuthVersionService) {
         super(appConfigRepository);
         this.config = config;
         this.resultStatusUtil = resultStatusUtil;
         this.verifyTokenStep = verifyTokenStep;
-        this.VerifyAuthenticationStep = VerifyAuthenticationStep;
-        this.versionCheckService = versionCheckService;
+        this.verifyAuthenticationStep = verifyAuthenticationStep;
+        this.powerAuthVersionService = powerAuthVersionService;
     }
 
 
@@ -104,15 +105,14 @@ public class OperationsService extends BaseService {
      */
     public OperationListResponse getOperations(GetOperationsRequest request) throws RemoteExecutionException, RestClientException, SignatureVerificationException, ActivationFailedException, GenericCryptographyException {
         final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
-
-        versionCheckService.checkVersion(resultStatus);
+        final PowerAuthVersion version = powerAuthVersionService.mapVersionToProtocol(resultStatus.getVersion());
 
         final VerifyTokenStepModel model = new VerifyTokenStepModel();
         model.setTokenId(request.getTokenId());
         model.setTokenSecret(request.getTokenSecret());
         model.setDryRun(true);
         model.setHttpMethod("POST");
-        model.setVersion(config.getVersion());
+        model.setVersion(version);
         model.setUriString(config.getEnrollmentServiceUrl());
         model.setResultStatus(resultStatus);
 
@@ -165,8 +165,7 @@ public class OperationsService extends BaseService {
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
         final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
-
-        versionCheckService.checkVersion(resultStatus);
+        final PowerAuthVersion version = powerAuthVersionService.mapVersionToProtocol(resultStatus.getVersion());
 
         final Map<String, Object> map = new HashMap<>();
         map.put("id", request.getOperationId());
@@ -192,7 +191,7 @@ public class OperationsService extends BaseService {
                 ? request.getAuthenticationCodeType()
                 : request.getSignatureType()));
         model.setPassword(request.getPassword());
-        model.setVersion(config.getVersion());
+        model.setVersion(version);
         model.setResultStatus(resultStatus);
 
         verifySignature(model, resultStatus);
@@ -214,8 +213,7 @@ public class OperationsService extends BaseService {
         final String applicationId = request.getApplicationId();
         final TestConfigEntity appConfig = getTestAppConfig(applicationId);
         final ResultStatusObject resultStatus = resultStatusUtil.getTestStatus(request.getActivationId());
-
-        versionCheckService.checkVersion(resultStatus);
+        final PowerAuthVersion version = powerAuthVersionService.mapVersionToProtocol(resultStatus.getVersion());
 
         final String operationId = request.getOperationId();
         final String reason = request.getReason();
@@ -242,7 +240,7 @@ public class OperationsService extends BaseService {
         model.setApplicationKey(appConfig.getApplicationKey());
         model.setApplicationSecret(appConfig.getApplicationSecret());
         model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION);
-        model.setVersion(config.getVersion());
+        model.setVersion(version);
         model.setResultStatus(resultStatus);
 
         verifySignature(model, resultStatus);
@@ -255,7 +253,7 @@ public class OperationsService extends BaseService {
         final ObjectStepLogger stepLogger;
         try {
             stepLogger = new ObjectStepLogger();
-            VerifyAuthenticationStep.execute(stepLogger, model.toMap());
+            verifyAuthenticationStep.execute(stepLogger, model.toMap());
             stepLogger.getItems()
                     .forEach(item -> StepItemLogger.log(logger, item));
         } catch (Exception ex) {
