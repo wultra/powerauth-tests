@@ -1159,7 +1159,6 @@ public class PowerAuthIdentityVerificationShared {
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
         final IdentityVerificationStatusResponse response = convertValue(ctx.objectMapper, stepLogger, new TypeReference<>() {});
-        System.out.println("rejectReason: " + response.getRejectReason());
         final IdentityVerificationState idState = new IdentityVerificationState(
                 response.getIdentityVerificationPhase(),
                 response.getIdentityVerificationStatus());
