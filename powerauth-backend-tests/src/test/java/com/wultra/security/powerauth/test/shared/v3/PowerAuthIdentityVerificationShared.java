@@ -511,6 +511,7 @@ public class PowerAuthIdentityVerificationShared {
         );
         DocumentSubmitRequest idCardSubmitRequest = createDocumentSubmitRequest(processId, idCardSubmits);
         submitDocuments(ctx, idCardSubmitRequest);
+        assertStatusOfSubmittedDocsWithRetries(ctx, processId, idCardSubmits.size(), DocumentStatus.ACCEPTED);
 
         final List<FileSubmit> drivingLicenseSubmits = List.of(
                 FileSubmit.createFrom("images/driving_license_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)
