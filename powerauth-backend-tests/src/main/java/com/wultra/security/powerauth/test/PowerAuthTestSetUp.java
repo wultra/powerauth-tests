@@ -154,6 +154,7 @@ public class PowerAuthTestSetUp {
         config.setMasterPublicKeyP256(sdkConfiguration.masterPublicKeyP256());
         config.setMasterPublicKeyP384(sdkConfiguration.masterPublicKeyP384());
         config.setMasterPublicKeyMlDsa65(sdkConfiguration.masterPublicKeyMlDsa65());
+        config.setMasterPublicKeyMlDsa87(sdkConfiguration.masterPublicKeyMlDsa87());
     }
 
     private void createActivation(PowerAuthVersion version) throws Exception {

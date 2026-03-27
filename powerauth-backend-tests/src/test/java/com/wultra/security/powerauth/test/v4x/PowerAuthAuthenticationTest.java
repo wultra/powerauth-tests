@@ -63,4 +63,14 @@ class PowerAuthAuthenticationTest {
         PowerAuthApiShared.verifyAuthenticationTest(powerAuthClient, config, VERSION);
     }
 
+    @Test
+    void unlockVaultAndECDSASignatureTest() throws Exception {
+        PowerAuthApiShared.unlockVaultAndECDSASignatureTest(powerAuthClient, config, VERSION);
+    }
+
+    @Test
+    void createValidateAndRemoveTokenTestActiveActivation() throws Exception {
+        PowerAuthApiShared.createValidateAndRemoveTokenTestActiveActivation(powerAuthClient, config, VERSION);
+    }
+
 }

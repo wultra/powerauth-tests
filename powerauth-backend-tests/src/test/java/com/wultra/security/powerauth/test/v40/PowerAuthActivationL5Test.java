@@ -49,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-class PowerAuthActivationTest {
+class PowerAuthActivationL5Test {
 
     private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
@@ -79,13 +79,13 @@ class PowerAuthActivationTest {
         model.setApplicationKey(config.getApplicationKey());
         model.setApplicationSecret(config.getApplicationSecret());
         model.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
-        model.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
+        model.setMasterPublicKeyMlDsa87(config.getMasterPublicKeyMlDsa87());
         model.setHeaders(new HashMap<>());
         model.setPassword(config.getPassword());
         model.setStatusFileName(tempStatusFile.getAbsolutePath());
         model.setResultStatusObject(new JSONObject());
         model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
+        model.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L5);
         model.setVersion(VERSION);
         model.setDeviceInfo("backend-tests");
     }
