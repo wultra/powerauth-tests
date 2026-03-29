@@ -190,14 +190,14 @@ public class PowerAuthApiShared {
         final String testData = "test_data";
 
         final SecretKey vaultUnlockKekDevicePrivate = KEY_CONVERTOR_EC.convertBytesToSharedSecretKey(vaultUnlockKekDevicePrivateBytes);
-        final byte[] encryptedEcDevicePrivateKeyBytes = Base64.getDecoder().decode(model.getResultStatus().getEncryptedEcDevicePrivateKeyBytes());
+        final byte[] encryptedEcDevicePrivateKeyBytes = model.getResultStatus().getEncryptedEcDevicePrivateKeyBytes();
         final PrivateKey ecDevicePrivateKey = CLIENT_VAULT.decryptEcDevicePrivateKey(encryptedEcDevicePrivateKeyBytes, vaultUnlockKekDevicePrivate);
         final byte[] signatureEc = SIGNATURE_UTILS.computeECDSASignature(EcCurve.P384, testData.getBytes(StandardCharsets.UTF_8), ecDevicePrivateKey);
         final VerifyAsymmetricSignatureResponse ecdsaResponse = powerAuthClient.verifyAsymmetricSignature(config.getActivationId(version),
                 Base64.getEncoder().encodeToString(testData.getBytes(StandardCharsets.UTF_8)), Base64.getEncoder().encodeToString(signatureEc));
         assertTrue(ecdsaResponse.isSignatureValid());
 
-        final byte[] encryptedPqcDevicePrivateKeyBytes = Base64.getDecoder().decode(model.getResultStatus().getEncryptedPqcDevicePrivateKeyBytes());
+        final byte[] encryptedPqcDevicePrivateKeyBytes = model.getResultStatus().getEncryptedPqcDevicePrivateKeyBytes();
         final PrivateKey pqcDevicePrivateKey = CLIENT_VAULT.decryptPqcDevicePrivateKey(encryptedPqcDevicePrivateKeyBytes, vaultUnlockKekDevicePrivate);
         final byte[] signaturePqc = PQC_DSA.sign(pqcDevicePrivateKey, testData.getBytes(StandardCharsets.UTF_8));
         final VerifyAsymmetricSignatureRequest verifyPqcRequest = new VerifyAsymmetricSignatureRequest();
