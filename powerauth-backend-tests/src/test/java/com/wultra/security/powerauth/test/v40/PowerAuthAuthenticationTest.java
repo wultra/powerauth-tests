@@ -219,5 +219,14 @@ class PowerAuthAuthenticationTest {
         PowerAuthAuthenticationShared.authOfflineNonPersonalizedInvalidTest(powerAuthClient, config, model, stepLogger, VERSION);
     }
 
+    @Test
+    void testSignatureOfflinePersonalizedProximityCheckValid() throws Exception {
+        PowerAuthAuthenticationShared.testAuthOfflinePersonalizedProximityCheckValid(powerAuthClient, config, model, stepLogger, VERSION);
+    }
+
+    @Test
+    void testSignatureOfflinePersonalizedProximityCheckInvalid() throws Exception {
+        PowerAuthAuthenticationShared.testAuthOfflinePersonalizedProximityCheckInvalid(powerAuthClient, config, model, stepLogger, VERSION);
+    }
 
 }
