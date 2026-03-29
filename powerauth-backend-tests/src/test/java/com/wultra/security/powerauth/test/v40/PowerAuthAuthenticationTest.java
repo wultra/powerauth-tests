@@ -199,4 +199,25 @@ class PowerAuthAuthenticationTest {
         PowerAuthAuthenticationShared.authInvalidResourceIdTest(config, model, stepLogger);
     }
 
+    @Test
+    void authOfflinePersonalizedValidTest() throws Exception {
+        PowerAuthAuthenticationShared.authOfflinePersonalizedValidTest(powerAuthClient, config, model, stepLogger, VERSION);
+    }
+
+    @Test
+    void authOfflinePersonalizedInvalidTest() throws Exception {
+        PowerAuthAuthenticationShared.authOfflinePersonalizedInvalidTest(powerAuthClient, config, model, stepLogger, VERSION);
+    }
+
+    @Test
+    void authOfflineNonPersonalizedValidTest() throws Exception {
+        PowerAuthAuthenticationShared.authOfflineNonPersonalizedValidTest(powerAuthClient, config, model, stepLogger, VERSION);
+    }
+
+    @Test
+    void authOfflineNonPersonalizedInvalidTest() throws Exception {
+        PowerAuthAuthenticationShared.authOfflineNonPersonalizedInvalidTest(powerAuthClient, config, model, stepLogger, VERSION);
+    }
+
+
 }

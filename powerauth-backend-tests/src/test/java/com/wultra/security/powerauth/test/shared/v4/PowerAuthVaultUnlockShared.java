@@ -222,7 +222,7 @@ public class PowerAuthVaultUnlockShared {
 
         // Verify EC signature
         final byte[] requestBytes = "Confidential test message used for testing".getBytes(StandardCharsets.UTF_8);
-        final String ecDevicePublicKeyBase64 = (String) config.getResultStatusObject(version).get("ecDevicePublicKey");
+        final String ecDevicePublicKeyBase64 = model.getResultStatus().getEcDevicePublicKey();
         assertNotNull(ecDevicePublicKeyBase64);
         final byte[] ecDevicePublicKeyBytes = Base64.getDecoder().decode(ecDevicePublicKeyBase64);
         final PublicKey ecDevicePublicKey = KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, ecDevicePublicKeyBytes);
@@ -237,7 +237,7 @@ public class PowerAuthVaultUnlockShared {
         assertNotNull(signaturePqc);
         final byte[] signaturePqcBytes = Base64.getDecoder().decode(signaturePqc);
 
-        final String pqcDevicePublicKeyBase64 = (String) config.getResultStatusObject(version).get("pqcDevicePublicKey");
+        final String pqcDevicePublicKeyBase64 = model.getResultStatus().getPqcDevicePublicKey();
         assertNotNull(pqcDevicePublicKeyBase64);
         final byte[] pqcDevicePublicKeyBytes = Base64.getDecoder().decode(pqcDevicePublicKeyBase64);
         final PublicKey pqcDevicePublicKey = KEY_CONVERTOR_PQC.convertBytesToPublicKey(pqcDevicePublicKeyBytes);

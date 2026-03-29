@@ -21,31 +21,54 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.response.CommitActivationResponse;
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
+import com.wultra.security.powerauth.client.model.response.v4.CreateNonPersonalizedOfflineAuthPayloadResponse;
+import com.wultra.security.powerauth.client.model.response.v4.CreatePersonalizedOfflineAuthPayloadResponse;
 import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatusResponse;
+import com.wultra.security.powerauth.client.model.response.v4.VerifyOfflineAuthenticationResponse;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.config.AuthenticationCodeConfiguration;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
+import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
+import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
+import com.wultra.security.powerauth.crypto.lib.util.AuthenticationCodeUtils;
+import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
+import com.wultra.security.powerauth.crypto.lib.v4.kdf.Kmac;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import com.wultra.security.powerauth.http.PowerAuthHttpBody;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationStepModel;
+import com.wultra.security.powerauth.lib.cmd.util.CounterUtil;
+import com.wultra.security.powerauth.lib.cmd.util.EncryptedStorageUtil;
 import com.wultra.security.powerauth.util.TestCounterUtil;
 import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
 import org.json.simple.JSONObject;
 
+import javax.crypto.SecretKey;
 import java.io.File;
 import java.io.FileWriter;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -55,6 +78,18 @@ import static org.junit.jupiter.api.Assertions.*;
  * @author Roman Strobl, roman.strobl@wultra.com
  */
 public class PowerAuthAuthenticationShared {
+
+    private static final AuthenticationCodeUtils AUTHENTICATION_CODE_UTILS = new AuthenticationCodeUtils();
+    private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
+
+    // Data for offline authentication
+    private static final String operationId = "5ff1b1ed-a3cc-45a3-8ab0-ed60950312b6";
+    private static final String operationData = "A1*A100CZK*ICZ2730300000001165254011*D20180425";
+    private static final String title = "Payment";
+    private static final String message = "Please confirm this payment";
+    private static final String flags = "B";
+    private static final String offlineData = operationId + "\n" + title + "\n" + message + "\n" + operationData + "\n" + flags;
+    private static final byte[] KMAC_OFFLINE_SIGNATURE_CUSTOM_BYTES = "PA4MAC-QR".getBytes(StandardCharsets.UTF_8);
 
     public static void authValidTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
@@ -471,8 +506,269 @@ public class PowerAuthAuthenticationShared {
         model.setResourceId("/pa/auth/validate");
     }
 
+
+    public static void authOfflinePersonalizedValidTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, VerifyAuthenticationStepModel model, ObjectStepLogger stepLogger, PowerAuthVersion version) throws GenericCryptoException, InvalidKeyException, CryptoProviderException, PowerAuthClientException {
+        final CreatePersonalizedOfflineAuthPayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineAuthPayload(
+                config.getActivationId(version),
+                offlineData
+        );
+        final String nonce = offlineResponse.getNonce();
+        final String offlineData = offlineResponse.getOfflineData();
+
+        // Split the offline data into individual lines
+        final String[] parts = offlineData.split("\n");
+
+        // Extract the last line which contains information about key and KMAC tag
+        final String lastLine = parts[parts.length-1];
+
+        // 2 = KEY_MAC_PERSONALIZED_DATA was used to sign data (KMAC tag)
+        assertEquals("2", lastLine.substring(0, 1));
+
+        // The remainder of the last line is Base64 encoded KMAC tag
+        final String kmacTag = lastLine.substring(1);
+        final byte[] kmacTagBytes = Base64.getDecoder().decode(kmacTag);
+
+        // Prepare offline data without tag
+        final String offlineDataWithoutTag = offlineData.substring(0, offlineData.length() - kmacTag.length());
+
+        // Validate KMAC tag
+        final String macPersonalisedDataKeyBase64 = model.getResultStatus().getMacPersonalizedDataKey();
+        final byte[] keyMacPersonalisedData = Base64.getDecoder().decode(macPersonalisedDataKeyBase64);
+        final byte[] kmacTagCalculated = Kmac.kmac256(
+                keyMacPersonalisedData,
+                offlineDataWithoutTag.getBytes(StandardCharsets.UTF_8),
+                KMAC_OFFLINE_SIGNATURE_CUSTOM_BYTES,
+                32
+        );
+        assertArrayEquals(kmacTagBytes, kmacTagCalculated);
+
+        // Prepare data for PowerAuth authentication
+        final String dataForAuthentication = operationId + "&" + operationData;
+
+        // Prepare normalized data for authentication
+        final String autheBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForAuthentication.getBytes(StandardCharsets.UTF_8));
+
+        // Prepare keys
+        final byte[] knowledgeFactorKeySalt = model.getResultStatus().getKnowledgeFactorKeySaltBytes();
+        final byte[] knowledgeFactorKeyEncryptedBytes = model.getResultStatus().getKnowledgeFactorKeyEncryptedBytes();
+
+        // Get the signature keys
+        final SecretKey possessionFactorKey = model.getResultStatus().getPossessionFactorKeyObject();
+        final SecretKey knowledgeFactorKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), knowledgeFactorKeyEncryptedBytes, knowledgeFactorKeySalt, new KeyGenerator());
+
+        // Put keys into a list
+        final List<SecretKey> factorKeys = new ArrayList<>();
+        factorKeys.add(possessionFactorKey);
+        factorKeys.add(knowledgeFactorKey);
+
+        // Calculate auth code of normalized auth base string with 'offline' as application secret
+        final String authCode = AUTHENTICATION_CODE_UTILS.computeAuthCode((autheBaseString + "&offline").getBytes(StandardCharsets.UTF_8), factorKeys, TestCounterUtil.getCtrData(model.getResultStatus()), AuthenticationCodeConfiguration.decimal());
+
+        final VerifyOfflineAuthenticationResponse authResponse = powerAuthClient.verifyOfflineAuthentication(config.getActivationId(version), autheBaseString, authCode, true);
+        assertTrue(authResponse.isAuthenticationValid());
+        assertEquals(config.getActivationId(version), authResponse.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, authResponse.getActivationStatus());
+        assertEquals(BigInteger.valueOf(5), authResponse.getRemainingAttempts());
+        assertEquals(AuthenticationCodeType.POSSESSION_KNOWLEDGE, authResponse.getAuthenticationCodeType());
+        assertEquals(config.getApplicationId(), authResponse.getApplicationId());
+
+        // Increment counter
+        CounterUtil.incrementCounter(model.getResultStatus());
+    }
+
+    public static void authOfflinePersonalizedInvalidTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, VerifyAuthenticationStepModel model, ObjectStepLogger stepLogger, PowerAuthVersion version) throws PowerAuthClientException, GenericCryptoException, InvalidKeyException, CryptoProviderException {
+        final CreatePersonalizedOfflineAuthPayloadResponse offlineResponse = powerAuthClient.createPersonalizedOfflineAuthPayload(
+                config.getActivationId(version),
+                offlineData
+        );
+        final String nonce = offlineResponse.getNonce();
+        final String offlineData = offlineResponse.getOfflineData();
+
+        // Split the offline data into individual lines
+        final String[] parts = offlineData.split("\n");
+
+        // Extract the last line which contains information about key and KMAC tag
+        final String lastLine = parts[parts.length-1];
+
+        // 2 = KEY_MAC_PERSONALIZED_DATA was used to sign data (KMAC tag)
+        assertEquals("2", lastLine.substring(0, 1));
+
+        // The remainder of the last line is Base64 encoded KMAC tag
+        final String kmacTag = lastLine.substring(1);
+        final byte[] kmacTagBytes = Base64.getDecoder().decode(kmacTag);
+
+        // Prepare offline data without tag
+        final String offlineDataWithoutTag = offlineData.substring(0, offlineData.length() - kmacTag.length());
+
+        // Validate KMAC tag
+        final String macPersonalisedDataKeyBase64 = model.getResultStatus().getMacPersonalizedDataKey();
+        final byte[] keyMacPersonalisedData = Base64.getDecoder().decode(macPersonalisedDataKeyBase64);
+        final byte[] kmacTagCalculated = Kmac.kmac256(
+                keyMacPersonalisedData,
+                offlineDataWithoutTag.getBytes(StandardCharsets.UTF_8),
+                KMAC_OFFLINE_SIGNATURE_CUSTOM_BYTES,
+                32
+        );
+        assertArrayEquals(kmacTagBytes, kmacTagCalculated);
+
+        // Prepare data for PowerAuth authentication
+        final String dataForAuthentication = operationId + "&" + operationData;
+
+        // Prepare normalized data for authentication
+        final String authBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForAuthentication.getBytes(StandardCharsets.UTF_8));
+
+        // Prepare keys
+        final byte[] knowledgeFactorKeySalt = model.getResultStatus().getKnowledgeFactorKeySaltBytes();
+        final byte[] knowledgeFactorKeyEncryptedBytes = model.getResultStatus().getKnowledgeFactorKeyEncryptedBytes();
+
+        // Get the factor keys
+        final SecretKey possessionFactorKey = model.getResultStatus().getPossessionFactorKeyObject();
+        final SecretKey knowledgeFactorKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), knowledgeFactorKeyEncryptedBytes, knowledgeFactorKeySalt, new KeyGenerator());
+
+        // Put keys into a list
+        final List<SecretKey> factorKeys = new ArrayList<>();
+        factorKeys.add(possessionFactorKey);
+        factorKeys.add(knowledgeFactorKey);
+
+        // Calculate signature of normalized signature base string with 'offline' as application secret
+        String authCode = AUTHENTICATION_CODE_UTILS.computeAuthCode((authBaseString + "&offline").getBytes(StandardCharsets.UTF_8), factorKeys, TestCounterUtil.getCtrData(model.getResultStatus()), AuthenticationCodeConfiguration.decimal());
+
+        // Cripple auth code
+        final String digitToReplace = authCode.substring(0, 1);
+        final String replacedDigit = String.valueOf((Integer.parseInt(digitToReplace) + 1) % 10);
+        authCode = authCode.replace(digitToReplace, replacedDigit);
+
+        final VerifyOfflineAuthenticationResponse authResponse = powerAuthClient.verifyOfflineAuthentication(config.getActivationId(version), authBaseString, authCode, true);
+        assertFalse(authResponse.isAuthenticationValid());
+        assertEquals(config.getActivationId(version), authResponse.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, authResponse.getActivationStatus());
+        assertTrue(authResponse.getRemainingAttempts().intValue() < 5);
+        assertEquals(AuthenticationCodeType.POSSESSION_KNOWLEDGE, authResponse.getAuthenticationCodeType());
+        assertEquals(config.getApplicationId(), authResponse.getApplicationId());
+    }
+
+    public static void authOfflineNonPersonalizedValidTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, VerifyAuthenticationStepModel model, ObjectStepLogger stepLogger, PowerAuthVersion version) throws PowerAuthClientException, GenericCryptoException, InvalidKeyException, CryptoProviderException {
+        final CreateNonPersonalizedOfflineAuthPayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineAuthPayload(
+                config.getApplicationId(), offlineData);
+        final String nonce = offlineResponse.getNonce();
+        final String offlineData = offlineResponse.getOfflineData();
+
+        // Split the offline data into individual lines
+        final String[] parts = offlineData.split("\n");
+
+        // Extract last line which contains information about key and ECDSA signature
+        final String lastLine = parts[parts.length-1];
+
+        // 1 = KEY_SERVER_MASTER_PRIVATE was used to sign data (non-personalized offline signature)
+        assertEquals("0", lastLine.substring(0, 1));
+
+        // The remainder of last line is Base64 encoded ECDSA signature
+        final String ecdsaSignature = lastLine.substring(1);
+
+        // Prepare offline data without signature
+        final String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
+
+        // Validate ECDSA signature of data using server public key
+        assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P384, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKeyP384()));
+
+        // Prepare data for PowerAuth authentication
+        final String dataForAuthentication = operationId + "&" + operationData;
+
+        // Prepare normalized data for authentication
+        final String authBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForAuthentication.getBytes(StandardCharsets.UTF_8));
+
+        // Prepare keys
+        final byte[] knowledgeFactorKeySalt = model.getResultStatus().getKnowledgeFactorKeySaltBytes();
+        final byte[] knowledgeFactorKeyEncryptedBytes = model.getResultStatus().getKnowledgeFactorKeyEncryptedBytes();
+
+        // Get the factor keys
+        final SecretKey possessionFactorKey = model.getResultStatus().getPossessionFactorKeyObject();
+        final SecretKey knowledgeFactorKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), knowledgeFactorKeyEncryptedBytes, knowledgeFactorKeySalt, new KeyGenerator());
+
+        // Put keys into a list
+        final List<SecretKey> factorKeys = new ArrayList<>();
+        factorKeys.add(possessionFactorKey);
+        factorKeys.add(knowledgeFactorKey);
+
+        // Calculate authentication code for normalized authentication base string with 'offline' as application secret
+        final String authCode = AUTHENTICATION_CODE_UTILS.computeAuthCode((authBaseString + "&offline").getBytes(StandardCharsets.UTF_8), factorKeys, TestCounterUtil.getCtrData(model.getResultStatus()), AuthenticationCodeConfiguration.decimal());
+
+        final VerifyOfflineAuthenticationResponse authResponse = powerAuthClient.verifyOfflineAuthentication(config.getActivationId(version), authBaseString, authCode, true);
+        assertTrue(authResponse.isAuthenticationValid());
+        assertEquals(config.getActivationId(version), authResponse.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, authResponse.getActivationStatus());
+        assertEquals(BigInteger.valueOf(5), authResponse.getRemainingAttempts());
+        assertEquals(AuthenticationCodeType.POSSESSION_KNOWLEDGE, authResponse.getAuthenticationCodeType());
+        assertEquals(config.getApplicationId(), authResponse.getApplicationId());
+
+        // Increment counter
+        CounterUtil.incrementCounter(model.getResultStatus());
+    }
+
+    public static void authOfflineNonPersonalizedInvalidTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, VerifyAuthenticationStepModel model, ObjectStepLogger stepLogger, PowerAuthVersion version) throws PowerAuthClientException, GenericCryptoException, InvalidKeyException, CryptoProviderException {
+        final CreateNonPersonalizedOfflineAuthPayloadResponse offlineResponse = powerAuthClient.createNonPersonalizedOfflineAuthPayload(
+                config.getApplicationId(), offlineData);
+        final String nonce = offlineResponse.getNonce();
+        final String offlineData = offlineResponse.getOfflineData();
+
+        // Split the offline data into individual lines
+        final String[] parts = offlineData.split("\n");
+
+        // Extract last line which contains information about key and ECDSA signature
+        final String lastLine = parts[parts.length-1];
+
+        // 1 = KEY_SERVER_MASTER_PRIVATE was used to sign data (non-personalized offline signature)
+        assertEquals("0", lastLine.substring(0, 1));
+
+        // The remainder of last line is Base64 encoded ECDSA signature
+        final String ecdsaSignature = lastLine.substring(1);
+
+        // Prepare offline data without signature
+        final String offlineDataWithoutSignature = offlineData.substring(0, offlineData.length() - ecdsaSignature.length());
+
+        // Validate ECDSA signature of data using server public key
+        assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P384, offlineDataWithoutSignature.getBytes(StandardCharsets.UTF_8), Base64.getDecoder().decode(ecdsaSignature), config.getMasterPublicKeyP384()));
+
+        // Prepare data for PowerAuth authentication
+        final String dataForAuthentication = operationId + "&" + operationData;
+
+        // Prepare normalized data for authentication
+        final String authBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForAuthentication.getBytes(StandardCharsets.UTF_8));
+
+        // Prepare keys
+        final byte[] knowledgeFactorKeySalt = model.getResultStatus().getKnowledgeFactorKeySaltBytes();
+        final byte[] knowledgeFactorKeyEncryptedBytes = model.getResultStatus().getKnowledgeFactorKeyEncryptedBytes();
+
+        // Get the factor keys
+        final SecretKey possessionFactorKey = model.getResultStatus().getPossessionFactorKeyObject();
+        final SecretKey knowledgeFactorKey = EncryptedStorageUtil.getKnowledgeFactorKey(config.getPassword().toCharArray(), knowledgeFactorKeyEncryptedBytes, knowledgeFactorKeySalt, new KeyGenerator());
+
+        // Put keys into a list
+        final List<SecretKey> factorKeys = new ArrayList<>();
+        factorKeys.add(possessionFactorKey);
+        factorKeys.add(knowledgeFactorKey);
+
+        // Calculate authentication code for normalized authentication base string with 'offline' as application secret
+        String authCode = AUTHENTICATION_CODE_UTILS.computeAuthCode((authBaseString + "&offline").getBytes(StandardCharsets.UTF_8), factorKeys, TestCounterUtil.getCtrData(model.getResultStatus()), AuthenticationCodeConfiguration.decimal());
+
+        // Cripple auth code
+        final String digitToReplace = authCode.substring(0, 1);
+        final String replacedDigit = String.valueOf((Integer.parseInt(digitToReplace) + 1) % 10);
+        authCode = authCode.replace(digitToReplace, replacedDigit);
+
+        final VerifyOfflineAuthenticationResponse authResponse = powerAuthClient.verifyOfflineAuthentication(config.getActivationId(version), authBaseString, authCode, true);
+        assertFalse(authResponse.isAuthenticationValid());
+        assertEquals(config.getActivationId(version), authResponse.getActivationId());
+        assertEquals(ActivationStatus.ACTIVE, authResponse.getActivationStatus());
+        assertTrue(authResponse.getRemainingAttempts().intValue() < 5);
+        assertEquals(AuthenticationCodeType.POSSESSION_KNOWLEDGE, authResponse.getAuthenticationCodeType());
+        assertEquals(config.getApplicationId(), authResponse.getApplicationId());
+
+        // Increment counter
+        CounterUtil.incrementCounter(model.getResultStatus());
+    }
+
     private static void checkError(ErrorResponse errorResponse) {
-        // Errors differ when Web Flow is used because of its Exception handler
         assertTrue("ERR_AUTHENTICATION".equals(errorResponse.getResponseObject().getCode()));
         assertTrue("POWER_AUTH_CODE_INVALID".equals(errorResponse.getResponseObject().getMessage()));
     }
