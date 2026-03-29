@@ -18,7 +18,7 @@ package com.wultra.security.powerauth.test
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion
 import com.wultra.security.powerauth.lib.cmd.logging.{ObjectStepLogger, StepLogger}
 import com.wultra.security.powerauth.lib.cmd.util.ConfigurationUtil
-import com.wultra.security.powerauth.lib.cmd.util.config.{SdkConfiguration, SdkConfigurationSerializer}
+import com.wultra.security.powerauth.crypto.lib.sdk.{SdkConfiguration, SdkConfigurationSerializer}
 import org.json.simple.{JSONObject, JSONValue}
 
 import java.nio.charset.StandardCharsets
