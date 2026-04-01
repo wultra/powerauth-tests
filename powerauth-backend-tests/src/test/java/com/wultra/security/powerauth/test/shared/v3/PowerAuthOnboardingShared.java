@@ -536,7 +536,7 @@ public class PowerAuthOnboardingShared {
                                         .requiredDocumentsCount(1)
                                         .items(Set.of(
                                                 ConfigurationResponse.Document.builder()
-                                                        .type(ConfigurationResponse.DocumentType.DRIVING_LICENCE)
+                                                        .type(ConfigurationResponse.DocumentType.DRIVING_LICENSE)
                                                         .sideCount((byte) 1)
                                                         .build(),
                                                 ConfigurationResponse.Document.builder()
