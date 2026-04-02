@@ -14,7 +14,7 @@
 
     <groupId>com.wultra</groupId>
     <artifactId>powerauth-backend-tests-parent</artifactId>
-    <version>1.10.0</version>
+    <version>1.10.1</version>
     <packaging>pom</packaging>
 
     <description>Parent pom for backend tests</description>
@@ -46,7 +46,7 @@
 
     <properties>
         <enrollment-server.version>1.10.0</enrollment-server.version>
-        <powerauth-cmd.version>1.10.0</powerauth-cmd.version>
+        <powerauth-cmd.version>1.10.1</powerauth-cmd.version>
         <powerauth-crypto.version>1.10.0</powerauth-crypto.version>
         <powerauth-restful-integration.version>1.10.0</powerauth-restful-integration.version>
         <powerauth-server.version>1.10.0</powerauth-server.version>
