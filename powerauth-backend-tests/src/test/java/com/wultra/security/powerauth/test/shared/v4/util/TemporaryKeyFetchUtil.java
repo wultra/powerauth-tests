@@ -102,10 +102,7 @@ public class TemporaryKeyFetchUtil {
      * @throws Exception Thrown in case temporary key fetch fails.
      */
     public static TemporaryKey fetchTemporaryKey(PowerAuthVersion version, EncryptorScope scope, PowerAuthTestConfiguration config) throws Exception {
-        if (version.useTemporaryKeys()) {
-            return fetchTemporaryKeyImpl(version, scope, config);
-        }
-        return null;
+        return fetchTemporaryKeyImpl(version, scope, config);
     }
 
     private static TemporaryKey fetchTemporaryKeyImpl(PowerAuthVersion version, EncryptorScope scope, PowerAuthTestConfiguration config) throws Exception {
