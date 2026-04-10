@@ -733,9 +733,6 @@ public class PowerAuthAuthenticationShared {
         assertTrue(authResponse.getRemainingAttempts().intValue() < 5);
         assertEquals(AuthenticationCodeType.POSSESSION_KNOWLEDGE, authResponse.getAuthenticationCodeType());
         assertEquals(config.getApplicationId(), authResponse.getApplicationId());
-
-        // Increment counter
-        CounterUtil.incrementCounter(model.getResultStatus());
     }
 
     public static void testAuthOfflinePersonalizedProximityCheckValid(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
