@@ -29,6 +29,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -38,6 +40,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -49,14 +52,30 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(classes = PowerAuthTestConfiguration.class)
 @EnableConfigurationProperties
-class PowerAuthActivationL5Test {
+class PowerAuthActivationTest {
 
     private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
     private PowerAuthClient powerAuthClient;
     private PowerAuthTestConfiguration config;
-    private PrepareActivationStepModel model;
     private File tempStatusFile;
+
+    enum ActivationVariant {
+        EC_P384_ML_L3(SharedSecretAlgorithm.EC_P384_ML_L3, "EC_P384_ML_L3"),
+        EC_P384_ML_L5(SharedSecretAlgorithm.EC_P384_ML_L5, "EC_P384_ML_L5");
+
+        final SharedSecretAlgorithm algorithm;
+        final String label;
+
+        ActivationVariant(SharedSecretAlgorithm algorithm, String label) {
+            this.algorithm = algorithm;
+            this.label = label;
+        }
+    }
+
+    static Stream<ActivationVariant> variants() {
+        return Stream.of(ActivationVariant.EC_P384_ML_L3, ActivationVariant.EC_P384_ML_L5);
+    }
 
     @Autowired
     public void setPowerAuthClient(PowerAuthClient powerAuthClient) {
@@ -70,24 +89,7 @@ class PowerAuthActivationL5Test {
 
     @BeforeEach
     void setUp() throws IOException {
-        // Create temp status file
         tempStatusFile = File.createTempFile("pa_status_" + VERSION, ".json");
-
-        // Model shared among tests
-        model = new PrepareActivationStepModel();
-        model.setActivationName("test v" + VERSION);
-        model.setApplicationKey(config.getApplicationKey());
-        model.setApplicationSecret(config.getApplicationSecret());
-        model.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
-        model.setMasterPublicKeyMlDsa87(config.getMasterPublicKeyMlDsa87());
-        model.setHeaders(new HashMap<>());
-        model.setPassword(config.getPassword());
-        model.setStatusFileName(tempStatusFile.getAbsolutePath());
-        model.setResultStatusObject(new JSONObject());
-        model.setUriString(config.getPowerAuthIntegrationUrl());
-        model.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L5);
-        model.setVersion(VERSION);
-        model.setDeviceInfo("backend-tests");
     }
 
     @AfterEach
@@ -95,63 +97,114 @@ class PowerAuthActivationL5Test {
         assertTrue(tempStatusFile.delete());
     }
 
-    @Test
-    void activationPrepareHybridTest() throws Exception {
+    private PrepareActivationStepModel buildModel(ActivationVariant variant) {
+        PrepareActivationStepModel model = new PrepareActivationStepModel();
+        model.setActivationName("test v" + VERSION + " " + variant.label);
+        model.setApplicationKey(config.getApplicationKey());
+        model.setApplicationSecret(config.getApplicationSecret());
+        model.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
+
+        switch (variant) {
+            case EC_P384_ML_L3 -> model.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
+            case EC_P384_ML_L5 -> model.setMasterPublicKeyMlDsa87(config.getMasterPublicKeyMlDsa87());
+        }
+
+        model.setHeaders(new HashMap<>());
+        model.setPassword(config.getPassword());
+        model.setStatusFileName(tempStatusFile.getAbsolutePath());
+        model.setResultStatusObject(new JSONObject());
+        model.setUriString(config.getPowerAuthIntegrationUrl());
+        model.setSharedSecretAlgorithm(variant.algorithm);
+        model.setVersion(VERSION);
+        model.setDeviceInfo("backend-tests");
+
+        return model;
+    }
+
+    private PrepareActivationStepModel cloneWithAlgorithm(PrepareActivationStepModel base, SharedSecretAlgorithm algorithm) {
+        Map<String, Object> map = base.toMap();
+        PrepareActivationStepModel clone = new PrepareActivationStepModel();
+        clone.fromMap(map);
+        clone.setSharedSecretAlgorithm(algorithm);
+        return clone;
+    }
+
+    @ParameterizedTest
+    @MethodSource("variants")
+    void activationPrepareHybridTest(ActivationVariant variant) throws Exception {
+        PrepareActivationStepModel model = buildModel(variant);
         PowerAuthActivationShared.activationPrepareTest(powerAuthClient, config, model, VERSION);
     }
 
-    @Test
-    void activationPrepareEcTest() throws Exception {
-        final Map<String, Object> modelMap = model.toMap();
-        final PrepareActivationStepModel modelEc = new PrepareActivationStepModel();
-        modelEc.fromMap(modelMap);
-        modelEc.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384);
+    @ParameterizedTest
+    @MethodSource("variants")
+    void activationPrepareEcTest(ActivationVariant variant) throws Exception {
+        PrepareActivationStepModel model = buildModel(variant);
+        PrepareActivationStepModel modelEc = cloneWithAlgorithm(model, SharedSecretAlgorithm.EC_P384);
         PowerAuthActivationShared.activationPrepareTest(powerAuthClient, config, modelEc, VERSION);
     }
 
-    @Test
-    void activationConfirmBiometryEnabledTest() throws Exception {
+    @ParameterizedTest
+    @MethodSource("variants")
+    void activationConfirmTest(ActivationVariant variant) throws Exception {
+        PrepareActivationStepModel model = buildModel(variant);
+
         PowerAuthActivationShared.activationConfirmTest(powerAuthClient, config, model, VERSION, true);
+        PowerAuthActivationShared.activationConfirmTest(powerAuthClient, config, model, VERSION, false);
     }
 
-    @Test
-    void activationConfirmBiometryDisabledTest() throws Exception {
-        PowerAuthActivationShared.activationConfirmTest(powerAuthClient, config, model, VERSION, false);
+    @ParameterizedTest
+    @MethodSource("variants")
+    void activationPrepareUnsupportedApplicationTest(ActivationVariant variant) throws Exception {
+        PrepareActivationStepModel model = buildModel(variant);
+        PowerAuthActivationShared.activationPrepareUnsupportedApplicationTest(powerAuthClient, config, model, VERSION);
+    }
+
+    @ParameterizedTest
+    @MethodSource("variants")
+    void activationPrepareExpirationTest(ActivationVariant variant) throws Exception {
+        PrepareActivationStepModel model = buildModel(variant);
+        PowerAuthActivationShared.activationPrepareExpirationTest(powerAuthClient, config, model, VERSION);
+    }
+
+    @ParameterizedTest
+    @MethodSource("variants")
+    void activationPrepareWithoutInitTest(ActivationVariant variant) throws Exception {
+        PrepareActivationStepModel model = buildModel(variant);
+        PowerAuthActivationShared.activationPrepareWithoutInitTest(config, model);
+    }
+
+    @ParameterizedTest
+    @MethodSource("variants")
+    void activationStatusTest(ActivationVariant variant) throws Exception {
+        PrepareActivationStepModel model = buildModel(variant);
+        PowerAuthActivationShared.activationStatusTest(powerAuthClient, config, model, VERSION);
+    }
+
+    @ParameterizedTest
+    @MethodSource("variants")
+    void activationInvalidApplicationKeyTest(ActivationVariant variant) throws Exception {
+        PrepareActivationStepModel model = buildModel(variant);
+        PowerAuthActivationShared.activationInvalidApplicationKeyTest(powerAuthClient, config, model, VERSION);
+    }
+
+    @ParameterizedTest
+    @MethodSource("variants")
+    void activationInvalidApplicationSecretTest(ActivationVariant variant) throws Exception {
+        PrepareActivationStepModel model = buildModel(variant);
+        PowerAuthActivationShared.activationInvalidApplicationSecretTest(powerAuthClient, config, model, VERSION);
+    }
+
+    @ParameterizedTest
+    @MethodSource("variants")
+    void updateActivationStatusTest(ActivationVariant variant) throws Exception {
+        PrepareActivationStepModel model = buildModel(variant);
+        PowerAuthActivationShared.updateActivationStatusTest(powerAuthClient, config, model, VERSION);
     }
 
     @Test
     void activationNonExistentTest() throws PowerAuthClientException {
         PowerAuthActivationShared.activationNonExistentTest(powerAuthClient);
-    }
-
-    @Test
-    void activationPrepareUnsupportedApplicationTest() throws Exception {
-        PowerAuthActivationShared.activationPrepareUnsupportedApplicationTest(powerAuthClient, config, model, VERSION);
-    }
-
-    @Test
-    void activationPrepareExpirationTest() throws Exception {
-        PowerAuthActivationShared.activationPrepareExpirationTest(powerAuthClient, config, model, VERSION);
-    }
-
-    @Test
-    void activationPrepareWithoutInitTest() throws Exception {
-        PowerAuthActivationShared.activationPrepareWithoutInitTest(config, model);
-    }
-
-    @Test
-    void activationStatusTest() throws Exception {
-        PowerAuthActivationShared.activationStatusTest(powerAuthClient, config, model, VERSION);
-    }
-
-    @Test
-    void activationInvalidApplicationKeyTest() throws Exception {
-        PowerAuthActivationShared.activationInvalidApplicationKeyTest(powerAuthClient, config, model, VERSION);
-    }
-
-    @Test
-    void activationInvalidApplicationSecretTest() throws Exception {
-        PowerAuthActivationShared.activationInvalidApplicationSecretTest(powerAuthClient, config, model, VERSION);
     }
 
     @Test
@@ -192,11 +245,6 @@ class PowerAuthActivationL5Test {
     @Test
     void lookupActivationsDateInvalidTest() throws Exception {
         PowerAuthActivationShared.lookupActivationsDateInvalidTest(powerAuthClient, config, VERSION);
-    }
-
-    @Test
-    void updateActivationStatusTest() throws Exception {
-        PowerAuthActivationShared.updateActivationStatusTest(powerAuthClient, config, model, VERSION);
     }
 
 }
