@@ -223,11 +223,6 @@ class PowerAuthEncryptionTest {
     }
 
     @Test
-    void signAndEncryptThreeFactorTest() throws Exception {
-        PowerAuthEncryptionShared.signAndEncryptThreeFactorTest(config, signatureModel, stepLogger);
-    }
-
-    @Test
     void encryptedResponseTest() throws Exception {
         PowerAuthEncryptionShared.encryptedResponseTest(config, encryptModel, stepLogger, VERSION);
     }

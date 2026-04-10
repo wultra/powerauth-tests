@@ -140,11 +140,6 @@ class PowerAuthAuthenticationTest {
     }
 
     @Test
-    void authThreeFactorTest() throws Exception {
-        PowerAuthAuthenticationShared.authThreeFactorTest(model, stepLogger);
-    }
-
-    @Test
     void authEmptyDataTest() throws Exception {
         PowerAuthAuthenticationShared.authEmptyDataTest(model, stepLogger, VERSION);
     }

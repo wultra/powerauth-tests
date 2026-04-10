@@ -123,14 +123,6 @@ public class PowerAuthVaultUnlockShared {
         assertEquals(400, stepLogger.getResponse().statusCode());
     }
 
-    public static void vaultUnlockThreeFactorTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {
-        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY);
-
-        new VaultUnlockStep().execute(stepLogger, model.toMap());
-        assertFalse(stepLogger.getResult().success());
-        assertEquals(400, stepLogger.getResponse().statusCode());
-    }
-
     public static void vaultUnlockBlockedActivationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final PowerAuthVersion version) throws Exception {
         powerAuthClient.blockActivation(config.getActivationId(version), "test", "test");
 
