@@ -30,6 +30,9 @@ import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.v4.OperationTemplateCreateRequest;
 import com.wultra.security.powerauth.client.model.response.*;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfiguration;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfigurationException;
+import com.wultra.security.powerauth.crypto.lib.sdk.SdkConfigurationSerializer;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -37,8 +40,6 @@ import com.wultra.security.powerauth.lib.cmd.steps.ConfirmActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.ConfirmActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
-import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfiguration;
-import com.wultra.security.powerauth.lib.cmd.util.config.SdkConfigurationSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.*;
@@ -95,7 +96,7 @@ public class PowerAuthTestSetUp {
         config.setLoginOperationTemplateId(operationTemplate.getId());
     }
 
-    private void createApplication() throws PowerAuthClientException {
+    private void createApplication() throws PowerAuthClientException, SdkConfigurationException {
         // Create application if it does not exist
         final GetApplicationListResponse applicationsListResponse = powerAuthClient.getApplicationList();
         boolean applicationExists = false;
@@ -154,6 +155,7 @@ public class PowerAuthTestSetUp {
         config.setMasterPublicKeyP256(sdkConfiguration.masterPublicKeyP256());
         config.setMasterPublicKeyP384(sdkConfiguration.masterPublicKeyP384());
         config.setMasterPublicKeyMlDsa65(sdkConfiguration.masterPublicKeyMlDsa65());
+        config.setMasterPublicKeyMlDsa87(sdkConfiguration.masterPublicKeyMlDsa87());
     }
 
     private void createActivation(PowerAuthVersion version) throws Exception {

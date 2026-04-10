@@ -34,7 +34,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSe
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedRequest;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
-import com.wultra.security.powerauth.model.TemporaryKey;
+import com.wultra.security.powerauth.model.v3.TemporaryKey;
 import com.wultra.security.powerauth.test.shared.v3.util.TemporaryKeyFetchUtil;
 import com.wultra.security.powerauth.crypto.client.keyfactory.PowerAuthClientKeyFactory;
 import com.wultra.security.powerauth.crypto.client.authentication.PowerAuthClientAuthentication;
@@ -46,7 +46,6 @@ import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
-import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.http.PowerAuthHttpBody;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
@@ -76,7 +75,6 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthApiShared {
 
-    private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
     private static final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();

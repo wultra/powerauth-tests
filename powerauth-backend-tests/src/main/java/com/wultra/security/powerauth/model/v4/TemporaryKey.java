@@ -15,11 +15,11 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package com.wultra.security.powerauth.model;
+package com.wultra.security.powerauth.model.v4;
 
 import lombok.Data;
 
-import java.security.PublicKey;
+import javax.crypto.SecretKey;
 
 /**
  * Temporary key model class.
@@ -30,6 +30,6 @@ import java.security.PublicKey;
 public class TemporaryKey {
 
     private String id;
-    private PublicKey publicKey;
+    private SecretKey sharedSecret;
 
 }

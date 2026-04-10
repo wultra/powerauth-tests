@@ -121,6 +121,7 @@ public class PowerAuthTestConfiguration {
     private PublicKey masterPublicKeyP256;
     private PublicKey masterPublicKeyP384;
     private PublicKey masterPublicKeyMlDsa65;
+    private PublicKey masterPublicKeyMlDsa87;
 
     private Long loginOperationTemplateId;
     private String loginOperationTemplateName;
@@ -289,6 +290,10 @@ public class PowerAuthTestConfiguration {
         return masterPublicKeyMlDsa65;
     }
 
+    public PublicKey getMasterPublicKeyMlDsa87() {
+        return masterPublicKeyMlDsa87;
+    }
+
     public KeyConvertor getKeyConvertor() {
         return keyConvertor;
     }
@@ -353,6 +358,15 @@ public class PowerAuthTestConfiguration {
         byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKey);
         try {
             masterPublicKeyMlDsa65 = pqcDsaKeyConvertor.convertBytesToPublicKey(masterKeyBytes);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+        }
+    }
+
+    public void setMasterPublicKeyMlDsa87(String masterPublicKey) {
+        byte[] masterKeyBytes = Base64.getDecoder().decode(masterPublicKey);
+        try {
+            masterPublicKeyMlDsa87 = pqcDsaKeyConvertor.convertBytesToPublicKey(masterKeyBytes);
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
         }

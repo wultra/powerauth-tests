@@ -25,7 +25,7 @@ import com.nimbusds.jwt.SignedJWT;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
-import com.wultra.security.powerauth.model.TemporaryKey;
+import com.wultra.security.powerauth.model.v3.TemporaryKey;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.EncryptorScope;
@@ -54,7 +54,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 /**
- * Utilities for fetching temporary keys from the server.
+ * Utilities for fetching temporary keys from the server (V3).
  *
  * @author Roman Strobl, roman.strobl@wultra.com
  */

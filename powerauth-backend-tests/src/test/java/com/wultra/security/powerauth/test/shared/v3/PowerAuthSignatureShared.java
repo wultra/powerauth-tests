@@ -799,7 +799,7 @@ public class PowerAuthSignatureShared {
         // Calculate signature of normalized signature base string with 'offline' as application secret
         final String signature = AUTHENTICATION_CODE_LEGACY_UTILS.computeAuthCode((signatureBaseStringWithOtp + "&offline").getBytes(StandardCharsets.UTF_8), signatureKeys, TestCounterUtil.getCtrData(model.getResultStatus()), AuthenticationCodeConfiguration.decimal());
 
-        final String dataForSignature= operationId + "&" + operationData;
+        final String dataForSignature = operationId + "&" + operationData;
         final String signatureBaseString = PowerAuthHttpBody.getAuthenticationBaseString("POST", "/operation/authorize/offline", Base64.getDecoder().decode(nonce), dataForSignature.getBytes(StandardCharsets.UTF_8));
 
         final VerifyOfflineSignatureRequest verifyRequest = new VerifyOfflineSignatureRequest();
