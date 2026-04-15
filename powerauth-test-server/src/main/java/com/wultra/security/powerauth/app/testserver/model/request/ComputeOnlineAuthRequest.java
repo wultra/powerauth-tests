@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.app.testserver.model.request;
 
 import com.wultra.security.powerauth.app.testserver.model.enumeration.AuthenticationCodeType;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,5 +44,10 @@ public class ComputeOnlineAuthRequest {
     private AuthenticationCodeType authenticationCodeType;
     private String requestBody;
     private String password;
+
+    @AssertTrue(message = "authenticationCodeType parameter is required")
+    private boolean hasAuthenticationCodeType() {
+        return authenticationCodeType != null || signatureType != null;
+    }
 
 }
