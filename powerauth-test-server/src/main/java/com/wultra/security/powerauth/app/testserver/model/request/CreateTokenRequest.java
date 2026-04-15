@@ -18,6 +18,7 @@
 package com.wultra.security.powerauth.app.testserver.model.request;
 
 import com.wultra.security.powerauth.app.testserver.model.enumeration.AuthenticationCodeType;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
@@ -37,5 +38,10 @@ public class CreateTokenRequest {
     @Deprecated
     private AuthenticationCodeType signatureType;
     private AuthenticationCodeType authenticationCodeType;
+
+    @AssertTrue(message = "authenticationCodeType parameter is required")
+    private boolean hasAuthenticationCodeType() {
+        return authenticationCodeType != null || signatureType != null;
+    }
 
 }
