@@ -67,7 +67,7 @@ public class PowerAuthActivationShared {
         final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
-        final GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        final GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
         // Prepare activation
@@ -92,7 +92,7 @@ public class PowerAuthActivationShared {
         assertEquals(initResponse.getActivationId(), activationIdPrepareResponse);
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseOtpUsed = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseOtpUsed = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseOtpUsed.getActivationStatus());
 
         // Commit activation
@@ -100,7 +100,7 @@ public class PowerAuthActivationShared {
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
 
         // Block activation
@@ -109,7 +109,7 @@ public class PowerAuthActivationShared {
         assertEquals("test", blockResponse.getBlockedReason());
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.BLOCKED, statusResponseBlocked.getActivationStatus());
 
         // Unblock activation
@@ -117,14 +117,14 @@ public class PowerAuthActivationShared {
         assertEquals(initResponse.getActivationId(), unblockResponse.getActivationId());
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseActive2 = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseActive2 = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive2.getActivationStatus());
 
         // Remove activation
         powerAuthClient.removeActivation(initResponse.getActivationId(), "test");
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseRemoved = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseRemoved = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.REMOVED, statusResponseRemoved.getActivationStatus());
     }
 
@@ -185,13 +185,13 @@ public class PowerAuthActivationShared {
         assertEquals(initResponse.getActivationId(), commitResponse.getActivationId());
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
     }
 
     public static void activationNonExistentTest(PowerAuthClient powerAuthClient) throws PowerAuthClientException {
         // Verify activation status
-        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus("AAAAA-BBBBB-CCCCC-DDDDD");
+        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatusWithoutBlob("AAAAA-BBBBB-CCCCC-DDDDD");
         assertEquals(ActivationStatus.REMOVED, statusResponse.getActivationStatus());
     }
 
@@ -215,7 +215,7 @@ public class PowerAuthActivationShared {
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
         // PrepareActivation should fail
@@ -378,7 +378,7 @@ public class PowerAuthActivationShared {
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
         // PrepareActivation should fail
@@ -409,7 +409,7 @@ public class PowerAuthActivationShared {
         InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
 
         // Verify activation status
-        GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseCreated = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.CREATED, statusResponseCreated.getActivationStatus());
 
         // PrepareActivation should fail
@@ -433,7 +433,7 @@ public class PowerAuthActivationShared {
 
     public static void lookupActivationsTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, PowerAuthVersion version) throws Exception {
         InitActivationResponse response = powerAuthClient.initActivation(config.getUser(version), config.getApplicationId());
-        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(response.getActivationId());
+        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatusWithoutBlob(response.getActivationId());
         final Date timestampCreated = statusResponse.getTimestampCreated();
         assertEquals(ActivationStatus.CREATED, statusResponse.getActivationStatus());
         final List<Activation> activations = powerAuthClient.lookupActivations(Collections.singletonList(config.getUser(version)), Collections.singletonList(config.getApplicationId()),
@@ -547,13 +547,13 @@ public class PowerAuthActivationShared {
         // Block activation using UpdateStatusForActivations method
         powerAuthClient.updateStatusForActivations(Collections.singletonList(initResponse.getActivationId()), ActivationStatus.BLOCKED);
 
-        GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.BLOCKED, statusResponseBlocked.getActivationStatus());
 
         // Remove activation using UpdateStatusForActivations method
         powerAuthClient.updateStatusForActivations(Collections.singletonList(initResponse.getActivationId()), ActivationStatus.ACTIVE);
 
-        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
     }
 

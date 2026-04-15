@@ -72,7 +72,7 @@ public class PowerAuthActivationCommitPhaseShared {
         assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify activation status
-        final GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        final GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertNotNull(activationStatusResponse);
         assertEquals(ActivationStatus.ACTIVE, activationStatusResponse.getActivationStatus());
 
@@ -108,7 +108,7 @@ public class PowerAuthActivationCommitPhaseShared {
 
             // Verify activation status
             ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.CREATED;
-            GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+            GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
             assertNotNull(activationStatusResponse);
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
@@ -137,7 +137,7 @@ public class PowerAuthActivationCommitPhaseShared {
         assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify activation status
-        GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertNotNull(activationStatusResponse);
         assertEquals(ActivationStatus.PENDING_COMMIT, activationStatusResponse.getActivationStatus());
 
@@ -158,7 +158,7 @@ public class PowerAuthActivationCommitPhaseShared {
             assertEquals(lastIteration, isActivated);
 
             // Verify activation status
-            activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+            activationStatusResponse = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
             assertEquals(lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT, activationStatusResponse.getActivationStatus());
         }
 
@@ -190,7 +190,7 @@ public class PowerAuthActivationCommitPhaseShared {
         assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify activation status
-        GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertNotNull(activationStatusResponse);
         assertEquals(ActivationStatus.PENDING_COMMIT, activationStatusResponse.getActivationStatus());
 
@@ -212,7 +212,7 @@ public class PowerAuthActivationCommitPhaseShared {
 
             // Verify activation status
             ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.PENDING_COMMIT;
-            activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+            activationStatusResponse = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
     }
@@ -239,7 +239,7 @@ public class PowerAuthActivationCommitPhaseShared {
         assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify activation status
-        GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.PENDING_COMMIT, activationStatusResponse.getActivationStatus());
 
         // Update OTP
@@ -262,7 +262,7 @@ public class PowerAuthActivationCommitPhaseShared {
 
             // Verify activation status
             ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
-            activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+            activationStatusResponse = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
 
@@ -305,7 +305,7 @@ public class PowerAuthActivationCommitPhaseShared {
         assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
 
         // Verify activation status
-        GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.PENDING_COMMIT, activationStatusResponse.getActivationStatus());
 
         // Update OTP
@@ -328,7 +328,7 @@ public class PowerAuthActivationCommitPhaseShared {
 
             // Verify activation status
             ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.PENDING_COMMIT;
-            activationStatusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+            activationStatusResponse = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
     }
