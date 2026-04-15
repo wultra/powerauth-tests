@@ -60,3 +60,15 @@ In case you use long-term activations which are used for tests with version 3 of
 - In endpoint `/activation/create`, you can specify new request parameter `confirmActivation` which controls whether activation gets confirmed and parameter `enableBiometry` which enables biometry during the confirmation.
 - In endpoint `/activation/create`, you can specify request parameter `algorithm` which specifies the algorithm used for the activation (e.g. `EC_P384_ML_L3` or `EC_P384_ML_L5`).
 - In endpoint `/activation/create`, there is a new response parameter `confirmed` which indicates whether activation was confirmed.
+
+### Unsupported Authentication Code Types
+
+Following authentication code types and signature types are no longer supported:
+- `KNOWLEDGE`
+- `BIOMETRY`
+- `POSSESSION_KNOWLEDGE_BIOMETRY`
+
+This change affects following endpoints:
+- `POST /signature/compute-online`
+- `POST /auth/compute-online`
+- `POST /operations/approve`
