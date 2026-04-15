@@ -68,7 +68,7 @@ public class PowerAuthActivationFlagsShared {
         String activationId = initResponse.getActivationId();
         powerAuthClient.addActivationFlags(activationId, Arrays.asList("FLAG1", "FLAG2"));
 
-        final GetActivationStatusResponse status = powerAuthClient.getActivationStatus(activationId);
+        final GetActivationStatusResponse status = powerAuthClient.getActivationStatusWithoutBlob(activationId);
         assertEquals(Arrays.asList("FLAG1", "FLAG2"), status.getActivationFlags());
 
         final ListActivationFlagsResponse listResponse = powerAuthClient.listActivationFlags(activationId);
@@ -103,7 +103,7 @@ public class PowerAuthActivationFlagsShared {
         new PrepareActivationStep().execute(stepLoggerPrepare, model.toMap());
 
         // Obtain timestamp created
-        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         final Date timestampCreated = statusResponse.getTimestampCreated();
 
         // Commit activation

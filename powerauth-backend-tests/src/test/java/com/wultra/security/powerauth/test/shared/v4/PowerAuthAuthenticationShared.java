@@ -335,7 +335,7 @@ public class PowerAuthAuthenticationShared {
         }
 
         // Activation should be blocked
-        final GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatus(initResponse.getActivationId());
+        final GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatusWithoutBlob(initResponse.getActivationId());
         assertEquals(ActivationStatus.BLOCKED, statusResponseBlocked.getActivationStatus());
 
         // Remove activation

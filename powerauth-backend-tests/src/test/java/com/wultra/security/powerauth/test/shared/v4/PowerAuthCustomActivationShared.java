@@ -79,7 +79,7 @@ public class PowerAuthCustomActivationShared {
         assertNotNull(layer2Response.getSharedSecretResponse());
 
         // Verify activation status - activation was automatically committed
-        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatusWithoutBlob(activationId);
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
         assertEquals("TestUser1", statusResponseActive.getUserId());
 
@@ -112,7 +112,7 @@ public class PowerAuthCustomActivationShared {
         assertNotNull(layer2Response.getSharedSecretResponse());
 
         // Verify activation status - activation was not automatically committed
-        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatusWithoutBlob(activationId);
         assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseActive.getActivationStatus());
         assertEquals("static_username", statusResponseActive.getUserId());
 
@@ -146,7 +146,7 @@ public class PowerAuthCustomActivationShared {
         assertNotNull(layer2Response.getSharedSecretResponse());
 
         // Verify activation status - activation was automatically committed
-        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatusWithoutBlob(activationId);
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
         assertEquals("12345678", statusResponseActive.getUserId());
 
@@ -358,7 +358,7 @@ public class PowerAuthCustomActivationShared {
         assertNotNull(layer2Response.getSharedSecretResponse());
 
         // Verify activation status - activation was automatically committed
-        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatusWithoutBlob(activationId);
         assertEquals(ActivationStatus.ACTIVE, statusResponseActive.getActivationStatus());
 
         fetchLayer1Response(stepLogger);
@@ -432,7 +432,7 @@ public class PowerAuthCustomActivationShared {
         }
 
         // Activation should be blocked
-        GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatus(activationId);
+        GetActivationStatusResponse statusResponseBlocked = powerAuthClient.getActivationStatusWithoutBlob(activationId);
         assertEquals(ActivationStatus.BLOCKED, statusResponseBlocked.getActivationStatus());
 
         powerAuthClient.removeActivation(activationId, "test");

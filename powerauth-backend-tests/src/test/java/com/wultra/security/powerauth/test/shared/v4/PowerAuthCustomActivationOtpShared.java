@@ -71,7 +71,7 @@ public class PowerAuthCustomActivationOtpShared {
         assertNotNull(layer2Response.getSharedSecretResponse());
 
         // Verify activation status - activation was not automatically committed
-        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatusWithoutBlob(activationId);
         assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseActive.getActivationStatus());
         assertEquals("static_username", statusResponseActive.getUserId());
 
@@ -101,7 +101,7 @@ public class PowerAuthCustomActivationOtpShared {
 
             // Verify activation status
             ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.ACTIVE : ActivationStatus.PENDING_COMMIT;
-            GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(activationId);
+            GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatusWithoutBlob(activationId);
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
 
@@ -145,7 +145,7 @@ public class PowerAuthCustomActivationOtpShared {
         assertNotNull(layer2Response.getSharedSecretResponse());
 
         // Verify activation status - activation was not automatically committed
-        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatus(activationId);
+        final GetActivationStatusResponse statusResponseActive = powerAuthClient.getActivationStatusWithoutBlob(activationId);
         assertEquals(ActivationStatus.PENDING_COMMIT, statusResponseActive.getActivationStatus());
         assertEquals("static_username", statusResponseActive.getUserId());
 
@@ -175,7 +175,7 @@ public class PowerAuthCustomActivationOtpShared {
 
             // Verify activation status
             ActivationStatus expectedActivationStatus = lastIteration ? ActivationStatus.REMOVED : ActivationStatus.PENDING_COMMIT;
-            GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatus(activationId);
+            GetActivationStatusResponse activationStatusResponse = powerAuthClient.getActivationStatusWithoutBlob(activationId);
             assertEquals(expectedActivationStatus, activationStatusResponse.getActivationStatus());
         }
 
