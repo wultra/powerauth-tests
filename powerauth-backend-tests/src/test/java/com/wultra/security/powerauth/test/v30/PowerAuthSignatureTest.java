@@ -140,11 +140,6 @@ public class PowerAuthSignatureTest {
     }
 
     @Test
-    void signatureThreeFactorTest() throws Exception {
-        PowerAuthSignatureShared.signatureThreeFactorTest(model, stepLogger);
-    }
-
-    @Test
     void signatureEmptyDataTest() throws Exception {
         PowerAuthSignatureShared.signatureEmptyDataTest(model, stepLogger, VERSION);
     }

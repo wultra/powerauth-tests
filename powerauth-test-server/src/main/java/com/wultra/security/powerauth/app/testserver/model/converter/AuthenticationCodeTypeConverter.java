@@ -19,6 +19,8 @@ package com.wultra.security.powerauth.app.testserver.model.converter;
 
 import com.wultra.security.powerauth.app.testserver.model.enumeration.AuthenticationCodeType;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 /**
  * Converter for authentication code types.
@@ -26,6 +28,7 @@ import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
  * @author Petr Dvorak, petr@wultra.com
  * @author Roman Strobl, roman.strobl@wultra.com
  */
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AuthenticationCodeTypeConverter {
 
     /**
@@ -36,11 +39,8 @@ public class AuthenticationCodeTypeConverter {
     public static PowerAuthCodeType convert(final AuthenticationCodeType source) {
         return switch (source) {
             case POSSESSION -> PowerAuthCodeType.POSSESSION;
-            case KNOWLEDGE-> PowerAuthCodeType.KNOWLEDGE;
-            case BIOMETRY-> PowerAuthCodeType.BIOMETRY;
             case POSSESSION_KNOWLEDGE-> PowerAuthCodeType.POSSESSION_KNOWLEDGE;
             case POSSESSION_BIOMETRY-> PowerAuthCodeType.POSSESSION_BIOMETRY;
-            case POSSESSION_KNOWLEDGE_BIOMETRY-> PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY;
         };
     }
 

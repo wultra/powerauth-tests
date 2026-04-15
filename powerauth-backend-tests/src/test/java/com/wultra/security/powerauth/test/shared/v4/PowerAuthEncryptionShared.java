@@ -453,16 +453,6 @@ public class PowerAuthEncryptionShared {
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
-    public static void signAndEncryptThreeFactorTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
-        signatureModel.setResourceId("/exchange/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
-        signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY);
-
-        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().success());
-        assertEquals(200, stepLogger.getResponse().statusCode());
-    }
-
     public static void encryptedResponseTest(final PowerAuthTestConfiguration config, EncryptStepModel encryptModel, ObjectStepLogger stepLogger, PowerAuthVersion version) throws Exception {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v4/activation");
         encryptModel.setScope("activation");

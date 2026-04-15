@@ -465,16 +465,6 @@ public class PowerAuthEncryptionShared {
         assertEquals(200, stepLogger.getResponse().statusCode());
     }
 
-    public static void signAndEncryptThreeFactorTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
-        signatureModel.setResourceId("/exchange/signed");
-        signatureModel.setUriString(config.getEnrollmentServiceUrl() + "/exchange/v3/signed");
-        signatureModel.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY);
-
-        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
-        assertTrue(stepLogger.getResult().success());
-        assertEquals(200, stepLogger.getResponse().statusCode());
-    }
-
     public static void replayAttackEciesDecryptorTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, PowerAuthVersion version) throws Exception {
         final TemporaryKey temporaryKey = TemporaryKeyFetchUtil.fetchTemporaryKey(version, EncryptorScope.APPLICATION_SCOPE, config);
         String requestData = "test_data";

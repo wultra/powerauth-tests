@@ -192,14 +192,6 @@ public class PowerAuthAuthenticationShared {
         new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
     }
 
-    public static void authThreeFactorTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
-        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY);
-
-        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
-        assertTrue(stepLogger.getResult().success());
-        assertEquals(200, stepLogger.getResponse().statusCode());
-    }
-
     public static void authEmptyDataTest(final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         File dataFile = File.createTempFile("data_empty" + version, ".json");
         dataFile.deleteOnExit();
@@ -473,8 +465,8 @@ public class PowerAuthAuthenticationShared {
         String biometryKeyOrig = (String) model.getResultStatusObject().get("biometryFactorKey");
         // Set possession key as biometry key
         model.getResultStatusObject().put("biometryFactorKey", model.getResultStatusObject().get("possessionFactorKey"));
-        // Verify three factor auth
-        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE_BIOMETRY);
+        // Verify two factor auth
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_BIOMETRY);
 
         new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().success());

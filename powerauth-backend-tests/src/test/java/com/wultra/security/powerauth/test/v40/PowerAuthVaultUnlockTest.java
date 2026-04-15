@@ -148,11 +148,6 @@ class PowerAuthVaultUnlockTest {
     }
 
     @Test
-    void vaultUnlockThreeFactorTest() throws Exception {
-        PowerAuthVaultUnlockShared.vaultUnlockThreeFactorTest(model, stepLogger);
-    }
-
-    @Test
     void vaultUnlockBlockedActivationTest() throws Exception {
         PowerAuthVaultUnlockShared.vaultUnlockBlockedActivationTest(powerAuthClient, config, model, VERSION);
     }

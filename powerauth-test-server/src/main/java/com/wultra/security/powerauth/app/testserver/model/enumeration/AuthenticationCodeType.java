@@ -33,16 +33,6 @@ public enum AuthenticationCodeType {
     POSSESSION,
 
     /**
-     * 1FA signature using knowledge factor key.
-     */
-    KNOWLEDGE,
-
-    /**
-     * 1FA signature using biometry factor key.
-     */
-    BIOMETRY,
-
-    /**
      * 2FA signature using possession and knowledge factor key.
      */
     POSSESSION_KNOWLEDGE,
@@ -50,12 +40,7 @@ public enum AuthenticationCodeType {
     /**
      * 2FA signature using possession and biometry factor key.
      */
-    POSSESSION_BIOMETRY,
-
-    /**
-     * 3FA signature using possession, knowledge and biometry factor key.
-     */
-    POSSESSION_KNOWLEDGE_BIOMETRY;
+    POSSESSION_BIOMETRY;
 
     /**
      * Case-insensitive deserializer.
