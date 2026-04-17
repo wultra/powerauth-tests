@@ -113,7 +113,7 @@ public class PowerAuthApiShared {
             if (signatureValue.equals(item.getSignature())) {
                 assertEquals(config.getActivationId(version), item.getActivationId());
                 assertEquals(normalizedDataWithSecret, new String(Base64.getDecoder().decode(item.getDataBase64())));
-                assertEquals(SignatureType.POSSESSION_KNOWLEDGE, item.getSignatureType());
+                assertEquals("POSSESSION_KNOWLEDGE", item.getSignatureType());
                 assertEquals(version.value(), item.getSignatureVersion());
                 assertEquals(ActivationStatus.ACTIVE, item.getActivationStatus());
                 assertEquals(config.getApplicationId(), item.getApplicationId());
