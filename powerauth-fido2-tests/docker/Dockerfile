@@ -27,7 +27,6 @@ RUN apt-get -y update  \
     && groupadd -r powerauth && useradd -r -g powerauth -s /sbin/nologin powerauth
 
 # Deploy and run applications
-COPY ./powerauth-fido2-tests/src/main/resources/application.properties /app/application.properties
 COPY ./powerauth-fido2-tests/target/powerauth-fido2-tests*.war "${APP_PATH}"
 
 # Docker configuration
