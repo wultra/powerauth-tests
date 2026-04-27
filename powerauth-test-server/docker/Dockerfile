@@ -45,10 +45,9 @@ RUN apt-get -y update  \
     && groupadd -r powerauth && useradd -r -g powerauth -s /sbin/nologin powerauth
 
 # Copy new Liquibase data
-COPY ./docs/db/changelog $LB_HOME/db/changelog
+COPY docs/db/changelog/changesets/powerauth-test-server $LB_HOME/db/changelog
 
 # Deploy and run applications
-COPY ./powerauth-test-server/src/main/resources/application.properties /app/application.properties
 COPY ./powerauth-test-server/target/powerauth-test-server*.war "${APP_PATH}"
 
 # Docker configuration
