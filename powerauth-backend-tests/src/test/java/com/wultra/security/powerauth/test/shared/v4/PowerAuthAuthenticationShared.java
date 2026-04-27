@@ -22,16 +22,13 @@ import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AuthenticationCodeType;
-import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.v4.CreatePersonalizedOfflineAuthPayloadRequest;
+import com.wultra.security.powerauth.client.model.request.v4.VerifyAuthenticationRequest;
 import com.wultra.security.powerauth.client.model.request.v4.VerifyOfflineAuthenticationRequest;
 import com.wultra.security.powerauth.client.model.response.CommitActivationResponse;
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
-import com.wultra.security.powerauth.client.model.response.v4.CreateNonPersonalizedOfflineAuthPayloadResponse;
-import com.wultra.security.powerauth.client.model.response.v4.CreatePersonalizedOfflineAuthPayloadResponse;
-import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatusResponse;
-import com.wultra.security.powerauth.client.model.response.v4.VerifyOfflineAuthenticationResponse;
+import com.wultra.security.powerauth.client.model.response.v4.*;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.config.AuthenticationCodeConfiguration;
@@ -39,15 +36,15 @@ import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
-import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
-import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.crypto.lib.util.AuthenticationCodeUtils;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.crypto.lib.v4.kdf.Kmac;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import com.wultra.security.powerauth.http.PowerAuthAuthorizationHttpHeader;
 import com.wultra.security.powerauth.http.PowerAuthHttpBody;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
+import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VerifyAuthenticationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
@@ -66,12 +63,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.InvalidKeyException;
-import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -499,6 +491,41 @@ public class PowerAuthAuthenticationShared {
 
         // Revert resource ID
         model.setResourceId("/pa/auth/validate");
+    }
+
+    @SuppressWarnings("unchecked")
+    public static void authV3UsingV4EndpointTest(final PowerAuthClient powerAuthClient, final VerifyAuthenticationStepModel model, final ObjectStepLogger stepLogger) throws Exception {
+        // Use dry run execution
+        new VerifyAuthenticationStep().execute(stepLogger, model.toMap());
+        assertTrue(stepLogger.getResult().success());
+        final Optional<StepItem> stepItemPayload = stepLogger.getItems().stream()
+                .filter(stepItem -> "authentication-verify-prepare-request".equals(stepItem.id()))
+                .findFirst();
+        assertTrue(stepItemPayload.isPresent());
+        final Optional<StepItem> stepItemHeaders = stepLogger.getItems().stream()
+                .filter(stepItem -> "authentication-verify-request-sent".equals(stepItem.id()))
+                .findFirst();
+        assertTrue(stepItemHeaders.isPresent());
+        final Map<String, Object> payloadMap = (Map<String, Object>) stepItemPayload.get().object();
+        final String authBaseString = payloadMap.get("authenticationBaseString").toString();
+        final Map<String, Object> headersMap = (Map<String, Object>) stepItemHeaders.get().object();
+        final Map<String, Object> requestHeaders = (Map<String, Object>) headersMap.get("requestHeaders");
+        final String authHeader = requestHeaders.get("X-PowerAuth-Authorization").toString();
+        final PowerAuthAuthorizationHttpHeader parsedHeader = new PowerAuthAuthorizationHttpHeader().fromValue(authHeader);
+        // Verify authentication against PA server using V4 endpoint
+        final VerifyAuthenticationRequest authRequest = new VerifyAuthenticationRequest();
+        authRequest.setActivationId(parsedHeader.getActivationId());
+        // Strip the application secret from the base string, it is appended by the server
+        authRequest.setData(authBaseString.substring(0, authBaseString.lastIndexOf("&")));
+        authRequest.setApplicationKey(parsedHeader.getApplicationKey());
+        authRequest.setAuthenticationCodeType(AuthenticationCodeType.enumFromString(parsedHeader.getAuthCodeType()));
+        authRequest.setAuthenticationCode(parsedHeader.getAuthCode());
+        authRequest.setAuthenticationVersion("3.3");
+        final VerifyAuthenticationResponse response = powerAuthClient.verifyAuthentication(authRequest);
+        assertTrue(response.isAuthenticationValid());
+
+        // Increment counter
+        CounterUtil.incrementCounter(model.getResultStatus());
     }
 
     public static void authOfflinePersonalizedValidTest(PowerAuthClient powerAuthClient, PowerAuthTestConfiguration config, VerifyAuthenticationStepModel model, ObjectStepLogger stepLogger, PowerAuthVersion version) throws Exception {
