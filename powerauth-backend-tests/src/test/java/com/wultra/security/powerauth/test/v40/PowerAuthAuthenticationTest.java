@@ -209,7 +209,6 @@ class PowerAuthAuthenticationTest {
         model.setResultStatusObject(config.getResultStatusObject(version));
         model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE);
         model.setStatusFileName(config.getStatusFile(version).getAbsolutePath());
-        model.setUriString(config.getPowerAuthIntegrationUrl() + "/pa/v4/auth/validate");
         model.setDryRun(true);
         model.setVersion(version);
         PowerAuthAuthenticationShared.authV3UsingV4EndpointTest(powerAuthClient, model, stepLogger);
