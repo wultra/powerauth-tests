@@ -195,6 +195,27 @@ class PowerAuthAuthenticationTest {
     }
 
     @Test
+    void authV3UsingV4EndpointTest() throws Exception {
+        final PowerAuthVersion version = PowerAuthVersion.V3_3;
+        final byte[] data = Files.readAllBytes(Paths.get(dataFile.getAbsolutePath()));
+        final VerifyAuthenticationStepModel model = new VerifyAuthenticationStepModel();
+        model.setApplicationKey(config.getApplicationKey());
+        model.setApplicationSecret(config.getApplicationSecret());
+        model.setData(data);
+        model.setHeaders(new HashMap<>());
+        model.setHttpMethod("POST");
+        model.setPassword(config.getPassword());
+        model.setResourceId("/pa/auth/validate");
+        model.setResultStatusObject(config.getResultStatusObject(version));
+        model.setAuthenticationCodeType(PowerAuthCodeType.POSSESSION_KNOWLEDGE);
+        model.setStatusFileName(config.getStatusFile(version).getAbsolutePath());
+        model.setDryRun(true);
+        model.setVersion(version);
+        PowerAuthAuthenticationShared.authV3UsingV4EndpointTest(powerAuthClient, model, stepLogger);
+    }
+
+
+    @Test
     void authOfflinePersonalizedValidTest() throws Exception {
         PowerAuthAuthenticationShared.authOfflinePersonalizedValidTest(powerAuthClient, config, model, stepLogger, VERSION);
     }
