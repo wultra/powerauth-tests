@@ -49,7 +49,7 @@
         <!-- TODO (racansky, 2026-01-22) onboarding artifact is not released publicly and use in tests only -->
         <enrollment-server-onboarding.version>2.1.0-SNAPSHOT</enrollment-server-onboarding.version>
         <powerauth-cmd.version>2.1.0-SNAPSHOT</powerauth-cmd.version>
-        <powerauth-crypto.version>2.1.0-SNAPSHOT</powerauth-crypto.version>
+        <powerauth-crypto.version>2.1.0</powerauth-crypto.version>
         <powerauth-restful-integration.version>2.1.0-SNAPSHOT</powerauth-restful-integration.version>
         <powerauth-server.version>2.1.0-SNAPSHOT</powerauth-server.version>
         <wultra-core.version>2.1.0</wultra-core.version>
