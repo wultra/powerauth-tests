@@ -156,7 +156,8 @@ public class PowerAuthIdentityVerificationShared {
                 processId,
                 userId,
                 verificationIds.get(0),
-                AcknowledgeApproveClientRequest.ApprovalResult.OK);
+                AcknowledgeApproveClientRequest.ApprovalResult.OK,
+                null);
 
         final AcknowledgeApproveClientResponse result = restClient.post()
                 .uri(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/private/client/approve")
