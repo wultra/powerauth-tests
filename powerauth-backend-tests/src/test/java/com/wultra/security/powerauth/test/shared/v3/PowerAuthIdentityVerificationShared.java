@@ -682,6 +682,7 @@ public class PowerAuthIdentityVerificationShared {
         final TestProcessContext context = prepareActivation(ctx);
         final String processId = context.processId;
 
+        approveConsent(ctx, processId);
         initIdentityVerification(ctx, context.activationId, processId);
 
         Map<String, String> attributes = new HashMap<>();
