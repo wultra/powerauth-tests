@@ -23,6 +23,7 @@ import com.wultra.security.powerauth.app.testserver.database.entity.TestStatusEn
 import com.wultra.security.powerauth.app.testserver.errorhandling.ActivationFailedException;
 import com.wultra.security.powerauth.app.testserver.errorhandling.GenericCryptographyException;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import com.wultra.security.powerauth.crypto.lib.model.exception.CryptoProviderException;
 import com.wultra.security.powerauth.crypto.lib.model.exception.GenericCryptoException;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.steps.pojo.ResultStatusObject;
@@ -182,7 +183,7 @@ public class ResultStatusService {
             byte[] ctrData = Base64.getDecoder().decode(ctrDataBase64);
             try {
                 ctrData = new HashBasedCounter(version.value()).next(ctrData);
-            } catch (GenericCryptoException e) {
+            } catch (GenericCryptoException | CryptoProviderException e) {
                 throw new GenericCryptographyException(e.getMessage(), e);
             }
             testStatusEntity.setCtrData(Base64.getEncoder().encodeToString(ctrData));
