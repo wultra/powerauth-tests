@@ -15,7 +15,7 @@ Follow these steps to build and run (example commands were run from root) the Po
     ```
 
 2. **Liquibase Scripts**:
-   Copy the Liquibase migration scripts into the Docker build context. For detailed instructions, refer to [readme.txt](deploy/liquibase/readme.txt).
+   Copy the Liquibase migration scripts into the Docker build context. For detailed instructions, refer to [readme.txt](docker/deploy/liquibase/readme.txt).
 
 3. **Environment Configuration**:
    Set up the environment variables using one of the two methods below:
@@ -31,7 +31,7 @@ Follow these steps to build and run (example commands were run from root) the Po
 4. **Docker Image Build**:
    Build the Docker image using the provided Dockerfile:
     ```shell
-    docker build -f powerauth-test-server/Dockerfile -t powerauth-test-server:latest ./powerauth-test-server
+    docker build -f powerauth-test-server/docker/Dockerfile -t powerauth-test-server:latest ./powerauth-test-server
     ```
 
 5. **Run the Docker Image**:
