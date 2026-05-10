@@ -37,7 +37,7 @@ Follow these steps to build and run (example commands were run from root) the Po
 5. **Run the Docker Image**:
    Deploy the container with the following command:
     ```shell
-    docker run -d -p 80:8080 --name powerauth-test-server --env-file ./powerauth-test-server/env.list powerauth-test-server:latest
+    docker run -d -p 80:8080 --name powerauth-test-server --env-file ./powerauth-test-server/docker/env.list powerauth-test-server:latest
     ```
 
 6. **Server Verification**:
