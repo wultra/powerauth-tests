@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.test.shared.v4.util;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObjectJSON;
@@ -57,6 +56,7 @@ import org.bouncycastle.asn1.DLSequence;
 import org.bouncycastle.jcajce.spec.MLDSAParameterSpec;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.crypto.SecretKey;
 import java.math.BigInteger;

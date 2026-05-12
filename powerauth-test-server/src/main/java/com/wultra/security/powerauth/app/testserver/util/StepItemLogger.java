@@ -18,10 +18,10 @@
 
 package com.wultra.security.powerauth.app.testserver.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import org.slf4j.Logger;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Logging helper class.
@@ -40,7 +40,7 @@ public class StepItemLogger {
         if (item.object() != null) {
             try {
                 serializedObject = objectMapper.writeValueAsString(item.object());
-            } catch (JsonProcessingException e) {
+            } catch (JacksonException e) {
                 serializedObject = item.object().toString();
             }
         }

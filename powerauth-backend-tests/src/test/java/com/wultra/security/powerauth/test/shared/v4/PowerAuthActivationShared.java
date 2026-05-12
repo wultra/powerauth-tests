@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.test.shared.v4;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.entity.ApplicationVersion;
@@ -44,6 +43,7 @@ import com.wultra.security.powerauth.lib.cmd.steps.model.GetStatusStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AssertionFailureBuilder;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.Duration;
 import java.time.Instant;

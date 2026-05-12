@@ -118,12 +118,6 @@
             <artifactId>mtoken-model</artifactId>
         </dependency>
 
-        <!-- Other Dependencies -->
-        <dependency>
-            <groupId>com.fasterxml.jackson.datatype</groupId>
-            <artifactId>jackson-datatype-jsr310</artifactId>
-        </dependency>
-
         <!-- Logging -->
         <dependency>
             <groupId>net.logstash.logback</groupId>

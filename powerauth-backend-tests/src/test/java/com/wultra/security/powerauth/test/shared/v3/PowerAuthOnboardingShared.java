@@ -17,9 +17,6 @@
  */
 package com.wultra.security.powerauth.test.shared.v3;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingCleanupRequest;
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingOtpResendRequest;
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.OnboardingStartRequest;
@@ -56,6 +53,9 @@ import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationStatus
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.opentest4j.AssertionFailedError;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
 import java.math.BigInteger;
@@ -137,7 +137,6 @@ public class PowerAuthOnboardingShared {
         assertEquals(ActivationStatus.REMOVED, activationStatusResponse.getActivationStatus(), "Cleanup should remove the activation");
     }
 
-    @SuppressWarnings("unchecked")
     public static void testSuccessfulOnboardingWithActivationCode(final TestContext ctx) throws Exception {
         final String clientId = generateRandomClientId();
         final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId, false, "onboarding");
@@ -506,7 +505,7 @@ public class PowerAuthOnboardingShared {
             final T result = objectMapper.readValue(source, type);
             assertNotNull(result);
             return result;
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw AssertionFailureBuilder.assertionFailure()
                     .message("Unable to parse JSON.")
                     .cause(e)

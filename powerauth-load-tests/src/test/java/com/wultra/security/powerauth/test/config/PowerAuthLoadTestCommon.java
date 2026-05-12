@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.test.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.test.shared.SharedSessionData;
 import io.gatling.javaapi.core.FeederBuilder;
 import io.gatling.javaapi.http.HttpProtocolBuilder;

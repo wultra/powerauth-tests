@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.test.shared.v4;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -38,6 +37,7 @@ import com.wultra.security.powerauth.lib.cmd.steps.VaultUnlockStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.SignAsymmetricStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
 import com.wultra.security.powerauth.util.TestCounterUtil;
+import tools.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;

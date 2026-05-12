@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.test.shared.v3;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.response.v3.*;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
@@ -55,6 +54,7 @@ import com.wultra.security.powerauth.rest.api.model.entity.TokenResponsePayload;
 import com.wultra.security.powerauth.rest.api.model.request.v3.VaultUnlockRequestPayload;
 import com.wultra.security.powerauth.rest.api.model.response.v3.VaultUnlockResponsePayload;
 import lombok.Data;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;

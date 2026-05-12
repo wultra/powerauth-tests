@@ -17,10 +17,6 @@
  */
 package com.wultra.security.powerauth.test.shared.v3;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -35,6 +31,11 @@ import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
 import com.wultra.security.powerauth.rest.api.model.request.UserInfoRequest;
 import com.wultra.security.powerauth.rest.api.model.response.v3.ServerStatusResponse;
 import org.opentest4j.AssertionFailedError;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
 import java.util.Objects;
@@ -49,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthInfoShared {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS).build();
 
     // Tolerate 60 seconds time difference between client and server in tests
     private static final long SERVER_CLIENT_TIME_DIFF_TOLERANCE_MILLIS = 60000;
@@ -57,7 +58,7 @@ public class PowerAuthInfoShared {
     public static void testUserInfo(final PowerAuthTestConfiguration config, final EncryptStepModel encryptModel, final PowerAuthVersion version) throws Exception {
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/pa/v3/user/info");
         encryptModel.setScope("activation");
-        encryptModel.setData(objectMapper.writeValueAsBytes(new UserInfoRequest()));
+        encryptModel.setData(OBJECT_MAPPER.writeValueAsBytes(new UserInfoRequest()));
 
         final ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
@@ -94,8 +95,8 @@ public class PowerAuthInfoShared {
 
     private static <T> T safeReadValue(final String value, final TypeReference<T> typeReference) {
         try {
-            return objectMapper.readValue(value, typeReference);
-        } catch (JsonProcessingException e) {
+            return OBJECT_MAPPER.readValue(value, typeReference);
+        } catch (JacksonException e) {
             fail("Unable to read json", e);
             return null;
         }

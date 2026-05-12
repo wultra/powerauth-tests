@@ -17,8 +17,6 @@
  */
 package com.wultra.security.powerauth.test.v31;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.test.shared.v3.PowerAuthIdentityVerificationShared;
@@ -35,6 +33,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.EnabledIf;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,7 +58,7 @@ class PowerAuthIdentityVerificationTest {
     private PowerAuthTestConfiguration config;
     private PowerAuthIdentityVerificationShared.TestContext ctx;
 
-    private final ObjectMapper objectMapper = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+    private final ObjectMapper objectMapper = JsonMapper.builder().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS).build();
 
     @Autowired
     public void setPowerAuthTestConfiguration(PowerAuthTestConfiguration config) {

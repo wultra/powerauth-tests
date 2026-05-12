@@ -17,9 +17,6 @@
  */
 package com.wultra.security.powerauth.test.shared;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.crypto.client.activation.PowerAuthClientActivation;
@@ -29,6 +26,9 @@ import com.wultra.security.powerauth.lib.cmd.steps.model.VerifyAuthenticationSte
 import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.AuthAndEncryptStep;
 import org.junit.jupiter.api.AssertionFailureBuilder;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -119,7 +119,7 @@ public class PowerAuthActivationCodeShared {
             final T result = objectMapper.readValue(source, type);
             assertNotNull(result);
             return result;
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw AssertionFailureBuilder.assertionFailure()
                     .message("Unable to parse JSON.")
                     .cause(e)

@@ -17,10 +17,6 @@
  */
 package com.wultra.security.powerauth.test.v3x;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.wultra.app.enrollmentserver.api.model.enrollment.request.OidcApplicationConfigurationRequest;
 import com.wultra.app.enrollmentserver.api.model.enrollment.response.OidcApplicationConfigurationResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthOidcActivationConfigurationProperties;
@@ -39,6 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.EnabledIf;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.SerializationFeature;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.HashMap;
 import java.util.Objects;
@@ -58,7 +59,7 @@ class PowerAuthApplicationConfigurationTest {
 
     private static final PowerAuthVersion VERSION = PowerAuthVersion.V3_3;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS).build();
 
     @Autowired
     private PowerAuthOidcActivationConfigurationProperties oidcConfigProperties;
@@ -87,7 +88,7 @@ class PowerAuthApplicationConfigurationTest {
 
         encryptModel.setUriString(config.getEnrollmentServiceUrl() + "/api/config/oidc");
         encryptModel.setScope("application");
-        encryptModel.setData(objectMapper.writeValueAsBytes(request));
+        encryptModel.setData(OBJECT_MAPPER.writeValueAsBytes(request));
 
         final ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         new EncryptStep().execute(stepLogger, encryptModel.toMap());
@@ -121,8 +122,8 @@ class PowerAuthApplicationConfigurationTest {
 
     private static <T> T safeReadValue(final String value, final TypeReference<T> typeReference) {
         try {
-            return objectMapper.readValue(value, typeReference);
-        } catch (JsonProcessingException e) {
+            return OBJECT_MAPPER.readValue(value, typeReference);
+        } catch (JacksonException e) {
             fail("Unable to read json", e);
             return null;
         }

@@ -17,9 +17,6 @@
  */
 package com.wultra.security.powerauth.test.shared.v3;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.app.enrollmentserver.api.model.onboarding.request.*;
 import com.wultra.app.enrollmentserver.api.model.onboarding.response.*;
 import com.wultra.app.enrollmentserver.model.enumeration.*;
@@ -51,6 +48,9 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
+import tools.jackson.core.JacksonException;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -979,7 +979,7 @@ public class PowerAuthIdentityVerificationShared {
     private static <T> T safeReadValue(final ObjectMapper objectMapper, final String value, final TypeReference<T> typeReference) {
         try {
             return objectMapper.readValue(value, typeReference);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             fail("Unable to read json", e);
             return null;
         }
@@ -1367,7 +1367,7 @@ public class PowerAuthIdentityVerificationShared {
             final T result = objectMapper.readValue(source, type);
             assertNotNull(result);
             return result;
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw AssertionFailureBuilder.assertionFailure()
                     .message("Unable to parse JSON.")
                     .cause(e)
