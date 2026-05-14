@@ -1,4 +1,4 @@
-name: Test Compile with Maven
+name: maven-tests
 
 on:
   workflow_dispatch:
