@@ -34,7 +34,6 @@ import org.opentest4j.AssertionFailedError;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.util.Map;
@@ -50,7 +49,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PowerAuthInfoShared {
 
-    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS).build();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     // Tolerate 60 seconds time difference between client and server in tests
     private static final long SERVER_CLIENT_TIME_DIFF_TOLERANCE_MILLIS = 60000;

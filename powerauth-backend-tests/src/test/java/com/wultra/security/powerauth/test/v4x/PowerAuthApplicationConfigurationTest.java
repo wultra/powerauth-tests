@@ -38,7 +38,6 @@ import org.springframework.test.context.junit.jupiter.EnabledIf;
 import tools.jackson.core.JacksonException;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.SerializationFeature;
 import tools.jackson.databind.json.JsonMapper;
 
 import java.util.HashMap;
@@ -59,7 +58,7 @@ class PowerAuthApplicationConfigurationTest {
 
     private static final PowerAuthVersion VERSION = PowerAuthVersion.V4_0;
 
-    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS).build();
+    private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
     @Autowired
     private PowerAuthOidcActivationConfigurationProperties oidcConfigProperties;
