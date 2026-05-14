@@ -50,6 +50,8 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -138,7 +140,7 @@ public class OperationsService extends BaseService {
                 .findAny()
                 .orElseThrow(() -> new SignatureVerificationException("Unable to generate token"));
 
-        final HttpHeaders headers = new HttpHeaders();
+        final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.put("X-PowerAuth-Token", Collections.singletonList(header));
         headers.add(HttpHeaders.ACCEPT_LANGUAGE, LocaleContextHolder.getLocale().getLanguage());
 
