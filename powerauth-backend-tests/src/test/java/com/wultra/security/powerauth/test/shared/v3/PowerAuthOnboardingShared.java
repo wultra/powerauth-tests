@@ -519,6 +519,7 @@ public class PowerAuthOnboardingShared {
                 .enabled(true)
                 .otpForIdentification(true)
                 .otpForIdentityVerification(true)
+                .otpResendPeriodSeconds(60)
                 .documents(ConfigurationResponse.Documents.builder()
                         .totalRequiredDocumentsCount(2)
                         .groups(Set.of(
