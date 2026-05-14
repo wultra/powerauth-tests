@@ -53,7 +53,7 @@ public class PowerAuthTestApplication {
 
     @EventListener
     public void onReady(ApplicationReadyEvent event) {
-        log.info("PowerAuth Test Application started, application ports: {}, {}, {}", powerauthPort, enrollmentPort, onboardingPort);
+        logger.info("PowerAuth Test Application started, application ports: {}, {}, {}", powerauthPort, enrollmentPort, onboardingPort);
     }
 
     @EventListener
@@ -70,7 +70,7 @@ public class PowerAuthTestApplication {
                 conn.disconnect();
             }
         } catch (Exception e) {
-            log.error("Application shutdown failed", e);
+            logger.error("Application shutdown failed", e);
         }
     }
 
