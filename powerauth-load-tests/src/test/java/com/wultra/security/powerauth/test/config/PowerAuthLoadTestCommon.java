@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.test.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.test.shared.SharedSessionData;
 import io.gatling.javaapi.core.FeederBuilder;
 import io.gatling.javaapi.http.HttpProtocolBuilder;
@@ -25,9 +24,10 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -241,7 +241,7 @@ public class PowerAuthLoadTestCommon {
         final ObjectMapper objectMapper = new ObjectMapper();
         try {
             objectMapper.writeValue(new File("src/test/resources/" + DATA_DUMP_FILE), SharedSessionData.registrationData);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             logger.warn("Unable to save generated user data, due to : {}", e.getMessage());
         }
     }

@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.test.shared.v4;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.core.rest.model.base.response.Response;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
@@ -55,6 +54,7 @@ import com.wultra.security.powerauth.util.TestCounterUtil;
 import org.apache.commons.text.CharacterPredicates;
 import org.apache.commons.text.RandomStringGenerator;
 import org.json.simple.JSONObject;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.crypto.SecretKey;
 import java.io.File;

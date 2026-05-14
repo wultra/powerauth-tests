@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.test.shared.v3;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.model.response.v3.GetApplicationDetailResponse;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
@@ -50,6 +49,7 @@ import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationStatus
 import com.wultra.security.powerauth.util.TestCounterUtil;
 import org.json.simple.JSONObject;
 import org.junit.jupiter.api.AssertionFailureBuilder;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.crypto.SecretKey;
 import java.security.KeyPair;

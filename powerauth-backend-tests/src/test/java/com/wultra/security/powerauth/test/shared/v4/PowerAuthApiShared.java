@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.test.shared.v4;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.security.powerauth.client.model.entity.SignatureAuditItem;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.enumeration.v4.AsymmetricSignatureFormat;
@@ -66,6 +65,7 @@ import com.wultra.security.powerauth.rest.api.model.response.v4.VaultUnlockRespo
 import com.wultra.security.powerauth.test.shared.v4.util.TemporaryKeyFetchUtil;
 import lombok.Data;
 import org.bouncycastle.jcajce.spec.MLDSAParameterSpec;
+import tools.jackson.databind.ObjectMapper;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;

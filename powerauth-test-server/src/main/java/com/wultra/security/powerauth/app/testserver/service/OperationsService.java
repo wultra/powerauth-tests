@@ -17,8 +17,6 @@
  */
 package com.wultra.security.powerauth.app.testserver.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.rest.client.base.DefaultRestClient;
 import com.wultra.core.rest.client.base.RestClient;
 import com.wultra.core.rest.client.base.RestClientException;
@@ -52,6 +50,10 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -138,7 +140,7 @@ public class OperationsService extends BaseService {
                 .findAny()
                 .orElseThrow(() -> new SignatureVerificationException("Unable to generate token"));
 
-        final HttpHeaders headers = new HttpHeaders();
+        final MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.put("X-PowerAuth-Token", Collections.singletonList(header));
         headers.add(HttpHeaders.ACCEPT_LANGUAGE, LocaleContextHolder.getLocale().getLanguage());
 
@@ -176,7 +178,7 @@ public class OperationsService extends BaseService {
         try {
             String payloadString = new ObjectMapper().writeValueAsString(new ObjectRequest<>(map));
             payload = payloadString.getBytes(StandardCharsets.UTF_8);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new SignatureVerificationException("Unable to serialize data", e);
         }
 
@@ -228,7 +230,7 @@ public class OperationsService extends BaseService {
         try {
             String payloadString = new ObjectMapper().writeValueAsString(new ObjectRequest<>(map));
             payload = payloadString.getBytes(StandardCharsets.UTF_8);
-        } catch (JsonProcessingException e) {
+        } catch (JacksonException e) {
             throw new SignatureVerificationException("Unable to serialize data", e);
         }
 

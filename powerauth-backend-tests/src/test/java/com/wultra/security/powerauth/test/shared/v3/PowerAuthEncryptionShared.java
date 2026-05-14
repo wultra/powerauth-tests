@@ -17,7 +17,6 @@
  */
 package com.wultra.security.powerauth.test.shared.v3;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.v3.GetEciesDecryptorRequest;
@@ -45,6 +44,7 @@ import com.wultra.security.powerauth.model.v3.TemporaryKey;
 import com.wultra.security.powerauth.test.shared.v3.util.TemporaryKeyFetchUtil;
 import com.wultra.security.powerauth.util.TestCounterUtil;
 import org.junit.jupiter.api.AssertionFailureBuilder;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.BufferedWriter;
 import java.io.ByteArrayOutputStream;
