@@ -29,6 +29,7 @@ import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
 import com.wultra.security.powerauth.lib.cmd.steps.EncryptStep;
 import com.wultra.security.powerauth.lib.cmd.steps.model.EncryptStepModel;
 import com.wultra.security.powerauth.rest.api.model.request.UserInfoRequest;
+import com.wultra.security.powerauth.rest.api.model.request.v4.ServerStatusRequest;
 import com.wultra.security.powerauth.rest.api.model.response.v4.ServerStatusResponse;
 import org.opentest4j.AssertionFailedError;
 import tools.jackson.core.JacksonException;
@@ -84,7 +85,8 @@ public class PowerAuthInfoShared {
 
     public static void testServerStatus(final PowerAuthTestConfiguration config) throws Exception {
         final RestClient restClient = new DefaultRestClient(config.getEnrollmentServiceUrl());
-        final ObjectResponse<ServerStatusResponse> objectResponse = restClient.postObject("/pa/v4/status", new ObjectRequest<>(), ServerStatusResponse.class);
+        final ServerStatusRequest request = new ServerStatusRequest(config.getApplicationKey());
+        final ObjectResponse<ServerStatusResponse> objectResponse = restClient.postObject("/pa/v4/status", new ObjectRequest<>(request), ServerStatusResponse.class);
         assertTrue(Math.abs(objectResponse.getResponseObject().serverTime() - System.currentTimeMillis()) < SERVER_CLIENT_TIME_DIFF_TOLERANCE_MILLIS);
     }
 
