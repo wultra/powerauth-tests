@@ -307,9 +307,9 @@ class PowerAuthConfigStoreTest {
 
         createConfig(ConfigScope.APPLICATION, null, key, valueA);
         try {
-            assertEquals(valueA, findItem(fetchConfig("activation"), key).getValue(),
-                    "Step 1: APPLICATION value must be returned initially");
-
+            final ConfigItem step1 = findItem(fetchConfig("activation"), key);
+            assertNotNull(step1, "Step 1: Key must be returned initially");
+            assertEquals(valueA, step1.getValue(), "Step 1: APPLICATION value must be returned initially");
             createConfig(ConfigScope.ACTIVATION, null, key, valueB);
             try {
                 assertEquals(valueB, findItem(fetchConfig("activation"), key).getValue(),
