@@ -18,10 +18,13 @@
 package com.wultra.security.powerauth.test.v4x;
 
 import com.wultra.security.powerauth.client.model.enumeration.ConfigScope;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.v4.CreateConfigItemRequest;
+import com.wultra.security.powerauth.client.model.request.v4.GetConfigItemsRequest;
 import com.wultra.security.powerauth.client.model.request.v4.RemoveConfigItemRequest;
 import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
+import com.wultra.security.powerauth.client.model.response.v4.GetConfigItemsResponse;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
@@ -79,6 +82,12 @@ class PowerAuthConfigStoreTest {
 
     private static final ObjectMapper OBJECT_MAPPER = JsonMapper.builder().build();
 
+    /** Alias to avoid the long FQN every time the SDK-side {@code ConfigScope} is referenced. */
+    private static final com.wultra.security.powerauth.rest.api.model.entity.ConfigScope SCOPE_APPLICATION =
+            com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.APPLICATION;
+    private static final com.wultra.security.powerauth.rest.api.model.entity.ConfigScope SCOPE_ACTIVATION =
+            com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.ACTIVATION;
+
     @Autowired
     private PowerAuthTestConfiguration config;
 
@@ -109,14 +118,22 @@ class PowerAuthConfigStoreTest {
         final String value = "https://api.example.com";
         createConfig(ConfigScope.APPLICATION, null, key, value);
         try {
-            final ConfigItem viaApplication = findItem(fetchConfig("application"), key);
+            final ConfigResponse applicationResponse = fetchConfig("application");
+            final ConfigItem viaApplication = findItem(applicationResponse, key);
             assertNotNull(viaApplication, "APPLICATION-scope item must be visible via the application endpoint");
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.APPLICATION, viaApplication.getScope());
+            assertEquals(SCOPE_APPLICATION, viaApplication.getScope());
             assertEquals(value, viaApplication.getValue());
+
+            // Invariant of the application endpoint: every item returned must carry APPLICATION scope.
+            // No ACTIVATION-scope item may ever leak here, regardless of how the server resolves the merge.
+            applicationResponse.getConfig().forEach(item ->
+                    assertEquals(SCOPE_APPLICATION, item.getScope(),
+                            "Application endpoint must only return APPLICATION-scope items, but key '"
+                                    + item.getKey() + "' has scope " + item.getScope()));
 
             final ConfigItem viaActivation = findItem(fetchConfig("activation"), key);
             assertNotNull(viaActivation, "APPLICATION-scope item must also be visible via the activation endpoint");
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.APPLICATION, viaActivation.getScope());
+            assertEquals(SCOPE_APPLICATION, viaActivation.getScope());
             assertEquals(value, viaActivation.getValue());
         } finally {
             removeConfig(ConfigScope.APPLICATION, null, key);
@@ -608,6 +625,229 @@ class PowerAuthConfigStoreTest {
         new EncryptStep().execute(stepLogger, appScopeModel.toMap());
         assertFalse(stepLogger.getResult().success(),
                 "The activation endpoint must reject application-scope ECIES (no activation context)");
+    }
+
+    @Test
+    void appWideActivationScopeVisibleToOtherActivationsTest() throws Exception {
+        // App-wide ACTIVATION-scope items (no activationId) must be visible to ALL activations of the
+        // application, not just the one used to provision them. This verifies the "app-wide" semantics.
+        final String key = uniqueKey();
+        final String value = "shared-across-activations";
+        createConfig(ConfigScope.ACTIVATION, null, key, value);
+
+        final File secondStatusFile = File.createTempFile("pa_status_appwide_", ".json");
+        final JSONObject secondStatusObject = new JSONObject();
+        String secondActivationId = null;
+        try {
+            // The primary test activation must see it.
+            final ConfigItem viaPrimary = findItem(fetchConfig("activation"), key);
+            assertNotNull(viaPrimary, "App-wide ACTIVATION-scope item must be visible via the primary activation");
+            assertEquals(value, viaPrimary.getValue());
+            assertEquals(SCOPE_ACTIVATION, viaPrimary.getScope());
+
+            // And so must an independent, freshly-activated device.
+            secondActivationId = initAndActivate(secondStatusFile, secondStatusObject);
+            final EncryptStepModel secondEncryptModel = buildEncryptModelForActivation(secondStatusObject);
+            final ConfigItem viaSecond = findItem(fetchConfig(secondEncryptModel, "activation"), key);
+            assertNotNull(viaSecond, "App-wide ACTIVATION-scope item must be visible via a second activation as well");
+            assertEquals(value, viaSecond.getValue());
+            assertEquals(SCOPE_ACTIVATION, viaSecond.getScope());
+        } finally {
+            try { removeConfig(ConfigScope.ACTIVATION, null, key); } catch (Exception ignored) {}
+            if (secondActivationId != null) {
+                powerAuthClient.removeActivation(secondActivationId, "test");
+            }
+            //noinspection ResultOfMethodCallIgnored
+            secondStatusFile.delete();
+        }
+    }
+
+    @Test
+    void blockedActivationRejectsActivationEndpointTest() throws Exception {
+        // The activation endpoint relies on activation-scope ECIES, which requires the activation to be ACTIVE.
+        // A BLOCKED activation must therefore fail to decrypt at the enrollment server. We use a dedicated
+        // second activation so the primary test activation remains usable for the rest of the suite.
+        final File statusFile = File.createTempFile("pa_status_blocked_", ".json");
+        final JSONObject statusObject = new JSONObject();
+        String secondActivationId = null;
+        try {
+            secondActivationId = initAndActivate(statusFile, statusObject);
+            final EncryptStepModel secondEncryptModel = buildEncryptModelForActivation(statusObject);
+
+            // Sanity check: the freshly-created activation can fetch configuration.
+            secondEncryptModel.setUriString(config.getEnrollmentServiceUrl() + "/pa/v4/config/activation");
+            secondEncryptModel.setScope("activation");
+            secondEncryptModel.setData("{}".getBytes(StandardCharsets.UTF_8));
+            final ObjectStepLogger sanityLogger = new ObjectStepLogger(System.out);
+            new EncryptStep().execute(sanityLogger, secondEncryptModel.toMap());
+            assertTrue(sanityLogger.getResult().success(),
+                    "Sanity: the activation endpoint must succeed before the activation is blocked");
+
+            // Block and re-attempt — the call must now fail.
+            powerAuthClient.blockActivation(secondActivationId, "test-blocked", "test");
+            final ObjectStepLogger blockedLogger = new ObjectStepLogger(System.out);
+            new EncryptStep().execute(blockedLogger, secondEncryptModel.toMap());
+            assertFalse(blockedLogger.getResult().success(),
+                    "A blocked activation must not be able to fetch configuration via the activation endpoint");
+        } finally {
+            if (secondActivationId != null) {
+                try { powerAuthClient.unblockActivation(secondActivationId, "test"); } catch (Exception ignored) {}
+                powerAuthClient.removeActivation(secondActivationId, "test");
+            }
+            //noinspection ResultOfMethodCallIgnored
+            statusFile.delete();
+        }
+    }
+
+    @Test
+    void perDeviceConfigRemovedWhenActivationRemovedTest() throws Exception {
+        // Per spec confirmation: when an activation is removed, its per-device configuration items must
+        // also be removed. Cross-checked via the management listing API (the SDK fetch endpoint is no
+        // longer reachable once the activation is gone).
+        final File statusFile = File.createTempFile("pa_status_perdevice_remove_", ".json");
+        final JSONObject statusObject = new JSONObject();
+        final String key = uniqueKey();
+        String secondActivationId;
+        try {
+            secondActivationId = initAndActivate(statusFile, statusObject);
+            createConfig(ConfigScope.ACTIVATION, secondActivationId, key, "per-device-secret");
+
+            // Precondition: the per-device document contains exactly the new key.
+            final GetConfigItemsResponse beforeRemoval = listManagementConfig(secondActivationId);
+            assertTrue(beforeRemoval.getConfigs().stream().anyMatch(it -> key.equals(it.getKey())),
+                    "Per-device item must be present before the activation is removed");
+
+            powerAuthClient.removeActivation(secondActivationId, "test");
+
+            // Postcondition: the per-device document is empty (or at minimum does not contain the key).
+            final GetConfigItemsResponse afterRemoval = listManagementConfig(secondActivationId);
+            assertTrue(afterRemoval.getConfigs().stream().noneMatch(it -> key.equals(it.getKey())),
+                    "Per-device configuration must be removed together with the activation");
+        } finally {
+            //noinspection ResultOfMethodCallIgnored
+            statusFile.delete();
+        }
+    }
+
+    @Test
+    void removeConfigIsIdempotentForMissingKeyTest() {
+        // Removing a key that does not exist must be a no-op, not an error — both at APPLICATION scope and
+        // at per-device ACTIVATION scope. This keeps tear-down and reconciliation logic simple for callers.
+        final String missingKey = uniqueKey();
+        assertDoesNotThrow(() -> removeConfig(ConfigScope.APPLICATION, null, missingKey),
+                "Removing a missing APPLICATION-scope key must be idempotent");
+        assertDoesNotThrow(() -> removeConfig(ConfigScope.ACTIVATION, null, missingKey),
+                "Removing a missing app-wide ACTIVATION-scope key must be idempotent");
+        assertDoesNotThrow(() -> removeConfig(ConfigScope.ACTIVATION, config.getActivationId(VERSION), missingKey),
+                "Removing a missing per-device key must be idempotent");
+    }
+
+    @Test
+    void createConfigValidatesRequestTest() {
+        // The management API must reject malformed requests with PowerAuthClientException (server-side 400).
+        // Each case covers a single invariant of CreateConfigItemRequest.
+        final String key = uniqueKey();
+
+        // Missing applicationId.
+        final CreateConfigItemRequest missingAppId = new CreateConfigItemRequest();
+        missingAppId.setScope(ConfigScope.APPLICATION);
+        missingAppId.setKey(key);
+        missingAppId.setValue("v");
+        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfig(missingAppId),
+                "createConfig must reject a request without applicationId");
+
+        // Missing key.
+        final CreateConfigItemRequest missingKey = new CreateConfigItemRequest();
+        missingKey.setApplicationId(config.getApplicationId());
+        missingKey.setScope(ConfigScope.APPLICATION);
+        missingKey.setValue("v");
+        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfig(missingKey),
+                "createConfig must reject a request without a key");
+
+        // Missing scope.
+        final CreateConfigItemRequest missingScope = new CreateConfigItemRequest();
+        missingScope.setApplicationId(config.getApplicationId());
+        missingScope.setKey(key);
+        missingScope.setValue("v");
+        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfig(missingScope),
+                "createConfig must reject a request without a scope");
+
+        // Missing value.
+        final CreateConfigItemRequest missingValue = new CreateConfigItemRequest();
+        missingValue.setApplicationId(config.getApplicationId());
+        missingValue.setScope(ConfigScope.APPLICATION);
+        missingValue.setKey(key);
+        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfig(missingValue),
+                "createConfig must reject a request without a value");
+    }
+
+    @Test
+    void createConfigRejectsActivationIdWithApplicationScopeTest() {
+        // Per the request contract: when activationId is present, scope must be ACTIVATION (per-device write).
+        // The opposite combination — activationId + scope=APPLICATION — is incoherent and must be rejected.
+        final CreateConfigItemRequest mismatched = new CreateConfigItemRequest();
+        mismatched.setApplicationId(config.getApplicationId());
+        mismatched.setActivationId(config.getActivationId(VERSION));
+        mismatched.setScope(ConfigScope.APPLICATION);
+        mismatched.setKey(uniqueKey());
+        mismatched.setValue("v");
+        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfig(mismatched),
+                "createConfig must reject activationId combined with APPLICATION scope");
+    }
+
+    @Test
+    void managementListingMatchesEncryptedFetchTest() throws Exception {
+        // The management listing API (V4 getConfig) must surface the same items that the SDK sees through
+        // the E2EE fetch endpoint. This locks the agreement between the two API surfaces so that operators
+        // never see a different picture than the device does.
+        final String activationId = config.getActivationId(VERSION);
+        final String keyAppOnly = uniqueKey();
+        final String keyActWide = uniqueKey();
+        final String keyPerDevice = uniqueKey();
+        createConfig(ConfigScope.APPLICATION, null, keyAppOnly, "app-listing");
+        createConfig(ConfigScope.ACTIVATION, null, keyActWide, "act-listing");
+        createConfig(ConfigScope.ACTIVATION, activationId, keyPerDevice, "device-listing");
+        try {
+            // Management listing for application-level documents (no activationId) — both APPLICATION and
+            // app-wide ACTIVATION entries must be present.
+            final GetConfigItemsResponse appLevel = listManagementConfig(null);
+            assertTrue(appLevel.getConfigs().stream().anyMatch(it -> keyAppOnly.equals(it.getKey())
+                            && it.getScope() == ConfigScope.APPLICATION),
+                    "Management listing must include the APPLICATION-scope item");
+            assertTrue(appLevel.getConfigs().stream().anyMatch(it -> keyActWide.equals(it.getKey())
+                            && it.getScope() == ConfigScope.ACTIVATION),
+                    "Management listing must include the app-wide ACTIVATION-scope item");
+            assertTrue(appLevel.getConfigs().stream().noneMatch(it -> keyPerDevice.equals(it.getKey())),
+                    "Management listing without activationId must NOT include per-device items");
+
+            // Management listing for the per-device document.
+            final GetConfigItemsResponse perDevice = listManagementConfig(activationId);
+            assertTrue(perDevice.getConfigs().stream().anyMatch(it -> keyPerDevice.equals(it.getKey())),
+                    "Per-device management listing must include the per-device key");
+            assertTrue(perDevice.getConfigs().stream().noneMatch(it -> keyAppOnly.equals(it.getKey())),
+                    "Per-device management listing must NOT include application-level keys");
+            assertTrue(perDevice.getConfigs().stream().noneMatch(it -> keyActWide.equals(it.getKey())),
+                    "Per-device management listing must NOT include app-wide ACTIVATION keys");
+
+            // Parity with the SDK view: keys present in the SDK activation response must also be present
+            // somewhere in the management view (either app-level or per-device).
+            final ConfigResponse sdkActivation = fetchConfig("activation");
+            for (final String expectedKey : List.of(keyAppOnly, keyActWide, keyPerDevice)) {
+                assertNotNull(findItem(sdkActivation, expectedKey),
+                        "Key " + expectedKey + " must be visible to the SDK through the activation endpoint");
+            }
+        } finally {
+            try { removeConfig(ConfigScope.APPLICATION, null, keyAppOnly); } catch (Exception ignored) {}
+            try { removeConfig(ConfigScope.ACTIVATION, null, keyActWide); } catch (Exception ignored) {}
+            try { removeConfig(ConfigScope.ACTIVATION, activationId, keyPerDevice); } catch (Exception ignored) {}
+        }
+    }
+
+    private GetConfigItemsResponse listManagementConfig(final String activationId) throws PowerAuthClientException {
+        final GetConfigItemsRequest request = new GetConfigItemsRequest();
+        request.setApplicationId(config.getApplicationId());
+        request.setActivationId(activationId);
+        return powerAuthClient.getConfig(request);
     }
 
     private ConfigResponse fetchConfig(final String scope) throws Exception {
