@@ -56,7 +56,7 @@
         <springdoc-openapi-starter-webmvc-ui.version>3.0.3</springdoc-openapi-starter-webmvc-ui.version>
         <logstash.version>9.0</logstash.version>
         <webauthn4j.version>0.31.6.RELEASE</webauthn4j.version>
-        <central.publishing.plugin.version>0.10.0</central.publishing.plugin.version>
+        <central.publishing.plugin.version>0.11.0</central.publishing.plugin.version>
 
         <maven.deploy.skip>true</maven.deploy.skip>
         <skipPublishing>true</skipPublishing>
