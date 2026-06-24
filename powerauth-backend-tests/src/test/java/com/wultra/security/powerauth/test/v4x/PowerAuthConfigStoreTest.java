@@ -753,7 +753,7 @@ class PowerAuthConfigStoreTest {
         missingAppId.setScope(ConfigScope.APPLICATION);
         missingAppId.setKey(key);
         missingAppId.setValue("v");
-        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfig(missingAppId),
+        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfigItem(missingAppId),
                 "createConfig must reject a request without applicationId");
 
         // Missing key.
@@ -761,7 +761,7 @@ class PowerAuthConfigStoreTest {
         missingKey.setApplicationId(config.getApplicationId());
         missingKey.setScope(ConfigScope.APPLICATION);
         missingKey.setValue("v");
-        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfig(missingKey),
+        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfigItem(missingKey),
                 "createConfig must reject a request without a key");
 
         // Missing scope.
@@ -769,7 +769,7 @@ class PowerAuthConfigStoreTest {
         missingScope.setApplicationId(config.getApplicationId());
         missingScope.setKey(key);
         missingScope.setValue("v");
-        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfig(missingScope),
+        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfigItem(missingScope),
                 "createConfig must reject a request without a scope");
 
         // Missing value.
@@ -777,7 +777,7 @@ class PowerAuthConfigStoreTest {
         missingValue.setApplicationId(config.getApplicationId());
         missingValue.setScope(ConfigScope.APPLICATION);
         missingValue.setKey(key);
-        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfig(missingValue),
+        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfigItem(missingValue),
                 "createConfig must reject a request without a value");
     }
 
@@ -791,7 +791,7 @@ class PowerAuthConfigStoreTest {
         mismatched.setScope(ConfigScope.APPLICATION);
         mismatched.setKey(uniqueKey());
         mismatched.setValue("v");
-        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfig(mismatched),
+        assertThrows(PowerAuthClientException.class, () -> powerAuthClient.createConfigItem(mismatched),
                 "createConfig must reject activationId combined with APPLICATION scope");
     }
 
@@ -847,7 +847,7 @@ class PowerAuthConfigStoreTest {
         final GetConfigItemsRequest request = new GetConfigItemsRequest();
         request.setApplicationId(config.getApplicationId());
         request.setActivationId(activationId);
-        return powerAuthClient.getConfig(request);
+        return powerAuthClient.getConfigItems(request);
     }
 
     private ConfigResponse fetchConfig(final String scope) throws Exception {
@@ -955,7 +955,7 @@ class PowerAuthConfigStoreTest {
         request.setScope(scope);
         request.setKey(key);
         request.setValue(value);
-        powerAuthClient.createConfig(request);
+        powerAuthClient.createConfigItem(request);
     }
 
     private void removeConfig(final ConfigScope scope, final String activationId, final String key) throws Exception {
@@ -964,7 +964,7 @@ class PowerAuthConfigStoreTest {
         request.setActivationId(activationId);
         request.setScope(scope);
         request.setKey(key);
-        powerAuthClient.removeConfig(request);
+        powerAuthClient.removeConfigItem(request);
     }
 
     private static ConfigItem findItem(final ConfigResponse response, final String key) {
