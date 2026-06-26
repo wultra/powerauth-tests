@@ -272,7 +272,7 @@ class PowerAuthConfigStoreTest {
                 assertEquals(SCOPE_APPLICATION, afterActivationRemove.scope());
             } finally {
                 // Guard: clean up ACTIVATION-scope entry if step 3 did not run (e.g. assertion failure in step 2).
-                try { removeConfig(ConfigScope.ACTIVATION, null, key); } catch (Exception ignored) {}
+                removeConfig(ConfigScope.ACTIVATION, null, key);
             }
 
             // Step 4: Remove the APPLICATION-scope entry — no value must be returned for the key.
@@ -281,10 +281,8 @@ class PowerAuthConfigStoreTest {
             assertNull(afterAppRemove, "No value must be returned after both scope entries are removed");
         } finally {
             // Guard: ensure APPLICATION-scope entry is removed even when the test fails early.
-            try { removeConfig(ConfigScope.APPLICATION, null, key); } catch (Exception ignored) {}
-        }
+            removeConfig(ConfigScope.APPLICATION, null, key);        }
     }
-
 
     @Test
     void updateValueWhileShadowedByScopeTest() throws Exception {
@@ -337,15 +335,13 @@ class PowerAuthConfigStoreTest {
                         "Step 5: The updated APPLICATION value must be returned, not the stale original");
                 assertEquals(SCOPE_APPLICATION, restored.scope());
             } finally {
-                try { removeConfig(ConfigScope.ACTIVATION, null, key); } catch (Exception ignored) {}
+                removeConfig(ConfigScope.ACTIVATION, null, key);
             }
-
-            // Step 6: Remove APPLICATION entry → key must be completely absent.
             removeConfig(ConfigScope.APPLICATION, null, key);
             assertNull(findItem(fetchConfig("activation"), key), "Step 6: Key must be absent after all entries are removed");
             assertNull(findItem(fetchConfig("application"), key), "Step 6: Key must also be absent from the application endpoint");
         } finally {
-            try { removeConfig(ConfigScope.APPLICATION, null, key); } catch (Exception ignored) {}
+            removeConfig(ConfigScope.APPLICATION, null, key);
         }
     }
 
@@ -422,11 +418,11 @@ class PowerAuthConfigStoreTest {
             assertNull(findItem(applicationResponse, keyPerDevice),
                     "Per-device key must NOT be visible via application endpoint");
         } finally {
-            try { removeConfig(ConfigScope.APPLICATION, null, keyAppOnly); } catch (Exception ignored) {}
-            try { removeConfig(ConfigScope.ACTIVATION, null, keyActOnly); } catch (Exception ignored) {}
-            try { removeConfig(ConfigScope.APPLICATION, null, keyBothScopes); } catch (Exception ignored) {}
-            try { removeConfig(ConfigScope.ACTIVATION, null, keyBothScopes); } catch (Exception ignored) {}
-            try { removeConfig(ConfigScope.ACTIVATION, activationId, keyPerDevice); } catch (Exception ignored) {}
+            removeConfig(ConfigScope.APPLICATION, null, keyAppOnly);
+            removeConfig(ConfigScope.ACTIVATION, null, keyActOnly);
+            removeConfig(ConfigScope.APPLICATION, null, keyBothScopes);
+            removeConfig(ConfigScope.ACTIVATION, null, keyBothScopes);
+            removeConfig(ConfigScope.ACTIVATION, activationId, keyPerDevice);
         }
     }
 
@@ -487,7 +483,7 @@ class PowerAuthConfigStoreTest {
                         "Step 4: APPLICATION value must be the effective value once per-device entry is removed");
                 assertEquals(SCOPE_APPLICATION, step4.scope());
             } finally {
-                try { removeConfig(ConfigScope.ACTIVATION, activationId, key); } catch (Exception ignored) {}
+                removeConfig(ConfigScope.ACTIVATION, activationId, key);
             }
 
             // Step 5: Remove APPLICATION entry → key must disappear entirely.
@@ -495,7 +491,7 @@ class PowerAuthConfigStoreTest {
             assertNull(findItem(fetchConfig("activation"), key), "Step 5: Key must be absent after all entries are removed");
             assertNull(findItem(fetchConfig("application"), key), "Step 5: Key must also be absent from the application endpoint");
         } finally {
-            try { removeConfig(ConfigScope.APPLICATION, null, key); } catch (Exception ignored) {}
+            removeConfig(ConfigScope.APPLICATION, null, key);
         }
     }
 
@@ -547,7 +543,7 @@ class PowerAuthConfigStoreTest {
             assertFalse(afterUpdatedScalar.value() instanceof Map,
                     "Previous object must not leak into the new scalar value");
         } finally {
-            try { removeConfig(ConfigScope.APPLICATION, null, key); } catch (Exception ignored) {}
+            removeConfig(ConfigScope.APPLICATION, null, key);
         }
     }
 
@@ -653,9 +649,8 @@ class PowerAuthConfigStoreTest {
             assertEquals(value, viaSecond.value());
             assertEquals(SCOPE_ACTIVATION, viaSecond.scope());
         } finally {
-            try { removeConfig(ConfigScope.ACTIVATION, null, key); } catch (Exception ignored) {}
-            if (secondActivationId != null) {
-                powerAuthClient.removeActivation(secondActivationId, "test");
+            removeConfig(ConfigScope.ACTIVATION, null, key);
+            if (secondActivationId != null) {                powerAuthClient.removeActivation(secondActivationId, "test");
             }
             //noinspection ResultOfMethodCallIgnored
             secondStatusFile.delete();
@@ -837,9 +832,9 @@ class PowerAuthConfigStoreTest {
                         "Key " + expectedKey + " must be visible to the SDK through the activation endpoint");
             }
         } finally {
-            try { removeConfig(ConfigScope.APPLICATION, null, keyAppOnly); } catch (Exception ignored) {}
-            try { removeConfig(ConfigScope.ACTIVATION, null, keyActWide); } catch (Exception ignored) {}
-            try { removeConfig(ConfigScope.ACTIVATION, activationId, keyPerDevice); } catch (Exception ignored) {}
+            removeConfig(ConfigScope.APPLICATION, null, keyAppOnly);
+            removeConfig(ConfigScope.ACTIVATION, null, keyActWide);
+            removeConfig(ConfigScope.ACTIVATION, activationId, keyPerDevice);
         }
     }
 
