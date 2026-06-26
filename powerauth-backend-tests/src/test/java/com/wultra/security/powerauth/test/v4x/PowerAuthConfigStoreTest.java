@@ -121,20 +121,20 @@ class PowerAuthConfigStoreTest {
             final ConfigResponse applicationResponse = fetchConfig("application");
             final ConfigItem viaApplication = findItem(applicationResponse, key);
             assertNotNull(viaApplication, "APPLICATION-scope item must be visible via the application endpoint");
-            assertEquals(SCOPE_APPLICATION, viaApplication.getScope());
-            assertEquals(value, viaApplication.getValue());
+            assertEquals(SCOPE_APPLICATION, viaApplication.scope());
+            assertEquals(value, viaApplication.value());
 
             // Invariant of the application endpoint: every item returned must carry APPLICATION scope.
             // No ACTIVATION-scope item may ever leak here, regardless of how the server resolves the merge.
-            applicationResponse.getConfig().forEach(item ->
-                    assertEquals(SCOPE_APPLICATION, item.getScope(),
+            applicationResponse.config().forEach(item ->
+                    assertEquals(SCOPE_APPLICATION, item.scope(),
                             "Application endpoint must only return APPLICATION-scope items, but key '"
-                                    + item.getKey() + "' has scope " + item.getScope()));
+                                    + item.key() + "' has scope " + item.scope()));
 
             final ConfigItem viaActivation = findItem(fetchConfig("activation"), key);
             assertNotNull(viaActivation, "APPLICATION-scope item must also be visible via the activation endpoint");
-            assertEquals(SCOPE_APPLICATION, viaActivation.getScope());
-            assertEquals(value, viaActivation.getValue());
+            assertEquals(SCOPE_APPLICATION, viaActivation.scope());
+            assertEquals(value, viaActivation.value());
         } finally {
             removeConfig(ConfigScope.APPLICATION, null, key);
         }
@@ -150,11 +150,11 @@ class PowerAuthConfigStoreTest {
         try {
             final ConfigItem viaActivation = findItem(fetchConfig("activation"), key);
             assertNotNull(viaActivation, "App-wide ACTIVATION-scope item must be visible via the activation endpoint");
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.ACTIVATION, viaActivation.getScope());
-            assertEquals(value, viaActivation.getValue());
+            assertEquals(SCOPE_ACTIVATION, viaActivation.scope());
+            assertEquals(value, viaActivation.value());
 
-            assertNull(findItem(fetchConfig("application"), key),
-                    "App-wide ACTIVATION-scope item must not leak to the application endpoint");
+            final ConfigItem viaApplication = findItem(fetchConfig("application"), key);
+            assertNull(viaApplication, "App-wide ACTIVATION-scope item must not leak to the application endpoint");
         } finally {
             removeConfig(ConfigScope.ACTIVATION, null, key);
         }
@@ -172,10 +172,10 @@ class PowerAuthConfigStoreTest {
         try {
             final ConfigItem viaActivation = findItem(fetchConfig("activation"), key);
             assertNotNull(viaActivation, "Per-device item must be visible via the activation endpoint");
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.ACTIVATION, viaActivation.getScope());
-            assertInstanceOf(Map.class, viaActivation.getValue(), "Object value must be deserialized as a Map");
-            assertEquals("https://device.example.com", ((Map<?, ?>) viaActivation.getValue()).get("url"));
-            assertEquals(30, ((Number) ((Map<?, ?>) viaActivation.getValue()).get("timeout")).intValue());
+            assertEquals(SCOPE_ACTIVATION, viaActivation.scope());
+            assertInstanceOf(Map.class, viaActivation.value(), "Object value must be deserialized as a Map");
+            assertEquals("https://device.example.com", ((Map<?, ?>) viaActivation.value()).get("url"));
+            assertEquals(30, ((Number) ((Map<?, ?>) viaActivation.value()).get("timeout")).intValue());
 
             assertNull(findItem(fetchConfig("application"), key),
                     "Per-device item must not be visible via the application endpoint");
@@ -195,18 +195,18 @@ class PowerAuthConfigStoreTest {
         try {
             // Activation endpoint: the more specific per-device value wins, and the key appears exactly once.
             final ConfigResponse activationResponse = fetchConfig("activation");
-            final List<ConfigItem> activationMatches = activationResponse.getConfig().stream()
-                    .filter(it -> key.equals(it.getKey()))
+            final List<ConfigItem> activationMatches = activationResponse.config().stream()
+                    .filter(it -> key.equals(it.key()))
                     .toList();
             assertEquals(1, activationMatches.size(), "The key must be resolved to a single effective value");
-            assertEquals(deviceValue, activationMatches.get(0).getValue());
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.ACTIVATION, activationMatches.get(0).getScope());
+            assertEquals(deviceValue, activationMatches.get(0).value());
+            assertEquals(SCOPE_ACTIVATION, activationMatches.get(0).scope());
 
             // Application endpoint: only the application-scope value is visible.
             final ConfigItem applicationItem = findItem(fetchConfig("application"), key);
             assertNotNull(applicationItem);
-            assertEquals(applicationValue, applicationItem.getValue());
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.APPLICATION, applicationItem.getScope());
+            assertEquals(applicationValue, applicationItem.value());
+            assertEquals(SCOPE_APPLICATION, applicationItem.scope());
         } finally {
             removeConfig(ConfigScope.ACTIVATION, activationId, key);
             removeConfig(ConfigScope.APPLICATION, null, key);
@@ -244,32 +244,32 @@ class PowerAuthConfigStoreTest {
         try {
             final ConfigItem afterAppCreate = findItem(fetchConfig("activation"), key);
             assertNotNull(afterAppCreate, "APPLICATION-scope item must be visible via the activation endpoint");
-            assertEquals(applicationValue, afterAppCreate.getValue(), "Value must match the APPLICATION-scope entry");
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.APPLICATION, afterAppCreate.getScope());
+            assertEquals(applicationValue, afterAppCreate.value(), "Value must match the APPLICATION-scope entry");
+            assertEquals(SCOPE_APPLICATION, afterAppCreate.scope());
 
             // Step 2: Add the same key at ACTIVATION scope (app-wide) — the more specific scope must win.
             createConfig(ConfigScope.ACTIVATION, null, key, activationValue);
             try {
                 final ConfigItem afterActivationCreate = findItem(fetchConfig("activation"), key);
                 assertNotNull(afterActivationCreate, "Key must still be visible after ACTIVATION-scope entry is added");
-                assertEquals(activationValue, afterActivationCreate.getValue(),
+                assertEquals(activationValue, afterActivationCreate.value(),
                         "ACTIVATION-scope value must take precedence over APPLICATION-scope value for the same key");
-                assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.ACTIVATION, afterActivationCreate.getScope());
+                assertEquals(SCOPE_ACTIVATION, afterActivationCreate.scope());
 
                 // Verify the APPLICATION endpoint is unaffected — it still returns only the APPLICATION-scope entry.
                 final ConfigItem appEndpointItem = findItem(fetchConfig("application"), key);
                 assertNotNull(appEndpointItem);
-                assertEquals(applicationValue, appEndpointItem.getValue(),
+                assertEquals(applicationValue, appEndpointItem.value(),
                         "APPLICATION endpoint must still return the APPLICATION-scope value");
-                assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.APPLICATION, appEndpointItem.getScope());
+                assertEquals(SCOPE_APPLICATION, appEndpointItem.scope());
 
                 // Step 3: Remove the ACTIVATION-scope entry — the APPLICATION-scope value must re-emerge.
                 removeConfig(ConfigScope.ACTIVATION, null, key);
                 final ConfigItem afterActivationRemove = findItem(fetchConfig("activation"), key);
                 assertNotNull(afterActivationRemove, "APPLICATION-scope item must be visible again after ACTIVATION-scope entry is removed");
-                assertEquals(applicationValue, afterActivationRemove.getValue(),
+                assertEquals(applicationValue, afterActivationRemove.value(),
                         "Fallback to APPLICATION-scope value must occur after the ACTIVATION-scope entry is removed");
-                assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.APPLICATION, afterActivationRemove.getScope());
+                assertEquals(SCOPE_APPLICATION, afterActivationRemove.scope());
             } finally {
                 // Guard: clean up ACTIVATION-scope entry if step 3 did not run (e.g. assertion failure in step 2).
                 try { removeConfig(ConfigScope.ACTIVATION, null, key); } catch (Exception ignored) {}
@@ -309,33 +309,33 @@ class PowerAuthConfigStoreTest {
         try {
             final ConfigItem step1 = findItem(fetchConfig("activation"), key);
             assertNotNull(step1, "Step 1: Key must be returned initially");
-            assertEquals(valueA, step1.getValue(), "Step 1: APPLICATION value must be returned initially");
+            assertEquals(valueA, step1.value(), "Step 1: APPLICATION value must be returned initially");
             createConfig(ConfigScope.ACTIVATION, null, key, valueB);
             try {
-                assertEquals(valueB, findItem(fetchConfig("activation"), key).getValue(),
+                assertEquals(valueB, findItem(fetchConfig("activation"), key).value(),
                         "Step 2: ACTIVATION value must shadow APPLICATION value");
 
                 // Step 3: Update APPLICATION value while it is still shadowed.
                 createConfig(ConfigScope.APPLICATION, null, key, valueAUpdated);
-                assertEquals(valueB, findItem(fetchConfig("activation"), key).getValue(),
+                assertEquals(valueB, findItem(fetchConfig("activation"), key).value(),
                         "Step 3: ACTIVATION value must still win after APPLICATION value is updated in the background");
-                assertEquals(valueAUpdated, findItem(fetchConfig("application"), key).getValue(),
+                assertEquals(valueAUpdated, findItem(fetchConfig("application"), key).value(),
                         "Step 3: Updated APPLICATION value must be immediately visible via the application endpoint");
 
                 // Step 4: Update ACTIVATION value — new ACTIVATION value must be immediately visible.
                 createConfig(ConfigScope.ACTIVATION, null, key, valueBUpdated);
-                assertEquals(valueBUpdated, findItem(fetchConfig("activation"), key).getValue(),
+                assertEquals(valueBUpdated, findItem(fetchConfig("activation"), key).value(),
                         "Step 4: Updated ACTIVATION value must be returned via the activation endpoint");
-                assertEquals(valueAUpdated, findItem(fetchConfig("application"), key).getValue(),
+                assertEquals(valueAUpdated, findItem(fetchConfig("application"), key).value(),
                         "Step 4: APPLICATION endpoint must remain unaffected by the ACTIVATION update");
 
                 // Step 5: Remove ACTIVATION entry → updated APPLICATION value must surface.
                 removeConfig(ConfigScope.ACTIVATION, null, key);
                 final ConfigItem restored = findItem(fetchConfig("activation"), key);
                 assertNotNull(restored, "Step 5: APPLICATION entry must surface after ACTIVATION shadow is removed");
-                assertEquals(valueAUpdated, restored.getValue(),
+                assertEquals(valueAUpdated, restored.value(),
                         "Step 5: The updated APPLICATION value must be returned, not the stale original");
-                assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.APPLICATION, restored.getScope());
+                assertEquals(SCOPE_APPLICATION, restored.scope());
             } finally {
                 try { removeConfig(ConfigScope.ACTIVATION, null, key); } catch (Exception ignored) {}
             }
@@ -381,43 +381,43 @@ class PowerAuthConfigStoreTest {
 
             final ConfigItem itemAppOnly = findItem(activationResponse, keyAppOnly);
             assertNotNull(itemAppOnly, "APPLICATION-only key must be visible via activation endpoint");
-            assertEquals(valueAppOnly, itemAppOnly.getValue());
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.APPLICATION, itemAppOnly.getScope());
+            assertEquals(valueAppOnly, itemAppOnly.value());
+            assertEquals(SCOPE_APPLICATION, itemAppOnly.scope());
 
             final ConfigItem itemActOnly = findItem(activationResponse, keyActOnly);
             assertNotNull(itemActOnly, "ACTIVATION-only key must be visible via activation endpoint");
-            assertEquals(valueActOnly, itemActOnly.getValue());
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.ACTIVATION, itemActOnly.getScope());
+            assertEquals(valueActOnly, itemActOnly.value());
+            assertEquals(SCOPE_ACTIVATION, itemActOnly.scope());
 
             final ConfigItem itemBothViaActivation = findItem(activationResponse, keyBothScopes);
             assertNotNull(itemBothViaActivation, "Dual-scope key must be visible via activation endpoint");
-            assertEquals(valueBothAct, itemBothViaActivation.getValue(),
+            assertEquals(valueBothAct, itemBothViaActivation.value(),
                     "ACTIVATION value must win over APPLICATION value for the same key at the activation endpoint");
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.ACTIVATION, itemBothViaActivation.getScope());
+            assertEquals(SCOPE_ACTIVATION, itemBothViaActivation.scope());
             // The key must appear exactly once in the activation response.
-            assertEquals(1, activationResponse.getConfig().stream().filter(it -> keyBothScopes.equals(it.getKey())).count(),
+            assertEquals(1, activationResponse.config().stream().filter(it -> keyBothScopes.equals(it.key())).count(),
                     "Dual-scope key must appear exactly once in the activation response (lower tier suppressed)");
 
             final ConfigItem itemPerDevice = findItem(activationResponse, keyPerDevice);
             assertNotNull(itemPerDevice, "Per-device key must be visible via activation endpoint");
-            assertEquals(valuePerDevice, itemPerDevice.getValue());
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.ACTIVATION, itemPerDevice.getScope());
+            assertEquals(valuePerDevice, itemPerDevice.value());
+            assertEquals(SCOPE_ACTIVATION, itemPerDevice.scope());
 
             // --- Application endpoint ---
             final ConfigResponse applicationResponse = fetchConfig("application");
 
             assertNotNull(findItem(applicationResponse, keyAppOnly),
                     "APPLICATION-only key must be visible via application endpoint");
-            assertEquals(valueAppOnly, findItem(applicationResponse, keyAppOnly).getValue());
+            assertEquals(valueAppOnly, findItem(applicationResponse, keyAppOnly).value());
 
             assertNull(findItem(applicationResponse, keyActOnly),
                     "ACTIVATION-only key must NOT be visible via application endpoint");
 
             final ConfigItem itemBothViaApplication = findItem(applicationResponse, keyBothScopes);
             assertNotNull(itemBothViaApplication, "Dual-scope key must be visible via application endpoint");
-            assertEquals(valueBothApp, itemBothViaApplication.getValue(),
+            assertEquals(valueBothApp, itemBothViaApplication.value(),
                     "APPLICATION value must be returned at the application endpoint regardless of any ACTIVATION entry");
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.APPLICATION, itemBothViaApplication.getScope());
+            assertEquals(SCOPE_APPLICATION, itemBothViaApplication.scope());
 
             assertNull(findItem(applicationResponse, keyPerDevice),
                     "Per-device key must NOT be visible via application endpoint");
@@ -452,8 +452,8 @@ class PowerAuthConfigStoreTest {
             // Step 1: APPLICATION base value is visible at the activation endpoint.
             final ConfigItem step1 = findItem(fetchConfig("activation"), key);
             assertNotNull(step1);
-            assertEquals(applicationValue, step1.getValue(), "Step 1: APPLICATION base value must be returned");
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.APPLICATION, step1.getScope());
+            assertEquals(applicationValue, step1.value(), "Step 1: APPLICATION base value must be returned");
+            assertEquals(SCOPE_APPLICATION, step1.scope());
             // Not visible at the application endpoint for the per-device path (yet), but visible as APPLICATION.
             assertNotNull(findItem(fetchConfig("application"), key), "Step 1: Key must be visible at the application endpoint too");
 
@@ -462,30 +462,30 @@ class PowerAuthConfigStoreTest {
                 // Step 2: Per-device entry shadows the APPLICATION base value.
                 final ConfigItem step2 = findItem(fetchConfig("activation"), key);
                 assertNotNull(step2);
-                assertEquals(perDeviceValue, step2.getValue(), "Step 2: Per-device value must shadow APPLICATION value");
-                assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.ACTIVATION, step2.getScope());
+                assertEquals(perDeviceValue, step2.value(), "Step 2: Per-device value must shadow APPLICATION value");
+                assertEquals(SCOPE_ACTIVATION, step2.scope());
                 // Per-device entry must NOT leak to the application endpoint.
                 final ConfigItem appEndpointStep2 = findItem(fetchConfig("application"), key);
                 assertNotNull(appEndpointStep2, "Step 2: APPLICATION entry must still be visible via application endpoint");
-                assertEquals(applicationValue, appEndpointStep2.getValue(),
+                assertEquals(applicationValue, appEndpointStep2.value(),
                         "Step 2: Application endpoint must return the APPLICATION value, not the per-device value");
 
                 // Step 3: Update per-device entry to a new value.
                 createConfig(ConfigScope.ACTIVATION, activationId, key, perDeviceUpdated);
                 final ConfigItem step3 = findItem(fetchConfig("activation"), key);
                 assertNotNull(step3);
-                assertEquals(perDeviceUpdated, step3.getValue(), "Step 3: Updated per-device value must be returned");
-                assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.ACTIVATION, step3.getScope());
-                assertEquals(applicationValue, findItem(fetchConfig("application"), key).getValue(),
+                assertEquals(perDeviceUpdated, step3.value(), "Step 3: Updated per-device value must be returned");
+                assertEquals(SCOPE_ACTIVATION, step3.scope());
+                assertEquals(applicationValue, findItem(fetchConfig("application"), key).value(),
                         "Step 3: APPLICATION endpoint must still return the APPLICATION value");
 
                 // Step 4: Remove per-device entry → APPLICATION base value must surface.
                 removeConfig(ConfigScope.ACTIVATION, activationId, key);
                 final ConfigItem step4 = findItem(fetchConfig("activation"), key);
                 assertNotNull(step4, "Step 4: APPLICATION base value must surface after per-device entry is removed");
-                assertEquals(applicationValue, step4.getValue(),
+                assertEquals(applicationValue, step4.value(),
                         "Step 4: APPLICATION value must be the effective value once per-device entry is removed");
-                assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.APPLICATION, step4.getScope());
+                assertEquals(SCOPE_APPLICATION, step4.scope());
             } finally {
                 try { removeConfig(ConfigScope.ACTIVATION, activationId, key); } catch (Exception ignored) {}
             }
@@ -518,14 +518,14 @@ class PowerAuthConfigStoreTest {
             // Scalar value round-trips correctly.
             final ConfigItem afterScalar = findItem(fetchConfig("application"), key);
             assertNotNull(afterScalar);
-            assertEquals(scalarValue, afterScalar.getValue(), "Scalar value must be returned unchanged");
+            assertEquals(scalarValue, afterScalar.value(), "Scalar value must be returned unchanged");
 
             // Overwrite with a nested object — all fields must survive the E2EE round-trip.
             createConfig(ConfigScope.APPLICATION, null, key, objectValue);
             final ConfigItem afterObject = findItem(fetchConfig("application"), key);
             assertNotNull(afterObject, "Object-typed value must be retrievable via the application endpoint");
-            assertInstanceOf(Map.class, afterObject.getValue(), "Value must be deserialized as a Map");
-            final Map<?, ?> returned = (Map<?, ?>) afterObject.getValue();
+            assertInstanceOf(Map.class, afterObject.value(), "Value must be deserialized as a Map");
+            final Map<?, ?> returned = (Map<?, ?>) afterObject.value();
             assertEquals("https://nested.example.com", returned.get("url"), "String field in object must be preserved");
             assertEquals(30, ((Number) returned.get("timeout")).intValue(), "Integer field in object must be preserved");
             assertEquals(3, ((Number) returned.get("retries")).intValue(), "Integer field in object must be preserved");
@@ -536,15 +536,15 @@ class PowerAuthConfigStoreTest {
             // Also visible at the activation endpoint.
             final ConfigItem viaActivation = findItem(fetchConfig("activation"), key);
             assertNotNull(viaActivation, "Object value must also be visible via the activation endpoint");
-            assertInstanceOf(Map.class, viaActivation.getValue());
+            assertInstanceOf(Map.class, viaActivation.value());
 
             // Overwrite back to a scalar — object must be completely replaced.
             createConfig(ConfigScope.APPLICATION, null, key, updatedScalar);
             final ConfigItem afterUpdatedScalar = findItem(fetchConfig("application"), key);
             assertNotNull(afterUpdatedScalar);
-            assertEquals(updatedScalar, afterUpdatedScalar.getValue(),
+            assertEquals(updatedScalar, afterUpdatedScalar.value(),
                     "Scalar value must replace the previous object value");
-            assertFalse(afterUpdatedScalar.getValue() instanceof Map,
+            assertFalse(afterUpdatedScalar.value() instanceof Map,
                     "Previous object must not leak into the new scalar value");
         } finally {
             try { removeConfig(ConfigScope.APPLICATION, null, key); } catch (Exception ignored) {}
@@ -560,15 +560,15 @@ class PowerAuthConfigStoreTest {
         try {
             final ConfigItem itemBefore = findItem(fetchConfig("application"), key);
             assertNotNull(itemBefore, "Item must be present after initial creation");
-            assertEquals(initialValue, itemBefore.getValue());
+            assertEquals(initialValue, itemBefore.value());
 
             // createConfig is idempotent "create or update" — calling again with the same key overwrites the value.
             createConfig(ConfigScope.APPLICATION, null, key, updatedValue);
 
             final ConfigItem itemAfter = findItem(fetchConfig("application"), key);
             assertNotNull(itemAfter, "Item must still be present after update");
-            assertEquals(updatedValue, itemAfter.getValue(), "Updated value must be returned via the E2EE endpoint");
-            assertEquals(com.wultra.security.powerauth.rest.api.model.entity.ConfigScope.APPLICATION, itemAfter.getScope());
+            assertEquals(updatedValue, itemAfter.value(), "Updated value must be returned via the E2EE endpoint");
+            assertEquals(SCOPE_APPLICATION, itemAfter.scope());
         } finally {
             removeConfig(ConfigScope.APPLICATION, null, key);
         }
@@ -642,16 +642,16 @@ class PowerAuthConfigStoreTest {
             // The primary test activation must see it.
             final ConfigItem viaPrimary = findItem(fetchConfig("activation"), key);
             assertNotNull(viaPrimary, "App-wide ACTIVATION-scope item must be visible via the primary activation");
-            assertEquals(value, viaPrimary.getValue());
-            assertEquals(SCOPE_ACTIVATION, viaPrimary.getScope());
+            assertEquals(value, viaPrimary.value());
+            assertEquals(SCOPE_ACTIVATION, viaPrimary.scope());
 
             // And so must an independent, freshly-activated device.
             secondActivationId = initAndActivate(secondStatusFile, secondStatusObject);
             final EncryptStepModel secondEncryptModel = buildEncryptModelForActivation(secondStatusObject);
             final ConfigItem viaSecond = findItem(fetchConfig(secondEncryptModel, "activation"), key);
             assertNotNull(viaSecond, "App-wide ACTIVATION-scope item must be visible via a second activation as well");
-            assertEquals(value, viaSecond.getValue());
-            assertEquals(SCOPE_ACTIVATION, viaSecond.getScope());
+            assertEquals(value, viaSecond.value());
+            assertEquals(SCOPE_ACTIVATION, viaSecond.scope());
         } finally {
             try { removeConfig(ConfigScope.ACTIVATION, null, key); } catch (Exception ignored) {}
             if (secondActivationId != null) {
@@ -968,8 +968,8 @@ class PowerAuthConfigStoreTest {
     }
 
     private static ConfigItem findItem(final ConfigResponse response, final String key) {
-        return response.getConfig().stream()
-                .filter(it -> key.equals(it.getKey()))
+        return response.config().stream()
+                .filter(it -> key.equals(it.key()))
                 .findFirst()
                 .orElse(null);
     }
