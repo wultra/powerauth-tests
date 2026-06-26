@@ -702,7 +702,8 @@ class PowerAuthConfigStoreTest {
         final File statusFile = File.createTempFile("pa_status_perdevice_remove_", ".json");
         final JSONObject statusObject = new JSONObject();
         final String key = uniqueKey();
-        String secondActivationId;
+        String secondActivationId = null;
+        boolean activationRemoved = false;
         try {
             secondActivationId = initAndActivate(statusFile, statusObject);
             createConfig(ConfigScope.ACTIVATION, secondActivationId, key, "per-device-secret");
@@ -713,12 +714,16 @@ class PowerAuthConfigStoreTest {
                     "Per-device item must be present before the activation is removed");
 
             powerAuthClient.removeActivation(secondActivationId, "test");
+            activationRemoved = true;
 
             // Postcondition: the per-device document is empty (or at minimum does not contain the key).
             final GetConfigItemsResponse afterRemoval = listManagementConfig(secondActivationId);
             assertTrue(afterRemoval.getConfigs().stream().noneMatch(it -> key.equals(it.getKey())),
                     "Per-device configuration must be removed together with the activation");
         } finally {
+            if (secondActivationId != null && !activationRemoved) {
+                powerAuthClient.removeActivation(secondActivationId, "test");
+            }
             //noinspection ResultOfMethodCallIgnored
             statusFile.delete();
         }
