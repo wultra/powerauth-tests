@@ -60,9 +60,8 @@ public class CreateApplicationScenario {
                             .post(PowerAuthLoadTestCommon.PAC_URL + "/admin/users")
                             .basicAuth(PowerAuthLoadTestCommon.PAC_ADMIN_USER, PowerAuthLoadTestCommon.PAC_ADMIN_PASS)
                             .body(StringBody("""
-                                     {
-                                        "username": "%s"
-                                        }
+                                    {
+                                       "username": "%s"
                                     }
                                     """.formatted(INTEGRATION_USER_NAME)))
                             .check(jmesPath("username").saveAs("pac-int-user"))
