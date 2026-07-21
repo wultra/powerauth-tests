@@ -49,7 +49,7 @@
         <enrollment-server-onboarding.version>2.2.0-SNAPSHOT</enrollment-server-onboarding.version>
         <powerauth-cmd.version>2.2.0-SNAPSHOT</powerauth-cmd.version>
         <powerauth-crypto.version>2.2.0-SNAPSHOT</powerauth-crypto.version>
-        <powerauth-restful-integration.version>2.2.0-SNAPSHOT</powerauth-restful-integration.version>
+        <powerauth-restful-integration.version>2.2.0</powerauth-restful-integration.version>
         <powerauth-server.version>2.2.0-SNAPSHOT</powerauth-server.version>
         <wultra-core.version>2.2.0</wultra-core.version>
 
