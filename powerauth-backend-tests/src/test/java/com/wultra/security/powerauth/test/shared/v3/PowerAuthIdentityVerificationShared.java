@@ -23,17 +23,37 @@ import com.wultra.app.enrollmentserver.model.enumeration.*;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.encryptor.ClientEncryptor;
+import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.*;
+import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.ClientEciesSecrets;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
+import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
+import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
+import com.wultra.security.powerauth.http.PowerAuthEncryptionHttpHeader;
+import com.wultra.security.powerauth.lib.cmd.consts.BackwardCompatibilityConst;
+import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthStep;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
+import com.wultra.security.powerauth.lib.cmd.header.PowerAuthHeaderFactory;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
+import com.wultra.security.powerauth.lib.cmd.logging.StepLogger;
+import com.wultra.security.powerauth.lib.cmd.logging.StepLoggerFactory;
 import com.wultra.security.powerauth.lib.cmd.logging.model.StepItem;
+import com.wultra.security.powerauth.lib.cmd.status.ResultStatusService;
 import com.wultra.security.powerauth.lib.cmd.steps.*;
+import com.wultra.security.powerauth.lib.cmd.steps.base.AbstractBaseStep;
+import com.wultra.security.powerauth.lib.cmd.steps.context.RequestContext;
+import com.wultra.security.powerauth.lib.cmd.steps.context.StepContext;
 import com.wultra.security.powerauth.lib.cmd.steps.model.*;
+import com.wultra.security.powerauth.lib.cmd.steps.model.data.MasterPublicKeyData;
+import com.wultra.security.powerauth.lib.cmd.util.SecurityUtil;
+import com.wultra.security.powerauth.lib.cmd.util.VerifyAuthenticationCodeUtil;
 import com.wultra.security.powerauth.model.request.OtpDetailRequest;
 import com.wultra.security.powerauth.model.response.OtpDetailResponse;
 import com.wultra.security.powerauth.rest.api.model.response.v3.ActivationLayer2Response;
@@ -46,6 +66,7 @@ import org.junit.jupiter.api.AssertionFailureBuilder;
 import org.opentest4j.AssertionFailedError;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 import tools.jackson.core.JacksonException;
@@ -57,6 +78,7 @@ import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -80,12 +102,66 @@ public class PowerAuthIdentityVerificationShared {
 
     public static final SharedSecretAlgorithm SHARED_SECRET_ALGORITHM_DEFAULT = SharedSecretAlgorithm.EC_P384_ML_L3;
 
+    public static void testSuccessfulReKycWithExistingActivation(final TestContext ctx) throws Exception {
+        final TestProcessContext existingActivationContext = prepareExistingActivation(ctx);
+        final String activationId = existingActivationContext.activationId;
+
+        final OnboardingStartResponse onboardingStartResponse = startReKycOnboarding(ctx, existingActivationContext.clientId);
+        assertEquals(ActivationType.ACTIVATION_ALREADY_EXISTS, onboardingStartResponse.activationType());
+
+        final TestProcessContext reKycContext = new TestProcessContext();
+        reKycContext.activationId = activationId;
+        reKycContext.processId = onboardingStartResponse.processId();
+
+        createToken(ctx);
+
+        checkFlags(activationId, ctx, List.of());
+        initIdentityVerification(ctx, activationId, reKycContext.processId);
+        checkFlags(activationId, ctx, List.of("RE_KYC_IN_PROGRESS"));
+
+        processDocumentsSynchronous(reKycContext, ctx);
+        initPresenceCheck(ctx, reKycContext.processId);
+        submitPresenceCheck(ctx, reKycContext.processId);
+        verifyStatusBeforeOtp(ctx);
+        verifyOtpCheckSuccessful(ctx, reKycContext.processId);
+        verifyProcessFinished(ctx, reKycContext.processId, activationId);
+        assertActivationActive(ctx, activationId);
+
+        ctx.powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    public static void testFailedReKycWithExistingActivation(final TestContext ctx) throws Exception {
+        final TestProcessContext existingActivationContext = prepareExistingActivation(ctx);
+        final String activationId = existingActivationContext.activationId;
+
+        final OnboardingStartResponse onboardingStartResponse = startReKycOnboarding(ctx, existingActivationContext.clientId);
+        assertEquals(ActivationType.ACTIVATION_ALREADY_EXISTS, onboardingStartResponse.activationType());
+
+        createToken(ctx);
+
+        checkFlags(activationId, ctx, List.of());
+        initIdentityVerification(ctx, activationId, onboardingStartResponse.processId());
+        checkFlags(activationId, ctx, List.of("RE_KYC_IN_PROGRESS"));
+        cleanupIdentityVerification(ctx, onboardingStartResponse.processId());
+        checkFlags(activationId, ctx, List.of());
+
+        assertEquals(OnboardingStatus.FAILED, checkProcessStatus(ctx, onboardingStartResponse.processId()));
+        assertActivationActive(ctx, activationId);
+
+        ctx.powerAuthClient.removeActivation(activationId, "test");
+    }
+
     public static void testSuccessfulIdentityVerificationWithCustomActivation(final TestContext ctx) throws Exception {
         final TestProcessContext processCtx = prepareActivation(ctx);
         final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
 
         approveConsent(ctx, processId);
+
+        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
+        initIdentityVerification(ctx, activationId, processId);
+        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
+
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -114,6 +190,8 @@ public class PowerAuthIdentityVerificationShared {
         processContext.activationId = temporaryActivationId;
 
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
+
+        initIdentityVerification(ctx, temporaryActivationId, processId);
 
         // skip approveConsent on purpose
         processDocumentsAsynchronous(processContext, ctx);
@@ -253,6 +331,7 @@ public class PowerAuthIdentityVerificationShared {
 
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
 
+        initIdentityVerification(ctx, activationId, processId);
         processDocumentsV2(processContext, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -314,10 +393,7 @@ public class PowerAuthIdentityVerificationShared {
     }
 
     private static void processDocuments(final TestProcessContext processCtx, final TestContext ctx) throws Exception {
-        final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
-
-        initIdentityVerification(ctx, activationId, processId);
 
         final List<FileSubmit> idCardSubmits = List.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
@@ -343,10 +419,7 @@ public class PowerAuthIdentityVerificationShared {
     }
 
     private static void processDocumentsV2(final TestProcessContext processCtx, final TestContext ctx) throws Exception {
-        final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
-
-        initIdentityVerification(ctx, activationId, processId);
 
         final var idCardSubmitRequest = DocumentSubmitV2Request.builder()
                 .processId(processId)
@@ -429,6 +502,11 @@ public class PowerAuthIdentityVerificationShared {
         final String processId = processCtx.processId;
 
         approveConsent(ctx, processId);
+
+        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
+        initIdentityVerification(ctx, activationId, processId);
+        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
+
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -710,6 +788,11 @@ public class PowerAuthIdentityVerificationShared {
         final String processId = processCtx.processId;
 
         approveConsent(ctx, processId);
+
+        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
+        initIdentityVerification(ctx, activationId, processId);
+        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
+
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -736,6 +819,9 @@ public class PowerAuthIdentityVerificationShared {
         approveConsent(ctx, processId);
 
         // 1st identity verification
+        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
+        initIdentityVerification(ctx, activationId, processId);
+        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -751,6 +837,9 @@ public class PowerAuthIdentityVerificationShared {
         }
 
         // 2nd identity verification
+        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
+        initIdentityVerification(ctx, activationId, processId);
+        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -782,7 +871,78 @@ public class PowerAuthIdentityVerificationShared {
         final TestProcessContext testContext = new TestProcessContext();
         testContext.activationId = activationId;
         testContext.processId = processId;
+        testContext.clientId = clientId;
         return testContext;
+    }
+
+    private static TestProcessContext prepareExistingActivation(final TestContext ctx) throws Exception {
+        final String clientId = "re-kyc-" + generateRandomClientId();
+        final Map<String, String> identityAttributes = Map.of(
+                "test_id", "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS",
+                "username", clientId
+        );
+        ctx.activationModel.setIdentityAttributes(identityAttributes);
+
+        final ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        new CreateActivationStep().execute(stepLogger, ctx.activationModel.toMap());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
+
+        final String activationId = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Layer 2 Response".equals(item.name()))
+                .map(item -> (ActivationLayer2Response) item.object())
+                .map(ActivationLayer2Response::getActivationId)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Activation was not successfully created").build());
+        assertActivationActive(ctx, activationId);
+
+        final TestProcessContext processCtx = new TestProcessContext();
+        processCtx.activationId = activationId;
+        processCtx.clientId = clientId;
+        return processCtx;
+    }
+
+    private static OnboardingStartResponse startReKycOnboarding(final TestContext ctx, final String clientId) throws Exception {
+        final Map<String, Object> identification = new LinkedHashMap<>();
+        identification.put("clientNumber", clientId);
+        identification.put("birthDate", "1970-03-21");
+        final OnboardingStartRequest request = OnboardingStartRequest.builder()
+                .identification(identification)
+                .processType("re-kyc")
+                .build();
+
+        final ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        final ApplicationAuthAndEncryptStepModel model = new ApplicationAuthAndEncryptStepModel();
+        model.setApplicationKey(ctx.signatureModel.getApplicationKey());
+        model.setApplicationSecret(ctx.signatureModel.getApplicationSecret());
+        model.setHeaders(ctx.signatureModel.getHeaders());
+        model.setHttpMethod(ctx.signatureModel.getHttpMethod());
+        model.setPassword(ctx.signatureModel.getPassword());
+        model.setResultStatusObject(ctx.signatureModel.getResultStatusObject());
+        model.setAuthenticationCodeType(ctx.signatureModel.getAuthenticationCodeType());
+        model.setStatusFileName(ctx.signatureModel.getStatusFileName());
+        model.setBaseUriString(ctx.signatureModel.getBaseUriString());
+        model.setVersion(ctx.signatureModel.getVersion());
+        model.setData(ctx.objectMapper.writeValueAsBytes(new ObjectRequest<>(request)));
+        model.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
+        model.setResourceId("/api/onboarding/start");
+        model.setMasterPublicKeyP256(ctx.encryptModel.getMasterPublicKeyP256());
+        model.setMasterPublicKeyP384(ctx.encryptModel.getMasterPublicKeyP384());
+        model.setMasterPublicKeyMlDsa65(ctx.encryptModel.getMasterPublicKeyMlDsa65());
+        model.setMasterPublicKeyMlDsa87(ctx.encryptModel.getMasterPublicKeyMlDsa87());
+        model.setSharedSecretAlgorithm(ctx.encryptModel.getSharedSecretAlgorithm());
+
+        new ApplicationAuthAndEncryptStep().execute(stepLogger, model.toMap());
+        assertTrue(stepLogger.getResult().success(), () -> "Re-KYC onboarding start failed: " + stepLogger.getResponse().responseObject());
+        assertEquals(200, stepLogger.getResponse().statusCode());
+
+        return stepLogger.getItems().stream()
+                .filter(isStepItemDecryptedResponse())
+                .map(item -> item.object().toString())
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OnboardingStartResponse>>() {}))
+                .map(ObjectResponse::getResponseObject)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
     }
 
     private static OnboardingStartResponse startOnboarding(final TestContext ctx, final String clientId, final String processType) throws Exception {
@@ -920,10 +1080,6 @@ public class PowerAuthIdentityVerificationShared {
     }
 
     private static void initIdentityVerification(final TestContext ctx, final String activationId, final String processId) throws Exception {
-        // Check activation flags
-        final ListActivationFlagsResponse flagResponse = ctx.powerAuthClient.listActivationFlags(activationId);
-        assertEquals(Collections.singletonList("VERIFICATION_PENDING"), flagResponse.getActivationFlags());
-
         // Initialize identity verification request
         IdentityVerificationInitRequest initRequest = new IdentityVerificationInitRequest();
         initRequest.setProcessId(processId);
@@ -935,10 +1091,11 @@ public class PowerAuthIdentityVerificationShared {
         new VerifyAuthenticationStep().execute(stepLogger, ctx.signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
+    }
 
-        // Check activation flags
-        ListActivationFlagsResponse flagResponse2 = ctx.powerAuthClient.listActivationFlags(activationId);
-        assertEquals(Collections.singletonList("VERIFICATION_IN_PROGRESS"), flagResponse2.getActivationFlags());
+    private static void checkFlags(final String activationId, final TestContext ctx, final List<String> expectedFlags) throws PowerAuthClientException {
+        final ListActivationFlagsResponse flagResponse = ctx.powerAuthClient.listActivationFlags(activationId);
+        assertEquals(expectedFlags, flagResponse.getActivationFlags());
     }
 
     private static void approveConsent(final TestContext ctx, final String processId) throws Exception {
@@ -1288,6 +1445,12 @@ public class PowerAuthIdentityVerificationShared {
         assertTrue(flagResponse3.getActivationFlags().isEmpty());
     }
 
+    private static void assertActivationActive(final TestContext ctx, final String activationId) throws Exception {
+        final GetActivationStatusResponse activationStatus = ctx.powerAuthClient.getActivationStatus(activationId);
+        assertEquals(ActivationStatus.ACTIVE, activationStatus.getActivationStatus());
+        assertTrue(activationStatus.getActivationFlags().isEmpty());
+    }
+
     private static void verifyProcessNotFinished(final TestContext ctx, final String processId) throws Exception {
         final OnboardingStatus status = checkProcessStatus(ctx, processId);
         assertNotEquals(OnboardingStatus.FINISHED, status, "Process must NOT be finished");
@@ -1361,6 +1524,163 @@ public class PowerAuthIdentityVerificationShared {
     private static class TestProcessContext {
         private String activationId;
         private String processId;
+        private String clientId;
+    }
+
+    private static class ApplicationAuthAndEncryptStep extends AbstractBaseStep<ApplicationAuthAndEncryptStepModel, EncryptedResponse> {
+
+        private static final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
+        private static final KeyConvertor KEY_CONVERTOR = new KeyConvertor();
+
+        private final PowerAuthHeaderFactory powerAuthHeaderFactory;
+
+        private ApplicationAuthAndEncryptStep() {
+            this(BackwardCompatibilityConst.POWER_AUTH_HEADER_FACTORY,
+                    BackwardCompatibilityConst.RESULT_STATUS_SERVICE,
+                    BackwardCompatibilityConst.STEP_LOGGER_FACTORY);
+        }
+
+        private ApplicationAuthAndEncryptStep(final PowerAuthHeaderFactory powerAuthHeaderFactory,
+                                              final ResultStatusService resultStatusService,
+                                              final StepLoggerFactory stepLoggerFactory) {
+            super(PowerAuthStep.AUTHENTICATE_ENCRYPT, PowerAuthVersion.ALL_VERSIONS, resultStatusService, stepLoggerFactory);
+            this.powerAuthHeaderFactory = powerAuthHeaderFactory;
+        }
+
+        @Override
+        protected ParameterizedTypeReference<EncryptedResponse> getResponseTypeReference(final PowerAuthVersion version) {
+            return getResponseTypeReferenceEncrypted(version);
+        }
+
+        @Override
+        public StepContext<ApplicationAuthAndEncryptStepModel, EncryptedResponse> prepareStepContext(
+                final StepLogger stepLogger, final Map<String, Object> context) throws Exception {
+            final ApplicationAuthAndEncryptStepModel model = new ApplicationAuthAndEncryptStepModel();
+            model.fromMap(context);
+            final RequestContext requestContext = RequestContext.builder()
+                    .authenticationHttpMethod(model.getHttpMethod())
+                    .authenticationRequestUri(model.getResourceId())
+                    .uri(model.getUriString())
+                    .build();
+            final StepContext<ApplicationAuthAndEncryptStepModel, EncryptedResponse> stepContext =
+                    buildStepContext(stepLogger, model, requestContext);
+            if (!HttpMethod.POST.name().equals(model.getHttpMethod().toUpperCase()) || model.getData() == null) {
+                stepLogger.writeDoneFailed("auth-encrypt-failed");
+                return null;
+            }
+
+            final byte[] requestData = model.getData();
+            requestContext.setRequestObject(VerifyAuthenticationCodeUtil.extractRequestDataBytes(model, stepLogger));
+            powerAuthHeaderFactory.getHeaderProvider(model).addHeader(stepContext);
+
+            if (!fetchTemporaryKey(stepContext, EncryptorScope.APPLICATION_SCOPE, SharedSecretAlgorithm.EC_P256)) {
+                return null;
+            }
+            final String temporaryKeyId;
+            final PublicKey encryptionPublicKey;
+            if (model.getVersion().useTemporaryKeys()) {
+                temporaryKeyId = stepContext.getTemporaryKeyContext().getTemporaryKeyId();
+                encryptionPublicKey = KEY_CONVERTOR.convertBytesToPublicKey(EcCurve.P256,
+                        Base64.getDecoder().decode(stepContext.getTemporaryKeyContext().getTemporaryPublicKey()));
+            } else {
+                temporaryKeyId = null;
+                encryptionPublicKey = model.getMasterPublicKeyP256();
+            }
+            final EncryptorParameters encryptorParameters = new EncryptorParameters(
+                    model.getVersion().value(), model.getApplicationKey(), null, temporaryKeyId);
+            final ClientEncryptor<EncryptedRequest, EncryptedResponse> encryptor =
+                    ENCRYPTOR_FACTORY.getClientEncryptor(EncryptorId.APPLICATION_SCOPE_GENERIC, encryptorParameters,
+                            new ClientEciesSecrets(encryptionPublicKey, model.getApplicationSecret()));
+            addEncryptedRequest(stepContext, encryptor, requestData);
+
+            final String encryptionHeader = new PowerAuthEncryptionHttpHeader(
+                    model.getApplicationKey(), model.getVersion().value()).buildHttpHeader();
+            requestContext.setAuthorizationHeader(encryptionHeader);
+            requestContext.getHttpHeaders().put(PowerAuthEncryptionHttpHeader.HEADER_NAME, encryptionHeader);
+            return stepContext;
+        }
+
+        @Override
+        public void processResponse(final StepContext<ApplicationAuthAndEncryptStepModel, EncryptedResponse> stepContext) throws Exception {
+            SecurityUtil.processEncryptedResponse(stepContext, getStep().id());
+        }
+
+    }
+
+    private static class ApplicationAuthAndEncryptStepModel extends VerifyAuthenticationStepModel implements MasterPublicKeyData {
+
+        private PublicKey masterPublicKeyP256;
+        private PublicKey masterPublicKeyP384;
+        private PublicKey masterPublicKeyMlDsa65;
+        private PublicKey masterPublicKeyMlDsa87;
+        private SharedSecretAlgorithm sharedSecretAlgorithm;
+
+        @Override
+        public Map<String, Object> toMap() {
+            final Map<String, Object> context = new HashMap<>(super.toMap());
+            context.put("MASTER_PUBLIC_KEY_P256", masterPublicKeyP256);
+            context.put("MASTER_PUBLIC_KEY_P384", masterPublicKeyP384);
+            context.put("MASTER_PUBLIC_KEY_MLDSA65", masterPublicKeyMlDsa65);
+            context.put("MASTER_PUBLIC_KEY_MLDSA87", masterPublicKeyMlDsa87);
+            context.put("SHARED_SECRET_ALGORITHM", sharedSecretAlgorithm);
+            return Collections.unmodifiableMap(context);
+        }
+
+        @Override
+        public void fromMap(final Map<String, Object> context) {
+            super.fromMap(context);
+            masterPublicKeyP256 = (PublicKey) context.get("MASTER_PUBLIC_KEY_P256");
+            masterPublicKeyP384 = (PublicKey) context.get("MASTER_PUBLIC_KEY_P384");
+            masterPublicKeyMlDsa65 = (PublicKey) context.get("MASTER_PUBLIC_KEY_MLDSA65");
+            masterPublicKeyMlDsa87 = (PublicKey) context.get("MASTER_PUBLIC_KEY_MLDSA87");
+            sharedSecretAlgorithm = (SharedSecretAlgorithm) context.get("SHARED_SECRET_ALGORITHM");
+        }
+
+        @Override
+        public PublicKey getMasterPublicKeyP256() {
+            return masterPublicKeyP256;
+        }
+
+        @Override
+        public PublicKey getMasterPublicKeyP384() {
+            return masterPublicKeyP384;
+        }
+
+        @Override
+        public PublicKey getMasterPublicKeyMlDsa65() {
+            return masterPublicKeyMlDsa65;
+        }
+
+        @Override
+        public PublicKey getMasterPublicKeyMlDsa87() {
+            return masterPublicKeyMlDsa87;
+        }
+
+        @Override
+        public SharedSecretAlgorithm getSharedSecretAlgorithm() {
+            return sharedSecretAlgorithm;
+        }
+
+        private void setMasterPublicKeyP256(final PublicKey masterPublicKeyP256) {
+            this.masterPublicKeyP256 = masterPublicKeyP256;
+        }
+
+        private void setMasterPublicKeyP384(final PublicKey masterPublicKeyP384) {
+            this.masterPublicKeyP384 = masterPublicKeyP384;
+        }
+
+        private void setMasterPublicKeyMlDsa65(final PublicKey masterPublicKeyMlDsa65) {
+            this.masterPublicKeyMlDsa65 = masterPublicKeyMlDsa65;
+        }
+
+        private void setMasterPublicKeyMlDsa87(final PublicKey masterPublicKeyMlDsa87) {
+            this.masterPublicKeyMlDsa87 = masterPublicKeyMlDsa87;
+        }
+
+        private void setSharedSecretAlgorithm(final SharedSecretAlgorithm sharedSecretAlgorithm) {
+            this.sharedSecretAlgorithm = sharedSecretAlgorithm;
+        }
+
     }
 
     private static <T> T read(final ObjectMapper objectMapper, final String source, final TypeReference<T> type) {
