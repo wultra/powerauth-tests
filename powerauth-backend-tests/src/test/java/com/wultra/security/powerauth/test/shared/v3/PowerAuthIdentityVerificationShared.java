@@ -885,9 +885,7 @@ public class PowerAuthIdentityVerificationShared {
 
     private static OnboardingStartResponse startReKycOnboarding(final TestContext ctx, final String clientId) throws Exception {
         final ObjectStepLogger stepLogger = ctx.stepLogger;
-        ctx.encryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
-        ctx.encryptModel.setScope("application");
-        Map<String, Object> identification = Map.of(
+        final Map<String, Object> identification = Map.of(
                 "clientNumber", clientId != null ? clientId : generateRandomClientId(),
                 "birthDate", "1970-03-21"
         );
@@ -896,8 +894,15 @@ public class PowerAuthIdentityVerificationShared {
                 .processType("re-kyc")
                 .build();
 
-        // TODO signature - @PowerAuth(resourceId = "/api/onboarding/start", authenticationCodeType = PowerAuthCodeType.POSSESSION)
-        executeRequest(request, ctx.encryptModel, stepLogger, ctx.objectMapper);
+        // Re-KYC onboarding start is signed with the possession factor of the existing activation
+        // (@PowerAuth(resourceId = "/api/onboarding/start", authenticationCodeType = PowerAuthCodeType.POSSESSION))
+        ctx.signatureModel.setData(ctx.objectMapper.writeValueAsBytes(new ObjectRequest<>(request)));
+        ctx.signatureModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
+        ctx.signatureModel.setResourceId("/api/onboarding/start");
+
+        new AuthAndEncryptStep().execute(stepLogger, ctx.signatureModel.toMap());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
 
         final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
         assertNotNull(responseOK.getEncryptedData());
