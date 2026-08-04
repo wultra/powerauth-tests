@@ -28,6 +28,7 @@ import com.wultra.security.powerauth.client.model.response.ListActivationFlagsRe
 import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
+import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
@@ -80,6 +81,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class PowerAuthIdentityVerificationShared {
 
     public static final SharedSecretAlgorithm SHARED_SECRET_ALGORITHM_DEFAULT = SharedSecretAlgorithm.EC_P384_ML_L3;
+    private static final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
 
     public static void testSuccessfulReKycWithExistingActivation(final TestContext ctx) throws Exception {
         final TestProcessContext existingActivationContext = prepareExistingActivation(ctx);
@@ -882,44 +884,40 @@ public class PowerAuthIdentityVerificationShared {
     }
 
     private static OnboardingStartResponse startReKycOnboarding(final TestContext ctx, final String clientId) throws Exception {
-        final Map<String, Object> identification = new LinkedHashMap<>();
-        identification.put("clientNumber", clientId);
-        identification.put("birthDate", "1970-03-21");
+        final ObjectStepLogger stepLogger = ctx.stepLogger;
+        ctx.encryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
+        ctx.encryptModel.setScope("application");
+        Map<String, Object> identification = Map.of(
+                "clientNumber", clientId != null ? clientId : generateRandomClientId(),
+                "birthDate", "1970-03-21"
+        );
         final OnboardingStartRequest request = OnboardingStartRequest.builder()
                 .identification(identification)
                 .processType("re-kyc")
                 .build();
 
-        final byte[] requestData = ctx.objectMapper.writeValueAsBytes(new ObjectRequest<>(request));
-        final ObjectStepLogger signatureLogger = new ObjectStepLogger();
-        ctx.signatureModel.setData(requestData);
-        ctx.signatureModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
-        ctx.signatureModel.setResourceId("/api/onboarding/start");
-        ctx.signatureModel.setDryRun(true);
-        new VerifyAuthenticationStep().execute(signatureLogger, ctx.signatureModel.toMap());
-        ctx.signatureModel.setDryRun(false);
-        assertTrue(signatureLogger.getResult().success());
+        // TODO signature - @PowerAuth(resourceId = "/api/onboarding/start", authenticationCodeType = PowerAuthCodeType.POSSESSION)
+        executeRequest(request, ctx.encryptModel, stepLogger, ctx.objectMapper);
 
-        final Object authorizationHeader = signatureLogger.getRequest().headers().get("X-PowerAuth-Authorization");
-        assertNotNull(authorizationHeader);
-        final Map<String, String> signatureHeaders = Map.of("X-PowerAuth-Authorization", authorizationHeader.toString());
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
+        assertNotNull(responseOK.getEncryptedData());
+        assertNotNull(responseOK.getMac());
 
-        final ObjectStepLogger encryptionLogger = new ObjectStepLogger(System.out);
-        ctx.encryptModel.setData(requestData);
-        ctx.encryptModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
-        ctx.encryptModel.setScope("application");
-        ctx.encryptModel.setHeaders(signatureHeaders);
-        new EncryptStep().execute(encryptionLogger, ctx.encryptModel.toMap());
-        assertTrue(encryptionLogger.getResult().success(), () -> "Re-KYC onboarding start failed: " + encryptionLogger.getResponse().responseObject());
-        assertEquals(200, encryptionLogger.getResponse().statusCode());
-
-        return encryptionLogger.getItems().stream()
-                .filter(isStepItemDecryptedResponse())
+        final OnboardingStartResponse response = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Response".equals(item.name()))
                 .map(item -> item.object().toString())
                 .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OnboardingStartResponse>>() {}))
                 .map(ObjectResponse::getResponseObject)
                 .findAny()
                 .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+
+        final String processId = response.processId();
+        final OnboardingStatus onboardingStatus = response.onboardingStatus();
+
+        assertNotNull(processId);
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, onboardingStatus);
+        assertEquals(ActivationType.ACTIVATION_ALREADY_EXISTS, response.activationType());
+        return response;
     }
 
     private static OnboardingStartResponse startOnboarding(final TestContext ctx, final String clientId, final String processType) throws Exception {
