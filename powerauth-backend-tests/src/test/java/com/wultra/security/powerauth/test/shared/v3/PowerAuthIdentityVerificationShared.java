@@ -114,18 +114,88 @@ public class PowerAuthIdentityVerificationShared {
         final OnboardingStartResponse onboardingStartResponse = startReKycOnboarding(ctx, existingActivationContext.clientId);
         assertEquals(ActivationType.ACTIVATION_ALREADY_EXISTS, onboardingStartResponse.activationType());
 
+        final String processId = onboardingStartResponse.processId();
+
         createToken(ctx);
 
         checkFlags(activationId, ctx, List.of());
-        initIdentityVerification(ctx, activationId, onboardingStartResponse.processId());
+        initIdentityVerification(ctx, activationId, processId);
         checkFlags(activationId, ctx, List.of("RE_KYC_IN_PROGRESS"));
-        cleanupIdentityVerification(ctx, onboardingStartResponse.processId());
-        checkFlags(activationId, ctx, List.of());
 
-        assertEquals(OnboardingStatus.FAILED, checkProcessStatus(ctx, onboardingStartResponse.processId()));
-        assertActivationActive(ctx, activationId);
+        // Genuinely fail the re-KYC onboarding process by repeatedly exhausting the document upload attempts.
+        driveReKycToFailed(ctx, activationId, processId);
+
+        assertEquals(OnboardingStatus.FAILED, checkProcessStatus(ctx, processId));
+
+        // A failed re-KYC process must keep the existing activation intact and return its flags to the original
+        // (empty) state. Activation cleanup runs asynchronously on the server, therefore retry the assertion.
+        assertActivationActiveWithoutFlagsWithRetries(ctx, activationId);
 
         ctx.powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    /**
+     * Drive an already initialized re-KYC onboarding process to the {@link OnboardingStatus#FAILED} state by repeatedly
+     * exhausting the document upload attempts.
+     * <p>
+     * Each round submits a document that the server rejects until the document upload attempt limit is exceeded, which
+     * resets the identity verification. Once the number of identity verification resets reaches the configured limit,
+     * the server fails the whole onboarding process and removes the {@code RE_KYC_IN_PROGRESS} activation flag.
+     *
+     * @param ctx Test context.
+     * @param activationId Activation identifier of the existing activation.
+     * @param processId Identifier of the re-KYC onboarding process (identity verification already initialized).
+     */
+    private static void driveReKycToFailed(final TestContext ctx, final String activationId, final String processId) throws Exception {
+        // A driving license document backed by an ID card image is always rejected by the mock document verification provider.
+        final DocumentSubmitRequest rejectedRequest = createDocumentSubmitRequest(processId,
+                List.of(FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)));
+
+        // Generous upper bounds; the process is failed by the server well within these limits with the default configuration.
+        final int maxRounds = 12;
+        final int maxSubmitsPerRound = 20;
+
+        for (int round = 0; round < maxRounds; round++) {
+            // Submit the rejected document until the document upload attempt limit is exceeded and the submit starts to fail.
+            for (int attempt = 0; attempt < maxSubmitsPerRound; attempt++) {
+                try {
+                    submitDocuments(ctx, rejectedRequest);
+                } catch (AssertionError e) {
+                    // The document upload attempt limit was exceeded; the identity verification was reset, or the whole
+                    // process was failed on the last round.
+                    break;
+                }
+            }
+
+            if (checkProcessStatus(ctx, processId) == OnboardingStatus.FAILED) {
+                return;
+            }
+
+            // The identity verification has been reset, re-initialize it for another round. Re-initialization itself can
+            // fail the process once the identity verification attempt limit is reached.
+            try {
+                initIdentityVerification(ctx, activationId, processId);
+            } catch (AssertionError e) {
+                if (checkProcessStatus(ctx, processId) == OnboardingStatus.FAILED) {
+                    return;
+                }
+                throw e;
+            }
+        }
+
+        fail("Re-KYC onboarding process did not reach the FAILED state after exhausting document upload attempts");
+    }
+
+    private static void assertActivationActiveWithoutFlagsWithRetries(final TestContext ctx, final String activationId) {
+        await()
+                .alias("Existing activation of a failed re-KYC process must remain active with no flags")
+                .atMost(ctx.config.getAssertRetryWaitPeriod().multipliedBy(ctx.config.getAssertMaxRetries()))
+                .pollInterval(ctx.config.getAssertRetryWaitPeriod())
+                .untilAsserted(() -> {
+                    final GetActivationStatusResponse activationStatus = ctx.powerAuthClient.getActivationStatus(activationId);
+                    assertEquals(ActivationStatus.ACTIVE, activationStatus.getActivationStatus());
+                    assertTrue(activationStatus.getActivationFlags().isEmpty());
+                });
     }
 
     public static void testSuccessfulIdentityVerificationWithCustomActivation(final TestContext ctx) throws Exception {
