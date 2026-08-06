@@ -528,6 +528,11 @@ public class PowerAuthIdentityVerificationShared {
         final String processId = processCtx.processId;
 
         approveConsent(ctx, processId);
+
+        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
+        initIdentityVerification(ctx, activationId, processId);
+        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
+
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
