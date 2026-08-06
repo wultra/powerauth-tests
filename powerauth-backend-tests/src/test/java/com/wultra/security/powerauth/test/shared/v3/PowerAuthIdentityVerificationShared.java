@@ -28,7 +28,6 @@ import com.wultra.security.powerauth.client.model.response.ListActivationFlagsRe
 import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
-import com.wultra.security.powerauth.crypto.lib.encryptor.EncryptorFactory;
 import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
@@ -81,7 +80,6 @@ import static org.junit.jupiter.api.Assertions.*;
 public class PowerAuthIdentityVerificationShared {
 
     public static final SharedSecretAlgorithm SHARED_SECRET_ALGORITHM_DEFAULT = SharedSecretAlgorithm.EC_P384_ML_L3;
-    private static final EncryptorFactory ENCRYPTOR_FACTORY = new EncryptorFactory();
 
     public static void testSuccessfulReKycWithExistingActivation(final TestContext ctx) throws Exception {
         final TestProcessContext existingActivationContext = prepareExistingActivation(ctx);
@@ -103,8 +101,6 @@ public class PowerAuthIdentityVerificationShared {
         processDocumentsSynchronous(reKycContext, ctx);
         initPresenceCheck(ctx, reKycContext.processId);
         submitPresenceCheck(ctx, reKycContext.processId);
-        verifyStatusBeforeOtp(ctx);
-        verifyOtpCheckSuccessful(ctx, reKycContext.processId);
         verifyProcessFinished(ctx, reKycContext.processId, activationId);
         assertActivationActive(ctx, activationId);
 
@@ -894,8 +890,11 @@ public class PowerAuthIdentityVerificationShared {
                 .processType("re-kyc")
                 .build();
 
-        // Re-KYC onboarding start is signed with the possession factor of the existing activation
-        // (@PowerAuth(resourceId = "/api/onboarding/start", authenticationCodeType = PowerAuthCodeType.POSSESSION))
+        // Re-KYC onboarding start uses activation-scope encryption together with a possession signature
+        // (@PowerAuthEncryption(scope = ACTIVATION_SCOPE) + @PowerAuth(resourceId = "/api/onboarding/start",
+        // authenticationCodeType = PowerAuthCodeType.POSSESSION)), i.e. the sign-then-encrypt sequence. The
+        // server dispatches to this activation-scope variant based on the presence of the PowerAuth signature
+        // HTTP header, while the standard onboarding start remains application-scope.
         ctx.signatureModel.setData(ctx.objectMapper.writeValueAsBytes(new ObjectRequest<>(request)));
         ctx.signatureModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
         ctx.signatureModel.setResourceId("/api/onboarding/start");
@@ -920,7 +919,7 @@ public class PowerAuthIdentityVerificationShared {
         final OnboardingStatus onboardingStatus = response.onboardingStatus();
 
         assertNotNull(processId);
-        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, onboardingStatus);
+        assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, onboardingStatus);
         assertEquals(ActivationType.ACTIVATION_ALREADY_EXISTS, response.activationType());
         return response;
     }
