@@ -205,9 +205,7 @@ public class PowerAuthIdentityVerificationShared {
 
         approveConsent(ctx, processId);
 
-        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
-        initIdentityVerification(ctx, activationId, processId);
-        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
+        initIdentityVerificationAndCheckFlags(ctx, activationId, processId);
 
         processDocumentsSynchronous(processCtx, ctx);
 
@@ -529,9 +527,7 @@ public class PowerAuthIdentityVerificationShared {
 
         approveConsent(ctx, processId);
 
-        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
-        initIdentityVerification(ctx, activationId, processId);
-        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
+        initIdentityVerificationAndCheckFlags(ctx, activationId, processId);
 
         processDocumentsSynchronous(processCtx, ctx);
 
@@ -548,6 +544,23 @@ public class PowerAuthIdentityVerificationShared {
         ctx.powerAuthClient.removeActivation(activationId, "test");
     }
 
+    /**
+     * Initializes the identity verification process and performs flag checks before and after the initialization.
+     * <p>
+     * Testing the most common flag, {@code VERIFICATION_PENDING} and {@code VERIFICATION_IN_PROGRESS}.
+     * For other scenarios, call {@link #initIdentityVerification(TestContext, String, String)} and {@link #checkFlags(String, TestContext, List)} directly.
+     *
+     * @param ctx the test context, used to manage and store state during the verification process
+     * @param activationId the unique identifier for the activation to be verified
+     * @param processId the unique identifier for the process being executed
+     * @throws Exception if any error occurs during flag checks or identity verification initialization
+     */
+    private static void initIdentityVerificationAndCheckFlags(final TestContext ctx, final String activationId, final String processId) throws Exception {
+        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
+        initIdentityVerification(ctx, activationId, processId);
+        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
+    }
+
     public static void testScaFailedOtpCheck(final TestContext ctx) throws Exception {
         final TestProcessContext processCtx = prepareActivation(ctx);
         final String activationId = processCtx.activationId;
@@ -555,9 +568,7 @@ public class PowerAuthIdentityVerificationShared {
 
         approveConsent(ctx, processId);
 
-        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
-        initIdentityVerification(ctx, activationId, processId);
-        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
+        initIdentityVerificationAndCheckFlags(ctx, activationId, processId);
 
         processDocumentsSynchronous(processCtx, ctx);
 
@@ -841,9 +852,7 @@ public class PowerAuthIdentityVerificationShared {
 
         approveConsent(ctx, processId);
 
-        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
-        initIdentityVerification(ctx, activationId, processId);
-        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
+        initIdentityVerificationAndCheckFlags(ctx, activationId, processId);
 
         processDocumentsSynchronous(processCtx, ctx);
 
@@ -871,9 +880,7 @@ public class PowerAuthIdentityVerificationShared {
         approveConsent(ctx, processId);
 
         // 1st identity verification
-        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
-        initIdentityVerification(ctx, activationId, processId);
-        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
+        initIdentityVerificationAndCheckFlags(ctx, activationId, processId);
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -889,9 +896,7 @@ public class PowerAuthIdentityVerificationShared {
         }
 
         // 2nd identity verification
-        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
-        initIdentityVerification(ctx, activationId, processId);
-        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
+        initIdentityVerificationAndCheckFlags(ctx, activationId, processId);
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -1133,6 +1138,16 @@ public class PowerAuthIdentityVerificationShared {
         return otpCode;
     }
 
+    /**
+     * Initializes the identity verification.
+     * <p>
+     * It is recommended to use {@link #checkFlags(String, TestContext, List)} to verify flags before and after the initialization, as shown in {@link #initIdentityVerificationAndCheckFlags(TestContext, String, String)}.
+     *
+     * @param ctx The test context containing configuration and models.
+     * @param activationId The activation ID for the identity verification process.
+     * @param processId The process ID for the identity verification process.
+     * @throws Exception If an error occurs during the initialization request.
+     */
     private static void initIdentityVerification(final TestContext ctx, final String activationId, final String processId) throws Exception {
         // Initialize identity verification request
         IdentityVerificationInitRequest initRequest = new IdentityVerificationInitRequest();
