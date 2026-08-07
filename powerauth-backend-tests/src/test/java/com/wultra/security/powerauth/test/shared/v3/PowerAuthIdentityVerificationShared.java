@@ -23,6 +23,7 @@ import com.wultra.app.enrollmentserver.model.enumeration.*;
 import com.wultra.core.rest.model.base.request.ObjectRequest;
 import com.wultra.core.rest.model.base.response.ObjectResponse;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.error.PowerAuthClientException;
 import com.wultra.security.powerauth.client.model.response.ListActivationFlagsResponse;
 import com.wultra.security.powerauth.client.model.response.v3.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
@@ -80,12 +81,132 @@ public class PowerAuthIdentityVerificationShared {
 
     public static final SharedSecretAlgorithm SHARED_SECRET_ALGORITHM_DEFAULT = SharedSecretAlgorithm.EC_P384_ML_L3;
 
+    public static void testSuccessfulReKycWithExistingActivation(final TestContext ctx) throws Exception {
+        final TestProcessContext existingActivationContext = prepareExistingActivation(ctx);
+        final String activationId = existingActivationContext.activationId;
+
+        final OnboardingStartResponse onboardingStartResponse = startReKycOnboarding(ctx, existingActivationContext.clientId);
+        assertEquals(ActivationType.ACTIVATION_ALREADY_EXISTS, onboardingStartResponse.activationType());
+
+        final TestProcessContext reKycContext = new TestProcessContext();
+        reKycContext.activationId = activationId;
+        reKycContext.processId = onboardingStartResponse.processId();
+
+        createToken(ctx);
+
+        checkFlags(activationId, ctx, List.of());
+        initIdentityVerification(ctx, activationId, reKycContext.processId);
+        checkFlags(activationId, ctx, List.of("RE_KYC_IN_PROGRESS"));
+
+        processDocumentsSynchronous(reKycContext, ctx);
+        initPresenceCheck(ctx, reKycContext.processId);
+        submitPresenceCheck(ctx, reKycContext.processId);
+        verifyProcessFinished(ctx, reKycContext.processId, activationId);
+        assertActivationActive(ctx, activationId);
+
+        ctx.powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    public static void testFailedReKycWithExistingActivation(final TestContext ctx) throws Exception {
+        final TestProcessContext existingActivationContext = prepareExistingActivation(ctx);
+        final String activationId = existingActivationContext.activationId;
+
+        final OnboardingStartResponse onboardingStartResponse = startReKycOnboarding(ctx, existingActivationContext.clientId);
+        assertEquals(ActivationType.ACTIVATION_ALREADY_EXISTS, onboardingStartResponse.activationType());
+
+        final String processId = onboardingStartResponse.processId();
+
+        createToken(ctx);
+
+        checkFlags(activationId, ctx, List.of());
+        initIdentityVerification(ctx, activationId, processId);
+        checkFlags(activationId, ctx, List.of("RE_KYC_IN_PROGRESS"));
+
+        // Genuinely fail the re-KYC onboarding process by repeatedly exhausting the document upload attempts.
+        driveReKycToFailed(ctx, activationId, processId);
+
+        assertEquals(OnboardingStatus.FAILED, checkProcessStatus(ctx, processId));
+
+        // A failed re-KYC process must keep the existing activation intact and return its flags to the original
+        // (empty) state. Activation cleanup runs asynchronously on the server, therefore retry the assertion.
+        assertActivationActiveWithoutFlagsWithRetries(ctx, activationId);
+
+        ctx.powerAuthClient.removeActivation(activationId, "test");
+    }
+
+    /**
+     * Drive an already initialized re-KYC onboarding process to the {@link OnboardingStatus#FAILED} state by repeatedly
+     * exhausting the document upload attempts.
+     * <p>
+     * Each round submits a document that the server rejects until the document upload attempt limit is exceeded, which
+     * resets the identity verification. Once the number of identity verification resets reaches the configured limit,
+     * the server fails the whole onboarding process and removes the {@code RE_KYC_IN_PROGRESS} activation flag.
+     *
+     * @param ctx Test context.
+     * @param activationId Activation identifier of the existing activation.
+     * @param processId Identifier of the re-KYC onboarding process (identity verification already initialized).
+     */
+    private static void driveReKycToFailed(final TestContext ctx, final String activationId, final String processId) throws Exception {
+        // A driving license document backed by an ID card image is always rejected by the mock document verification provider.
+        final DocumentSubmitRequest rejectedRequest = createDocumentSubmitRequest(processId,
+                List.of(FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.DRIVING_LICENSE, CardSide.FRONT)));
+
+        // Generous upper bounds; the process is failed by the server well within these limits with the default configuration.
+        final int maxRounds = 12;
+        final int maxSubmitsPerRound = 20;
+
+        for (int round = 0; round < maxRounds; round++) {
+            // Submit the rejected document until the document upload attempt limit is exceeded and the submit starts to fail.
+            for (int attempt = 0; attempt < maxSubmitsPerRound; attempt++) {
+                try {
+                    submitDocuments(ctx, rejectedRequest);
+                } catch (AssertionError e) {
+                    // The document upload attempt limit was exceeded; the identity verification was reset, or the whole
+                    // process was failed on the last round.
+                    break;
+                }
+            }
+
+            if (checkProcessStatus(ctx, processId) == OnboardingStatus.FAILED) {
+                return;
+            }
+
+            // The identity verification has been reset, re-initialize it for another round. Re-initialization itself can
+            // fail the process once the identity verification attempt limit is reached.
+            try {
+                initIdentityVerification(ctx, activationId, processId);
+            } catch (AssertionError e) {
+                if (checkProcessStatus(ctx, processId) == OnboardingStatus.FAILED) {
+                    return;
+                }
+                throw e;
+            }
+        }
+
+        fail("Re-KYC onboarding process did not reach the FAILED state after exhausting document upload attempts");
+    }
+
+    private static void assertActivationActiveWithoutFlagsWithRetries(final TestContext ctx, final String activationId) {
+        await()
+                .alias("Existing activation of a failed re-KYC process must remain active with no flags")
+                .atMost(ctx.config.getAssertRetryWaitPeriod().multipliedBy(ctx.config.getAssertMaxRetries()))
+                .pollInterval(ctx.config.getAssertRetryWaitPeriod())
+                .untilAsserted(() -> {
+                    final GetActivationStatusResponse activationStatus = ctx.powerAuthClient.getActivationStatus(activationId);
+                    assertEquals(ActivationStatus.ACTIVE, activationStatus.getActivationStatus());
+                    assertTrue(activationStatus.getActivationFlags().isEmpty());
+                });
+    }
+
     public static void testSuccessfulIdentityVerificationWithCustomActivation(final TestContext ctx) throws Exception {
         final TestProcessContext processCtx = prepareActivation(ctx);
         final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
 
         approveConsent(ctx, processId);
+
+        initIdentityVerificationAndCheckFlags(ctx, activationId, processId);
+
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -114,6 +235,8 @@ public class PowerAuthIdentityVerificationShared {
         processContext.activationId = temporaryActivationId;
 
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
+
+        initIdentityVerification(ctx, temporaryActivationId, processId);
 
         // skip approveConsent on purpose
         processDocumentsAsynchronous(processContext, ctx);
@@ -253,6 +376,7 @@ public class PowerAuthIdentityVerificationShared {
 
         assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, checkProcessStatus(ctx, processId));
 
+        initIdentityVerification(ctx, activationId, processId);
         processDocumentsV2(processContext, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -314,10 +438,7 @@ public class PowerAuthIdentityVerificationShared {
     }
 
     private static void processDocuments(final TestProcessContext processCtx, final TestContext ctx) throws Exception {
-        final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
-
-        initIdentityVerification(ctx, activationId, processId);
 
         final List<FileSubmit> idCardSubmits = List.of(
                 FileSubmit.createFrom("images/id_card_mock_front.png", DocumentType.ID_CARD, CardSide.FRONT),
@@ -343,10 +464,7 @@ public class PowerAuthIdentityVerificationShared {
     }
 
     private static void processDocumentsV2(final TestProcessContext processCtx, final TestContext ctx) throws Exception {
-        final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
-
-        initIdentityVerification(ctx, activationId, processId);
 
         final var idCardSubmitRequest = DocumentSubmitV2Request.builder()
                 .processId(processId)
@@ -408,6 +526,9 @@ public class PowerAuthIdentityVerificationShared {
         final String processId = processCtx.processId;
 
         approveConsent(ctx, processId);
+
+        initIdentityVerificationAndCheckFlags(ctx, activationId, processId);
+
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -423,12 +544,32 @@ public class PowerAuthIdentityVerificationShared {
         ctx.powerAuthClient.removeActivation(activationId, "test");
     }
 
+    /**
+     * Initializes the identity verification process and performs flag checks before and after the initialization.
+     * <p>
+     * Testing the most common flag, {@code VERIFICATION_PENDING} and {@code VERIFICATION_IN_PROGRESS}.
+     * For other scenarios, call {@link #initIdentityVerification(TestContext, String, String)} and {@link #checkFlags(String, TestContext, List)} directly.
+     *
+     * @param ctx the test context, used to manage and store state during the verification process
+     * @param activationId the unique identifier for the activation to be verified
+     * @param processId the unique identifier for the process being executed
+     * @throws Exception if any error occurs during flag checks or identity verification initialization
+     */
+    private static void initIdentityVerificationAndCheckFlags(final TestContext ctx, final String activationId, final String processId) throws Exception {
+        checkFlags(activationId, ctx, List.of("VERIFICATION_PENDING"));
+        initIdentityVerification(ctx, activationId, processId);
+        checkFlags(activationId, ctx, List.of("VERIFICATION_IN_PROGRESS"));
+    }
+
     public static void testScaFailedOtpCheck(final TestContext ctx) throws Exception {
         final TestProcessContext processCtx = prepareActivation(ctx);
         final String activationId = processCtx.activationId;
         final String processId = processCtx.processId;
 
         approveConsent(ctx, processId);
+
+        initIdentityVerificationAndCheckFlags(ctx, activationId, processId);
+
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -710,6 +851,9 @@ public class PowerAuthIdentityVerificationShared {
         final String processId = processCtx.processId;
 
         approveConsent(ctx, processId);
+
+        initIdentityVerificationAndCheckFlags(ctx, activationId, processId);
+
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -736,6 +880,7 @@ public class PowerAuthIdentityVerificationShared {
         approveConsent(ctx, processId);
 
         // 1st identity verification
+        initIdentityVerificationAndCheckFlags(ctx, activationId, processId);
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -751,6 +896,7 @@ public class PowerAuthIdentityVerificationShared {
         }
 
         // 2nd identity verification
+        initIdentityVerificationAndCheckFlags(ctx, activationId, processId);
         processDocumentsSynchronous(processCtx, ctx);
 
         initPresenceCheck(ctx, processId);
@@ -782,7 +928,80 @@ public class PowerAuthIdentityVerificationShared {
         final TestProcessContext testContext = new TestProcessContext();
         testContext.activationId = activationId;
         testContext.processId = processId;
+        testContext.clientId = clientId;
         return testContext;
+    }
+
+    private static TestProcessContext prepareExistingActivation(final TestContext ctx) throws Exception {
+        final String clientId = "re-kyc-" + generateRandomClientId();
+        final Map<String, String> identityAttributes = Map.of(
+                "test_id", "TEST_1_SIMPLE_LOOKUP_COMMIT_PROCESS",
+                "username", clientId
+        );
+        ctx.activationModel.setIdentityAttributes(identityAttributes);
+
+        final ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
+        new CreateActivationStep().execute(stepLogger, ctx.activationModel.toMap());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
+
+        final String activationId = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Layer 2 Response".equals(item.name()))
+                .map(item -> (ActivationLayer2Response) item.object())
+                .map(ActivationLayer2Response::getActivationId)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Activation was not successfully created").build());
+        assertActivationActive(ctx, activationId);
+
+        final TestProcessContext processCtx = new TestProcessContext();
+        processCtx.activationId = activationId;
+        processCtx.clientId = clientId;
+        return processCtx;
+    }
+
+    private static OnboardingStartResponse startReKycOnboarding(final TestContext ctx, final String clientId) throws Exception {
+        final ObjectStepLogger stepLogger = ctx.stepLogger;
+        final Map<String, Object> identification = Map.of(
+                "clientNumber", clientId != null ? clientId : generateRandomClientId(),
+                "birthDate", "1970-03-21"
+        );
+        final OnboardingStartRequest request = OnboardingStartRequest.builder()
+                .identification(identification)
+                .processType("re-kyc")
+                .build();
+
+        // Re-KYC onboarding start uses activation-scope encryption together with a possession signature
+        // (@PowerAuthEncryption(scope = ACTIVATION_SCOPE) + @PowerAuth(resourceId = "/api/onboarding/start",
+        // authenticationCodeType = PowerAuthCodeType.POSSESSION)), i.e. the sign-then-encrypt sequence. The
+        // server dispatches to this activation-scope variant based on the presence of the PowerAuth signature
+        // HTTP header, while the standard onboarding start remains application-scope.
+        ctx.signatureModel.setData(ctx.objectMapper.writeValueAsBytes(new ObjectRequest<>(request)));
+        ctx.signatureModel.setUriString(ctx.config.getEnrollmentOnboardingServiceUrl() + "/api/onboarding/start");
+        ctx.signatureModel.setResourceId("/api/onboarding/start");
+
+        new AuthAndEncryptStep().execute(stepLogger, ctx.signatureModel.toMap());
+        assertTrue(stepLogger.getResult().success());
+        assertEquals(200, stepLogger.getResponse().statusCode());
+
+        final EciesEncryptedResponse responseOK = (EciesEncryptedResponse) stepLogger.getResponse().responseObject();
+        assertNotNull(responseOK.getEncryptedData());
+        assertNotNull(responseOK.getMac());
+
+        final OnboardingStartResponse response = stepLogger.getItems().stream()
+                .filter(item -> "Decrypted Response".equals(item.name()))
+                .map(item -> item.object().toString())
+                .map(item -> read(ctx.objectMapper, item, new TypeReference<ObjectResponse<OnboardingStartResponse>>() {}))
+                .map(ObjectResponse::getResponseObject)
+                .findAny()
+                .orElseThrow(() -> AssertionFailureBuilder.assertionFailure().message("Response was not successfully decrypted").build());
+
+        final String processId = response.processId();
+        final OnboardingStatus onboardingStatus = response.onboardingStatus();
+
+        assertNotNull(processId);
+        assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, onboardingStatus);
+        assertEquals(ActivationType.ACTIVATION_ALREADY_EXISTS, response.activationType());
+        return response;
     }
 
     private static OnboardingStartResponse startOnboarding(final TestContext ctx, final String clientId, final String processType) throws Exception {
@@ -919,11 +1138,17 @@ public class PowerAuthIdentityVerificationShared {
         return otpCode;
     }
 
+    /**
+     * Initializes the identity verification.
+     * <p>
+     * It is recommended to use {@link #checkFlags(String, TestContext, List)} to verify flags before and after the initialization, as shown in {@link #initIdentityVerificationAndCheckFlags(TestContext, String, String)}.
+     *
+     * @param ctx The test context containing configuration and models.
+     * @param activationId The activation ID for the identity verification process.
+     * @param processId The process ID for the identity verification process.
+     * @throws Exception If an error occurs during the initialization request.
+     */
     private static void initIdentityVerification(final TestContext ctx, final String activationId, final String processId) throws Exception {
-        // Check activation flags
-        final ListActivationFlagsResponse flagResponse = ctx.powerAuthClient.listActivationFlags(activationId);
-        assertEquals(Collections.singletonList("VERIFICATION_PENDING"), flagResponse.getActivationFlags());
-
         // Initialize identity verification request
         IdentityVerificationInitRequest initRequest = new IdentityVerificationInitRequest();
         initRequest.setProcessId(processId);
@@ -935,10 +1160,11 @@ public class PowerAuthIdentityVerificationShared {
         new VerifyAuthenticationStep().execute(stepLogger, ctx.signatureModel.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
+    }
 
-        // Check activation flags
-        ListActivationFlagsResponse flagResponse2 = ctx.powerAuthClient.listActivationFlags(activationId);
-        assertEquals(Collections.singletonList("VERIFICATION_IN_PROGRESS"), flagResponse2.getActivationFlags());
+    private static void checkFlags(final String activationId, final TestContext ctx, final List<String> expectedFlags) throws PowerAuthClientException {
+        final ListActivationFlagsResponse flagResponse = ctx.powerAuthClient.listActivationFlags(activationId);
+        assertEquals(expectedFlags, flagResponse.getActivationFlags());
     }
 
     private static void approveConsent(final TestContext ctx, final String processId) throws Exception {
@@ -1288,6 +1514,12 @@ public class PowerAuthIdentityVerificationShared {
         assertTrue(flagResponse3.getActivationFlags().isEmpty());
     }
 
+    private static void assertActivationActive(final TestContext ctx, final String activationId) throws Exception {
+        final GetActivationStatusResponse activationStatus = ctx.powerAuthClient.getActivationStatus(activationId);
+        assertEquals(ActivationStatus.ACTIVE, activationStatus.getActivationStatus());
+        assertTrue(activationStatus.getActivationFlags().isEmpty());
+    }
+
     private static void verifyProcessNotFinished(final TestContext ctx, final String processId) throws Exception {
         final OnboardingStatus status = checkProcessStatus(ctx, processId);
         assertNotEquals(OnboardingStatus.FINISHED, status, "Process must NOT be finished");
@@ -1361,6 +1593,7 @@ public class PowerAuthIdentityVerificationShared {
     private static class TestProcessContext {
         private String activationId;
         private String processId;
+        private String clientId;
     }
 
     private static <T> T read(final ObjectMapper objectMapper, final String source, final TypeReference<T> type) {
