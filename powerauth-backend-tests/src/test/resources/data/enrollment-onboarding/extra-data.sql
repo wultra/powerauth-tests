@@ -8,5 +8,5 @@ INSERT INTO es_onboarding_process_configuration (id, process_type, config) VALUE
     -- activationType CODE, without OTPs, without temp activation, without approval
     (3, 'onboardingSimple', '{"enabled":true,"activationType":"CODE","otpForIdentification":false,"otpForIdentityVerification":false,"otpResendPeriodSeconds":30,"verifyPresenceWithOtp":false,"documents":{"totalRequiredDocumentsCount":2,"groups":[{"requiredDocumentsCount":1,"items":[{"type":"ID_CARD","sideCount":2}]},{"requiredDocumentsCount":1,"items":[{"type":"PASSPORT","sideCount":1},{"type":"DRIVING_LICENSE","sideCount":1}]}]}}'),
 
-    -- re-KYX with existing activation
+    -- re-KYC with existing activation
     (4, 're-kyc', '{"enabled":true,"activationType":"IDENTITY","existingActivation":true,"existingActivationFlag":"RE_KYC_IN_PROGRESS","invalidateExistingActivationOnFailure":false,"otpForIdentification":false,"otpForIdentityVerification":false,"otpResendPeriodSeconds":30,"verifyPresenceWithOtp":false,"documents":{"totalRequiredDocumentsCount":2,"groups":[{"requiredDocumentsCount":1,"items":[{"type":"ID_CARD","sideCount":2}]},{"requiredDocumentsCount":1,"items":[{"type":"PASSPORT","sideCount":1},{"type":"DRIVING_LICENSE","sideCount":1}]}]}}');
