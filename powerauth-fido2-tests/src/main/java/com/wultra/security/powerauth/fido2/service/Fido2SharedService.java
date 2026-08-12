@@ -18,7 +18,6 @@
 
 package com.wultra.security.powerauth.fido2.service;
 
-import com.webauthn4j.data.AuthenticatorTransport;
 import com.webauthn4j.data.PublicKeyCredentialType;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.Application;
@@ -74,10 +73,7 @@ public class Fido2SharedService {
      * @return Credential Descriptor.
      */
     public static CredentialDescriptor toCredentialDescriptor(final Credential credential) {
-        final List<AuthenticatorTransport> transports = credential.getTransports().stream()
-                .map(AuthenticatorTransport::create)
-                .toList();
-        return new CredentialDescriptor(PublicKeyCredentialType.create(credential.getType()), credential.getCredentialId(), transports);
+        return new CredentialDescriptor(PublicKeyCredentialType.create(credential.getType()), credential.getCredentialId(), credential.getTransports());
     }
 
 }
