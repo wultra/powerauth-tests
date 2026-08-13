@@ -158,6 +158,11 @@ class PowerAuthIdentityVerificationTest {
     }
 
     @Test
+    void testSuccessfulReKycWithOnboardingActivation() throws Exception {
+        PowerAuthIdentityVerificationShared.testSuccessfulReKycWithOnboardingActivation(ctx);
+    }
+
+    @Test
     void testFailedReKycWithExistingActivation() throws Exception {
         PowerAuthIdentityVerificationShared.testFailedReKycWithExistingActivation(ctx);
     }

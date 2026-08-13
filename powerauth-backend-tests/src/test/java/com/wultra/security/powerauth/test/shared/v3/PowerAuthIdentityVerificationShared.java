@@ -107,6 +107,43 @@ public class PowerAuthIdentityVerificationShared {
         ctx.powerAuthClient.removeActivation(activationId, "test");
     }
 
+    public static void testSuccessfulReKycWithOnboardingActivation(final TestContext ctx) throws Exception {
+        // Complete an onboarding process first and retain its activation for the following re-KYC process.
+        final TestProcessContext onboardingContext = prepareActivation(ctx);
+        final String activationId = onboardingContext.activationId;
+
+        approveConsent(ctx, onboardingContext.processId);
+        initIdentityVerificationAndCheckFlags(ctx, activationId, onboardingContext.processId);
+        processDocumentsSynchronous(onboardingContext, ctx);
+        initPresenceCheck(ctx, onboardingContext.processId);
+        submitPresenceCheck(ctx, onboardingContext.processId);
+        if (!ctx.config.isSkipResultVerification()) {
+            verifyStatusBeforeOtp(ctx);
+            verifyOtpCheckSuccessful(ctx, onboardingContext.processId);
+            verifyProcessFinished(ctx, onboardingContext.processId, activationId);
+        }
+
+        // Start a separate re-KYC process for the activation created by onboarding.
+        final OnboardingStartResponse reKycStartResponse = startReKycOnboarding(ctx, onboardingContext.clientId);
+        assertEquals(ActivationType.ACTIVATION_ALREADY_EXISTS, reKycStartResponse.activationType());
+
+        final TestProcessContext reKycContext = new TestProcessContext();
+        reKycContext.activationId = activationId;
+        reKycContext.processId = reKycStartResponse.processId();
+
+        createToken(ctx);
+        checkFlags(activationId, ctx, List.of());
+        initIdentityVerification(ctx, activationId, reKycContext.processId);
+        checkFlags(activationId, ctx, List.of("RE_KYC_IN_PROGRESS"));
+        processDocumentsSynchronous(reKycContext, ctx);
+        initPresenceCheck(ctx, reKycContext.processId);
+        submitPresenceCheck(ctx, reKycContext.processId);
+        verifyProcessFinished(ctx, reKycContext.processId, activationId);
+        assertActivationActive(ctx, activationId);
+
+        ctx.powerAuthClient.removeActivation(activationId, "test");
+    }
+
     public static void testFailedReKycWithExistingActivation(final TestContext ctx) throws Exception {
         final TestProcessContext existingActivationContext = prepareExistingActivation(ctx);
         final String activationId = existingActivationContext.activationId;
@@ -960,7 +997,7 @@ public class PowerAuthIdentityVerificationShared {
     }
 
     private static OnboardingStartResponse startReKycOnboarding(final TestContext ctx, final String clientId) throws Exception {
-        final ObjectStepLogger stepLogger = ctx.stepLogger;
+        final ObjectStepLogger stepLogger = new ObjectStepLogger(System.out);
         final Map<String, Object> identification = Map.of(
                 "clientNumber", clientId != null ? clientId : generateRandomClientId(),
                 "birthDate", "1970-03-21"
