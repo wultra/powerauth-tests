@@ -109,19 +109,16 @@ public class PowerAuthIdentityVerificationShared {
 
     public static void testSuccessfulReKycWithOnboardingActivation(final TestContext ctx) throws Exception {
         // Complete an onboarding process first and retain its activation for the following re-KYC process.
-        final TestProcessContext onboardingContext = prepareActivation(ctx);
+        final TestProcessContext onboardingContext = prepareOnboardingSimpleActivation(ctx);
         final String activationId = onboardingContext.activationId;
 
-        approveConsent(ctx, onboardingContext.processId);
-        initIdentityVerificationAndCheckFlags(ctx, activationId, onboardingContext.processId);
-        processDocumentsSynchronous(onboardingContext, ctx);
+        assertEquals(OnboardingStatus.ACTIVATION_IN_PROGRESS, checkProcessStatus(ctx, onboardingContext.processId));
+        initIdentityVerification(ctx, activationId, onboardingContext.processId);
+        processDocumentsV2(onboardingContext, ctx);
         initPresenceCheck(ctx, onboardingContext.processId);
+        assertEquals(OnboardingStatus.VERIFICATION_IN_PROGRESS, checkProcessStatus(ctx, onboardingContext.processId));
         submitPresenceCheck(ctx, onboardingContext.processId);
-        if (!ctx.config.isSkipResultVerification()) {
-            verifyStatusBeforeOtp(ctx);
-            verifyOtpCheckSuccessful(ctx, onboardingContext.processId);
-            verifyProcessFinished(ctx, onboardingContext.processId, activationId);
-        }
+        verifyProcessFinished(ctx, onboardingContext.processId, activationId);
 
         // Start a separate re-KYC process for the activation created by onboarding.
         final OnboardingStartResponse reKycStartResponse = startReKycOnboarding(ctx, onboardingContext.clientId);
@@ -965,6 +962,19 @@ public class PowerAuthIdentityVerificationShared {
         final TestProcessContext testContext = new TestProcessContext();
         testContext.activationId = activationId;
         testContext.processId = processId;
+        testContext.clientId = clientId;
+        return testContext;
+    }
+
+    private static TestProcessContext prepareOnboardingSimpleActivation(final TestContext ctx) throws Exception {
+        final String clientId = generateRandomClientId();
+        final OnboardingStartResponse onboardingStartResponse = startOnboarding(ctx, clientId, "onboardingSimple");
+        final String activationId = finishActivation(ctx, onboardingStartResponse.activationCode());
+        createToken(ctx);
+
+        final TestProcessContext testContext = new TestProcessContext();
+        testContext.activationId = activationId;
+        testContext.processId = onboardingStartResponse.processId();
         testContext.clientId = clientId;
         return testContext;
     }
