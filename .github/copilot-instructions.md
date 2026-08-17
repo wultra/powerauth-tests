@@ -88,6 +88,64 @@ Liquibase is opt-in: enable with the `liquibase` build profile / `LIQUIBASE_ENAB
   the header of surrounding files in the module you edit.
 - `.run/` holds IntelliJ run configurations for the test server and FIDO2 app.
 
+## Changelog
+
+`CHANGELOG.md` lives at the repository root. Update it before creating a pull request when a change
+has a user-visible impact.
+
+### Format
+
+Strictly follow [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.1.0/) and
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html):
+
+```markdown
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Added a new test scenario [(#N)](https://github.com/wultra/powerauth-tests/issues/N)
+
+## [1.2.3] - 2025-03-01
+
+### Fixed
+
+- Fixed a human-readable issue description [(#N)](https://github.com/wultra/powerauth-tests/issues/N)
+
+[unreleased]: https://github.com/wultra/powerauth-tests/compare/1.2.3...HEAD
+[1.2.3]: https://github.com/wultra/powerauth-tests/compare/1.2.2...1.2.3
+```
+
+Use only the change-type subsections that apply:
+
+- `Added` — new features
+- `Changed` — changes in existing functionality
+- `Deprecated` — soon-to-be removed features
+- `Removed` — removed features
+- `Fixed` — bug fixes
+- `Security` — security vulnerability fixes
+
+Rules:
+
+- Add new entries under `## [Unreleased]`.
+- Start each entry with a verb and use a human-readable description rather than a raw commit message.
+- Link each entry to the issue using
+  `[(#N)](https://github.com/wultra/powerauth-tests/issues/N)`, not to the pull request.
+- On release, rename `## [Unreleased]` to `## [x.y.z] - YYYY-MM-DD`, add a new empty
+  `## [Unreleased]` above it, update the `[unreleased]` compare link, and add the released version's
+  compare link.
+- Add entries for new or changed user-facing documentation, such as API references, configuration,
+  deployment, migration, or feature documentation.
+- Skip entries for pure CI/tooling changes, internal documentation, code comments, Javadoc, minor
+  wording fixes, typo fixes, broken-link fixes, and incomplete documentation. Add an entry when a
+  documentation correction fixes a materially incorrect user instruction.
+
 ## CI
 
 - `.github/workflows/maven-test.yml` — unit-level build on push/PR to `develop`/`master`/`releases/**`
