@@ -1,5 +1,5 @@
 ---
-name: Build and publish docker image Fido2 Demo
+name: Build and publish docker image Fido2 Tests
 
 on:
   workflow_dispatch:
