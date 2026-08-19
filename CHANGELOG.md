@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Set Hibernate DDL auto to `none` in `powerauth-test-server`, removing the `POWERAUTH_TEST_SERVER_JPA_DDL_AUTO` env variable override ([#917](https://github.com/wultra/powerauth-tests/issues/917))
+
 ## 2.2.0 - 2026-07-23
 
 ### Added
