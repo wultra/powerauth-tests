@@ -18,7 +18,6 @@
 
 package com.wultra.security.powerauth.fido2.controller.response;
 
-import com.webauthn4j.data.AuthenticatorTransport;
 import com.webauthn4j.data.PublicKeyCredentialType;
 
 import java.util.List;
@@ -31,5 +30,5 @@ import java.util.List;
 public record CredentialDescriptor(
         PublicKeyCredentialType type,
         byte[] id,
-        List<AuthenticatorTransport> transports
+        List<String> transports
 ) {}

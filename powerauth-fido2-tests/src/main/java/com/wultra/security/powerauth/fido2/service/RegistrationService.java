@@ -18,7 +18,6 @@
 
 package com.wultra.security.powerauth.fido2.service;
 
-import com.webauthn4j.data.PublicKeyCredentialParameters;
 import com.webauthn4j.data.PublicKeyCredentialRpEntity;
 import com.webauthn4j.data.PublicKeyCredentialType;
 import com.webauthn4j.data.PublicKeyCredentialUserEntity;
@@ -79,7 +78,7 @@ public class RegistrationService {
                 .user(new PublicKeyCredentialUserEntity(userId.getBytes(), username, userDisplayName))
                 .challenge(challengeResponse.getChallenge())
                 .pubKeyCredParams(List.of(
-                        new PublicKeyCredentialParameters(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256)
+                        new RegistrationOptionsResponse.PubKeyCredParam(PublicKeyCredentialType.PUBLIC_KEY, COSEAlgorithmIdentifier.ES256.getValue())
                 ))
                 .timeout(webAuthNConfig.getTimeout().toMillis())
                 .excludeCredentials(excludeCredentials)

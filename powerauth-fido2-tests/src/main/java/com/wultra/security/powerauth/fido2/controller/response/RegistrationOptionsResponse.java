@@ -18,8 +18,8 @@
 
 package com.wultra.security.powerauth.fido2.controller.response;
 
-import com.webauthn4j.data.PublicKeyCredentialParameters;
 import com.webauthn4j.data.PublicKeyCredentialRpEntity;
+import com.webauthn4j.data.PublicKeyCredentialType;
 import com.webauthn4j.data.PublicKeyCredentialUserEntity;
 import lombok.Builder;
 
@@ -35,7 +35,17 @@ public record RegistrationOptionsResponse(
     PublicKeyCredentialRpEntity rp,
     PublicKeyCredentialUserEntity user,
     String challenge,
-    List<PublicKeyCredentialParameters> pubKeyCredParams,
+    List<PubKeyCredParam> pubKeyCredParams,
     Long timeout,
     List<CredentialDescriptor> excludeCredentials
-) {}
+) {
+
+    /**
+     * Supported public key credential parameter.
+     *
+     * @param type Credential type, e.g. {@code public-key}.
+     * @param alg COSE algorithm identifier, e.g. {@code -7} for ES256.
+     */
+    public record PubKeyCredParam(PublicKeyCredentialType type, long alg) {}
+
+}
