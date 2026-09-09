@@ -85,7 +85,7 @@ public class PowerAuthActivationRenameShared {
         assertEquals(400, stepLogger.getResponse().statusCode());
     }
 
-    public static void renameActivationWeakSignatureTypeTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
+    public static void renameActivationWeakAuthenticationTypeTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
         signatureModel.setResourceId(RESOURCE_ID);
         signatureModel.setUriString(config.getPowerAuthIntegrationUrl() + RENAME_PATH);
         signatureModel.setData(renameRequestData(config, "Renamed activation with weak signature"));

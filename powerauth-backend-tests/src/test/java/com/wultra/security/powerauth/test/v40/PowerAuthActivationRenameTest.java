@@ -89,8 +89,8 @@ class PowerAuthActivationRenameTest {
     }
 
     @Test
-    void renameActivationWeakSignatureTypeTest() throws Exception {
-        PowerAuthActivationRenameShared.renameActivationWeakSignatureTypeTest(config, signatureModel, stepLogger);
+    void renameActivationWeakAuthenticationTypeTest() throws Exception {
+        PowerAuthActivationRenameShared.renameActivationWeakAuthenticationTypeTest(config, signatureModel, stepLogger);
     }
 
 }
