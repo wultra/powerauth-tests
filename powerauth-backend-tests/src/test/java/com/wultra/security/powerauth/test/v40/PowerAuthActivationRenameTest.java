@@ -84,6 +84,11 @@ class PowerAuthActivationRenameTest {
     }
 
     @Test
+    void renameActivationEmptyNameTest() throws Exception {
+        PowerAuthActivationRenameShared.renameActivationEmptyNameTest(config, signatureModel, stepLogger);
+    }
+
+    @Test
     void renameActivationWeakSignatureTypeTest() throws Exception {
         PowerAuthActivationRenameShared.renameActivationWeakSignatureTypeTest(config, signatureModel, stepLogger);
     }

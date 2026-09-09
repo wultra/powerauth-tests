@@ -57,7 +57,7 @@ public class PowerAuthActivationRenameShared {
         assertNotNull(responseOK.getEncryptedData());
         assertNotNull(responseOK.getMac());
 
-        final JsonNode response = config.getObjectMapper().readTree((String) fetchDecryptedResponse(stepLogger));
+        final JsonNode response = config.getObjectMapper().readTree(fetchDecryptedResponse(stepLogger).toString());
         assertEquals("OK", response.get("status").asText());
         final JsonNode responseObject = response.get("responseObject");
         assertEquals(config.getActivationId(version), responseObject.get("activationId").asText());
@@ -73,6 +73,16 @@ public class PowerAuthActivationRenameShared {
         new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertFalse(stepLogger.getResult().success());
         assertEquals(401, stepLogger.getResponse().statusCode());
+    }
+
+    public static void renameActivationEmptyNameTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
+        signatureModel.setResourceId(RESOURCE_ID);
+        signatureModel.setUriString(config.getPowerAuthIntegrationUrl() + RENAME_PATH);
+        signatureModel.setData(renameRequestData(config, ""));
+
+        new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
+        assertFalse(stepLogger.getResult().success());
+        assertEquals(400, stepLogger.getResponse().statusCode());
     }
 
     public static void renameActivationWeakSignatureTypeTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
