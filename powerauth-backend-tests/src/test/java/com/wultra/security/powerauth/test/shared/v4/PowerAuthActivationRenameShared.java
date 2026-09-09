@@ -82,7 +82,7 @@ public class PowerAuthActivationRenameShared {
 
         new AuthAndEncryptStep().execute(stepLogger, signatureModel.toMap());
         assertFalse(stepLogger.getResult().success());
-        assertEquals(401, stepLogger.getResponse().statusCode());
+        assertEquals(400, stepLogger.getResponse().statusCode());
     }
 
     public static void renameActivationWeakAuthenticationTypeTest(PowerAuthTestConfiguration config, VerifyAuthenticationStepModel signatureModel, ObjectStepLogger stepLogger) throws Exception {
