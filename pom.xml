@@ -60,7 +60,6 @@
 
         <maven.deploy.skip>true</maven.deploy.skip>
         <skipPublishing>true</skipPublishing>
-        <cyclonedx-maven-plugin.version>2.9.3</cyclonedx-maven-plugin.version>
     </properties>
 
     <modules>
@@ -179,7 +178,6 @@
             <plugin>
                 <groupId>org.cyclonedx</groupId>
                 <artifactId>cyclonedx-maven-plugin</artifactId>
-                <version>${cyclonedx-maven-plugin.version}</version>
                 <configuration>
                     <skipNotDeployed>false</skipNotDeployed>
                 </configuration>
