@@ -266,13 +266,10 @@ public class PowerAuthVaultUnlockShared {
         final PublicKey ecServerPublicKey = KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, ecServerKeyBytes);
         assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P384, requestBytes, signatureEcBytes, ecServerPublicKey));
 
-        // ML-DSA (single MLDSA_* entry): server key equals the client device key and verifies the PQC signature
-        final String pqcKeyType = serverDeviceKeys.keySet().stream()
-                .filter(keyType -> keyType.startsWith("MLDSA_"))
-                .findAny()
-                .orElse(null);
-        assertNotNull(pqcKeyType);
-        final byte[] pqcServerKeyBytes = Base64.getDecoder().decode(serverDeviceKeys.get(pqcKeyType));
+        // ML-DSA (MLDSA_65): server key equals the client device key and verifies the PQC signature
+        final String pqcServerKeyBase64 = serverDeviceKeys.get("MLDSA_65");
+        assertNotNull(pqcServerKeyBase64);
+        final byte[] pqcServerKeyBytes = Base64.getDecoder().decode(pqcServerKeyBase64);
         assertArrayEquals(Base64.getDecoder().decode(model.getResultStatus().getPqcDevicePublicKey()), pqcServerKeyBytes);
         final PublicKey pqcServerPublicKey = KEY_CONVERTOR_PQC.convertBytesToPublicKey(pqcServerKeyBytes);
         assertTrue(PQC_DSA.verify(pqcServerPublicKey, requestBytes, signaturePqcBytes));
