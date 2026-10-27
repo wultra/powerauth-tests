@@ -167,7 +167,7 @@ class PowerAuthVaultUnlockTest {
         model.setUriString(config.getPowerAuthIntegrationUrl());
         model.setData(Files.readAllBytes(Paths.get(dataFile.getAbsolutePath())));
         model.setVersion(VERSION);
-        PowerAuthVaultUnlockShared.vaultUnlockDevicePrivateKeyAndSignTest(config, model, stepLogger, VERSION);
+        PowerAuthVaultUnlockShared.vaultUnlockDevicePrivateKeyAndSignTest(powerAuthClient, config, model, stepLogger, VERSION);
     }
 
 }

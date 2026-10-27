@@ -18,6 +18,10 @@
 package com.wultra.security.powerauth.test.shared.v3;
 
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
+import com.wultra.security.powerauth.client.model.entity.Activation;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
+import com.wultra.security.powerauth.client.model.request.LookupActivationsRequest;
 import com.wultra.security.powerauth.client.model.response.v3.VerifyECDSASignatureResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
@@ -25,6 +29,9 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncrypte
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
+import com.wultra.security.powerauth.crypto.lib.model.ActivationVersion;
+import com.wultra.security.powerauth.crypto.lib.util.ECPublicKeyFingerprint;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -39,7 +46,9 @@ import tools.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -52,6 +61,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class PowerAuthVaultUnlockShared {
 
     private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
+    private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
 
     public static void vaultUnlockTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         new VaultUnlockStep().execute(stepLogger, model.toMap());
@@ -235,7 +245,7 @@ public class PowerAuthVaultUnlockShared {
         assertFalse(verifyResponse.isSignatureValid());
     }
 
-    public static void vaultUnlockDevicePrivateKeyAndSignTest(final PowerAuthTestConfiguration config, final SignAsymmetricStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+    public static void vaultUnlockDevicePrivateKeyAndSignTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final SignAsymmetricStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         new SignAsymmetricStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
@@ -254,6 +264,72 @@ public class PowerAuthVaultUnlockShared {
         final PublicKey ecDevicePublicKey = model.getResultStatus().getEcDevicePublicKeyObject();
         assertNotNull(ecDevicePublicKey);
         assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, requestBytes, signatureEcBytes, ecDevicePublicKey));
+
+        // Device public keys are opt-in: the default (no-flag) convenience calls must not return them (the v3 status response carries no map)
+        final String activationId = config.getActivationId(version);
+        final String userId = config.getUser(version);
+        final String applicationId = config.getApplicationId();
+
+        assertDeviceKeysEmpty(findActivation(powerAuthClient.getActivationListForUser(userId), activationId).getDevicePublicKeys());
+        final List<Activation> defaultLookup = powerAuthClient.lookupActivations(List.of(userId), List.of(applicationId), null, null, ActivationStatus.ACTIVE, null);
+        assertDeviceKeysEmpty(findActivation(defaultLookup, activationId).getDevicePublicKeys());
+
+        // With includeDevicePublicKeys=true the server returns the device public key on the detail and lookup surfaces
+        final GetActivationListForUserRequest listRequest = new GetActivationListForUserRequest();
+        listRequest.setUserId(userId);
+        listRequest.setIncludeDevicePublicKeys(true);
+        final Activation listActivation = findActivation(powerAuthClient.getActivationListForUser(listRequest).getActivations(), activationId);
+        assertServerDeviceKeyV3(listActivation.getDevicePublicKeys(), config, model, requestBytes, signatureEcBytes);
+
+        // The activation fingerprint reported by the status must be reproducible from the returned device key
+        final String expectedFingerprint = powerAuthClient.getActivationStatus(activationId).getDevicePublicKeyFingerprint();
+        assertDeviceKeyFingerprintV3(listActivation.getDevicePublicKeys(), config, model, activationId, expectedFingerprint);
+        final LookupActivationsRequest lookupRequest = new LookupActivationsRequest();
+        lookupRequest.setUserIds(List.of(userId));
+        lookupRequest.setApplicationIds(List.of(applicationId));
+        lookupRequest.setActivationStatus(ActivationStatus.ACTIVE);
+        lookupRequest.setIncludeDevicePublicKeys(true);
+        final Activation lookupActivation = findActivation(powerAuthClient.lookupActivations(lookupRequest).getActivations(), activationId);
+        assertServerDeviceKeyV3(lookupActivation.getDevicePublicKeys(), config, model, requestBytes, signatureEcBytes);
+        assertDeviceKeyFingerprintV3(lookupActivation.getDevicePublicKeys(), config, model, activationId, expectedFingerprint);
+
+        // Negative check: a different device public key must not verify the signature
+        final PublicKey wrongEcPublicKey = KEY_GENERATOR.generateKeyPair(EcCurve.P256).getPublic();
+        assertFalse(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, requestBytes, signatureEcBytes, wrongEcPublicKey));
+    }
+
+    private static void assertDeviceKeysEmpty(final Map<String, String> serverDeviceKeys) {
+        assertTrue(serverDeviceKeys == null || serverDeviceKeys.isEmpty());
+    }
+
+    private static void assertServerDeviceKeyV3(final Map<String, String> serverDeviceKeys, final PowerAuthTestConfiguration config, final SignAsymmetricStepModel model, final byte[] requestBytes, final byte[] signatureEcBytes) throws Exception {
+        assertNotNull(serverDeviceKeys);
+        assertEquals(1, serverDeviceKeys.size());
+
+        final String ecServerKeyBase64 = serverDeviceKeys.get("ECDSA_P256");
+        assertNotNull(ecServerKeyBase64);
+        final byte[] ecServerKeyBytes = Base64.getDecoder().decode(ecServerKeyBase64);
+        assertArrayEquals(Base64.getDecoder().decode(model.getResultStatus().getEcDevicePublicKey()), ecServerKeyBytes);
+        final PublicKey ecServerPublicKey = config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, ecServerKeyBytes);
+        assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, requestBytes, signatureEcBytes, ecServerPublicKey));
+    }
+
+    private static void assertDeviceKeyFingerprintV3(final Map<String, String> serverDeviceKeys, final PowerAuthTestConfiguration config, final SignAsymmetricStepModel model, final String activationId, final String expectedFingerprint) throws Exception {
+        assertNotNull(expectedFingerprint);
+        final ECPublicKey ecDevicePublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(serverDeviceKeys.get("ECDSA_P256")));
+        // The server public key is not part of the activation API, it is taken from the client activation state
+        final ECPublicKey ecServerPublicKey = (ECPublicKey) model.getResultStatus().getEcServerPublicKeyObject();
+
+        assertEquals(expectedFingerprint, ECPublicKeyFingerprint.compute(ecDevicePublicKey, ecServerPublicKey, activationId, ActivationVersion.VERSION_3));
+    }
+
+    private static Activation findActivation(final List<Activation> activations, final String activationId) {
+        final Activation activation = activations.stream()
+                .filter(item -> activationId.equals(item.getActivationId()))
+                .findAny()
+                .orElse(null);
+        assertNotNull(activation);
+        return activation;
     }
 
     private static PrivateKey obtainDevicePrivateKeyUsingVaultUnlock(final ObjectStepLogger stepLogger, final VaultUnlockStepModel model, final PowerAuthTestConfiguration config) throws Exception {
