@@ -20,12 +20,16 @@ package com.wultra.security.powerauth.test.shared.v4;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
+import com.wultra.security.powerauth.client.model.request.LookupActivationsRequest;
+import com.wultra.security.powerauth.client.model.request.v4.GetActivationStatusRequest;
 import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.KeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsa;
@@ -62,6 +66,7 @@ public class PowerAuthVaultUnlockShared {
     private static final KeyConvertor KEY_CONVERTOR_EC = new KeyConvertor();
     private static final PqcDsaKeyConvertor KEY_CONVERTOR_PQC = new MlDsaKeyConvertor();
     private static final PqcDsa PQC_DSA = new MlDsa();
+    private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
 
     public static void vaultUnlockTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         new VaultUnlockStep().execute(stepLogger, model.toMap());
@@ -239,19 +244,59 @@ public class PowerAuthVaultUnlockShared {
         final PublicKey pqcDevicePublicKey = KEY_CONVERTOR_PQC.convertBytesToPublicKey(pqcDevicePublicKeyBytes);
         assertTrue(PQC_DSA.verify(pqcDevicePublicKey, requestBytes, signaturePqcBytes));
 
-        // Verify the server-returned device public keys across the status, detail and lookup surfaces
+        // Device public keys are opt-in: the default (no-flag) convenience calls must not return them
         final String activationId = config.getActivationId(version);
         final String userId = config.getUser(version);
+        final String applicationId = config.getApplicationId();
 
-        final GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatusWithoutBlob(activationId);
-        assertServerDeviceKeysV4(statusResponse.getDevicePublicKeys(), model, requestBytes, signatureEcBytes, signaturePqcBytes);
+        assertDeviceKeysEmpty(powerAuthClient.getActivationStatusWithoutBlob(activationId).getDevicePublicKeys());
+        assertDeviceKeysEmpty(findActivation(powerAuthClient.getActivationListForUser(userId), activationId).getDevicePublicKeys());
+        final List<Activation> defaultLookup = powerAuthClient.lookupActivations(List.of(userId), List.of(applicationId), null, null, ActivationStatus.ACTIVE, null);
+        assertDeviceKeysEmpty(findActivation(defaultLookup, activationId).getDevicePublicKeys());
 
-        final Activation detailActivation = findActivation(powerAuthClient.getActivationListForUser(userId), activationId);
-        assertServerDeviceKeysV4(detailActivation.getDevicePublicKeys(), model, requestBytes, signatureEcBytes, signaturePqcBytes);
+        // With includeDevicePublicKeys=true the server returns the device public keys on all three surfaces.
+        // On the status surface the keys must be returned regardless of whether the status blob is requested.
+        final GetActivationStatusRequest statusRequestWithBlob = new GetActivationStatusRequest();
+        statusRequestWithBlob.setActivationId(activationId);
+        statusRequestWithBlob.setIncludeStatusBlob(true);
+        statusRequestWithBlob.setIncludeDevicePublicKeys(true);
+        final GetActivationStatusResponse statusResponseWithBlob = powerAuthClient.getActivationStatus(statusRequestWithBlob);
+        assertServerDeviceKeysV4(statusResponseWithBlob.getDevicePublicKeys(), model, requestBytes, signatureEcBytes, signaturePqcBytes);
 
-        final List<Activation> lookupActivations = powerAuthClient.lookupActivations(List.of(userId), List.of(config.getApplicationId()), null, null, ActivationStatus.ACTIVE, null);
-        final Activation lookupActivation = findActivation(lookupActivations, activationId);
+        final GetActivationStatusRequest statusRequestWithoutBlob = new GetActivationStatusRequest();
+        statusRequestWithoutBlob.setActivationId(activationId);
+        statusRequestWithoutBlob.setIncludeStatusBlob(false);
+        statusRequestWithoutBlob.setIncludeDevicePublicKeys(true);
+        assertServerDeviceKeysV4(powerAuthClient.getActivationStatus(statusRequestWithoutBlob).getDevicePublicKeys(), model, requestBytes, signatureEcBytes, signaturePqcBytes);
+
+        final GetActivationListForUserRequest listRequest = new GetActivationListForUserRequest();
+        listRequest.setUserId(userId);
+        listRequest.setIncludeDevicePublicKeys(true);
+        final Activation listActivation = findActivation(powerAuthClient.getActivationListForUser(listRequest).getActivations(), activationId);
+        assertServerDeviceKeysV4(listActivation.getDevicePublicKeys(), model, requestBytes, signatureEcBytes, signaturePqcBytes);
+
+        final LookupActivationsRequest lookupRequest = new LookupActivationsRequest();
+        lookupRequest.setUserIds(List.of(userId));
+        lookupRequest.setApplicationIds(List.of(applicationId));
+        lookupRequest.setActivationStatus(ActivationStatus.ACTIVE);
+        lookupRequest.setIncludeDevicePublicKeys(true);
+        final Activation lookupActivation = findActivation(powerAuthClient.lookupActivations(lookupRequest).getActivations(), activationId);
         assertServerDeviceKeysV4(lookupActivation.getDevicePublicKeys(), model, requestBytes, signatureEcBytes, signaturePqcBytes);
+
+        // Negative check: a different device public key must not verify the signatures
+        assertServerDeviceKeysRejectWrongKeyV4(requestBytes, signatureEcBytes, signaturePqcBytes);
+    }
+
+    private static void assertDeviceKeysEmpty(final Map<String, String> serverDeviceKeys) {
+        assertTrue(serverDeviceKeys == null || serverDeviceKeys.isEmpty());
+    }
+
+    private static void assertServerDeviceKeysRejectWrongKeyV4(final byte[] requestBytes, final byte[] signatureEcBytes, final byte[] signaturePqcBytes) throws Exception {
+        final PublicKey wrongEcPublicKey = KEY_GENERATOR.generateKeyPair(EcCurve.P384).getPublic();
+        assertFalse(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P384, requestBytes, signatureEcBytes, wrongEcPublicKey));
+
+        final PublicKey wrongPqcPublicKey = PQC_DSA.generateKeyPair().getPublic();
+        assertFalse(PQC_DSA.verify(wrongPqcPublicKey, requestBytes, signaturePqcBytes));
     }
 
     private static void assertServerDeviceKeysV4(final Map<String, String> serverDeviceKeys, final SignAsymmetricStepModel model, final byte[] requestBytes, final byte[] signatureEcBytes, final byte[] signaturePqcBytes) throws Exception {

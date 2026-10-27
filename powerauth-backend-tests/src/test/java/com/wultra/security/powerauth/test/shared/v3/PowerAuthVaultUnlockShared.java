@@ -20,6 +20,8 @@ package com.wultra.security.powerauth.test.shared.v3;
 import com.wultra.security.powerauth.client.v3.PowerAuthClient;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
+import com.wultra.security.powerauth.client.model.request.LookupActivationsRequest;
 import com.wultra.security.powerauth.client.model.response.v3.VerifyECDSASignatureResponse;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.core.rest.model.base.response.ErrorResponse;
@@ -27,6 +29,7 @@ import com.wultra.security.powerauth.crypto.lib.encryptor.model.v3.EciesEncrypte
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
+import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -55,6 +58,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class PowerAuthVaultUnlockShared {
 
     private static final SignatureUtils SIGNATURE_UTILS = new SignatureUtils();
+    private static final KeyGenerator KEY_GENERATOR = new KeyGenerator();
 
     public static void vaultUnlockTest(final VaultUnlockStepModel model, final ObjectStepLogger stepLogger) throws Exception {
         new VaultUnlockStep().execute(stepLogger, model.toMap());
@@ -258,16 +262,37 @@ public class PowerAuthVaultUnlockShared {
         assertNotNull(ecDevicePublicKey);
         assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, requestBytes, signatureEcBytes, ecDevicePublicKey));
 
-        // Verify the server-returned device public key on the detail and lookup surfaces (the v3 status response carries no map)
+        // Device public keys are opt-in: the default (no-flag) convenience calls must not return them (the v3 status response carries no map)
         final String activationId = config.getActivationId(version);
         final String userId = config.getUser(version);
+        final String applicationId = config.getApplicationId();
 
-        final Activation detailActivation = findActivation(powerAuthClient.getActivationListForUser(userId), activationId);
-        assertServerDeviceKeyV3(detailActivation.getDevicePublicKeys(), config, model, requestBytes, signatureEcBytes);
+        assertDeviceKeysEmpty(findActivation(powerAuthClient.getActivationListForUser(userId), activationId).getDevicePublicKeys());
+        final List<Activation> defaultLookup = powerAuthClient.lookupActivations(List.of(userId), List.of(applicationId), null, null, ActivationStatus.ACTIVE, null);
+        assertDeviceKeysEmpty(findActivation(defaultLookup, activationId).getDevicePublicKeys());
 
-        final List<Activation> lookupActivations = powerAuthClient.lookupActivations(List.of(userId), List.of(config.getApplicationId()), null, null, ActivationStatus.ACTIVE, null);
-        final Activation lookupActivation = findActivation(lookupActivations, activationId);
+        // With includeDevicePublicKeys=true the server returns the device public key on the detail and lookup surfaces
+        final GetActivationListForUserRequest listRequest = new GetActivationListForUserRequest();
+        listRequest.setUserId(userId);
+        listRequest.setIncludeDevicePublicKeys(true);
+        final Activation listActivation = findActivation(powerAuthClient.getActivationListForUser(listRequest).getActivations(), activationId);
+        assertServerDeviceKeyV3(listActivation.getDevicePublicKeys(), config, model, requestBytes, signatureEcBytes);
+
+        final LookupActivationsRequest lookupRequest = new LookupActivationsRequest();
+        lookupRequest.setUserIds(List.of(userId));
+        lookupRequest.setApplicationIds(List.of(applicationId));
+        lookupRequest.setActivationStatus(ActivationStatus.ACTIVE);
+        lookupRequest.setIncludeDevicePublicKeys(true);
+        final Activation lookupActivation = findActivation(powerAuthClient.lookupActivations(lookupRequest).getActivations(), activationId);
         assertServerDeviceKeyV3(lookupActivation.getDevicePublicKeys(), config, model, requestBytes, signatureEcBytes);
+
+        // Negative check: a different device public key must not verify the signature
+        final PublicKey wrongEcPublicKey = KEY_GENERATOR.generateKeyPair(EcCurve.P256).getPublic();
+        assertFalse(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, requestBytes, signatureEcBytes, wrongEcPublicKey));
+    }
+
+    private static void assertDeviceKeysEmpty(final Map<String, String> serverDeviceKeys) {
+        assertTrue(serverDeviceKeys == null || serverDeviceKeys.isEmpty());
     }
 
     private static void assertServerDeviceKeyV3(final Map<String, String> serverDeviceKeys, final PowerAuthTestConfiguration config, final SignAsymmetricStepModel model, final byte[] requestBytes, final byte[] signatureEcBytes) throws Exception {
