@@ -30,6 +30,8 @@ import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
 import com.wultra.security.powerauth.crypto.lib.enums.PowerAuthCodeType;
 import com.wultra.security.powerauth.crypto.lib.generator.HashBasedCounter;
 import com.wultra.security.powerauth.crypto.lib.generator.KeyGenerator;
+import com.wultra.security.powerauth.crypto.lib.model.ActivationVersion;
+import com.wultra.security.powerauth.crypto.lib.util.ECPublicKeyFingerprint;
 import com.wultra.security.powerauth.crypto.lib.util.SignatureUtils;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
@@ -44,6 +46,7 @@ import tools.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.ECPublicKey;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
@@ -278,6 +281,9 @@ public class PowerAuthVaultUnlockShared {
         final Activation listActivation = findActivation(powerAuthClient.getActivationListForUser(listRequest).getActivations(), activationId);
         assertServerDeviceKeyV3(listActivation.getDevicePublicKeys(), config, model, requestBytes, signatureEcBytes);
 
+        // The activation fingerprint reported by the status must be reproducible from the returned device key
+        final String expectedFingerprint = powerAuthClient.getActivationStatus(activationId).getDevicePublicKeyFingerprint();
+        assertDeviceKeyFingerprintV3(listActivation.getDevicePublicKeys(), config, model, activationId, expectedFingerprint);
         final LookupActivationsRequest lookupRequest = new LookupActivationsRequest();
         lookupRequest.setUserIds(List.of(userId));
         lookupRequest.setApplicationIds(List.of(applicationId));
@@ -285,6 +291,7 @@ public class PowerAuthVaultUnlockShared {
         lookupRequest.setIncludeDevicePublicKeys(true);
         final Activation lookupActivation = findActivation(powerAuthClient.lookupActivations(lookupRequest).getActivations(), activationId);
         assertServerDeviceKeyV3(lookupActivation.getDevicePublicKeys(), config, model, requestBytes, signatureEcBytes);
+        assertDeviceKeyFingerprintV3(lookupActivation.getDevicePublicKeys(), config, model, activationId, expectedFingerprint);
 
         // Negative check: a different device public key must not verify the signature
         final PublicKey wrongEcPublicKey = KEY_GENERATOR.generateKeyPair(EcCurve.P256).getPublic();
@@ -305,6 +312,15 @@ public class PowerAuthVaultUnlockShared {
         assertArrayEquals(Base64.getDecoder().decode(model.getResultStatus().getEcDevicePublicKey()), ecServerKeyBytes);
         final PublicKey ecServerPublicKey = config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, ecServerKeyBytes);
         assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P256, requestBytes, signatureEcBytes, ecServerPublicKey));
+    }
+
+    private static void assertDeviceKeyFingerprintV3(final Map<String, String> serverDeviceKeys, final PowerAuthTestConfiguration config, final SignAsymmetricStepModel model, final String activationId, final String expectedFingerprint) throws Exception {
+        assertNotNull(expectedFingerprint);
+        final ECPublicKey ecDevicePublicKey = (ECPublicKey) config.getKeyConvertor().convertBytesToPublicKey(EcCurve.P256, Base64.getDecoder().decode(serverDeviceKeys.get("ECDSA_P256")));
+        // The server public key is not part of the activation API, it is taken from the client activation state
+        final ECPublicKey ecServerPublicKey = (ECPublicKey) model.getResultStatus().getEcServerPublicKeyObject();
+
+        assertEquals(expectedFingerprint, ECPublicKeyFingerprint.compute(ecDevicePublicKey, ecServerPublicKey, activationId, ActivationVersion.VERSION_3));
     }
 
     private static Activation findActivation(final List<Activation> activations, final String activationId) {
