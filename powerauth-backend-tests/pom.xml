@@ -406,7 +406,7 @@
                                 <!-- Fail fast with app logs instead of running tests against dead servers -->
                                 <exec executable="sh" osfamily="unix" failonerror="false" if:set="apps.not.ready" xmlns:if="ant:if">
                                     <arg value="-c"/>
-                                    <arg value="for f in ${runtime.dir}/*.log; do echo &quot;===== $f =====&quot;; tail -n 100 &quot;$f&quot;; done"/>
+                                    <arg value="for f in &quot;${runtime.dir}&quot;/*.log; do echo &quot;===== $f =====&quot;; tail -n 100 &quot;$f&quot;; done"/>
                                 </exec>
                                 <fail message="Apps did not become ready within ${health.timeout.seconds}s, see the logs above" if="apps.not.ready"/>
                             </target>
