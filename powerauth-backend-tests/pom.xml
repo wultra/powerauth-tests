@@ -396,13 +396,19 @@
                         <configuration>
                             <target>
                                 <echo>Waiting for apps to become ready... (up to ${health.timeout.seconds}s)</echo>
-                                <waitfor maxwait="${health.timeout.seconds}" maxwaitunit="second" checkevery="1" checkeveryunit="second">
+                                <waitfor maxwait="${health.timeout.seconds}" maxwaitunit="second" checkevery="1" checkeveryunit="second" timeoutproperty="apps.not.ready">
                                     <and>
                                         <http url="http://localhost:${powerauth.port}${powerauth.ctx}/"/>
                                         <http url="http://localhost:${enrollment.port}${enrollment.ctx}/"/>
                                         <http url="http://localhost:${onboarding.port}${onboarding.ctx}/"/>
                                     </and>
                                 </waitfor>
+                                <!-- Fail fast with app logs instead of running tests against dead servers -->
+                                <exec executable="sh" osfamily="unix" failonerror="false" if:set="apps.not.ready" xmlns:if="ant:if">
+                                    <arg value="-c"/>
+                                    <arg value="for f in ${runtime.dir}/*.log; do echo &quot;===== $f =====&quot;; tail -n 100 &quot;$f&quot;; done"/>
+                                </exec>
+                                <fail message="Apps did not become ready within ${health.timeout.seconds}s, see the logs above" if="apps.not.ready"/>
                             </target>
                         </configuration>
                     </execution>
