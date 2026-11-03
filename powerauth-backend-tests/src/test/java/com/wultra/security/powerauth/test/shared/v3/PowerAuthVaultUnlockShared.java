@@ -47,6 +47,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -286,7 +287,7 @@ public class PowerAuthVaultUnlockShared {
     }
 
     private static void assertDeviceKeysEmpty(final Map<String, String> serverDeviceKeys) {
-        assertTrue(serverDeviceKeys == null || serverDeviceKeys.isEmpty());
+        assertThat(serverDeviceKeys).isNullOrEmpty();
     }
 
     private static void assertServerDeviceKeyV3(final Map<String, String> serverDeviceKeys, final PowerAuthTestConfiguration config, final SignAsymmetricStepModel model, final byte[] requestBytes, final byte[] signatureEcBytes) throws Exception {
