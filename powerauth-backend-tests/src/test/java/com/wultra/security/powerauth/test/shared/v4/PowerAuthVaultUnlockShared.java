@@ -18,6 +18,12 @@
 package com.wultra.security.powerauth.test.shared.v4;
 
 import com.wultra.core.rest.model.base.response.ErrorResponse;
+import com.wultra.security.powerauth.client.model.entity.Activation;
+import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
+import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
+import com.wultra.security.powerauth.client.model.request.LookupActivationsRequest;
+import com.wultra.security.powerauth.client.model.request.v4.GetActivationStatusRequest;
+import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
 import com.wultra.security.powerauth.crypto.lib.enums.EcCurve;
@@ -42,9 +48,11 @@ import tools.jackson.databind.ObjectMapper;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.util.Base64;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -198,7 +206,7 @@ public class PowerAuthVaultUnlockShared {
         assertEquals("POWER_AUTH_SECURE_VAULT_INVALID", errorResponse.getResponseObject().getMessage());
     }
 
-    public static void vaultUnlockDevicePrivateKeyAndSignTest(final PowerAuthTestConfiguration config, final SignAsymmetricStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
+    public static void vaultUnlockDevicePrivateKeyAndSignTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final SignAsymmetricStepModel model, final ObjectStepLogger stepLogger, final PowerAuthVersion version) throws Exception {
         new SignAsymmetricStep().execute(stepLogger, model.toMap());
         assertTrue(stepLogger.getResult().success());
         assertEquals(200, stepLogger.getResponse().statusCode());
@@ -234,6 +242,72 @@ public class PowerAuthVaultUnlockShared {
         final byte[] pqcDevicePublicKeyBytes = Base64.getDecoder().decode(pqcDevicePublicKeyBase64);
         final PublicKey pqcDevicePublicKey = KEY_CONVERTOR_PQC.convertBytesToPublicKey(pqcDevicePublicKeyBytes);
         assertTrue(PQC_DSA.verify(pqcDevicePublicKey, requestBytes, signaturePqcBytes));
+
+        // Device public keys are opt-in: the default (no-flag) convenience calls must not return them
+        final String activationId = config.getActivationId(version);
+        final String userId = config.getUser(version);
+        final String applicationId = config.getApplicationId();
+
+        assertDeviceKeysEmpty(powerAuthClient.getActivationStatusWithoutBlob(activationId).getDevicePublicKeys());
+        assertDeviceKeysEmpty(findActivation(powerAuthClient.getActivationListForUser(userId), activationId).getDevicePublicKeys());
+        final List<Activation> defaultLookup = powerAuthClient.lookupActivations(List.of(userId), List.of(applicationId), null, null, ActivationStatus.ACTIVE, null);
+        assertDeviceKeysEmpty(findActivation(defaultLookup, activationId).getDevicePublicKeys());
+
+        // With includeDevicePublicKeys=true the server returns the device public keys on the status, list, and lookup surfaces
+        final GetActivationStatusRequest statusRequest = new GetActivationStatusRequest();
+        statusRequest.setActivationId(activationId);
+        statusRequest.setIncludeStatusBlob(true);
+        statusRequest.setIncludeDevicePublicKeys(true);
+        final GetActivationStatusResponse statusResponse = powerAuthClient.getActivationStatus(statusRequest);
+        assertServerDeviceKeysV4(statusResponse.getDevicePublicKeys(), model, requestBytes, signatureEcBytes, signaturePqcBytes);
+
+        final GetActivationListForUserRequest listRequest = new GetActivationListForUserRequest();
+        listRequest.setUserId(userId);
+        listRequest.setIncludeDevicePublicKeys(true);
+        final Activation listActivation = findActivation(powerAuthClient.getActivationListForUser(listRequest).getActivations(), activationId);
+        assertServerDeviceKeysV4(listActivation.getDevicePublicKeys(), model, requestBytes, signatureEcBytes, signaturePqcBytes);
+
+        final LookupActivationsRequest lookupRequest = new LookupActivationsRequest();
+        lookupRequest.setUserIds(List.of(userId));
+        lookupRequest.setApplicationIds(List.of(applicationId));
+        lookupRequest.setActivationStatus(ActivationStatus.ACTIVE);
+        lookupRequest.setIncludeDevicePublicKeys(true);
+        final Activation lookupActivation = findActivation(powerAuthClient.lookupActivations(lookupRequest).getActivations(), activationId);
+        assertServerDeviceKeysV4(lookupActivation.getDevicePublicKeys(), model, requestBytes, signatureEcBytes, signaturePqcBytes);
+    }
+
+    private static void assertDeviceKeysEmpty(final Map<String, String> serverDeviceKeys) {
+        assertThat(serverDeviceKeys).isNullOrEmpty();
+    }
+
+    private static void assertServerDeviceKeysV4(final Map<String, String> serverDeviceKeys, final SignAsymmetricStepModel model, final byte[] requestBytes, final byte[] signatureEcBytes, final byte[] signaturePqcBytes) throws Exception {
+        assertNotNull(serverDeviceKeys);
+        assertEquals(2, serverDeviceKeys.size());
+
+        // EC (ECDSA_P384): server key equals the client device key and verifies the EC signature
+        final String ecServerKeyBase64 = serverDeviceKeys.get("ECDSA_P384");
+        assertNotNull(ecServerKeyBase64);
+        final byte[] ecServerKeyBytes = Base64.getDecoder().decode(ecServerKeyBase64);
+        assertArrayEquals(Base64.getDecoder().decode(model.getResultStatus().getEcDevicePublicKey()), ecServerKeyBytes);
+        final PublicKey ecServerPublicKey = KEY_CONVERTOR_EC.convertBytesToPublicKey(EcCurve.P384, ecServerKeyBytes);
+        assertTrue(SIGNATURE_UTILS.validateECDSASignature(EcCurve.P384, requestBytes, signatureEcBytes, ecServerPublicKey));
+
+        // ML-DSA (MLDSA_65): server key equals the client device key and verifies the PQC signature
+        final String pqcServerKeyBase64 = serverDeviceKeys.get("MLDSA_65");
+        assertNotNull(pqcServerKeyBase64);
+        final byte[] pqcServerKeyBytes = Base64.getDecoder().decode(pqcServerKeyBase64);
+        assertArrayEquals(Base64.getDecoder().decode(model.getResultStatus().getPqcDevicePublicKey()), pqcServerKeyBytes);
+        final PublicKey pqcServerPublicKey = KEY_CONVERTOR_PQC.convertBytesToPublicKey(pqcServerKeyBytes);
+        assertTrue(PQC_DSA.verify(pqcServerPublicKey, requestBytes, signaturePqcBytes));
+    }
+
+    private static Activation findActivation(final List<Activation> activations, final String activationId) {
+        final Activation activation = activations.stream()
+                .filter(item -> activationId.equals(item.getActivationId()))
+                .findAny()
+                .orElse(null);
+        assertNotNull(activation);
+        return activation;
     }
 
     private static void checkAuthenticationError(ErrorResponse errorResponse) {
