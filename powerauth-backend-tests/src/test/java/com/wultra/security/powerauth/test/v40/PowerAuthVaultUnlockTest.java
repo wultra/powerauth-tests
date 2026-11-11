@@ -158,6 +158,16 @@ class PowerAuthVaultUnlockTest {
     }
 
     @Test
+    void vaultUnlockMaxFailedAttemptsTest() throws Exception {
+        PowerAuthVaultUnlockShared.vaultUnlockMaxFailedAttemptsTest(powerAuthClient, config, model, VERSION);
+    }
+
+    @Test
+    void vaultUnlockRepeatedWrongPinTest() throws Exception {
+        PowerAuthVaultUnlockShared.vaultUnlockRepeatedWrongPinTest(powerAuthClient, config, model, VERSION);
+    }
+
+    @Test
     void vaultUnlockCounterIncrementTest() throws Exception {
         PowerAuthVaultUnlockShared.vaultUnlockCounterIncrementTest(model, stepLogger, VERSION);
     }

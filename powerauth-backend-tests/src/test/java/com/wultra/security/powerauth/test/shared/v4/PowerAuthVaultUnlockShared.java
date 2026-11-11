@@ -21,8 +21,10 @@ import com.wultra.core.rest.model.base.response.ErrorResponse;
 import com.wultra.security.powerauth.client.model.entity.Activation;
 import com.wultra.security.powerauth.client.model.enumeration.ActivationStatus;
 import com.wultra.security.powerauth.client.model.request.GetActivationListForUserRequest;
+import com.wultra.security.powerauth.client.model.request.InitActivationRequest;
 import com.wultra.security.powerauth.client.model.request.LookupActivationsRequest;
 import com.wultra.security.powerauth.client.model.request.v4.GetActivationStatusRequest;
+import com.wultra.security.powerauth.client.model.response.InitActivationResponse;
 import com.wultra.security.powerauth.client.model.response.v4.GetActivationStatusResponse;
 import com.wultra.security.powerauth.client.v4.PowerAuthClient;
 import com.wultra.security.powerauth.configuration.PowerAuthTestConfiguration;
@@ -36,18 +38,24 @@ import com.wultra.security.powerauth.crypto.lib.v4.api.PqcDsaKeyConvertor;
 import com.wultra.security.powerauth.crypto.lib.v4.encryptor.model.response.AeadEncryptedResponse;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsa;
 import com.wultra.security.powerauth.crypto.lib.v4.ml.MlDsaKeyConvertor;
+import com.wultra.security.powerauth.crypto.lib.v4.model.context.SharedSecretAlgorithm;
 import com.wultra.security.powerauth.lib.cmd.consts.PowerAuthVersion;
 import com.wultra.security.powerauth.lib.cmd.logging.ObjectStepLogger;
 import com.wultra.security.powerauth.lib.cmd.steps.SignAsymmetricStep;
+import com.wultra.security.powerauth.lib.cmd.steps.PrepareActivationStep;
 import com.wultra.security.powerauth.lib.cmd.steps.VaultUnlockStep;
+import com.wultra.security.powerauth.lib.cmd.steps.model.PrepareActivationStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.SignAsymmetricStepModel;
 import com.wultra.security.powerauth.lib.cmd.steps.model.VaultUnlockStepModel;
 import com.wultra.security.powerauth.util.TestCounterUtil;
+import org.json.simple.JSONObject;
 import tools.jackson.databind.ObjectMapper;
 
+import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.security.PublicKey;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -150,6 +158,61 @@ public class PowerAuthVaultUnlockShared {
         new VaultUnlockStep().execute(stepLogger2, model.toMap());
         assertTrue(stepLogger2.getResult().success());
         assertEquals(200, stepLogger2.getResponse().statusCode());
+    }
+
+    public static void vaultUnlockMaxFailedAttemptsTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final PowerAuthVersion version) throws Exception {
+        final String activationId = createActivation(powerAuthClient, config, model, version, 3L);
+        try {
+            // Fail two attempts, the next correct attempt must still succeed and reset the counter
+            model.setPassword("1111");
+            for (int i = 0; i < 2; i++) {
+                assertVaultUnlockFails(model);
+            }
+
+            model.setPassword(config.getPassword());
+            final ObjectStepLogger stepLoggerOk = new ObjectStepLogger();
+            new VaultUnlockStep().execute(stepLoggerOk, model.toMap());
+            assertTrue(stepLoggerOk.getResult().success());
+            assertEquals(200, stepLoggerOk.getResponse().statusCode());
+
+            // Fail three attempts to reach the limit
+            model.setPassword("1111");
+            for (int i = 0; i < 3; i++) {
+                assertVaultUnlockFails(model);
+            }
+
+            assertEquals(ActivationStatus.BLOCKED, powerAuthClient.getActivationStatusWithoutBlob(activationId).getActivationStatus());
+
+            // The correct PIN must be rejected for a blocked activation
+            model.setPassword(config.getPassword());
+            assertVaultUnlockFails(model);
+        } finally {
+            powerAuthClient.removeActivation(activationId, "test");
+        }
+    }
+
+    public static void vaultUnlockRepeatedWrongPinTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final PowerAuthVersion version) throws Exception {
+        final long maxFailureCount = 3L;
+        final String activationId = createActivation(powerAuthClient, config, model, version, maxFailureCount);
+        try {
+            // Guess distinct wrong PINs, the activation must lock after maxFailureCount guesses
+            for (int i = 0; i < maxFailureCount; i++) {
+                model.setPassword(String.format("%04d", 1111 + i));
+                assertVaultUnlockFails(model);
+            }
+            assertEquals(ActivationStatus.BLOCKED, powerAuthClient.getActivationStatusWithoutBlob(activationId).getActivationStatus());
+
+            // Further guesses, including the correct PIN, must never succeed
+            for (int i = 0; i < maxFailureCount; i++) {
+                model.setPassword(String.format("%04d", 2222 + i));
+                assertVaultUnlockFails(model);
+            }
+            model.setPassword(config.getPassword());
+            assertVaultUnlockFails(model);
+            assertEquals(ActivationStatus.BLOCKED, powerAuthClient.getActivationStatusWithoutBlob(activationId).getActivationStatus());
+        } finally {
+            powerAuthClient.removeActivation(activationId, "test");
+        }
     }
 
     public static void vaultUnlockUnsupportedApplicationTest(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model) throws Exception {
@@ -274,6 +337,54 @@ public class PowerAuthVaultUnlockShared {
         lookupRequest.setIncludeDevicePublicKeys(true);
         final Activation lookupActivation = findActivation(powerAuthClient.lookupActivations(lookupRequest).getActivations(), activationId);
         assertServerDeviceKeysV4(lookupActivation.getDevicePublicKeys(), model, requestBytes, signatureEcBytes, signaturePqcBytes);
+    }
+
+    private static void assertVaultUnlockFails(final VaultUnlockStepModel model) throws Exception {
+        final ObjectStepLogger stepLogger = new ObjectStepLogger();
+        new VaultUnlockStep().execute(stepLogger, model.toMap());
+        assertFalse(stepLogger.getResult().success());
+    }
+
+    /**
+     * Create and commit a dedicated activation with the given maximum failure count and point the model to it.
+     */
+    private static String createActivation(final PowerAuthClient powerAuthClient, final PowerAuthTestConfiguration config, final VaultUnlockStepModel model, final PowerAuthVersion version, final long maxFailureCount) throws Exception {
+        final File tempStatusFile = File.createTempFile("pa_status_vault", ".json");
+        tempStatusFile.deleteOnExit();
+        final JSONObject resultStatusObject = new JSONObject();
+
+        final InitActivationRequest initRequest = new InitActivationRequest();
+        initRequest.setApplicationId(config.getApplicationId());
+        initRequest.setUserId(config.getUser(version));
+        initRequest.setMaxFailureCount(maxFailureCount);
+        final InitActivationResponse initResponse = powerAuthClient.initActivation(initRequest);
+
+        final PrepareActivationStepModel modelPrepare = new PrepareActivationStepModel();
+        modelPrepare.setActivationCode(initResponse.getActivationCode());
+        modelPrepare.setActivationName("test v" + version);
+        modelPrepare.setApplicationKey(config.getApplicationKey());
+        modelPrepare.setApplicationSecret(config.getApplicationSecret());
+        modelPrepare.setMasterPublicKeyP384(config.getMasterPublicKeyP384());
+        modelPrepare.setMasterPublicKeyMlDsa65(config.getMasterPublicKeyMlDsa65());
+        modelPrepare.setSharedSecretAlgorithm(SharedSecretAlgorithm.EC_P384_ML_L3);
+        modelPrepare.setHeaders(new HashMap<>());
+        modelPrepare.setPassword(config.getPassword());
+        modelPrepare.setStatusFileName(tempStatusFile.getAbsolutePath());
+        modelPrepare.setResultStatusObject(resultStatusObject);
+        modelPrepare.setUriString(config.getPowerAuthIntegrationUrl());
+        modelPrepare.setVersion(version);
+        modelPrepare.setDeviceInfo("backend-tests");
+
+        final ObjectStepLogger stepLoggerPrepare = new ObjectStepLogger(System.out);
+        new PrepareActivationStep().execute(stepLoggerPrepare, modelPrepare.toMap());
+        assertTrue(stepLoggerPrepare.getResult().success());
+        assertEquals(200, stepLoggerPrepare.getResponse().statusCode());
+
+        powerAuthClient.commitActivation(initResponse.getActivationId(), "test");
+
+        model.setStatusFileName(tempStatusFile.getAbsolutePath());
+        model.setResultStatusObject(resultStatusObject);
+        return initResponse.getActivationId();
     }
 
     private static void assertDeviceKeysEmpty(final Map<String, String> serverDeviceKeys) {

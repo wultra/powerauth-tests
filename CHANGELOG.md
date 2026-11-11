@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added tests for the activation rename endpoint for protocol versions 3 and 4 ([#966](https://github.com/wultra/powerauth-tests/issues/966))
 - Added tests verifying that device public keys are returned by the activation APIs only on request, for protocol versions 3 and 4 ([#975](https://github.com/wultra/powerauth-tests/issues/975))
+- Added tests verifying vault unlock max failed attempts and repeated wrong PIN handling for protocol version 4 ([#980](https://github.com/wultra/powerauth-tests/issues/980))
 
 ### Fixed
 
