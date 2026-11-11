@@ -166,7 +166,7 @@ public class PowerAuthVaultUnlockShared {
             // Fail two attempts, the next correct attempt must still succeed and reset the counter
             model.setPassword("1111");
             for (int i = 0; i < 2; i++) {
-                assertVaultUnlockFails(model);
+                assertVaultUnlockFailsWithStatus(powerAuthClient, activationId, model, ActivationStatus.ACTIVE);
             }
 
             model.setPassword(config.getPassword());
@@ -178,10 +178,9 @@ public class PowerAuthVaultUnlockShared {
             // Fail three attempts to reach the limit
             model.setPassword("1111");
             for (int i = 0; i < 3; i++) {
-                assertVaultUnlockFails(model);
+                final ActivationStatus expectedStatus = i < 2 ? ActivationStatus.ACTIVE : ActivationStatus.BLOCKED;
+                assertVaultUnlockFailsWithStatus(powerAuthClient, activationId, model, expectedStatus);
             }
-
-            assertEquals(ActivationStatus.BLOCKED, powerAuthClient.getActivationStatusWithoutBlob(activationId).getActivationStatus());
 
             // The correct PIN must be rejected for a blocked activation
             model.setPassword(config.getPassword());
@@ -198,7 +197,8 @@ public class PowerAuthVaultUnlockShared {
             // Guess distinct wrong PINs, the activation locks after maxFailureCount guesses
             for (int i = 0; i < maxFailureCount; i++) {
                 model.setPassword(String.format("%04d", 1111 + i));
-                assertVaultUnlockFails(model);
+                final ActivationStatus expectedStatus = i < maxFailureCount - 1 ? ActivationStatus.ACTIVE : ActivationStatus.BLOCKED;
+                assertVaultUnlockFailsWithStatus(powerAuthClient, activationId, model, expectedStatus);
             }
 
             // Further distinct guesses must keep failing and the activation must stay blocked
@@ -340,6 +340,11 @@ public class PowerAuthVaultUnlockShared {
         final ObjectStepLogger stepLogger = new ObjectStepLogger();
         new VaultUnlockStep().execute(stepLogger, model.toMap());
         assertFalse(stepLogger.getResult().success());
+    }
+
+    private static void assertVaultUnlockFailsWithStatus(final PowerAuthClient powerAuthClient, final String activationId, final VaultUnlockStepModel model, final ActivationStatus expectedStatus) throws Exception {
+        assertVaultUnlockFails(model);
+        assertEquals(expectedStatus, powerAuthClient.getActivationStatusWithoutBlob(activationId).getActivationStatus());
     }
 
     /**
