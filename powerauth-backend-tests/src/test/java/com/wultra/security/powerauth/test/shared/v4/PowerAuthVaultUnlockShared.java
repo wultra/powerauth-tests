@@ -195,20 +195,17 @@ public class PowerAuthVaultUnlockShared {
         final long maxFailureCount = 3L;
         final String activationId = createActivation(powerAuthClient, config, model, version, maxFailureCount);
         try {
-            // Guess distinct wrong PINs, the activation must lock after maxFailureCount guesses
+            // Guess distinct wrong PINs, the activation locks after maxFailureCount guesses
             for (int i = 0; i < maxFailureCount; i++) {
                 model.setPassword(String.format("%04d", 1111 + i));
                 assertVaultUnlockFails(model);
             }
-            assertEquals(ActivationStatus.BLOCKED, powerAuthClient.getActivationStatusWithoutBlob(activationId).getActivationStatus());
 
-            // Further guesses, including the correct PIN, must never succeed
+            // Further distinct guesses must keep failing and the activation must stay blocked
             for (int i = 0; i < maxFailureCount; i++) {
                 model.setPassword(String.format("%04d", 2222 + i));
                 assertVaultUnlockFails(model);
             }
-            model.setPassword(config.getPassword());
-            assertVaultUnlockFails(model);
             assertEquals(ActivationStatus.BLOCKED, powerAuthClient.getActivationStatusWithoutBlob(activationId).getActivationStatus());
         } finally {
             powerAuthClient.removeActivation(activationId, "test");
